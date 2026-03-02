@@ -10,6 +10,10 @@ authors = ["Ralf Anton Beier"]
 
 *This is part 1 of a series on building a verified WebAssembly pipeline for safety-critical embedded systems.*
 
+{% insight() %}
+Your development teams can use modern, language-neutral composition tools — typed interfaces, isolation, versioning — without paying a runtime penalty on the target device. The same component works from prototype through production-qualified firmware. The build pipeline erases the abstraction overhead; what ships is a flat binary indistinguishable from hand-written code.
+{% end %}
+
 ## What the Component Model gives you
 
 The WebAssembly Component Model solves a real problem: portable, language-neutral composition with strong isolation guarantees. You can build a component in Rust, another in C, compose them through typed interfaces, and the result is a self-describing binary that any compliant runtime can execute.
@@ -87,5 +91,7 @@ This post sets up the argument. The rest of the series goes deep on each piece:
 5. **[synth + kiln: from Wasm to firmware](/blog/synth-kiln-wasm-to-firmware/)** — native transcoding, the runtime layer, and the landscape of Wasm-to-native tools
 6. **[Proving the pipeline](/blog/proving-the-pipeline/)** — formal verification of each transformation, and what it takes to qualify for ISO 26262 and DO-178C
 7. **[The toolchain: hermetic builds and supply chain attestation](/blog/hermetic-toolchain/)** — Bazel, Nix, sigil, and reproducible builds for a qualified pipeline
+8. **[temper: automated governance](/blog/temper-governance/)** — enforcing signed commits, branch protection, and CI attestation across every repository
+9. **[thrum: autonomous AI-driven development](/blog/thrum-orchestrator/)** — AI agents, formal verification gates, and the development loop that builds itself
 
 If you are working in this space — embedded Wasm, safety-critical systems, Component Model tooling — we would like to hear from you. Everything is at [github.com/pulseengine](https://github.com/pulseengine).

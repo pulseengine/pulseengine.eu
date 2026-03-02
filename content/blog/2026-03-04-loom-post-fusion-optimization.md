@@ -10,6 +10,10 @@ authors = ["Ralf Anton Beier"]
 
 *This is part 4 of a series on building a verified WebAssembly pipeline for safety-critical embedded systems. [Part 1](/blog/zero-cost-component-model/) introduces the approach. [Part 3](/blog/meld-component-fusion/) covers where meld is heading with cross-component fusion.*
 
+{% insight() %}
+Every optimization loom applies can be mathematically verified. When a certification authority asks "how do you know your optimizer did not introduce a defect?", the answer is concrete: Z3 proved equivalence, function by function. This shifts optimization from a trust-based activity to an evidence-based one.
+{% end %}
+
 ## What loom does
 
 After meld fuses a WebAssembly component into a flat core module, the result is structurally simple but not yet optimized. The adapter trampolines are gone, the indirect dispatch tables are collapsed, the import chains are resolved — but the code still carries artifacts of its multi-module origin. Dead functions from adapter generation, redundant memory operations from same-memory copies, trivial forwarding calls that used to cross component boundaries.

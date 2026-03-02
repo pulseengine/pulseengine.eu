@@ -10,6 +10,10 @@ authors = ["Ralf Anton Beier"]
 
 *This is part 5 of a series on building a verified WebAssembly pipeline for safety-critical embedded systems. [Part 1](/blog/zero-cost-component-model/) introduces the approach. [Part 4](/blog/loom-post-fusion-optimization/) covers post-fusion optimization.*
 
+{% insight() %}
+No Wasm runtime on the device. The firmware image is native code — same footprint, same performance as hand-written C — but built from portable, language-neutral components. Teams write in Rust, C, or any Wasm-targeting language; the target hardware sees only optimized native instructions.
+{% end %}
+
 ## The last mile
 
 After meld fuses and loom optimizes, the result is a flat, optimized core Wasm module. For cloud and server targets, this is where the pipeline ends — hand the module to wasmtime or another runtime. For embedded targets, there is one more step: the Wasm module must become native code that runs directly on the hardware.

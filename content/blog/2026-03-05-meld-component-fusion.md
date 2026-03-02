@@ -10,6 +10,10 @@ authors = ["Ralf Anton Beier"]
 
 *This is part 3 of a series on building a verified WebAssembly pipeline for safety-critical embedded systems. [Part 1](/blog/zero-cost-component-model/) introduces the approach. [Part 2](/blog/meld-v0-1-0/) is a technical walkthrough of meld v0.1.0 — what `wit-component` produces and what meld does to it.*
 
+{% insight() %}
+Build a sensor driver once, validate it once, deploy it across product lines. Cross-component fusion means reusable software components compose at development time and fuse into a single optimized binary at build time — no integration overhead, no per-project re-validation of component interactions.
+{% end %}
+
 ## What meld does today
 
 meld v0.1.0 handles intra-component fusion. A single WebAssembly component — the tree of core modules, shim modules, fixup modules, and canonical ABI operations that `wit-component` produces — gets flattened into one core module. The [v0.1.0 walkthrough](/blog/meld-v0-1-0/) shows this in detail: 4 core modules, 23 instances, and 23 canonical ABI operations become 1 module with 54 functions and direct calls.

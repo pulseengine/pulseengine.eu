@@ -10,6 +10,10 @@ authors = ["Ralf Anton Beier"]
 
 *This is part 7 of a series on building a verified WebAssembly pipeline for safety-critical embedded systems. [Part 1](/blog/zero-cost-component-model/) introduces the approach. [Part 6](/blog/proving-the-pipeline/) covers formal verification of each transformation.*
 
+{% insight() %}
+Any engineer, on any machine, can reproduce the exact build that produced any released artifact. This is not just good engineering practice — it is a regulatory requirement. ISO 26262 demands traceability from requirements to deployed artifact. DO-178C requires configuration management that can reproduce any released build. A hermetic, attested build pipeline satisfies both from a single infrastructure investment.
+{% end %}
+
 ## Why reproducibility matters
 
 Formal verification proves that a transformation *can* preserve semantics. But if you cannot reproduce the exact build that produced a specific artifact, the proof is disconnected from reality. You need both: correctness (the algorithm is right) and reproducibility (this specific binary was produced by this specific verified pipeline, with these specific inputs).

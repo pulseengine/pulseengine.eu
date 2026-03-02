@@ -10,6 +10,10 @@ authors = ["Ralf Anton Beier"]
 
 *This is part 6 of a series on building a verified WebAssembly pipeline for safety-critical embedded systems. [Part 1](/blog/zero-cost-component-model/) introduces the approach. [Part 5](/blog/synth-kiln-wasm-to-firmware/) covers native transcoding and the runtime layer.*
 
+{% insight() %}
+A formally verified pipeline is qualified once. Every project that uses it inherits that qualification — reducing per-project certification effort from months to weeks. CompCert proved this model works for C compilation. The same economics apply to a verified WebAssembly pipeline: invest once in proving the toolchain correct, then amortize that investment across every product line that uses it.
+{% end %}
+
 ## Why proof matters
 
 For most software, testing is sufficient. You run your test suite, you fuzz, you deploy. If something breaks, you patch and redeploy.
