@@ -1,0 +1,11 @@
+RewriteEngine On
+
+# Force HTTPS
+RewriteCond %{HTTPS} off
+RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+# Redirect all variants to canonical https://pulseengine.eu
+RewriteCond %{HTTP_HOST} ^www\.pulseengine\.eu$ [NC,OR]
+RewriteCond %{HTTP_HOST} ^pulseengine\.de$ [NC,OR]
+RewriteCond %{HTTP_HOST} ^www\.pulseengine\.de$ [NC]
+RewriteRule ^ https://pulseengine.eu%{REQUEST_URI} [L,R=301]
