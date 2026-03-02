@@ -13,13 +13,13 @@ jobs:
       - name: Install Zola
         uses: taiki-e/install-action@v2
         with:
-          tool: zola@0.19.2
+          tool: zola@0.22.1
 
       - name: Build
         run: zola build
 
       - name: Deploy via SSH
-        uses: easingthemes/ssh-deploy@v5
+        uses: easingthemes/ssh-deploy@v5.1.1
         with:
           SSH_PRIVATE_KEY: ${{ secrets.DEPLOY_KEY }}
           REMOTE_HOST: ${{ secrets.DEPLOY_HOST }}
