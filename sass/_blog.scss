@@ -113,8 +113,7 @@
     background: $surface;
   }
 
-  // Image with caption: use <figure> or ![alt](src "title")
-  // Zola renders title attr as title, we style alt as caption via CSS
+  // Markdown caption: *italic* immediately after image
   img + em,
   p > img + br + em {
     display: block;
@@ -123,6 +122,22 @@
     color: $text-faint;
     margin-top: -1rem;
     margin-bottom: 1.5rem;
+  }
+
+  // Shortcode figure with caption
+  .figure {
+    margin: 1.5rem 0;
+
+    img {
+      margin-bottom: 0;
+    }
+
+    figcaption {
+      text-align: center;
+      font-size: 0.8rem;
+      color: $text-faint;
+      margin-top: 0.5rem;
+    }
   }
 
   // Callout notes

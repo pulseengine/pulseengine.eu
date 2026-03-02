@@ -42,6 +42,7 @@
   <footer class="site-footer">
     <div class="container">
       &copy; {{ now() | date(format="%Y") }} PulseEngine &middot; Built with <a href="https://www.getzola.org">Zola</a>
+      <span class="build-ref"><!-- BUILD_INFO --></span>
     </div>
   </footer>
   <script src="{{ get_url(path='mandelbrot.js') }}" defer></script>
