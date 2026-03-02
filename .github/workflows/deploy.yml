@@ -20,8 +20,7 @@ jobs:
           SHORT_SHA="${GITHUB_SHA::7}"
           RUN_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
           COMMIT_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/commit/${GITHUB_SHA}"
-          BUILD_HTML="&middot; <a href=\"${COMMIT_URL}\">${SHORT_SHA}</a> · <a href=\"${RUN_URL}\">deploy #${GITHUB_RUN_NUMBER}</a>"
-          sed -i "s|<!-- BUILD_INFO -->|${BUILD_HTML}|" templates/base.html
+          sed -i "s|<!-- BUILD_INFO -->|· <a href=\"${COMMIT_URL}\">${SHORT_SHA}</a> · <a href=\"${RUN_URL}\">deploy #${GITHUB_RUN_NUMBER}</a>|" templates/base.html
 
       - name: Build
         run: zola build
