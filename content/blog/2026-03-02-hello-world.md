@@ -4,6 +4,7 @@ description = "Introducing pulseengine.eu — a home for project updates, techni
 date = 2026-03-02
 [taxonomies]
 tags = ["announcement"]
+authors = ["Ralf Anton Beier"]
 +++
 
 Welcome to the PulseEngine blog.

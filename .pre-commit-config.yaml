@@ -1,0 +1,22 @@
+repos:
+  - repo: https://github.com/DavidAnson/markdownlint-cli2
+    rev: v0.17.2
+    hooks:
+      - id: markdownlint-cli2
+        args: ['--config', '.markdownlint.yaml']
+
+  - repo: local
+    hooks:
+      - id: validate-frontmatter
+        name: Validate blog frontmatter
+        entry: python3 scripts/validate-frontmatter.py
+        language: system
+        files: '^content/blog/.*\.md$'
+        pass_filenames: true
+
+      - id: zola-check
+        name: Zola build check
+        entry: zola check --drafts
+        language: system
+        pass_filenames: false
+        always_run: true

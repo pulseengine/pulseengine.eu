@@ -7,7 +7,7 @@
 
 ## Project structure
 
-```
+```text
 content/          Markdown content (pages, blog posts)
 templates/        Tera templates (layouts, shortcodes)
 sass/             SCSS partials → compiled to main.css
@@ -20,13 +20,13 @@ static/           Static assets (JS, images, fonts)
 
 Create a new file in `content/blog/`:
 
-```
+```text
 content/blog/YYYY-MM-DD-slug-name.md
 ```
 
 For posts with images, use a directory instead:
 
-```
+```text
 content/blog/YYYY-MM-DD-slug-name/
 ├── index.md
 ├── diagram.png
@@ -257,7 +257,7 @@ Wrap up and point to related resources.
 
 Use [Conventional Commits](https://www.conventionalcommits.org/):
 
-```
+```text
 feat: add dark mode toggle
 fix: correct pipeline SVG viewBox on mobile
 docs: update blog authoring guide

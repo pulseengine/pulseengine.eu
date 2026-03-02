@@ -1,0 +1,21 @@
+# Markdownlint configuration for Zola blog
+# https://github.com/DavidAnson/markdownlint/blob/main/doc/Rules.md
+
+# Allow long lines — blog prose wraps naturally
+MD013: false
+
+# Allow inline HTML — Zola shortcodes use {% %} syntax
+MD033: false
+
+# First line is TOML frontmatter, not a heading
+MD041: false
+
+# Allow duplicate headings in different sections
+MD024:
+  siblings_only: true
+
+# Allow trailing punctuation in headings (e.g., "What 'zero cost' means")
+MD026: false
+
+# Bare URLs in Zola shortcode parameters are intentional
+MD034: false

@@ -8,6 +8,15 @@ generate_feeds = true
 feed_filenames = ["atom.xml"]
 minify_html = true
 
+[link_checker]
+# GitHub-rendered markdown anchors and ACM bot-blocking cause false positives
+skip_anchor_prefixes = [
+    "https://github.com/",
+]
+skip_prefixes = [
+    "https://dl.acm.org/",
+]
+
 [markdown]
 smart_punctuation = true
 
@@ -20,4 +29,8 @@ author = "PulseEngine"
 
 [[taxonomies]]
 name = "tags"
+feed = true
+
+[[taxonomies]]
+name = "authors"
 feed = true

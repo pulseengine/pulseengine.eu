@@ -59,6 +59,17 @@
   display: flex;
   gap: 1rem;
   align-items: center;
+  flex-wrap: wrap;
+}
+
+.blog-post__author {
+  color: $text-dim;
+  border-bottom: 1px solid rgba(123, 147, 255, 0.3);
+
+  &:hover {
+    color: $accent;
+    border-bottom-color: $accent;
+  }
 }
 
 .blog-post__content {
