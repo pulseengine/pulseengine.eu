@@ -9,6 +9,14 @@
     <header class="blog-post__header">
       <h1 class="blog-post__title">{{ page.title }}</h1>
       <div class="blog-post__meta">
+        {% if page.taxonomies.authors %}
+        <span>
+          {% for author in page.taxonomies.authors %}
+          <a href="{{ get_taxonomy_url(kind='authors', name=author) }}" class="blog-post__author">{{ author }}</a>
+          {% endfor %}
+        </span>
+        <span>&middot;</span>
+        {% endif %}
         <time datetime="{{ page.date }}">{{ page.date | date(format="%B %d, %Y") }}</time>
         {% if page.extra.reading_time %}
         <span>&middot; {{ page.extra.reading_time }} min read</span>
@@ -18,7 +26,7 @@
         {% if page.taxonomies.tags %}
         <span>
           {% for tag in page.taxonomies.tags %}
-          <span class="badge badge--accent">{{ tag }}</span>
+          <a href="{{ get_taxonomy_url(kind='tags', name=tag) }}" class="badge badge--accent badge--link">{{ tag }}</a>
           {% endfor %}
         </span>
         {% endif %}

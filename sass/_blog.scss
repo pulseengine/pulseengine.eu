@@ -59,6 +59,17 @@
   display: flex;
   gap: 1rem;
   align-items: center;
+  flex-wrap: wrap;
+}
+
+.blog-post__author {
+  color: $text-dim;
+  border-bottom: 1px solid rgba(123, 147, 255, 0.3);
+
+  &:hover {
+    color: $accent;
+    border-bottom-color: $accent;
+  }
 }
 
 .blog-post__content {
@@ -138,6 +149,36 @@
       color: $text-faint;
       margin-top: 0.5rem;
     }
+  }
+
+  // Executive insight card
+  .insight {
+    position: relative;
+    background: linear-gradient(135deg, rgba(123, 147, 255, 0.06) 0%, rgba(192, 132, 252, 0.06) 100%);
+    border: 1px solid rgba(123, 147, 255, 0.2);
+    border-radius: $glass-radius;
+    padding: 1.25rem 1.5rem;
+    margin: 2rem 0;
+    backdrop-filter: $glass-blur;
+  }
+
+  .insight__label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: $accent;
+    margin-bottom: 0.5rem;
+  }
+
+  .insight__body {
+    font-size: 0.95rem;
+    line-height: 1.7;
+    color: $text;
+
+    p:last-child { margin-bottom: 0; }
+
+    strong { color: $accent; }
   }
 
   // Callout notes

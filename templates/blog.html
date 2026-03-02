@@ -14,7 +14,9 @@
     <div class="blog-list">
       {% for page in paginator.pages %}
       <a href="{{ page.permalink }}" class="glass-card glass-card--link blog-card">
-        <div class="blog-card__date">{{ page.date | date(format="%B %d, %Y") }}</div>
+        <div class="blog-card__date">
+          {% if page.taxonomies.authors %}{% for author in page.taxonomies.authors %}{{ author }}{% if not loop.last %}, {% endif %}{% endfor %} &middot; {% endif %}{{ page.date | date(format="%B %d, %Y") }}
+        </div>
         <div class="blog-card__title">{{ page.title }}</div>
         <div class="blog-card__summary">{{ page.description }}</div>
         {% if page.taxonomies.tags %}

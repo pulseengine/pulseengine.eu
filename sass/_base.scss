@@ -126,4 +126,16 @@ img {
   &--cyan   { background: rgba(34, 211, 238, 0.12);   color: $cyan; }
   &--purple { background: rgba(192, 132, 252, 0.12);  color: $purple; }
   &--red    { background: rgba(248, 113, 113, 0.12);  color: $red; }
+
+  &--link {
+    text-decoration: none;
+    border-bottom: none;
+    cursor: pointer;
+    transition: opacity 0.2s;
+
+    &:hover {
+      opacity: 0.8;
+      border-bottom: none;
+    }
+  }
 }
