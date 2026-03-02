@@ -19,12 +19,29 @@ jobs:
         run: zola build
 
       - name: Deploy via SSH
-        uses: easingthemes/ssh-deploy@v5.1.1
-        with:
-          SSH_PRIVATE_KEY: ${{ secrets.DEPLOY_KEY }}
-          REMOTE_HOST: ${{ secrets.DEPLOY_HOST }}
-          REMOTE_USER: ${{ secrets.DEPLOY_USER }}
-          REMOTE_PORT: "22"
-          SOURCE: public/
-          TARGET: ${{ secrets.DEPLOY_PATH }}
-          ARGS: "-rlgoDzvc -i --delete"
+        env:
+          DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$DEPLOY_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H "$DEPLOY_HOST" >> ~/.ssh/known_hosts 2>/dev/null
+
+          # Package site into a tarball
+          tar -czf site.tar.gz -C public .
+
+          # Upload tarball
+          scp -i ~/.ssh/deploy_key "site.tar.gz" "${DEPLOY_USER}@${DEPLOY_HOST}:${DEPLOY_PATH}/site.tar.gz"
+
+          # Extract on remote, replacing old content
+          ssh -i ~/.ssh/deploy_key "${DEPLOY_USER}@${DEPLOY_HOST}" "
+            cd ${DEPLOY_PATH} &&
+            find . -mindepth 1 -not -name site.tar.gz -delete 2>/dev/null;
+            tar -xzf site.tar.gz &&
+            rm site.tar.gz
+          "
+
+          rm -f ~/.ssh/deploy_key
