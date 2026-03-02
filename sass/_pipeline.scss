@@ -1,0 +1,25 @@
+.pipeline-section {
+  padding: 2rem 0 3rem;
+  text-align: center;
+}
+
+.pipeline-wrap {
+  background: $surface-glass;
+  backdrop-filter: $glass-blur;
+  border: 1px solid $border-subtle;
+  border-radius: $glass-radius;
+  padding: 2rem;
+  overflow-x: auto;
+
+  svg {
+    width: 100%;
+    max-width: 850px;
+    height: auto;
+  }
+}
+
+.pipeline-caption {
+  font-size: 0.8rem;
+  color: $text-faint;
+  margin-top: 1rem;
+}

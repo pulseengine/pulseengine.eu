@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+  <!-- Hero -->
+  <section class="hero">
+    <h1 class="hero__title">PulseEngine</h1>
+    <p class="hero__subtitle">The formally verified WebAssembly Component Model engine for safety-critical systems</p>
+    <div class="hero__actions">
+      <a href="{{ get_url(path='@/projects/_index.md') }}" class="btn btn--accent">Explore Projects</a>
+      <a href="{{ get_url(path='@/blog/_index.md') }}" class="btn">Read the Blog</a>
+      <a href="https://github.com/pulseengine" class="btn" rel="noopener">GitHub</a>
+    </div>
+  </section>
+
+  <!-- WIP notice -->
+  <section class="page-section" style="padding-bottom: 0;">
+    <div class="wip-banner glass-card">
+      <strong>Work in progress.</strong> PulseEngine is under active development. Everything described here reflects intent and direction — not production-ready claims. Repositories are public, but APIs, guarantees, and verification coverage are evolving. Follow the <a href="{{ get_url(path='@/blog/_index.md') }}">blog</a> for status updates.
+    </div>
+  </section>
+
+  <!-- Introduction — what this is -->
+  <section class="page-section intro-section">
+    <div class="intro-columns">
+      <div class="intro-block glass-card">
+        <h3>What is PulseEngine?</h3>
+        <p>
+          A complete WebAssembly Component Model engine built in Rust. Interpret
+          components directly, fuse multiple components into one, optimize them,
+          or transcode them to native ARM for bare-metal embedded targets.
+          One verified pipeline from first byte to final binary — targeting automotive,
+          medical devices, aerospace, and anywhere correctness is not optional.
+        </p>
+        <p>
+          Every transformation — fusion, optimization, transcoding, execution —
+          is designed to carry <strong>mechanized proofs</strong>. Rocq, Kani, Z3, Verus.
+          Sigil binds it together with cryptographic attestation:
+          signed, verifiable evidence that your component went through exactly the
+          pipeline you specified.
+        </p>
+      </div>
+      <div class="intro-block glass-card">
+        <h3>Where to find things</h3>
+        <ul class="link-list">
+          <li>
+            <a href="https://github.com/pulseengine" rel="noopener">GitHub org</a>
+            <span>All source code, issues, and discussions</span>
+          </li>
+          <li>
+            <a href="{{ get_url(path='@/projects/_index.md') }}">Projects page</a>
+            <span>Every tool in the ecosystem with descriptions and links</span>
+          </li>
+          <li>
+            <a href="{{ get_url(path='@/blog/_index.md') }}">Blog</a>
+            <span>Deep-dives, design notes, and "This Week in PulseEngine"</span>
+          </li>
+          <li>
+            <a href="{{ get_url(path='atom.xml') }}">Atom feed</a>
+            <span>Subscribe in your reader</span>
+          </li>
+          <li>
+            <a href="https://github.com/pulseengine/wasm-component-examples" rel="noopener">Examples repo</a>
+            <span>Working Component Model code in C, C++, Go, and Rust</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pipeline visualization -->
+  <section class="pipeline-section">
+    <h2 class="section-heading">The Pipeline</h2>
+    <p class="pipeline-intro">
+      A <code>.wasm</code> component enters on the left. Each stage transforms it — fuse, optimize,
+      transcode, fire — and Sigil attests every step. Click any stage to see its source.
+    </p>
+    <div class="pipeline-wrap">
+      {% include "shortcodes/pipeline.html" %}
+    </div>
+    <div class="pipeline-detail">
+      <div class="pipeline-detail__item">
+        <strong>Meld</strong> fuses multiple components into a single module — runtime linking eliminated.
+      </div>
+      <div class="pipeline-detail__item">
+        <strong>Loom</strong> runs twelve optimization passes via Cranelift's ISLE engine.
+      </div>
+      <div class="pipeline-detail__item">
+        <strong>Synth</strong> transcodes Wasm to native ARM through program synthesis — not translation, synthesis.
+      </div>
+      <div class="pipeline-detail__item">
+        <strong>Kiln</strong> interprets and executes components — full Component Model, WASI 0.2, <code>no_std</code>.
+      </div>
+      <div class="pipeline-detail__item">
+        <strong>Sigil</strong> signs and attests every transformation — end-to-end verifiable.
+      </div>
+    </div>
+  </section>
+
+  <!-- Ecosystem at a glance -->
+  <section class="page-section">
+    <h2 class="section-heading">Beyond the Pipeline</h2>
+    <p style="margin-bottom: 1.5rem;">
+      The core pipeline is backed by build rules, verification tooling, AI infrastructure, and developer tools.
+      <a href="{{ get_url(path='@/projects/_index.md') }}">See all projects &rarr;</a>
+    </p>
+    <div class="grid">
+      <a href="https://github.com/pulseengine/rules_wasm_component" class="glass-card glass-card--link" rel="noopener">
+        <div class="glass-card__title">rules_wasm_component</div>
+        <div class="glass-card__desc">Bazel rules for the WebAssembly Component Model — Rust, Go, C++, JavaScript</div>
+        <span class="badge badge--accent">Build</span>
+      </a>
+      <a href="https://github.com/pulseengine/rules_rocq_rust" class="glass-card glass-card--link" rel="noopener">
+        <div class="glass-card__title">rules_rocq_rust</div>
+        <div class="glass-card__desc">Bazel rules for Rocq theorem proving and Rust formal verification</div>
+        <span class="badge badge--green">Verification</span>
+      </a>
+      <a href="https://github.com/pulseengine/mcp" class="glass-card glass-card--link" rel="noopener">
+        <div class="glass-card__title">mcp</div>
+        <div class="glass-card__desc">Rust framework for building Model Context Protocol servers and clients</div>
+        <span class="badge badge--purple">AI</span>
+      </a>
+      <a href="https://github.com/pulseengine/thrum" class="glass-card glass-card--link" rel="noopener">
+        <div class="glass-card__title">thrum</div>
+        <div class="glass-card__desc">Gate-based pipeline orchestrator for autonomous AI-driven development</div>
+        <span class="badge badge--amber">Tools</span>
+      </a>
+      <a href="https://github.com/pulseengine/temper" class="glass-card glass-card--link" rel="noopener">
+        <div class="glass-card__title">temper</div>
+        <div class="glass-card__desc">GitHub App that hardens repositories to organizational standards</div>
+        <span class="badge badge--red">Tools</span>
+      </a>
+      <a href="https://github.com/pulseengine/wasi-mcp" class="glass-card glass-card--link" rel="noopener">
+        <div class="glass-card__title">wasi-mcp</div>
+        <div class="glass-card__desc">Proposed WASI API for Model Context Protocol, targeting WASI 0.3</div>
+        <span class="badge badge--purple">AI</span>
+      </a>
+    </div>
+  </section>
+
+  <!-- Latest blog posts -->
+  {% set blog = get_section(path="blog/_index.md") %}
+  {% if blog.pages | length > 0 %}
+  <section class="page-section">
+    <h2 class="section-heading">Latest Posts</h2>
+    <div class="grid">
+      {% for page in blog.pages | slice(end=3) %}
+      <a href="{{ page.permalink }}" class="glass-card glass-card--link">
+        <div class="blog-card__date">{{ page.date | date(format="%B %d, %Y") }}</div>
+        <div class="glass-card__title">{{ page.title }}</div>
+        <div class="glass-card__desc">{{ page.description }}</div>
+        {% if page.taxonomies.tags %}
+        <div class="blog-card__tags">
+          {% for tag in page.taxonomies.tags %}
+          <span class="badge badge--accent">{{ tag }}</span>
+          {% endfor %}
+        </div>
+        {% endif %}
+      </a>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  <!-- Tech stack -->
+  <section class="page-section" style="text-align: center;">
+    <h3 class="section-heading" style="font-size: 1rem; color: #5c6070; text-transform: uppercase; letter-spacing: 0.1em;">Built with</h3>
+    <div class="tech-stack">
+      <span class="badge badge--accent">Rust</span>
+      <span class="badge badge--cyan">WebAssembly</span>
+      <span class="badge badge--green">Verus</span>
+      <span class="badge badge--purple">WASI 0.2 &middot; 0.3</span>
+      <span class="badge badge--amber">Bazel</span>
+      <span class="badge badge--red">Component Model</span>
+      <span class="badge badge--green">Rocq</span>
+      <span class="badge badge--cyan">Z3</span>
+      <span class="badge badge--accent">Kani</span>
+      <span class="badge badge--purple">Sigstore</span>
+    </div>
+  </section>
+</div>
+{% endblock %}

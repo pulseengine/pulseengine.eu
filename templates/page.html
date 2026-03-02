@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %}{{ page.title }} — {{ config.title }}{% endblock %}
+{% block description %}{{ page.description }}{% endblock %}
+
+{% block content %}
+<div class="container">
+  <article class="blog-post">
+    <header class="blog-post__header">
+      <h1 class="blog-post__title">{{ page.title }}</h1>
+    </header>
+    <div class="blog-post__content">
+      {{ page.content | safe }}
+    </div>
+  </article>
+</div>
+{% endblock %}

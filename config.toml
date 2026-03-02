@@ -1,0 +1,23 @@
+base_url = "https://pulseengine.eu"
+title = "PulseEngine"
+description = "The formally verified WebAssembly Component Model engine for safety-critical systems"
+default_language = "en"
+compile_sass = true
+build_search_index = false
+generate_feeds = true
+feed_filenames = ["atom.xml"]
+minify_html = true
+
+[markdown]
+smart_punctuation = true
+
+[markdown.highlighting]
+enabled = true
+theme = "material-theme-ocean"
+
+[extra]
+author = "PulseEngine"
+
+[[taxonomies]]
+name = "tags"
+feed = true

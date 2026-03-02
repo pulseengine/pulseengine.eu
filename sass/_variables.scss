@@ -1,0 +1,33 @@
+// Colors — aligned with thrum unified dashboard (style.css)
+$bg:             #0f1117;
+$bg-subtle:      #13161f;
+$surface:        #1a1d27;
+$surface-raised: #242836;
+$surface-glass:  rgba(26, 29, 39, 0.72);
+$border:         #2e3345;
+$border-subtle:  #252836;
+$text:           #e1e4ed;
+$text-dim:       #8b90a0;
+$text-faint:     #5c6070;
+$accent:         #6c8cff;
+$accent-glow:    rgba(108, 140, 255, 0.12);
+$green:          #4ade80;
+$red:            #f87171;
+$amber:          #fbbf24;
+$cyan:           #22d3ee;
+$purple:         #c084fc;
+
+// Typography — Braille Institute's Atkinson Hyperlegible
+$font-sans:  'Atkinson Hyperlegible Next', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+$font-mono:  'Atkinson Hyperlegible Mono', 'Fira Code', monospace;
+$font-size:  16px;
+$line-height: 1.65;
+
+// Glass
+$glass-blur:   blur(12px);
+$glass-radius: 12px;
+
+// Layout
+$max-width:    1100px;
+$content-width: 720px;
+$gap:          20px;

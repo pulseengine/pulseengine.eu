@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block title %}{{ taxonomy.name | title }} — {{ config.title }}{% endblock %}
+
+{% block content %}
+<div class="container">
+  <section class="page-section">
+    <h1 class="section-heading">{{ taxonomy.name | title }}</h1>
+    <div class="grid">
+      {% for term in terms %}
+      <a href="{{ term.permalink }}" class="glass-card glass-card--link">
+        <div class="glass-card__title">{{ term.name }}</div>
+        <div class="glass-card__desc">{{ term.pages | length }} post{{ term.pages | length | pluralize }}</div>
+      </a>
+      {% endfor %}
+    </div>
+  </section>
+</div>
+{% endblock %}

@@ -1,0 +1,6 @@
+<a href="{{ url }}" class="glass-card glass-card--link" rel="noopener">
+  {% if icon %}<div class="project-card__icon">{{ icon }}</div>{% endif %}
+  <div class="glass-card__title">{{ name }}</div>
+  <div class="glass-card__desc">{{ desc }}</div>
+  {% if badge %}<span class="badge badge--{{ badge }}">{{ badge | title }}</span>{% endif %}
+</a>

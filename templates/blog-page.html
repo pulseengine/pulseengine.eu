@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block title %}{{ page.title }} — {{ config.title }}{% endblock %}
+{% block description %}{{ page.description }}{% endblock %}
+
+{% block content %}
+<div class="container">
+  <article class="blog-post">
+    <header class="blog-post__header">
+      <h1 class="blog-post__title">{{ page.title }}</h1>
+      <div class="blog-post__meta">
+        <time datetime="{{ page.date }}">{{ page.date | date(format="%B %d, %Y") }}</time>
+        {% if page.extra.reading_time %}
+        <span>&middot; {{ page.extra.reading_time }} min read</span>
+        {% elif page.reading_time %}
+        <span>&middot; {{ page.reading_time }} min read</span>
+        {% endif %}
+        {% if page.taxonomies.tags %}
+        <span>
+          {% for tag in page.taxonomies.tags %}
+          <span class="badge badge--accent">{{ tag }}</span>
+          {% endfor %}
+        </span>
+        {% endif %}
+      </div>
+    </header>
+
+    {% if page.toc %}
+    <nav class="toc">
+      <div class="toc__title">Contents</div>
+      <ul>
+        {% for h2 in page.toc %}
+        <li>
+          <a href="{{ h2.permalink }}">{{ h2.title }}</a>
+          {% if h2.children %}
+          <ul>
+            {% for h3 in h2.children %}
+            <li><a href="{{ h3.permalink }}">{{ h3.title }}</a></li>
+            {% endfor %}
+          </ul>
+          {% endif %}
+        </li>
+        {% endfor %}
+      </ul>
+    </nav>
+    {% endif %}
+
+    <div class="blog-post__content">
+      {{ page.content | safe }}
+    </div>
+  </article>
+</div>
+
+{% if page.content is containing("mermaid") %}
+<script type="module">
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'dark',
+    themeVariables: {
+      darkMode: true,
+      background: '#1a1d27',
+      primaryColor: '#242836',
+      primaryBorderColor: '#2e3345',
+      primaryTextColor: '#e1e4ed',
+      secondaryColor: '#242836',
+      secondaryBorderColor: '#2e3345',
+      secondaryTextColor: '#8b90a0',
+      tertiaryColor: '#1a1d27',
+      lineColor: '#6c8cff',
+      textColor: '#e1e4ed',
+      mainBkg: '#242836',
+      nodeBorder: '#2e3345',
+      clusterBkg: '#1a1d27',
+      clusterBorder: '#2e3345',
+      titleColor: '#e1e4ed',
+      edgeLabelBackground: '#1a1d27',
+      nodeTextColor: '#e1e4ed',
+    },
+    fontFamily: "'Atkinson Hyperlegible Next', system-ui, sans-serif",
+    fontSize: 14,
+  });
+</script>
+{% endif %}
+{% endblock %}

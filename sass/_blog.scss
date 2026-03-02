@@ -1,0 +1,244 @@
+.blog-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: $gap;
+}
+
+.blog-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.blog-card__date {
+  font-size: 0.75rem;
+  color: $text-faint;
+  margin-bottom: 0.25rem;
+}
+
+.blog-card__title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: $text;
+  margin-bottom: 0.5rem;
+}
+
+.blog-card__summary {
+  font-size: 0.875rem;
+  color: $text-dim;
+  flex: 1;
+}
+
+.blog-card__tags {
+  display: flex;
+  gap: 0.4rem;
+  margin-top: 0.75rem;
+  flex-wrap: wrap;
+}
+
+// Single blog post
+.blog-post {
+  max-width: $content-width;
+  margin: 0 auto;
+  padding: 2.5rem 0 4rem;
+}
+
+.blog-post__header {
+  margin-bottom: 2rem;
+}
+
+.blog-post__title {
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.5rem;
+}
+
+.blog-post__meta {
+  font-size: 0.85rem;
+  color: $text-faint;
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.blog-post__content {
+  h2 {
+    margin-top: 2.5rem;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid $border-subtle;
+  }
+
+  h3 {
+    margin-top: 2rem;
+    margin-bottom: 0.5rem;
+  }
+
+  p {
+    color: $text-dim;
+  }
+
+  ul, ol {
+    color: $text-dim;
+    margin-bottom: 1rem;
+    padding-left: 1.5rem;
+  }
+
+  li {
+    margin-bottom: 0.25rem;
+  }
+
+  blockquote {
+    border-left: 3px solid $accent;
+    padding-left: 1rem;
+    margin: 1.5rem 0;
+    color: $text-dim;
+    font-style: italic;
+  }
+
+  a {
+    border-bottom: 1px solid rgba(123, 147, 255, 0.3);
+
+    &:hover {
+      border-bottom-color: $accent;
+    }
+  }
+
+  // Images — glass-bordered figures
+  img {
+    display: block;
+    margin: 1.5rem auto;
+    border: 1px solid $border-subtle;
+    border-radius: $glass-radius;
+    background: $surface;
+  }
+
+  // Image with caption: use <figure> or ![alt](src "title")
+  // Zola renders title attr as title, we style alt as caption via CSS
+  img + em,
+  p > img + br + em {
+    display: block;
+    text-align: center;
+    font-size: 0.8rem;
+    color: $text-faint;
+    margin-top: -1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  // Callout notes
+  .note {
+    border-left: 3px solid $accent;
+    background: $surface-glass;
+    backdrop-filter: $glass-blur;
+    border-radius: 0 $glass-radius $glass-radius 0;
+    padding: 1rem 1.25rem;
+    margin: 1.5rem 0;
+    font-size: 0.9rem;
+
+    p:last-child { margin-bottom: 0; }
+
+    &--warning {
+      border-left-color: $amber;
+    }
+
+    &--danger {
+      border-left-color: $red;
+    }
+
+    &--tip {
+      border-left-color: $green;
+    }
+  }
+
+  // Mermaid diagrams (rendered as <pre class="mermaid"> to survive minification)
+  pre.mermaid,
+  .mermaid {
+    background: $surface-glass;
+    backdrop-filter: $glass-blur;
+    border: 1px solid $border-subtle;
+    border-radius: $glass-radius;
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+    text-align: center;
+    overflow-x: auto;
+    font-family: $font-sans;      // override pre's monospace for labels
+    white-space: pre;              // keep mermaid newlines intact
+
+    svg {
+      max-width: 100%;
+      height: auto;
+    }
+  }
+
+  // Tables
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1.5rem 0;
+    font-size: 0.875rem;
+  }
+
+  th {
+    text-align: left;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: $text-faint;
+    border-bottom: 1px solid $border;
+  }
+
+  td {
+    padding: 0.5rem 0.75rem;
+    border-bottom: 1px solid $border-subtle;
+    color: $text-dim;
+  }
+
+  tr:hover td {
+    background: $surface-raised;
+  }
+}
+
+// Table of contents
+.toc {
+  background: $surface-glass;
+  backdrop-filter: $glass-blur;
+  border: 1px solid $border-subtle;
+  border-radius: $glass-radius;
+  padding: 1.25rem;
+  margin-bottom: 2rem;
+}
+
+.toc__title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: $text-faint;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.75rem;
+}
+
+.toc ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.toc li {
+  margin-bottom: 0.35rem;
+}
+
+.toc a {
+  font-size: 0.875rem;
+  color: $text-dim;
+  border-bottom: none;
+
+  &:hover {
+    color: $accent;
+  }
+}
+
+.toc ul ul {
+  padding-left: 1rem;
+}

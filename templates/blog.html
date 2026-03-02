@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}Blog — {{ config.title }}{% endblock %}
+{% block description %}Insights, project updates, and "This Week in PulseEngine"{% endblock %}
+
+{% block content %}
+<div class="container">
+  <section class="page-section">
+    <h1 class="section-heading">Blog</h1>
+    <p style="color: var(--text-dim, #7c8496); margin-bottom: 2rem;">
+      Insights on WebAssembly tooling, formal verification, and the PulseEngine ecosystem.
+    </p>
+
+    <div class="blog-list">
+      {% for page in paginator.pages %}
+      <a href="{{ page.permalink }}" class="glass-card glass-card--link blog-card">
+        <div class="blog-card__date">{{ page.date | date(format="%B %d, %Y") }}</div>
+        <div class="blog-card__title">{{ page.title }}</div>
+        <div class="blog-card__summary">{{ page.description }}</div>
+        {% if page.taxonomies.tags %}
+        <div class="blog-card__tags">
+          {% for tag in page.taxonomies.tags %}
+          <span class="badge badge--accent">{{ tag }}</span>
+          {% endfor %}
+        </div>
+        {% endif %}
+      </a>
+      {% endfor %}
+    </div>
+
+    {% if paginator.number_pagers > 1 %}
+    <nav style="display: flex; justify-content: center; gap: 1rem; margin-top: 2rem;">
+      {% if paginator.previous %}
+      <a href="{{ paginator.previous }}" class="btn">&larr; Newer</a>
+      {% endif %}
+      {% if paginator.next %}
+      <a href="{{ paginator.next }}" class="btn">Older &rarr;</a>
+      {% endif %}
+    </nav>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

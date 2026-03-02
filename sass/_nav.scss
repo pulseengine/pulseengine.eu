@@ -1,0 +1,45 @@
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: $bg-subtle;
+  border-bottom: 1px solid $border-subtle;
+  backdrop-filter: $glass-blur;
+}
+
+.site-header .container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 56px;
+}
+
+.site-logo {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: $text;
+  letter-spacing: -0.02em;
+
+  &:hover { color: $text; }
+}
+
+.site-nav {
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+}
+
+.site-nav a {
+  color: $text-dim;
+  font-size: 0.875rem;
+  font-weight: 500;
+  padding: 0.25rem 0;
+  border-bottom: 2px solid transparent;
+  transition: color 0.2s, border-color 0.2s;
+
+  &:hover,
+  &.active {
+    color: $text;
+    border-bottom-color: $accent;
+  }
+}
