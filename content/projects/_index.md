@@ -8,15 +8,15 @@ template = "section.html"
 
 <div class="grid">
 
-{{ project_card(name="Meld", desc="Statically fuses multiple WebAssembly components into a single core module. Import resolution, index-space merging, and canonical ABI adapter generation at build time.", url="https://github.com/pulseengine/meld", icon="🔗", badge="accent") }}
+{{ project_card(name="meld", desc="Statically fuses multiple WebAssembly components into a single core module. Import resolution, index-space merging, and canonical ABI adapter generation at build time.", url="https://github.com/pulseengine/meld", icon="🔗", badge="accent") }}
 
-{{ project_card(name="Loom", desc="Twelve-pass WebAssembly optimization pipeline built on Cranelift's ISLE pattern-matching engine. Constant folding, strength reduction, CSE, inlining, dead code elimination.", url="https://github.com/pulseengine/loom", icon="🧵", badge="cyan") }}
+{{ project_card(name="loom", desc="Twelve-pass WebAssembly optimization pipeline built on Cranelift's ISLE pattern-matching engine. Constant folding, strength reduction, CSE, inlining, dead code elimination.", url="https://github.com/pulseengine/loom", icon="🧵", badge="cyan") }}
 
-{{ project_card(name="Synth", desc="Transcodes WebAssembly to native ARM for embedded Cortex-M targets through program synthesis — exploring equivalent native implementations, not just translating instructions.", url="https://github.com/pulseengine/synth", icon="⚡", badge="green") }}
+{{ project_card(name="synth", desc="Transcodes WebAssembly to native ARM for embedded Cortex-M targets through program synthesis — exploring equivalent native implementations, not just translating instructions.", url="https://github.com/pulseengine/synth", icon="⚡", badge="green") }}
 
-{{ project_card(name="Kiln", desc="WebAssembly Component Model interpreter and runtime. Full WASI 0.2 support with no_std architecture for embedded, automotive, medical, and aerospace environments.", url="https://github.com/pulseengine/kiln", icon="🔥", badge="amber") }}
+{{ project_card(name="kiln", desc="WebAssembly Component Model interpreter and runtime. Full WASI 0.2 support with no_std architecture for embedded, automotive, medical, and aerospace environments.", url="https://github.com/pulseengine/kiln", icon="🔥", badge="amber") }}
 
-{{ project_card(name="Sigil", desc="Supply chain security — attestation, signing, and verification across every pipeline stage. Sigstore keyless signing, SLSA L4 provenance, TPM 2.0 support.", url="https://github.com/pulseengine/sigil", icon="🔏", badge="purple") }}
+{{ project_card(name="sigil", desc="Supply chain security — attestation, signing, and verification across every pipeline stage. Sigstore keyless signing, SLSA L4 provenance, TPM 2.0 support.", url="https://github.com/pulseengine/sigil", icon="🔏", badge="purple") }}
 
 </div>
 

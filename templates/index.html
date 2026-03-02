@@ -35,7 +35,7 @@
         <p>
           Every transformation — fusion, optimization, transcoding, execution —
           is designed to carry <strong>mechanized proofs</strong>. Rocq, Kani, Z3, Verus.
-          Sigil binds it together with cryptographic attestation:
+          sigil binds it together with cryptographic attestation:
           signed, verifiable evidence that your component went through exactly the
           pipeline you specified.
         </p>
@@ -73,26 +73,26 @@
     <h2 class="section-heading">The Pipeline</h2>
     <p class="pipeline-intro">
       A <code>.wasm</code> component enters on the left. Each stage transforms it — fuse, optimize,
-      transcode, fire — and Sigil attests every step. Click any stage to see its source.
+      transcode, fire — and sigil attests every step. Click any stage to see its source.
     </p>
     <div class="pipeline-wrap">
       {% include "shortcodes/pipeline.html" %}
     </div>
     <div class="pipeline-detail">
       <div class="pipeline-detail__item">
-        <strong>Meld</strong> fuses multiple components into a single module — runtime linking eliminated.
+        <strong>meld</strong> fuses multiple components into a single module — runtime linking eliminated.
       </div>
       <div class="pipeline-detail__item">
-        <strong>Loom</strong> runs twelve optimization passes via Cranelift's ISLE engine.
+        <strong>loom</strong> runs twelve optimization passes via Cranelift's ISLE engine.
       </div>
       <div class="pipeline-detail__item">
-        <strong>Synth</strong> transcodes Wasm to native ARM through program synthesis — not translation, synthesis.
+        <strong>synth</strong> transcodes Wasm to native ARM through program synthesis — not translation, synthesis.
       </div>
       <div class="pipeline-detail__item">
-        <strong>Kiln</strong> interprets and executes components — full Component Model, WASI 0.2, <code>no_std</code>.
+        <strong>kiln</strong> interprets and executes components — full Component Model, WASI 0.2, <code>no_std</code>.
       </div>
       <div class="pipeline-detail__item">
-        <strong>Sigil</strong> signs and attests every transformation — end-to-end verifiable.
+        <strong>sigil</strong> signs and attests every transformation — end-to-end verifiable.
       </div>
     </div>
   </section>

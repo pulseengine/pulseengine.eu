@@ -104,10 +104,10 @@ Use the `mermaid` shortcode for inline diagrams. Mermaid JS loads only on pages 
 ```markdown
 {% mermaid() %}
 graph LR
-    A[.wasm] --> B[Meld]
-    B --> C[Loom]
-    C --> D[Synth]
-    D --> E[Kiln]
+    A[.wasm] --> B[meld]
+    B --> C[loom]
+    C --> D[synth]
+    D --> E[kiln]
 {% end %}
 ```
 
@@ -143,8 +143,8 @@ Danger with red accent.
 
 | Shortcode | Purpose | Usage |
 |---|---|---|
-| `pipeline()` | Full pipeline SVG (Meld → Loom → Synth → Kiln + Sigil) | `{% pipeline() %}{% end %}` |
-| `project_card(...)` | Glass card for a project | `{{ project_card(name="Meld", desc="...", url="...", icon="🔗", badge="accent") }}` |
+| `pipeline()` | Full pipeline SVG (meld → loom → synth → kiln + sigil) | `{% pipeline() %}{% end %}` |
+| `project_card(...)` | Glass card for a project | `{{ project_card(name="meld", desc="...", url="...", icon="🔗", badge="accent") }}` |
 | `mermaid()` | Mermaid diagram | See above |
 | `note(kind="...")` | Callout box (info/tip/warning/danger) | See above |
 | `figure(src, alt, caption)` | Image with semantic caption | `{{ figure(src="img.png", alt="...", caption="...") }}` |

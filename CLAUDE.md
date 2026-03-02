@@ -15,8 +15,9 @@ zola check          # Validate links
 ## Terminology — get this right
 
 - PulseEngine is a **WebAssembly Component Model engine**, not a "toolchain" or "framework"
-- Synth **transcodes** (not transpiles, not compiles) — it uses program synthesis
-- Kiln is an **interpreter and runtime** (not just a runtime, not AOT)
+- synth **transcodes** (not transpiles, not compiles) — it uses program synthesis
+- kiln is an **interpreter and runtime** (not just a runtime, not AOT)
+- Project names are always lowercase: meld, loom, synth, kiln, sigil, thrum, temper
 - Everything is **work in progress** — do not make production-ready claims
 
 ## Project structure
