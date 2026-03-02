@@ -33,6 +33,7 @@ See `CONTRIBUTING.md` for the full guide including frontmatter, shortcodes, imag
 
 Quick reference:
 - Frontmatter needs `title`, `description`, `date`, and `[taxonomies] tags`
+- Use `draft = true` to keep a post out of production builds; `zola serve --drafts` to preview locally
 - Use `{% mermaid() %}...{% end %}` for diagrams
 - Use `{% note(kind="tip|warning|danger") %}...{% end %}` for callouts
 - Co-locate images next to `index.md` in a post directory
