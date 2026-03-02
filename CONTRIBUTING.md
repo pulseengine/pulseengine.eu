@@ -42,6 +42,7 @@ Zola copies co-located assets to the output automatically.
 title = "Post Title"
 description = "One-line summary — shown on listing cards and in <meta> tags."
 date = 2026-03-05
+draft = true
 [taxonomies]
 tags = ["deep-dive", "meld"]
 +++
@@ -50,6 +51,15 @@ tags = ["deep-dive", "meld"]
 - `date` controls sort order on the blog listing
 - `description` is required — it appears on the blog index cards
 - `tags` render as accent badges and generate tag pages at `/tags/<name>/`
+- `draft = true` excludes the post from production builds — remove it when ready to publish
+
+### Draft workflow
+
+Posts start as drafts and get published when ready:
+
+1. Write with `draft = true` in frontmatter
+2. Preview locally: `zola serve --drafts`
+3. Publish: remove `draft = true`, commit, push — deploy is automatic
 
 ### What you get automatically
 
