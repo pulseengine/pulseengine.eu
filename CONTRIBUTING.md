@@ -57,6 +57,7 @@ tags = ["deep-dive", "meld"]
 |---|---|
 | Table of contents | Generated from `##` and `###` headings — appears as a glass card above the post |
 | Syntax highlighting | Fenced code blocks with language tag (`` ```rust ``). Theme: `material-theme-ocean` |
+| Copy to clipboard | Code blocks get a "Copy" button on hover (top-right corner) |
 | Reading time | Automatic via Zola |
 | Tags | Badge links to tag listing pages |
 | Article width | 720px max, centered |
@@ -79,12 +80,22 @@ Place in `static/img/` and reference as:
 ![Diagram](/img/shared-diagram.png)
 ```
 
-**Image captions:** Place italic text immediately after an image:
+**Image captions** — two options:
+
+Markdown style (italic text after image):
 
 ```markdown
 ![Architecture overview](architecture.png)
 *Figure 1: The component fusion pipeline*
 ```
+
+Shortcode style (recommended for important figures):
+
+```markdown
+{{ figure(src="architecture.png", alt="Architecture overview", caption="Figure 1: The component fusion pipeline") }}
+```
+
+The shortcode renders a semantic `<figure>/<figcaption>` with centered caption styling.
 
 ### Mermaid diagrams
 
@@ -136,6 +147,7 @@ Danger with red accent.
 | `project_card(...)` | Glass card for a project | `{{ project_card(name="Meld", desc="...", url="...", icon="🔗", badge="accent") }}` |
 | `mermaid()` | Mermaid diagram | See above |
 | `note(kind="...")` | Callout box (info/tip/warning/danger) | See above |
+| `figure(src, alt, caption)` | Image with semantic caption | `{{ figure(src="img.png", alt="...", caption="...") }}` |
 
 ### Content styling reference
 
@@ -225,12 +237,59 @@ Wrap up and point to related resources.
 - **Sans:** Atkinson Hyperlegible Next (Google Fonts)
 - **Mono:** Atkinson Hyperlegible Mono (Google Fonts)
 
+## Git workflow
+
+### Branch protection
+
+`main` is protected — all changes go through pull requests with a passing CI build.
+
+### Commit messages
+
+Use [Conventional Commits](https://www.conventionalcommits.org/):
+
+```
+feat: add dark mode toggle
+fix: correct pipeline SVG viewBox on mobile
+docs: update blog authoring guide
+```
+
+Common prefixes: `feat`, `fix`, `docs`, `style`, `refactor`, `chore`
+
+### CI / CD pipeline
+
+| Trigger | Workflow | What it does |
+|---|---|---|
+| PR to `main` | **CI** (`.github/workflows/ci.yml`) | `zola build` — validates the site compiles |
+| Push to `main` | **Deploy** (`.github/workflows/deploy.yml`) | `zola build` → tar + scp to Netcup |
+
+After merging a PR, the deploy runs automatically (~20s). Check status:
+
+```sh
+gh run list --workflow=deploy.yml --limit=3   # recent deploys
+gh run view <run-id> --log-failed             # debug failures
+```
+
+### Typical flow
+
+```sh
+git checkout -b feat/my-change
+# make changes
+zola build                        # verify locally
+git add <files>
+git commit -m "feat: description"
+git push -u origin feat/my-change
+gh pr create --title "feat: description"
+# CI runs → merge → auto-deploy
+```
+
 ## Deployment
 
 Push to `main` triggers GitHub Actions:
 
 1. `zola build`
-2. SSH deploy to Netcup
+2. `tar` + `scp` + `ssh` extract to Netcup (rsync not available on shared hosting)
+
+Target: `pulseengine.eu` on Netcup Webhosting 1000 NUE.
 
 Secrets required: `DEPLOY_HOST`, `DEPLOY_USER`, `DEPLOY_KEY`, `DEPLOY_PATH`
 

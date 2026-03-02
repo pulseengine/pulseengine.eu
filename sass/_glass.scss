@@ -256,3 +256,17 @@
   color: $text-faint;
   font-size: 0.8rem;
 }
+
+.build-ref {
+  font-family: $font-mono;
+  font-size: 0.7rem;
+
+  a {
+    color: $text-faint;
+    border-bottom: none;
+
+    &:hover {
+      color: $accent;
+    }
+  }
+}

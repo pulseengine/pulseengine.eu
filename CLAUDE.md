@@ -49,6 +49,13 @@ Colors are aligned with the thrum unified dashboard (`/Users/r/git/temper/thrum/
 
 Fonts: Atkinson Hyperlegible Next (sans) + Mono, loaded from Google Fonts.
 
+## Git workflow
+
+- `main` is protected — always use PRs, never push directly
+- CI runs `zola build` on PRs; deploy runs on push to `main` (tar + scp to Netcup)
+- Commit messages: Conventional Commits (`feat:`, `fix:`, `docs:`, etc.)
+- After merge, deploy takes ~20s — check with `gh run list --workflow=deploy.yml`
+
 ## Zola version notes
 
 - Zola 0.22 uses `[markdown.highlighting]` (not `highlight_code`/`highlight_theme`)
