@@ -72,6 +72,16 @@
   }
 }
 
+.blog-post__commit {
+  font-family: $font-mono;
+  font-size: 0.85em;
+  color: $text-faint;
+
+  &:hover {
+    color: $accent;
+  }
+}
+
 .blog-post__content {
   h2 {
     margin-top: 2.5rem;
