@@ -30,6 +30,9 @@
           {% endfor %}
         </span>
         {% endif %}
+        {% if page.extra.last_commit %}
+        <span>&middot; <a href="https://github.com/pulseengine/pulseengine.eu/commit/{{ page.extra.last_commit }}" class="blog-post__commit">{{ page.extra.last_commit }}</a>{% if page.extra.commit_count %} ({% if page.extra.commit_count == 1 %}1 revision{% else %}{{ page.extra.commit_count }} revisions{% endif %}){% endif %}</span>
+        {% endif %}
       </div>
     </header>
 
