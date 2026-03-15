@@ -126,7 +126,7 @@ Before extracting, the tool iterates all tarball entries and rejects the archive
 The build tool writes a `config.js` into each version's compliance directory:
 
 ```js
-var RIVET_CONFIG = {
+var RIVET_EXPORT = {
   homepage: "https://pulseengine.eu/projects/",
   projectName: "Gale",
   versionLabel: "v0.1.0",

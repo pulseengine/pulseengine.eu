@@ -269,12 +269,9 @@ fn validate_tarball(path: &Path) -> Result<(), String> {
             }
         }
 
-        // All entries must start with `compliance/`.
-        if !entry_str.starts_with("compliance/") && entry_str != "compliance" {
-            return Err(format!(
-                "unexpected path in tarball (must start with compliance/): {entry_str}"
-            ));
-        }
+        // Entries must not escape the extraction directory.
+        // Flat files (no compliance/ prefix) are fine — we extract into
+        // a compliance/ subdirectory ourselves.
     }
 
     Ok(())
@@ -313,13 +310,16 @@ fn download_and_extract(
     // Validate tarball safety.
     validate_tarball(&tmp_path)?;
 
-    // Extract.
+    // Extract into compliance/ subdirectory (rivet tarballs have flat files).
+    let compliance_dir = dest_dir.join("compliance");
+    fs::create_dir_all(&compliance_dir)
+        .map_err(|e| format!("failed to create compliance dir: {e}"))?;
     let file = fs::File::open(&tmp_path)
         .map_err(|e| format!("failed to open tarball for extraction: {e}"))?;
     let decoder = GzDecoder::new(file);
     let mut archive = Archive::new(decoder);
     archive
-        .unpack(dest_dir)
+        .unpack(&compliance_dir)
         .map_err(|e| format!("failed to extract tarball: {e}"))?;
 
     // Clean up temp file.
@@ -355,7 +355,7 @@ fn write_config_js(
     version_entries.push_str("    { label: \"latest\", path: \"../latest/compliance/\" }\n");
 
     let content = format!(
-        "var RIVET_CONFIG = {{\n  \
+        "var RIVET_EXPORT = {{\n  \
          homepage: \"https://pulseengine.eu/projects/\",\n  \
          projectName: \"{pretty_name}\",\n  \
          versionLabel: \"{version_label}\",\n  \
