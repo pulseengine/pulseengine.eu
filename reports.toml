@@ -1,0 +1,17 @@
+# reports.toml — projects that publish rivet compliance reports
+#
+# Each project entry declares:
+#   repo           = "owner/repo" on GitHub
+#   asset_pattern  = naming convention for the compliance tarball
+#                    {name} = project key, {version} = tag without 'v' prefix
+#   exclude        = glob patterns matched against tag names to skip
+
+[projects.rivet]
+repo = "pulseengine/rivet"
+asset_pattern = "{name}-v{version}-compliance-report.tar.gz"
+exclude = ["*-rc*", "*-alpha*"]
+
+[projects.gale]
+repo = "pulseengine/gale"
+asset_pattern = "{name}-v{version}-compliance-report.tar.gz"
+exclude = ["*-rc*", "*-alpha*"]
