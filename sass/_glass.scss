@@ -137,7 +137,7 @@
 }
 
 .intro-block {
-  h3 {
+  h3, &__heading {
     font-size: 1.15rem;
     margin-bottom: 0.75rem;
     color: $text;
