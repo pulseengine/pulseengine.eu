@@ -2,5 +2,5 @@
   {% if icon %}<div class="project-card__icon">{{ icon }}</div>{% endif %}
   <div class="glass-card__title">{{ name }}</div>
   <div class="glass-card__desc">{{ desc }}</div>
-  {% if badge %}<span class="badge badge--{{ badge }}">{{ badge | title }}</span>{% endif %}
+  {% if badge %}<span class="badge badge--{{ badge }}">{% if label %}{{ label }}{% else %}{{ badge | title }}{% endif %}</span>{% endif %}
 </a>
