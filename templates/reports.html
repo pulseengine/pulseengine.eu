@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}{{ section.title }} — {{ config.title }}{% endblock %}
+{% block description %}{{ section.description }}{% endblock %}
+
+{% block content %}
+<div class="container">
+  <section class="page-section">
+    <h1 class="section-heading">{{ section.title }}</h1>
+    {% if section.description %}
+    <p style="margin-bottom: 2rem;">{{ section.description }}</p>
+    {% endif %}
+
+    {# NOTE: load_data will error if the file does not exist.                    #}
+    {# The rivet build tool (or CI) must ensure static/reports/index.json exists  #}
+    {# before zola build runs. An empty skeleton is: {"projects": {}}             #}
+    {% set report_index = load_data(path="static/reports/index.json") %}
+
+    {% if report_index.projects %}
+    <div class="grid">
+      {% for name, project in report_index.projects %}
+        <div class="glass-card">
+          <div class="glass-card__title">{{ name }}</div>
+          <div class="glass-card__desc">
+            Latest: v{{ project.latest }}
+            &middot;
+            {{ project.versions | length }} version{{ project.versions | length | pluralize }}
+          </div>
+          <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.75rem;">
+            {% for version in project.versions | reverse %}
+              <a href="{{ get_url(path='reports/' ~ name ~ '/' ~ version ~ '/compliance/') }}"
+                 class="badge {% if version == project.latest %}badge--accent{% else %}badge--cyan{% endif %}">
+                v{{ version }}
+              </a>
+            {% endfor %}
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="glass-card">
+      <p>No compliance reports available yet.</p>
+    </div>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}
