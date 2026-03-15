@@ -3,6 +3,8 @@ name: Deploy
 on:
   push:
     branches: [main]
+  repository_dispatch:
+    types: [compliance-report-updated]
 
 jobs:
   deploy:
@@ -19,6 +21,20 @@ jobs:
 
       - name: Inject git info into blog posts
         run: python3 scripts/inject-git-info.py
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache fetch-reports build
+        uses: actions/cache@v4
+        with:
+          path: tools/fetch-reports/target
+          key: fetch-reports-${{ hashFiles('tools/fetch-reports/Cargo.lock') }}
+
+      - name: Fetch compliance reports
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: cargo run --release --manifest-path tools/fetch-reports/Cargo.toml
 
       - name: Inject build info
         run: |
