@@ -348,11 +348,12 @@ fn write_config_js(
     for (i, v) in all_versions.iter().enumerate() {
         let comma = if i + 1 < all_versions.len() + 1 { "," } else { "" }; // +1 for latest
         version_entries.push_str(&format!(
-            "    {{ label: \"v{v}\", path: \"../{v}/compliance/\" }}{comma}\n"
+            "    {{ label: \"v{v}\", path: \"../../{v}/compliance/\" }}{comma}\n"
         ));
     }
     // Add "latest" entry (always last, no trailing comma).
-    version_entries.push_str("    { label: \"latest\", path: \"../latest/compliance/\" }\n");
+    // Paths go up twice: out of compliance/, out of <version>/, into <target>/.
+    version_entries.push_str("    { label: \"latest\", path: \"../../latest/compliance/\" }\n");
 
     let content = format!(
         "var RIVET_EXPORT = {{\n  \
