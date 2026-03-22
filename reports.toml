@@ -16,6 +16,21 @@ repo = "pulseengine/spar"
 asset_pattern = "{name}-v{version}-compliance-report.tar.gz"
 exclude = ["*-rc*", "*-alpha*"]
 
+[projects.meld]
+repo = "pulseengine/meld"
+asset_pattern = "{name}-v{version}-compliance-report.tar.gz"
+exclude = ["*-rc*", "*-alpha*"]
+
+[projects.loom]
+repo = "pulseengine/loom"
+asset_pattern = "{name}-v{version}-compliance-report.tar.gz"
+exclude = ["*-rc*", "*-alpha*"]
+
+[projects.synth]
+repo = "pulseengine/synth"
+asset_pattern = "{name}-v{version}-compliance-report.tar.gz"
+exclude = ["*-rc*", "*-alpha*"]
+
 [projects.sigil]
 repo = "pulseengine/sigil"
 asset_pattern = "{name}-v{version}-compliance-report.tar.gz"
