@@ -1,6 +1,11 @@
-<a href="{{ url }}" class="glass-card glass-card--link" rel="noopener">
+<div class="glass-card">
   {% if icon %}<div class="project-card__icon">{{ icon }}</div>{% endif %}
   <div class="glass-card__title">{{ name }}</div>
   <div class="glass-card__desc">{{ desc }}</div>
-  {% if badge %}<span class="badge badge--{{ badge }}">{% if label %}{{ label }}{% else %}{{ badge | title }}{% endif %}</span>{% endif %}
-</a>
+  <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.75rem; align-items: center;">
+    {% if badge %}<span class="badge badge--{{ badge }}">{% if label %}{{ label }}{% else %}{{ badge | title }}{% endif %}</span>{% endif %}
+    <a href="{{ url }}" rel="noopener" class="badge badge--cyan" style="text-decoration: none;">GitHub</a>
+    {% if releases %}<a href="{{ releases }}" rel="noopener" class="badge badge--green" style="text-decoration: none;">Releases</a>{% endif %}
+    {% if vscode %}<a href="{{ vscode }}" rel="noopener" class="badge badge--purple" style="text-decoration: none;">VS Code</a>{% endif %}
+  </div>
+</div>
