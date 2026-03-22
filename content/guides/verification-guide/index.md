@@ -215,13 +215,28 @@ Lean proofs in PulseEngine are a third independent verification track.
 - **`cases`/`match`** for case analysis
 - **`induction`** when structural recursion is needed
 
+### Mathlib
+
+Lean's power comes partly from [Mathlib](https://github.com/leanprover-community/mathlib4) —
+over 1 million lines of formalized mathematics. For kernel verification,
+relevant Mathlib modules include:
+
+- `Mathlib.Data.Nat.Basic` — natural number arithmetic
+- `Mathlib.Data.Int.Basic` — integer arithmetic and order
+- `Mathlib.Data.Fin` — bounded naturals (useful for array indices)
+- `Mathlib.Order.BoundedOrder` — bounded lattice structures
+- `Mathlib.Tactic` — automation tactics
+
+PulseEngine's [rules_lean](https://github.com/pulseengine/rules_lean)
+provides Bazel rules with Mathlib integration via `lean_prebuilt_library`.
+
 ### Lean Copilot Integration
 
-If using Lean Copilot (github.com/lean-dojo/LeanCopilot):
+If using [Lean Copilot](https://github.com/lean-dojo/LeanCopilot):
 
 - `suggest_tactics` — shows candidate next steps
 - `search_proof` — finds complete multi-tactic proofs (74.2% success)
-- `select_premises` — retrieves useful lemmas from the library
+- `select_premises` — retrieves useful lemmas from Mathlib and project libraries
 - Automates most mechanical proof steps; focus human/agent effort on the
   remaining 25% that need domain knowledge
 
@@ -407,7 +422,7 @@ artifacts to the guide:
   description: >
     Formal verification follows the PulseEngine Verification Guide.
     Proof strategies, error handling, and Rust subset rules are
-    documented at pulseengine.eu/guides/VERIFICATION-GUIDE/
+    documented at pulseengine.eu/guides/verification-guide/
   status: approved
 ```
 
@@ -416,8 +431,8 @@ artifacts to the guide:
 When you find something that works better than what the guide says,
 or something that no longer works, update the guide. It lives at:
 
-- Website (rendered): [pulseengine.eu/guides/VERIFICATION-GUIDE/](/guides/VERIFICATION-GUIDE/)
-- Source: `content/guides/VERIFICATION-GUIDE/index.md` in the pulseengine.eu repo
+- Website (rendered): [pulseengine.eu/guides/verification-guide/](/guides/verification-guide/)
+- Source: `content/guides/verification-guide/index.md` in the pulseengine.eu repo
 - Downloadable: [/guides/VERIFICATION-GUIDE.md](/guides/VERIFICATION-GUIDE.md)
 
 ---
@@ -433,4 +448,4 @@ This guide evolves as we learn what works. If you encounter:
 
 Open an issue at [github.com/pulseengine/pulseengine.eu](https://github.com/pulseengine/pulseengine.eu/issues) with the tag `verification-guide`. Whether you are a human or an AI agent, the feedback is valuable.
 
-*Last updated: March 2026*
+*Last updated: March 22, 2026*

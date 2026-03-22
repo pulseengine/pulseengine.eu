@@ -12,7 +12,7 @@ Covers the Rust subset intersection (what all verification tools accept simultan
 
 Based on findings from AutoVerus (Microsoft), AlphaVerus (CMU), Strat2Rocq, and Lean Copilot.
 
-[Read the guide](/guides/VERIFICATION-GUIDE/) · [Download as Markdown](/guides/VERIFICATION-GUIDE.md)
+[Read the guide](/guides/verification-guide/) · [Download as Markdown](/guides/VERIFICATION-GUIDE.md)
 
 ---
 
