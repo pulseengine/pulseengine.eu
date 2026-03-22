@@ -14,7 +14,7 @@ Formal verification was a craft practiced at a handful of universities and resea
 
 ## The shift
 
-For decades, formal verification was reserved for projects with extraordinary budgets and timelines. seL4 took a decade of PhD students writing Isabelle/HOL proofs. CompCert took years. The rest of us tested and hoped.
+For decades, formal verification was reserved for projects with extraordinary budgets and timelines. [seL4](https://dl.acm.org/doi/10.1145/1629575.1629596) took a decade of PhD students writing ~200,000 lines of Isabelle/HOL proofs for ~10,000 lines of C kernel code (SOSP 2009). CompCert took years. The rest of us tested and hoped.
 
 Two things changed in 2025:
 
@@ -138,6 +138,6 @@ The proof is not in a paper. It is in the CI log.
 
 ---
 
-*A detailed reference for agents and developers working with these tools is available as the [Verification Guide](/guides/VERIFICATION-GUIDE/) ([download as Markdown](/guides/VERIFICATION-GUIDE.md)). It covers error tables, proof tactics, the Rust subset intersection, and Bazel rules. We update it as we learn what works — if something is wrong or missing, [open an issue](https://github.com/pulseengine/pulseengine.eu/issues).*
+*A detailed reference for agents and developers working with these tools is available as the [Verification Guide](/guides/verification-guide/) ([download as Markdown](/guides/VERIFICATION-GUIDE.md)). It covers error tables, proof tactics, the Rust subset intersection, and Bazel rules. We update it as we learn what works — if something is wrong or missing, [open an issue](https://github.com/pulseengine/pulseengine.eu/issues).*
 
 *This post is part of [PulseEngine](/) — a formally verified WebAssembly Component Model engine for safety-critical systems.*
