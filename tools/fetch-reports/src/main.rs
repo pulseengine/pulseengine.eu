@@ -55,7 +55,11 @@ struct IndexJson {
 #[derive(Debug, Serialize)]
 struct ProjectIndex {
     latest: String,
+    /// All versions, sorted descending by semver.
     versions: Vec<String>,
+    /// Latest patch per minor version (e.g., 0.1.2, 0.2.5, 0.3.0, 1.0.0).
+    /// Used by the reports page to show a compact version list.
+    display_versions: Vec<String>,
 }
 
 // ── Helpers ─────────────────────────────────────────────────────────────
@@ -509,12 +513,28 @@ fn main() {
             }
         }
 
+        // Compute display versions: latest patch per minor version.
+        // Versions are already sorted descending, so first seen per (major, minor) wins.
+        let display_versions = {
+            let mut seen: Vec<(u64, u64)> = Vec::new();
+            let mut display: Vec<String> = Vec::new();
+            for v in &successful_versions {
+                let key = (v.major, v.minor);
+                if !seen.contains(&key) {
+                    seen.push(key);
+                    display.push(v.to_string());
+                }
+            }
+            display
+        };
+
         // Record in index.
         index.projects.insert(
             project_name.clone(),
             ProjectIndex {
                 latest: latest_version.to_string(),
                 versions: successful_versions.iter().map(|v| v.to_string()).collect(),
+                display_versions,
             },
         );
     }

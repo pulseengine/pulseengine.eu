@@ -26,13 +26,20 @@
             &middot;
             {{ project.versions | length }} version{{ project.versions | length | pluralize }}
           </div>
-          <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.75rem;">
-            {% for version in project.versions | reverse %}
+          <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.75rem; align-items: center;">
+            {% for version in project.display_versions %}
               <a href="{{ get_url(path='reports/' ~ name ~ '/' ~ version ~ '/compliance/') }}"
-                 class="badge {% if version == project.latest %}badge--accent{% else %}badge--cyan{% endif %}">
+                 class="badge {% if version == project.latest %}badge--accent{% else %}badge--cyan{% endif %}"
+                 style="text-decoration: none;">
                 v{{ version }}
               </a>
             {% endfor %}
+            {% if project.versions | length > project.display_versions | length %}
+              <a href="{{ get_url(path='reports/' ~ name ~ '/latest/compliance/') }}"
+                 style="font-size: 0.8rem; color: #8b90a0;">
+                all {{ project.versions | length }} versions
+              </a>
+            {% endif %}
           </div>
         </div>
       {% endfor %}
