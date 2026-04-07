@@ -373,7 +373,7 @@ rocq_proof_test(
 - [Strat2Rocq](https://arxiv.org/abs/2510.10131) — lemma extraction from LLMs for CoqHammer, +13.4% improvement
 - [Lean Copilot](https://github.com/lean-dojo/LeanCopilot) — 74.2% proof step automation in Lean
 - [VeriCoding Benchmark](https://github.com/Beneficial-AI-Foundation/vericoding-benchmark) — 2,334 Verus tasks for testing proof generation
-- [Verus documentation](https://verus-lang.github.io/verus/)
+- [Verus documentation](https://verus-lang.github.io/verus/guide/)
 - [Rocq/Coq reference](https://rocq-prover.org/)
 - [Blog post: Formal verification just became practical](/blog/formal-verification-ai-agents/)
 
