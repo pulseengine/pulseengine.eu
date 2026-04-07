@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>OG Image Generator — PulseEngine</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      width: 1200px;
+      height: 630px;
+      background: #0f1117;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Atkinson Hyperlegible Next', system-ui, -apple-system, sans-serif;
+      overflow: hidden;
+      position: relative;
+    }
+    body::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at 30% 50%, rgba(108, 140, 255, 0.08) 0%, transparent 60%),
+                  radial-gradient(ellipse at 70% 50%, rgba(108, 140, 255, 0.05) 0%, transparent 60%);
+      pointer-events: none;
+    }
+    body::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, transparent, #6c8cff, transparent);
+    }
+    .content {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      padding: 0 80px;
+    }
+    .title {
+      font-size: 72px;
+      font-weight: 700;
+      color: #e1e4ed;
+      letter-spacing: -1px;
+      margin-bottom: 24px;
+    }
+    .accent { color: #6c8cff; }
+    .subtitle {
+      font-size: 28px;
+      font-weight: 400;
+      color: #8b90a0;
+      line-height: 1.4;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    .url {
+      position: absolute;
+      bottom: 32px;
+      left: 0;
+      right: 0;
+      text-align: center;
+      font-size: 20px;
+      color: #5c6070;
+      letter-spacing: 1px;
+      z-index: 1;
+    }
+  </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="content">
+    <div class="title">Pulse<span class="accent">Engine</span></div>
+    <div class="subtitle">Formally verified WebAssembly for safety-critical systems</div>
+  </div>
+  <div class="url">pulseengine.eu</div>
+</body>
+</html>

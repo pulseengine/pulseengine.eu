@@ -6,6 +6,55 @@
   <title>{% block title %}{{ config.title }}{% endblock %}</title>
   <meta name="description" content="{% block description %}{{ config.description }}{% endblock %}">
 
+  <!-- Open Graph meta tags -->
+  {% if page %}
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="{{ page.title }}">
+  <meta property="og:description" content="{{ page.description | default(value=config.description) }}">
+  <meta property="og:url" content="{{ page.permalink }}">
+  {% if page.date %}
+  <meta property="article:published_time" content="{{ page.date | date(format='%Y-%m-%dT%H:%M:%S+00:00') }}">
+  {% endif %}
+  {% if page.taxonomies.authors %}
+  {% for author in page.taxonomies.authors %}
+  <meta property="article:author" content="{{ author }}">
+  {% endfor %}
+  {% endif %}
+  {% if page.taxonomies.tags %}
+  {% for tag in page.taxonomies.tags %}
+  <meta property="article:tag" content="{{ tag }}">
+  {% endfor %}
+  {% endif %}
+  {% elif section %}
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="{{ section.title }}">
+  <meta property="og:description" content="{{ section.description | default(value=config.description) }}">
+  <meta property="og:url" content="{{ section.permalink }}">
+  {% else %}
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="{{ config.title }}">
+  <meta property="og:description" content="{{ config.description }}">
+  <meta property="og:url" content="{{ config.base_url }}">
+  {% endif %}
+  <meta property="og:site_name" content="PulseEngine">
+  <meta property="og:image" content="{{ config.base_url }}/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+
+  <!-- Twitter Card meta tags -->
+  <meta name="twitter:card" content="summary_large_image">
+  {% if page %}
+  <meta name="twitter:title" content="{{ page.title }}">
+  <meta name="twitter:description" content="{{ page.description | default(value=config.description) }}">
+  {% elif section %}
+  <meta name="twitter:title" content="{{ section.title }}">
+  <meta name="twitter:description" content="{{ section.description | default(value=config.description) }}">
+  {% else %}
+  <meta name="twitter:title" content="{{ config.title }}">
+  <meta name="twitter:description" content="{{ config.description }}">
+  {% endif %}
+  <meta name="twitter:image" content="{{ config.base_url }}/og-image.png">
+
   <link rel="icon" href="{{ get_url(path='favicon.svg') }}" type="image/svg+xml">
 
   <!-- Atkinson Hyperlegible Next + Mono from Google Fonts -->
