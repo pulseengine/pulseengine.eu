@@ -32,7 +32,7 @@
   <meta property="og:url" content="{{ section.permalink }}">
   {% else %}
   <meta property="og:type" content="website">
-  <meta property="og:title" content="{{ config.title }}">
+  <meta property="og:title" content="{{ config.title }} — Formally Verified WebAssembly for Safety-Critical Systems">
   <meta property="og:description" content="{{ config.description }}">
   <meta property="og:url" content="{{ config.base_url }}">
   {% endif %}
@@ -50,7 +50,7 @@
   <meta name="twitter:title" content="{{ section.title }}">
   <meta name="twitter:description" content="{{ section.description | default(value=config.description) }}">
   {% else %}
-  <meta name="twitter:title" content="{{ config.title }}">
+  <meta name="twitter:title" content="{{ config.title }} — Formally Verified WebAssembly for Safety-Critical Systems">
   <meta name="twitter:description" content="{{ config.description }}">
   {% endif %}
   <meta name="twitter:image" content="{{ config.base_url }}/og-image.png">
