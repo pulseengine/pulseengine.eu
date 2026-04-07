@@ -1,6 +1,6 @@
 base_url = "https://pulseengine.eu"
 title = "PulseEngine"
-description = "The formally verified WebAssembly Component Model engine for safety-critical systems"
+description = "The formally verified WebAssembly Component Model engine for safety-critical systems. Static fusion, verified optimization, and supply chain attestation in Rust."
 default_language = "en"
 compile_sass = true
 build_search_index = false
