@@ -8,13 +8,14 @@ html {
   font-size: $font-size;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background: $bg;
 }
 
 body {
   font-family: $font-sans;
   line-height: $line-height;
   color: $text;
-  background: $bg;
+  background: transparent;
   min-height: 100vh;
 }
 
