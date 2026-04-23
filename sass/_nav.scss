@@ -33,13 +33,17 @@
   color: $text-dim;
   font-size: 0.875rem;
   font-weight: 500;
-  padding: 0.25rem 0;
+  padding: 0.5rem 0.25rem;
   border-bottom: 2px solid transparent;
   transition: color 0.2s, border-color 0.2s;
 
   &:hover,
   &.active {
     color: $text;
+    border-bottom-color: $accent;
+  }
+
+  &:focus-visible {
     border-bottom-color: $accent;
   }
 }

@@ -37,7 +37,7 @@
     </header>
 
     {% if page.toc %}
-    <nav class="toc">
+    <nav class="toc" aria-label="Table of contents">
       <div class="toc__title">Contents</div>
       <ul>
         {% for h2 in page.toc %}
@@ -63,6 +63,7 @@
 </div>
 
 <script src="{{ get_url(path='codecopy.js') }}" defer></script>
+<script src="{{ get_url(path='diagram-zoom.js') }}" defer></script>
 {% if page.content is containing("mermaid") %}
 <script type="module">
   import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';

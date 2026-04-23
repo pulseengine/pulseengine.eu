@@ -13,7 +13,9 @@
 
   .grid,
   .blog-list,
-  .intro-columns {
+  .intro-columns,
+  .proof-paths,
+  .transform-grid {
     grid-template-columns: 1fr;
   }
 

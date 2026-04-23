@@ -19,6 +19,7 @@ skip_prefixes = [
 
 [markdown]
 smart_punctuation = true
+bottom_footnotes = true
 
 [markdown.highlighting]
 enabled = true

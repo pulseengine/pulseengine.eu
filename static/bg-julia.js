@@ -103,9 +103,9 @@
         } else {
           const log2 = Math.log(2);
           const nu = Math.log(Math.log(zr * zr + zi * zi) / log2) / log2;
-          const smooth = (iter + 1 - nu) / maxIter;
-          const ci2 = ((smooth * 255 * 3) | 0) % 256;
-          const col = palette[ci2];
+          const smooth = Math.max(0, Math.min(1, (iter + 1 - (isFinite(nu) ? nu : 0)) / maxIter));
+          const ci2 = (smooth * 255) | 0;
+          const col = palette[Math.min(255, Math.max(0, ci2))];
           buf[idx] = col[0]; buf[idx + 1] = col[1]; buf[idx + 2] = col[2]; buf[idx + 3] = 255;
         }
       }
