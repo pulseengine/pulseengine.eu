@@ -71,21 +71,24 @@
   {% block head_extra %}{% endblock %}
 </head>
 <body>
+  <a href="#main-content" class="skip-link">Skip to content</a>
   <canvas id="fractal-bg" aria-hidden="true"></canvas>
   <header class="site-header">
     <div class="container">
       <a href="{{ config.base_url }}" class="site-logo">PulseEngine</a>
-      <nav class="site-nav">
+      <nav class="site-nav" aria-label="Main navigation">
         <a href="{{ get_url(path='@/_index.md') }}"{% if current_path == "/" %} class="active"{% endif %}>Home</a>
         <a href="{{ get_url(path='@/blog/_index.md') }}"{% if current_path is starting_with("/blog") %} class="active"{% endif %}>Blog</a>
         <a href="{{ get_url(path='@/projects/_index.md') }}"{% if current_path is starting_with("/projects") %} class="active"{% endif %}>Projects</a>
+        {# Docs nav hidden during revamp — restore when content is ready #}
+        {# <a href="{{ get_url(path='@/docs/_index.md') }}"{% if current_path is starting_with("/docs") %} class="active"{% endif %}>Docs</a> #}
         <a href="{{ get_url(path='@/reports/_index.md') }}"{% if current_path is starting_with("/reports") %} class="active"{% endif %}>Reports</a>
         <a href="https://github.com/pulseengine" rel="noopener">GitHub</a>
       </nav>
     </div>
   </header>
 
-  <main>
+  <main id="main-content">
     {% block content %}{% endblock %}
   </main>
 
@@ -96,5 +99,7 @@
     </div>
   </footer>
   <script src="{{ get_url(path='background.js') }}"></script>
+  <script src="{{ get_url(path='journey.js') }}"></script>
+  <script src="{{ get_url(path='flip.js') }}"></script>
 </body>
 </html>

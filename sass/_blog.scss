@@ -308,3 +308,264 @@
 .toc ul ul {
   padding-left: 1rem;
 }
+
+// Footnotes — rendered as <ol> at the bottom when bottom_footnotes = true.
+// Each <li> carries its own marker inline with the content.
+.footnotes {
+  margin-top: 2.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid $border-subtle;
+  font-size: 0.9rem;
+  color: $text-dim;
+
+  ol {
+    padding-left: 1.75rem;
+    margin: 0;
+  }
+
+  li {
+    margin-bottom: 0.55rem;
+    padding-left: 0.25rem;
+    line-height: 1.5;
+
+    &::marker {
+      color: $accent;
+      font-variant-numeric: tabular-nums;
+    }
+
+    // Keep the paragraph inline with the list marker
+    p {
+      margin: 0;
+      display: inline;
+    }
+
+    // Highlight when jumped to via a footnote reference
+    &:target {
+      background: $accent-glow;
+      border-radius: 4px;
+      padding: 0.15rem 0.35rem;
+      margin-left: -0.35rem;
+    }
+  }
+
+  .footnote-backref {
+    margin-left: 0.35rem;
+    color: $text-faint;
+    text-decoration: none;
+    border-bottom: none;
+
+    &:hover {
+      color: $accent;
+    }
+  }
+}
+
+// Zola inserts an <hr class="footnotes-sep"> before .footnotes;
+// we use the border-top on .footnotes itself, so hide it.
+.footnotes-sep {
+  display: none;
+}
+
+// Inline reference markers in the body
+sup.footnote-reference,
+.footnote-reference {
+  a {
+    color: $accent;
+    border-bottom: none;
+    font-variant-numeric: tabular-nums;
+
+    &:hover {
+      color: $accent;
+      text-decoration: underline;
+    }
+  }
+}
+
+// ── Click-to-zoom diagrams ────────────────────────────────────────
+// SVGs (Mermaid-rendered + bespoke) in blog posts get a zoom cursor;
+// the diagram-zoom.js overlay opens them in a modal with pan + zoom.
+.blog-post__content svg,
+.diagram-zoomable {
+  cursor: zoom-in;
+  transition: filter 0.15s ease;
+
+  &:hover {
+    filter: brightness(1.08);
+  }
+}
+
+// Mermaid's outer <pre class="mermaid"> also catches clicks on the
+// padding around the SVG; extend the zoom cursor there.
+.blog-post__content pre.mermaid {
+  cursor: zoom-in;
+}
+
+body.diagram-modal-open {
+  overflow: hidden;
+}
+
+.diagram-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(15, 17, 23, 0.92);
+  backdrop-filter: blur(6px);
+  align-items: center;
+  justify-content: center;
+  padding: 3.5rem 1.5rem 2rem;
+  touch-action: none;
+
+  &.is-open {
+    display: flex;
+  }
+}
+
+.diagram-modal__stage {
+  width: 100%;
+  max-width: 1600px;
+  max-height: 90vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: grab;
+  user-select: none;
+  touch-action: none;
+
+  > svg {
+    width: 100%;
+    height: auto;
+    max-height: 90vh;
+  }
+}
+
+.diagram-modal__close {
+  position: absolute;
+  top: 1rem;
+  right: 1.25rem;
+  background: transparent;
+  border: 1px solid $border-subtle;
+  color: $text;
+  font-size: 1.6rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0.15rem 0.6rem 0.3rem;
+  border-radius: 6px;
+
+  &:hover {
+    background: $surface-raised;
+    border-color: $accent;
+  }
+}
+
+.diagram-modal__hint {
+  position: absolute;
+  bottom: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.8rem;
+  color: $text-faint;
+  letter-spacing: 0.05em;
+  pointer-events: none;
+}
+
+// ── Credit-matrix heatmap (domain × technique) ────────────────────
+.credit-matrix-wrap {
+  overflow-x: auto;
+  margin: 1.5rem 0 0.5rem;
+  border: 1px solid $border-subtle;
+  border-radius: $glass-radius;
+}
+
+.credit-matrix {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+  margin: 0;
+
+  th,
+  td {
+    padding: 0.6rem 0.9rem;
+    text-align: center;
+    border-bottom: 1px solid $border-subtle;
+    white-space: nowrap;
+  }
+
+  thead th {
+    font-weight: 600;
+    color: $text-faint;
+    text-transform: uppercase;
+    font-size: 0.68rem;
+    letter-spacing: 0.06em;
+    border-bottom: 1px solid $border;
+    background: $surface;
+    vertical-align: bottom;
+  }
+
+  tbody th {
+    text-align: left;
+    font-weight: 600;
+    color: $text;
+    background: $surface;
+    position: sticky;
+    left: 0;
+  }
+
+  tbody tr:last-child th,
+  tbody tr:last-child td {
+    border-bottom: none;
+  }
+
+  td {
+    font-size: 1.15rem;
+    line-height: 1;
+    font-weight: 600;
+
+    &.fit-strong {
+      background: rgba(74, 222, 128, 0.16);
+      color: $green;
+    }
+
+    &.fit-partial {
+      background: rgba(251, 191, 36, 0.16);
+      color: $amber;
+    }
+
+    &.fit-gap {
+      background: rgba(248, 113, 113, 0.16);
+      color: $red;
+    }
+
+    &.fit-na {
+      color: $text-faint;
+    }
+  }
+}
+
+.credit-matrix-legend {
+  display: flex;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+  font-size: 0.8rem;
+  color: $text-dim;
+  margin: 0.5rem 0 1.5rem;
+
+  span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+
+    &::before {
+      content: '';
+      display: inline-block;
+      width: 0.8rem;
+      height: 0.8rem;
+      border-radius: 3px;
+    }
+
+    &.fit-strong::before { background: rgba(74, 222, 128, 0.5); }
+    &.fit-partial::before { background: rgba(251, 191, 36, 0.5); }
+    &.fit-gap::before { background: rgba(248, 113, 113, 0.5); }
+    &.fit-na::before { background: rgba(128, 134, 152, 0.35); }
+  }
+}

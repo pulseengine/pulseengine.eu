@@ -31,7 +31,7 @@
     </div>
 
     {% if paginator.number_pagers > 1 %}
-    <nav style="display: flex; justify-content: center; gap: 1rem; margin-top: 2rem;">
+    <nav aria-label="Pagination" style="display: flex; justify-content: center; gap: 1rem; margin-top: 2rem;">
       {% if paginator.previous %}
       <a href="{{ paginator.previous }}" class="btn">&larr; Newer</a>
       {% endif %}
