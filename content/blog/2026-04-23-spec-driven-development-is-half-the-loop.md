@@ -91,7 +91,7 @@ There is a third half worth naming but not dwelling on — the iteration phase w
 
 **[spar](https://github.com/pulseengine/spar)** — our AADL v2.3 architecture toolchain, shipping at v0.6.0. 27+ analysis passes (scheduling, latency, ARINC 653 partitioning, EMV2 fault trees, memory budgets), a deployment solver with ASIL decomposition and SIL/DAL integrity constraints, a declarative assertion engine, LSP support, and a WASM component build. In the pipe: `spar-codegen` emits Cargo.toml and BUILD.bazel directly from the AADL model (the moment the architecture stops being a parallel drawing and starts being what the build reads), a SysML v2 parser for the requirements side of the roundtrip, a JSON CLI adapter so rivet can consume spar analysis results, and an MCP server so agents call spar for architecture review the same way they call rivet for traceability.
 
-**[sigil](https://github.com/pulseengine/sigil)** — in-module cryptographic signing. Sigstore keyless, SLSA L4 predicates, per-transformation attestations. This is what operationalizes Clay Nelson's *cannot attest to what you did not observe* end-to-end: each build transformation produces signed evidence or it does not.
+**[sigil](https://github.com/pulseengine/sigil)** — embedded cryptographic signing for WebAssembly. Shipping today: signatures carried inside WASM custom sections with no external registry required, full Sigstore keyless (OIDC → Fulcio → Rekor) with offline verification, in-toto SLSA provenance at L2 and L3. In the pipe: transformation-attestation data structures that upstream tools (Bazel rules, Loom, WAC) can emit per pipeline step, post-quantum signatures (SLH-DSA / FIPS 205, design-stage today), and the reproducibility work needed to substantiate SLSA L4. sigil is the signing and verification layer; the orchestration that threads attestations across Bazel, `rivet validate`, Kani, and Verus lives in each of those tools — not in sigil itself.
 
 **Spec Kit / Kiro / Tessl** — fine front-ends for `/specify`. The minimum we expect them to emit into our loop is a draft rivet requirement: title, description, acceptance criteria structured enough that rivet's schema can validate them, and a parent architecture or requirement link. Anything less is a prose ticket in a different file.
 
@@ -111,7 +111,7 @@ flowchart LR
     impl["implement<br/>scripts/mythos<br/>failing-test oracle"]
     unit["unit tests<br/>test pass"]
     integ["integration<br/>rivet validate<br/>verified-by links"]
-    signed([sigil-signed<br/>attestation bundle])
+    signed([sigil-signed WASM<br/>+ SLSA L2/L3 provenance])
 
     issue --> req --> design --> impl --> unit --> integ --> signed
 
@@ -141,7 +141,7 @@ The dotted lines are the V-model's symmetry made concrete: the requirement is *v
 
 5. **Ascend the right side.** `rivet validate` gates again. Every requirement now needs a `verified-by` link to a passing test; every code change needs an `implements` link to the design; every test needs a `verifies` link back to a requirement. The agent either adds the link (because the artifact exists) or flags the gap (because it does not). The ascent is not a ritual; it is a graph-completion task with the validator as oracle.
 
-6. **Sign and merge.** `sigil` attaches signed evidence to each transformation — source commit, Bazel build, test pass, `rivet validate` zero-errors, Kani harness result if present. The PR carries the attestation bundle. Clay Nelson's *"cannot attest to what you did not observe"* becomes "observed and signed at each step." Audit trail complete.
+6. **Sign and merge.** `sigil` signs the produced WASM with in-toto SLSA provenance — Sigstore keyless or key-based, offline-verifiable. As each upstream tool (Bazel, `rivet validate`, Kani, Verus) starts emitting its own in-toto predicate per transformation, those predicates ride alongside sigil's signature in the bundle carried by the PR. Clay Nelson's *"cannot attest to what you did not observe"* resolves into *"each oracle observes, each emits a predicate, sigil signs the bundle"* — signing and observing are different jobs, and the post-build composition across observers is work still maturing across the stack, not something sigil orchestrates by itself.
 
 At no point does anyone tell the agent *"follow the V-model."* The agent responds to `rivet validate` errors. That is what *"the tools require V-model shape"* means in practice — and it is why the V-model survives AI velocity instead of being eroded by it.
 
@@ -170,26 +170,32 @@ flowchart LR
     codegen["spar-codegen<br/>Cargo.toml · BUILD.bazel<br/>#[aadl] attributes"]
     build[compiled binary]
     validate[rivet validate]
-    attest([sigil attestation bundle])
+    signed([sigil-signed WASM<br/>+ SLSA L2/L3 provenance])
+    bundle([full attestation bundle<br/>in-toto predicates per oracle<br/>· target state ·])
 
     mbse -->|drives| codegen
     mbse -->|gates| validate
     codegen --> build
-    build --> attest
-    validate --> attest
+    build --> signed
+    signed -.-> bundle
+    validate -.->|in-toto predicate<br/>emerging| bundle
 
     classDef phase fill:#13161f,stroke:#3d4258,color:#8b90a0;
     classDef model fill:#1a1d27,stroke:#fbbf24,color:#e1e4ed;
     classDef step fill:#1a1d27,stroke:#6c8cff,color:#e1e4ed;
     classDef good fill:#1a1d27,stroke:#4ade80,color:#e1e4ed;
+    classDef future fill:#13161f,stroke:#4a5068,color:#8b90a0,stroke-dasharray: 5 5;
 
     class mbse phase;
     class spar,rivet model;
     class codegen,build,validate step;
-    class attest good;
+    class signed good;
+    class bundle future;
 {% end %}
 
-Two concrete beats from our own stack: [spar](https://github.com/pulseengine/spar) already ships deployment allocation with ASIL decomposition and ARINC 653 partitioning — the integrity-level constraints are first-class in the solver, not bolted-on checks. Next on the roadmap, `spar-codegen` emits Cargo.toml and BUILD.bazel directly from the AADL model, with `#[aadl(period = ...)]` attributes tying Rust functions to the architecture elements they implement. The moment that lands, you cannot produce a binary without the model, because the build files are the model's output. rivet's variant artifacts do the symmetric thing on the requirements side — selecting which requirement set applies at which integrity level, gated by `rivet validate`. `sigil` signs the bundle only when all three layers — architecture, requirements, build — agree. The model is no longer a parallel document. It is the source of truth the build depends on, and that dependency is what makes skipping it impossible rather than merely discouraged.
+Two concrete beats from our own stack: [spar](https://github.com/pulseengine/spar) already ships deployment allocation with ASIL decomposition and ARINC 653 partitioning — the integrity-level constraints are first-class in the solver, not bolted-on checks. Next on the roadmap, `spar-codegen` emits Cargo.toml and BUILD.bazel directly from the AADL model, with `#[aadl(period = ...)]` attributes tying Rust functions to the architecture elements they implement. The moment that lands, you cannot produce a binary without the model, because the build files are the model's output. rivet's variant artifacts do the symmetric thing on the requirements side — selecting which requirement set applies at which integrity level, gated by `rivet validate`. `sigil` signs the WASM output and emits in-toto SLSA provenance; as the transformation-attestation types in sigil mature and the upstream tools learn to emit predicates of their own, the signed bundle will carry evidence from each layer alongside the signature. Today, what's real is the signing and the signed build metadata — the cross-layer composition is the roadmap, not the ship. The model is no longer a parallel document. It is the source of truth the build depends on, and that dependency is what makes skipping it impossible rather than merely discouraged.
+
+The picture extends one layer further if you pull the thread. A variant-managed Rust codebase has at least five layers of variant-pruning machinery — requirements variants at the rivet level, cargo features at the build level, `#[cfg]` at source level, the type system at the type-check level, and pattern-match arms at runtime. Each prunes what the next layer has to reason about. When the model at the top specifies *"ASIL-D variant,"* the compounding reduction across every layer below takes a coverage burden that would otherwise be impractical at AI-authorship scale and bounds it to what a single variant's audit actually has to discharge. This inverts the usual *"Rust MC/DC is harder than C"* reading, and it is strong enough to earn its own treatment in [MC/DC for AI-authored Rust is tractable — the variant-pruning argument](/blog/variant-pruning-rust-mcdc/) — currently in draft.
 
 Where *"mandatory"* cuts: not every internal CRUD app needs MBSE. The line is systems with safety regulation, systems facing external auditors, and high-blast-radius infrastructure — cryptographic components, OS kernels, signing tools, language-model infrastructure with reach into hundreds of downstream systems. The common denominator is *"if this fails, the failure is not locally contained."* For those systems, the "too heavy" argument against MBSE stops holding; the alternative is shipping AI-authored code with no answer to how-do-you-prove.
 
@@ -203,7 +209,7 @@ The post argues for a pattern; here is what would stop me from over-pitching it.
 
 **The oracle can be wrong.** If a Verus contract encodes an incorrect postcondition, or a rivet schema rule fires for the wrong reason, the pipeline confidently enforces the wrong behaviour. Three countermeasures, all already in our stack: (1) multiple independent oracles on the same property — Verus + Kani + property tests discharge the same claim by different techniques, and a bug in any one is revealed by disagreement with the other two; (2) mutation testing (cargo-mutants) catches tautological oracles — if mutating the code does not fail the test, the test was not a real oracle; (3) counter-examples force re-examination of the oracle, not just the code. When Kani reports a failing execution, the right move is to read the trace and ask *"is my property wrong?"* before asking *"is my code wrong?"*
 
-**Signed is not the same as safe.** This is the attestation-illiteracy risk — management or auditors reading a `sigil` bundle and hearing *"safe."* The bundle claims only what was observed: *this commit's Verus proof discharged, these Kani harnesses ran to completion, `rivet validate` reported zero errors against these schema versions*. It does not claim the deployed binary is correct, that the proof obligations were the right ones, or that the schemas captured the right properties. The way to avoid the confusion is to name what the attestation *does not* cover inside the attestation itself — versions of each oracle, scope of the proof, schema revisions, explicitly excluded failure modes.
+**Signed is not the same as safe.** This is the attestation-illiteracy risk — management or auditors reading a `sigil` bundle and hearing *"safe."* A well-formed bundle should claim only what each oracle observed: *this commit's Verus proof discharged, these Kani harnesses ran to completion, `rivet validate` reported zero errors against these schema versions*. It should not claim the deployed binary is correct, that the proof obligations were the right ones, or that the schemas captured the right properties. The way to avoid the confusion is to name what the attestation *does not* cover inside the attestation itself — versions of each oracle, scope of the proof, schema revisions, explicitly excluded failure modes. Today sigil signs the WASM output with SLSA L2/L3 provenance; the per-oracle predicates described above ride in the bundle as each upstream tool learns to emit them, which is ongoing work across the stack rather than a sigil feature alone.
 
 **Brownfield does not mean stop-the-world.** If you already have Jira or DOORS requirements, rivet reads those (or you script the import once) and starts producing diagnostics the next day — no new authoring required beyond filling the schema gaps rivet surfaces. spar is a bigger ask, so earn its place: introduce it where an AADL or SysML model already exists, or where the architecture analysis pays for itself (scheduling feasibility, ARINC 653 isolation, deployment allocation). sigil is additive — it layers onto whatever CI you have.
 
