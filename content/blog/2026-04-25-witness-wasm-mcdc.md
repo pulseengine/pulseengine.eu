@@ -1,8 +1,9 @@
 +++
 title = "witness — MC/DC for the WebAssembly component model"
 description = "The variant-pruning post argued that MC/DC on AI-authored Rust is tractable at Wasm level. This post is the tool: witness instruments a Wasm module, runs a test harness, emits a branch-coverage report, and composes with rivet and sigil for the full evidence chain. v0.1 today, Check-It-pattern qualification on the roadmap."
-date = 2026-04-25
+date = 2026-04-30
 draft = true
+hold = true
 [taxonomies]
 tags = ["verification", "wasm", "deep-dive"]
 authors = ["Ralf Anton Beier"]
