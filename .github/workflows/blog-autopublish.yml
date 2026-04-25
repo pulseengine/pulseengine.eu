@@ -1,0 +1,178 @@
+name: Blog auto-publish
+
+# Runs daily at 06:00 UTC. Scans content/blog/ for drafts; for any
+# post with `date <= today`, `draft = true`, and `hold` not set, it
+# opens an auto-merge PR that flips draft to false. Each publish
+# becomes its own PR/squash-merge so deploy fires per-post and the
+# audit trail is clean.
+#
+# Always posts a status report to a pinned issue (label
+# `autopublish-status`) using a bot-marker (`<!-- blog-cron-status -->`)
+# so the same comment is replaced each run instead of appended.
+#
+# Failure path opens a separate issue tagged `autopublish-failure`.
+#
+# Manual trigger via workflow_dispatch is supported for first-run /
+# debugging. Concurrency is serialized so two runs cannot interleave
+# (e.g. cron + manual).
+#
+# Security note: this workflow has only `schedule` and
+# `workflow_dispatch` triggers — neither carries untrusted user input.
+# All values flowing into `run:` blocks come from server-controlled
+# context (github.run_id, github.repository) or from our own script
+# reading our own repository's frontmatter, so no command-injection
+# surface exists from external actors.
+
+on:
+  schedule:
+    - cron: "0 6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+concurrency:
+  group: blog-autopublish
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Scan, publish, report
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+      REPO: ${{ github.repository }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Configure git identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Scan drafts
+        id: scan
+        run: |
+          set -euo pipefail
+          python3 scripts/blog-autopublish.py --mode scan > /tmp/inventory.json
+          ready_count=$(jq '.ready | length' /tmp/inventory.json)
+          scheduled_count=$(jq '.scheduled | length' /tmp/inventory.json)
+          held_count=$(jq '.held | length' /tmp/inventory.json)
+          echo "ready_count=${ready_count}" >> "$GITHUB_OUTPUT"
+          echo "scheduled_count=${scheduled_count}" >> "$GITHUB_OUTPUT"
+          echo "held_count=${held_count}" >> "$GITHUB_OUTPUT"
+          {
+            echo "## Inventory"
+            echo '```json'
+            cat /tmp/inventory.json
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Publish ready posts
+        id: publish
+        if: steps.scan.outputs.ready_count != '0'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          published='[]'
+          today=$(date -u +%Y-%m-%d)
+
+          # Iterate each ready post, one PR per post.
+          while IFS=$'\t' read -r path slug; do
+            branch="cron/publish-${slug}-${today}"
+
+            # Clear any stale branch from a previous failed run.
+            git branch -D "$branch" 2>/dev/null || true
+            git push origin --delete "$branch" 2>/dev/null || true
+
+            git checkout -b "$branch"
+            python3 scripts/blog-autopublish.py --mode flip --file "$path"
+            git add "$path"
+            git commit -m "publish: ${slug}"
+            git push -u origin "$branch"
+
+            pr_url=$(gh pr create \
+              --base main \
+              --head "$branch" \
+              --title "publish: ${slug}" \
+              --body "Automated publish for \`${slug}\` triggered by date \`${today}\`. Opened by the blog-autopublish workflow." \
+              --label autopublish)
+            pr_num=$(echo "$pr_url" | grep -oE '[0-9]+$')
+
+            # Squash-merge directly. If branch protections require checks,
+            # fall back to --auto so the merge happens once CI passes.
+            gh pr merge "$pr_num" --squash --delete-branch || \
+              gh pr merge "$pr_num" --auto --squash --delete-branch
+
+            published=$(echo "$published" | jq --arg s "$slug" --arg p "$pr_num" '. + [{slug: $s, pr: $p}]')
+            git checkout main
+            git pull --ff-only origin main
+          done < <(jq -r '.ready[] | [.path, .slug] | @tsv' /tmp/inventory.json)
+
+          echo "$published" > /tmp/published.json
+
+      - name: Render status report
+        if: always()
+        run: |
+          set -euo pipefail
+          published=$(cat /tmp/published.json 2>/dev/null || echo '[]')
+          python3 scripts/blog-autopublish.py \
+            --mode report \
+            --inventory /tmp/inventory.json \
+            --published "$published" \
+            --run-url "$RUN_URL" > /tmp/report.md
+          cat /tmp/report.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Post / update status comment
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          # Locate the pinned status issue by label, or create it on first run.
+          issue_num=$(gh issue list --label autopublish-status --state open --json number --jq '.[0].number // empty')
+          if [ -z "$issue_num" ]; then
+            issue_url=$(gh issue create \
+              --title "Blog auto-publish status" \
+              --label autopublish-status \
+              --body-file /tmp/report.md)
+            issue_num=$(echo "$issue_url" | grep -oE '[0-9]+$')
+            echo "Created status issue #${issue_num}"
+            exit 0
+          fi
+
+          # Find the previous bot comment by its hidden marker.
+          comment_id=$(gh api "repos/${REPO}/issues/${issue_num}/comments" --paginate \
+            --jq '.[] | select(.body | contains("<!-- blog-cron-status -->")) | .id' | head -1)
+
+          if [ -n "$comment_id" ]; then
+            gh api "repos/${REPO}/issues/comments/${comment_id}" \
+              -X PATCH \
+              --field body=@/tmp/report.md
+            echo "Updated comment ${comment_id} on issue #${issue_num}"
+          else
+            gh issue comment "$issue_num" --body-file /tmp/report.md
+            echo "Created new comment on issue #${issue_num}"
+          fi
+
+      - name: Open failure issue
+        if: failure()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          today=$(date -u +%Y-%m-%d)
+          gh issue create \
+            --title "blog-autopublish failed: ${today}" \
+            --label autopublish-failure \
+            --body "The daily blog-autopublish workflow failed on ${today}. Logs: ${RUN_URL}"
