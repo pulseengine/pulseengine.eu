@@ -1,0 +1,38 @@
+{# tree: render a directory listing as a clean two-column grid.
+   Files left, descriptions right. Monospace file names, regular text
+   descriptions. No tree characters, no terminal-output mimicry —
+   just a card with structured rows.
+
+   Usage:
+     {% tree(root="scripts/mythos/") %}
+     HOWTO.md | pipeline overview + oracle design
+     rank.md | score every source file 1-5 by slop likelihood
+     {% end %}
+
+   - `root` is optional; rendered as a small heading with a folder glyph.
+   - Each line of the body is one entry: `name | description`. The
+     description is optional. Empty body lines are skipped.
+#}
+{%- set lines = body | trim | split(pat="\n") -%}
+<figure class="tree" role="group" aria-label="{{ root | default(value='Directory contents') }}">
+{%- if root %}
+  <header class="tree__root">
+    <span class="tree__root-icon" aria-hidden="true">▸</span>
+    <span class="tree__root-name">{{ root }}</span>
+  </header>
+{%- endif %}
+  <dl class="tree__items">
+{%- for line in lines -%}
+{%- set entry = line | trim -%}
+{%- if entry %}
+{%- set parts = entry | split(pat=" | ") -%}
+    <dt class="tree__name">{{ parts | nth(n=0) }}</dt>
+    <dd class="tree__desc">
+{%- if parts | length > 1 -%}
+{{ parts | slice(start=1) | join(sep=" | ") }}
+{%- endif -%}
+    </dd>
+{%- endif -%}
+{%- endfor %}
+  </dl>
+</figure>

@@ -1,0 +1,79 @@
+// Directory-tree shortcode (templates/shortcodes/tree.html).
+// Two-column grid: file names left in monospace + accent, descriptions
+// right in body colour. No ASCII tree characters — clean card style
+// that matches the rest of the dark theme.
+
+.tree {
+  margin: 1.6rem 0;
+  padding: 1rem 1.25rem;
+  background: var(--surface, #1a1d27);
+  border: 1px solid var(--border-faint, #2e3345);
+  border-radius: 6px;
+  font-size: 0.92rem;
+  line-height: 1.55;
+  color: var(--text, #e1e4ed);
+}
+
+.tree__root {
+  display: flex;
+  align-items: baseline;
+  gap: 0.45rem;
+  margin: 0 0 0.7rem;
+  padding-bottom: 0.55rem;
+  border-bottom: 1px solid var(--border-faint, #2e3345);
+}
+
+.tree__root-icon {
+  color: var(--accent, #6c8cff);
+  font-size: 0.85em;
+  user-select: none;
+}
+
+.tree__root-name {
+  color: var(--text, #e1e4ed);
+  font-family: 'Atkinson Hyperlegible Mono', ui-monospace, SFMono-Regular,
+               Menlo, monospace;
+  font-weight: 600;
+}
+
+.tree__items {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  column-gap: 1.6rem;
+  row-gap: 0.4rem;
+  margin: 0;
+}
+
+.tree__name {
+  font-family: 'Atkinson Hyperlegible Mono', ui-monospace, SFMono-Regular,
+               Menlo, monospace;
+  color: var(--accent, #6c8cff);
+  font-weight: 500;
+  margin: 0;
+  white-space: nowrap;
+}
+
+.tree__desc {
+  color: var(--text-dim, #8b90a0);
+  margin: 0;
+}
+
+// Empty descriptions still occupy a grid row so the file name aligns;
+// hide them visually so they don't print a stray dot or whitespace.
+.tree__desc:empty {
+  visibility: hidden;
+}
+
+// Narrow screens: stack name above description and indent the description.
+@media (max-width: 640px) {
+  .tree__items {
+    grid-template-columns: 1fr;
+    row-gap: 0.6rem;
+  }
+  .tree__name {
+    margin-top: 0.15rem;
+  }
+  .tree__desc {
+    padding-left: 1rem;
+  }
+}
