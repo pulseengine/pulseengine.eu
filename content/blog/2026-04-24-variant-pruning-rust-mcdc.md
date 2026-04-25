@@ -1,7 +1,7 @@
 +++
 title = "MC/DC for AI-authored Rust is tractable — the variant-pruning argument"
 description = "The received wisdom is that Rust's pattern matching makes MC/DC harder than C. Under variant-managed AI-authored code, the opposite is true. Five layers of variant pruning, one oracle per layer, and a certification burden proportional to the single variant you ship — not the combinatorial product."
-date = 2026-04-24
+date = 2026-04-30
 draft = true
 [taxonomies]
 tags = ["verification", "process", "deep-dive"]
