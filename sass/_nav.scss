@@ -47,3 +47,53 @@
     border-bottom-color: $accent;
   }
 }
+
+// Theme toggle button — sun in dark mode, moon in light mode.
+// The two SVG icons live inside the button; CSS hides whichever is
+// not relevant to the current theme so the button silhouette is stable.
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  margin-left: 0.5rem;
+  padding: 0;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  color: $text-dim;
+  cursor: pointer;
+  transition: color 0.2s, border-color 0.2s, background 0.2s;
+
+  &:hover {
+    color: $text;
+    border-color: $border-subtle;
+    background: $surface;
+  }
+
+  &:focus-visible {
+    color: $text;
+    border-color: $accent;
+  }
+
+  svg {
+    width: 18px;
+    height: 18px;
+  }
+}
+
+// Show sun in dark mode (click → switch to light), moon in light mode.
+.theme-toggle .icon-sun  { display: inline; }
+.theme-toggle .icon-moon { display: none;  }
+
+@mixin light-toggle {
+  .theme-toggle .icon-sun  { display: none;  }
+  .theme-toggle .icon-moon { display: inline; }
+}
+
+:root[data-theme="light"] { @include light-toggle; }
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) { @include light-toggle; }
+}

@@ -67,29 +67,94 @@
 {% if page.content is containing("mermaid") %}
 <script type="module">
   import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+
+  // Mermaid's theming uses a JSON config object — it does not consume CSS
+  // custom properties — so we mirror the two palettes here and pick the
+  // right one based on the current theme. Re-rendering on theme toggle
+  // would require preserving the original mermaid source (it gets replaced
+  // by the rendered SVG on first run), which is a follow-up; for now a
+  // page reload after toggling picks up the new palette.
+
+  const THEMES = {
+    dark: {
+      theme: 'dark',
+      themeVariables: {
+        darkMode: true,
+        background:          '#1a1d27',
+        primaryColor:        '#242836',
+        primaryBorderColor:  '#2e3345',
+        primaryTextColor:    '#e1e4ed',
+        secondaryColor:      '#242836',
+        secondaryBorderColor:'#2e3345',
+        secondaryTextColor:  '#8b90a0',
+        tertiaryColor:       '#1a1d27',
+        lineColor:           '#6c8cff',
+        textColor:           '#e1e4ed',
+        mainBkg:             '#242836',
+        nodeBorder:          '#2e3345',
+        clusterBkg:          '#1a1d27',
+        clusterBorder:       '#2e3345',
+        titleColor:          '#e1e4ed',
+        edgeLabelBackground: '#1a1d27',
+        nodeTextColor:       '#e1e4ed',
+      },
+    },
+    light: {
+      // 'default' is mermaid's built-in light theme. We override the
+      // surface/text/line colors to match the cream palette so the
+      // diagrams blend with the page rather than sit on a stark white
+      // rectangle. `theme: 'base'` was the alternative but leaves too
+      // many derived colors falling back to dark defaults — partial
+      // overrides showed up as black-blob nodes.
+      theme: 'default',
+      themeVariables: {
+        darkMode: false,
+        background:          '#f4efe4',
+        primaryColor:        '#fbf7ee',
+        primaryBorderColor:  '#8a7e62',
+        primaryTextColor:    '#1a2235',
+        secondaryColor:      '#ebe5d6',
+        secondaryBorderColor:'#8a7e62',
+        secondaryTextColor:  '#44516a',
+        tertiaryColor:       '#fefcf6',
+        tertiaryBorderColor: '#8a7e62',
+        tertiaryTextColor:   '#1a2235',
+        lineColor:           '#3a5fce',
+        textColor:           '#1a2235',
+        mainBkg:             '#fbf7ee',
+        nodeBorder:          '#8a7e62',
+        nodeTextColor:       '#1a2235',
+        clusterBkg:          '#ebe5d6',
+        clusterBorder:       '#8a7e62',
+        titleColor:          '#1a2235',
+        edgeLabelBackground: '#f4efe4',
+        labelTextColor:      '#1a2235',
+        labelBackground:     '#f4efe4',
+        // Flowchart-specific
+        flowchartTitleColor: '#1a2235',
+        // Sequence + gantt sometimes used
+        actorBkg:            '#fbf7ee',
+        actorBorder:         '#8a7e62',
+        actorTextColor:      '#1a2235',
+      },
+    },
+  };
+
+  function resolveTheme() {
+    const explicit = document.documentElement.getAttribute('data-theme');
+    if (explicit === 'light' || explicit === 'dark') return explicit;
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
+      return 'light';
+    }
+    return 'dark';
+  }
+
+  const palette = THEMES[resolveTheme()];
+
   mermaid.initialize({
     startOnLoad: true,
-    theme: 'dark',
-    themeVariables: {
-      darkMode: true,
-      background: '#1a1d27',
-      primaryColor: '#242836',
-      primaryBorderColor: '#2e3345',
-      primaryTextColor: '#e1e4ed',
-      secondaryColor: '#242836',
-      secondaryBorderColor: '#2e3345',
-      secondaryTextColor: '#8b90a0',
-      tertiaryColor: '#1a1d27',
-      lineColor: '#6c8cff',
-      textColor: '#e1e4ed',
-      mainBkg: '#242836',
-      nodeBorder: '#2e3345',
-      clusterBkg: '#1a1d27',
-      clusterBorder: '#2e3345',
-      titleColor: '#e1e4ed',
-      edgeLabelBackground: '#1a1d27',
-      nodeTextColor: '#e1e4ed',
-    },
+    theme: palette.theme,
+    themeVariables: palette.themeVariables,
     fontFamily: "'Atkinson Hyperlegible Next', system-ui, sans-serif",
     fontSize: 14,
   });
