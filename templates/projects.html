@@ -1,0 +1,536 @@
+{% extends "base.html" %}
+
+{% block title %}{{ section.title }} — {{ config.title }}{% endblock %}
+{% block description %}{{ section.description }}{% endblock %}
+
+{% block content %}
+<div class="container">
+  <section class="page-section" style="padding-bottom:0">
+    <h1 class="section-heading">{{ section.title }}</h1>
+
+    <!-- Face selector -->
+    <div class="face-nav">
+      <button class="face-btn face-btn--active" data-face="architect"><span class="face-dot" style="background:#6c8cff"></span>Architect</button>
+      <button class="face-btn" data-face="build"><span class="face-dot" style="background:#22d3ee"></span>Build</button>
+      <button class="face-btn" data-face="verify"><span class="face-dot" style="background:#4ade80"></span>Verify</button>
+      <button class="face-btn" data-face="trace"><span class="face-dot" style="background:#fbbf24"></span>Trace</button>
+      <button class="face-btn" data-face="run"><span class="face-dot" style="background:#f87171"></span>Run</button>
+      <button class="face-btn" data-face="agent"><span class="face-dot" style="background:#c084fc"></span>Agent</button>
+    </div>
+  </section>
+
+  <!-- The cube -->
+  <div class="cube-wrap">
+    <div class="cube-scene" aria-label="Interactive 3D cube showing PulseEngine ecosystem. Drag to rotate.">
+      <div class="cube">
+        <!-- Front: Architect -->
+        <div class="cube__face cube__face--front">
+          <div class="face-title" style="color:#6c8cff">Architect</div>
+          <div class="face-component">
+            <a href="https://github.com/pulseengine/spar" class="face-component__name" rel="noopener">spar</a>
+            <div class="face-component__caps">
+              <span>pluggable analyses</span>
+              <span>AADL v2.2</span>
+              <span>SysML v2</span>
+              <span>deployment solver</span>
+              <span>code generation</span>
+              <span>SVG rendering</span>
+              <span>LSP server</span>
+            </div>
+          </div>
+          <div class="face-edge">
+            <span class="face-edge__dot" style="background:#fbbf24"></span>
+            generates rivet artifacts
+          </div>
+          <div class="face-edge">
+            <span class="face-edge__dot" style="background:#22d3ee"></span>
+            feeds WIT/Rust → pipeline
+          </div>
+        </div>
+
+        <!-- Right: Build -->
+        <div class="cube__face cube__face--right">
+          <div class="face-title" style="color:#22d3ee">Build</div>
+          <div class="face-tools">
+            <a href="https://github.com/pulseengine/meld" class="face-tool" rel="noopener">
+              <span class="face-tool__name">meld</span>
+              <span class="face-tool__desc">fuse components</span>
+            </a>
+            <a href="https://github.com/pulseengine/loom" class="face-tool" rel="noopener">
+              <span class="face-tool__name">loom</span>
+              <span class="face-tool__desc">multi-pass optimizer</span>
+            </a>
+            <a href="https://github.com/pulseengine/synth" class="face-tool" rel="noopener">
+              <span class="face-tool__name">synth</span>
+              <span class="face-tool__desc">transcode → ARM/RISC-V</span>
+            </a>
+            <a href="https://github.com/pulseengine/sigil" class="face-tool" rel="noopener">
+              <span class="face-tool__name">sigil</span>
+              <span class="face-tool__desc">sign &amp; attest</span>
+            </a>
+          </div>
+          <div class="face-edge">
+            <span class="face-edge__dot" style="background:#4ade80"></span>
+            every stage verified
+          </div>
+        </div>
+
+        <!-- Left: Verify -->
+        <div class="cube__face cube__face--left">
+          <div class="face-title" style="color:#4ade80">Verify</div>
+          <div class="face-tools">
+            <a href="https://github.com/pulseengine/rules_verus" class="face-tool" rel="noopener">
+              <span class="face-tool__name">Verus</span>
+              <span class="face-tool__desc">SMT/Z3 — all inputs</span>
+            </a>
+            <a href="https://github.com/pulseengine/rules_rocq_rust" class="face-tool" rel="noopener">
+              <span class="face-tool__name">Rocq</span>
+              <span class="face-tool__desc">abstract invariants</span>
+            </a>
+            <a href="https://github.com/pulseengine/rules_lean" class="face-tool" rel="noopener">
+              <span class="face-tool__name">Lean 4</span>
+              <span class="face-tool__desc">scheduling theory</span>
+            </a>
+          </div>
+          <div class="face-divider"></div>
+          <div class="face-edge">
+            <span class="face-edge__dot" style="background:#22d3ee"></span>
+            verifies every tool in the ecosystem
+          </div>
+          <div class="face-edge">
+            <span class="face-edge__dot" style="background:#f87171"></span>
+            pipeline · runtime · applications
+          </div>
+        </div>
+
+        <!-- Back: Trace -->
+        <div class="cube__face cube__face--back">
+          <div class="face-title" style="color:#fbbf24">Trace</div>
+          <div class="face-component">
+            <a href="https://github.com/pulseengine/rivet" class="face-component__name" rel="noopener">rivet</a>
+            <div class="face-component__caps">
+              <span>safety standard schemas</span>
+              <span>ISO 26262</span>
+              <span>ASPICE</span>
+              <span>DO-178C</span>
+              <span>EU AI Act</span>
+              <span>STPA / STPA-Sec</span>
+              <span>compliance reports</span>
+            </div>
+          </div>
+          <div class="face-edge">
+            <span class="face-edge__dot" style="background:#4ade80"></span>
+            traces verification evidence
+          </div>
+          <div class="face-edge">
+            <span class="face-edge__dot" style="background:#6c8cff"></span>
+            imports spar models
+          </div>
+        </div>
+
+        <!-- Top: Run -->
+        <div class="cube__face cube__face--top">
+          <div class="face-title" style="color:#f87171">Run</div>
+          <div class="face-tools">
+            <a href="https://github.com/pulseengine/kiln" class="face-tool" rel="noopener">
+              <span class="face-tool__name">kiln</span>
+              <span class="face-tool__desc">Wasm runtime · WASI 0.2 · no_std</span>
+            </a>
+            <a href="https://github.com/pulseengine/gale" class="face-tool" rel="noopener">
+              <span class="face-tool__name">gale</span>
+              <span class="face-tool__desc">Zephyr RTOS in Rust</span>
+            </a>
+          </div>
+          <div class="face-divider"></div>
+          <div class="face-tools">
+            <a href="https://github.com/pulseengine/relay" class="face-tool" rel="noopener">
+              <span class="face-tool__name">relay</span>
+              <span class="face-tool__desc">cFS-inspired flight software</span>
+            </a>
+            <a href="https://github.com/pulseengine/wohl" class="face-tool" rel="noopener">
+              <span class="face-tool__name">wohl</span>
+              <span class="face-tool__desc">home supervision</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- Bottom: Agent -->
+        <div class="cube__face cube__face--bottom">
+          <div class="face-title" style="color:#c084fc">Agent</div>
+          <div class="face-tools">
+            <a href="https://github.com/pulseengine/rivet" class="face-tool" rel="noopener">
+              <span class="face-tool__name">rivet mcp</span>
+              <span class="face-tool__desc">MCP tools for AI agents</span>
+            </a>
+            <a href="https://github.com/pulseengine/rivet" class="face-tool" rel="noopener">
+              <span class="face-tool__name">rivet stamp</span>
+              <span class="face-tool__desc">AI provenance metadata</span>
+            </a>
+          </div>
+          <div class="face-divider"></div>
+          <div class="face-tools">
+            <a href="https://github.com/pulseengine/mcp" class="face-tool" rel="noopener">
+              <span class="face-tool__name">mcp</span>
+              <span class="face-tool__desc">Rust MCP framework</span>
+            </a>
+            <a href="https://github.com/pulseengine/spar" class="face-tool" rel="noopener">
+              <span class="face-tool__name">spar wasm</span>
+              <span class="face-tool__desc">in-browser analysis via WASM</span>
+            </a>
+          </div>
+          <div class="face-edge">
+            <span class="face-edge__dot" style="background:#fbbf24"></span>
+            agents write + verify + trace
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="cube-hint">drag to rotate · click a perspective above</p>
+
+    <!-- Detail panel — opens after cube zoom -->
+    <div class="cube-detail">
+      <button class="cube-detail__close" aria-label="Close detail">&times;</button>
+
+      <div class="cube-detail__panel" data-detail="architect" style="display:none">
+        <h3 style="color:#6c8cff">Architect — spar</h3>
+        <p>AADL v2.2 and SysML v2 architecture analysis toolchain. Pluggable analysis passes, deployment solver, code generation (WIT, Rust, Lean 4 proofs, rivet docs), SVG rendering, LSP server. Compiles to a single WebAssembly component.</p>
+        <p>spar is architecturally upstream — it validates system design before any code exists, then generates the interfaces and skeletons that feed into the build pipeline.</p>
+        <div class="cube-detail__links">
+          <a href="https://github.com/pulseengine/spar" rel="noopener">GitHub</a>
+          <a href="https://github.com/pulseengine/spar/releases" rel="noopener">Releases</a>
+          <a href="https://marketplace.visualstudio.com/items?itemName=pulseengine.spar-aadl" rel="noopener">VS Code</a>
+        </div>
+      </div>
+
+      <div class="cube-detail__panel" data-detail="build" style="display:none">
+        <h3 style="color:#22d3ee">Build — the pipeline</h3>
+        <p><strong>meld</strong> fuses multiple WebAssembly components into a single module. <strong>loom</strong> runs multi-pass optimization via Cranelift ISLE. <strong>synth</strong> transcodes to native ARM and RISC-V through program synthesis. <strong>sigil</strong> signs and attests every transformation with Sigstore or Ed25519.</p>
+        <p>Four separate tools, one flow. Every stage is independently verifiable.</p>
+        <div class="cube-detail__links">
+          <a href="https://github.com/pulseengine/meld" rel="noopener">meld</a>
+          <a href="https://github.com/pulseengine/loom" rel="noopener">loom</a>
+          <a href="https://github.com/pulseengine/synth" rel="noopener">synth</a>
+          <a href="https://github.com/pulseengine/sigil" rel="noopener">sigil</a>
+        </div>
+      </div>
+
+      <div class="cube-detail__panel" data-detail="verify" style="display:none">
+        <h3 style="color:#4ade80">Verify — three independent proof paths across everything</h3>
+        <p><strong>Verus</strong> proves Rust code via SMT/Z3 — preconditions, postconditions, invariants on every public function. <strong>Rocq</strong> machine-checks abstract invariants that hold regardless of implementation. <strong>Lean 4</strong> proves scheduling theory — priority inheritance, deadline guarantees, starvation freedom.</p>
+        <p>These are not limited to one tool. Every component in the ecosystem — meld, loom, synth, kiln, gale, relay, wohl — carries formal verification. Three independent paths run in CI on every commit.</p>
+        <div class="cube-detail__links">
+          <a href="https://github.com/pulseengine/rules_verus" rel="noopener">rules_verus</a>
+          <a href="https://github.com/pulseengine/rules_rocq_rust" rel="noopener">rules_rocq_rust</a>
+          <a href="https://github.com/pulseengine/rules_lean" rel="noopener">rules_lean</a>
+          <a href="https://github.com/pulseengine/gale" rel="noopener">gale</a>
+        </div>
+      </div>
+
+      <div class="cube-detail__panel" data-detail="trace" style="display:none">
+        <h3 style="color:#fbbf24">Trace — rivet</h3>
+        <p>Schema-driven SDLC artifact manager. Schemas covering ISO 26262, ASPICE, DO-178C, IEC 61508, IEC 62304, EN 50128, EU AI Act, SOTIF, STPA, STPA-Sec, cybersecurity, supply chain, and more. Validates on every commit — broken links fail the build.</p>
+        <p>Imports AADL models from spar, STPA analysis from meld, test results from CI. Compliance reports generate on every release. LSP server, MCP server, dashboard.</p>
+        <div class="cube-detail__links">
+          <a href="https://github.com/pulseengine/rivet" rel="noopener">GitHub</a>
+          <a href="https://github.com/pulseengine/rivet/releases" rel="noopener">Releases</a>
+          <a href="{{ get_url(path='@/reports/_index.md') }}">Reports</a>
+        </div>
+      </div>
+
+      <div class="cube-detail__panel" data-detail="run" style="display:none">
+        <h3 style="color:#f87171">Run — platforms &amp; applications</h3>
+        <p><strong>kiln</strong> is a WebAssembly Component Model runtime with full WASI 0.2 and no_std architecture for embedded targets. <strong>gale</strong> provides formally verified Zephyr RTOS kernel primitives in Rust.</p>
+        <p>Built on top: <strong>relay</strong> — formally verified flight software inspired by NASA's cFS, reimagined as generic WebAssembly components. <strong>wohl</strong> — safety-critical home supervision. Real applications proving the ecosystem works end-to-end.</p>
+        <div class="cube-detail__links">
+          <a href="https://github.com/pulseengine/kiln" rel="noopener">kiln</a>
+          <a href="https://github.com/pulseengine/gale" rel="noopener">gale</a>
+          <a href="https://github.com/pulseengine/relay" rel="noopener">relay</a>
+          <a href="https://github.com/pulseengine/wohl" rel="noopener">wohl</a>
+        </div>
+      </div>
+
+      <div class="cube-detail__panel" data-detail="agent" style="display:none">
+        <h3 style="color:#c084fc">Agent — AI-native development</h3>
+        <p><strong>rivet mcp</strong> exposes a full tool suite to AI agents — validate, add artifacts, link, check coverage, stamp provenance. Agents write code AND maintain traceability as part of their workflow.</p>
+        <p><strong>rivet stamp</strong> records AI session provenance. <strong>mcp</strong> is the Rust framework for building MCP servers. <strong>spar wasm</strong> runs architecture analysis in-browser at 1.3 MB.</p>
+        <div class="cube-detail__links">
+          <a href="https://github.com/pulseengine/rivet" rel="noopener">rivet</a>
+          <a href="https://github.com/pulseengine/mcp" rel="noopener">mcp framework</a>
+          <a href="https://github.com/pulseengine/spar" rel="noopener">spar</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Full project listing -->
+  <section class="page-section">
+    <div class="blog-post__content">
+      {{ section.content | safe }}
+    </div>
+  </section>
+</div>
+
+<script src="{{ get_url(path='cube.js') }}"></script>
+{% endblock %}
+
+{% block head_extra %}
+<style>
+  /* ── Face nav ──────────────────────────────── */
+  .face-nav {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+  }
+  .face-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-family: inherit;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--text-faint);
+    background: var(--surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: 6px;
+    padding: 0.4rem 0.75rem;
+    cursor: pointer;
+    transition: border-color 0.2s, color 0.2s;
+  }
+  .face-btn:hover { color: var(--text); border-color: var(--accent); }
+  .face-btn--active { color: var(--text); border-color: var(--accent); background: var(--accent-glow); }
+  .face-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .face-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+
+  /* ── Cube scene ────────────────────────────── */
+  .cube-wrap {
+    padding: 4rem 0 3rem;
+  }
+  .cube-scene {
+    width: 340px;
+    height: 340px;
+    perspective: 1000px;
+    margin: 0 auto;
+    cursor: grab;
+    user-select: none;
+    -webkit-user-select: none;
+    transform: scale(1);
+    transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .cube {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    transform-style: preserve-3d;
+    transform: rotateX(-25deg) rotateY(-35deg);
+  }
+
+  /* ── Cube faces ────────────────────────────── */
+  .cube__face {
+    position: absolute;
+    width: 340px;
+    height: 340px;
+    border: 1px solid var(--border-subtle);
+    border-radius: 14px;
+    background: var(--surface);
+    backdrop-filter: blur(12px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 1.5rem;
+    backface-visibility: visible;
+    box-shadow: 0 0 30px rgba(108, 140, 255, 0.03);
+    cursor: pointer;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .cube__face:hover {
+    border-color: var(--accent);
+    box-shadow: 0 0 40px rgba(108, 140, 255, 0.08);
+  }
+  .cube__face--front  { transform: translateZ(170px); }
+  .cube__face--back   { transform: rotateY(180deg) translateZ(170px); }
+  .cube__face--right  { transform: rotateY(90deg) translateZ(170px); }
+  .cube__face--left   { transform: rotateY(-90deg) translateZ(170px); }
+  .cube__face--top    { transform: rotateX(90deg) translateZ(170px); }
+  .cube__face--bottom { transform: rotateX(-90deg) translateZ(170px); }
+
+  /* ── Face content ──────────────────────────── */
+  .face-title {
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 0.75rem;
+  }
+
+  /* Component = single tool with capabilities */
+  .face-component {
+    text-align: center;
+    margin-bottom: 0.5rem;
+  }
+  .face-component__name {
+    display: block;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--text);
+    text-decoration: none;
+    margin-bottom: 0.75rem;
+    transition: color 0.2s;
+  }
+  .face-component__name:hover { color: var(--accent); }
+  .face-component__caps {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    justify-content: center;
+  }
+  .face-component__caps span {
+    font-size: 0.65rem;
+    color: var(--text-faint);
+    background: rgba(108, 140, 255, 0.06);
+    border: 1px solid var(--border-subtle);
+    border-radius: 4px;
+    padding: 0.15rem 0.45rem;
+  }
+
+  /* Tool list = multiple distinct tools */
+  .face-tools {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    width: 100%;
+  }
+  .face-tool {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    text-decoration: none;
+    color: inherit;
+    padding: 0.35rem 0.75rem;
+    border-radius: 6px;
+    transition: background 0.2s;
+  }
+  .face-tool:hover { background: rgba(108, 140, 255, 0.08); color: inherit; }
+  .face-tool:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; color: inherit; }
+  .face-tool__name {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text);
+    min-width: 55px;
+  }
+  .face-tool__desc {
+    font-size: 0.7rem;
+    color: var(--text-faint);
+  }
+
+  /* Divider between sections on a face */
+  .face-divider {
+    width: 60%;
+    height: 1px;
+    background: var(--border-subtle);
+    margin: 0.4rem 0;
+  }
+
+  /* Edge indicators — shows cross-face connections */
+  .face-edge {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.6rem;
+    color: var(--text-faint);
+    margin-top: 0.15rem;
+    font-style: italic;
+  }
+  .face-edge__dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    display: inline-block;
+    flex-shrink: 0;
+  }
+
+  .cube-hint {
+    text-align: center;
+    font-size: 0.75rem;
+    color: var(--text-faint);
+    margin-top: 1.5rem;
+  }
+
+  /* ── Detail panel ──────────────────────────── */
+  .cube-detail {
+    max-width: 640px;
+    margin: 0 auto;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+    pointer-events: none;
+    position: relative;
+    padding: 1.5rem;
+  }
+  .cube-detail--open {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+  .cube-detail__close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: none;
+    border: 1px solid var(--border-subtle);
+    border-radius: 6px;
+    color: var(--text-faint);
+    font-size: 1.2rem;
+    width: 32px;
+    height: 32px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: inherit;
+    transition: border-color 0.2s, color 0.2s;
+  }
+  .cube-detail__close:hover { border-color: var(--accent); color: var(--text); }
+  .cube-detail__close:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .cube-detail__panel h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+  }
+  .cube-detail__panel p {
+    font-size: 0.9rem;
+    color: var(--text-faint);
+    line-height: 1.7;
+    margin-bottom: 0.75rem;
+  }
+  .cube-detail__panel p strong { color: var(--text); }
+  .cube-detail__links {
+    display: flex;
+    gap: 1rem;
+    margin-top: 0.5rem;
+    font-size: 0.85rem;
+    font-weight: 500;
+  }
+
+  /* ── Responsive ────────────────────────────── */
+  @media (max-width: 768px) {
+    .cube-scene { width: 270px; height: 270px; perspective: 800px; }
+    .cube__face { width: 270px; height: 270px; padding: 1rem; }
+    .cube__face--front  { transform: translateZ(135px); }
+    .cube__face--back   { transform: rotateY(180deg) translateZ(135px); }
+    .cube__face--right  { transform: rotateY(90deg) translateZ(135px); }
+    .cube__face--left   { transform: rotateY(-90deg) translateZ(135px); }
+    .cube__face--top    { transform: rotateX(90deg) translateZ(135px); }
+    .cube__face--bottom { transform: rotateX(-90deg) translateZ(135px); }
+    .cube-wrap { padding: 2.5rem 0 2rem; }
+    .face-component__name { font-size: 1.1rem; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cube { transition: none !important; }
+  }
+</style>
+{% endblock %}
