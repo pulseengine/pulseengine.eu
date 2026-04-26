@@ -59,6 +59,16 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
+      - name: Ensure labels exist
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # `gh label create --force` upserts (creates or updates), so this
+          # step is idempotent and immune to a label being deleted manually.
+          gh label create autopublish         --color 6c8cff --description "Auto-publish PR opened by the daily cron" --force
+          gh label create autopublish-status  --color 22d3ee --description "Pinned status issue for the auto-publish cron" --force
+          gh label create autopublish-failure --color f87171 --description "Auto-publish workflow failed on this run" --force
+
       - name: Scan drafts
         id: scan
         run: |
