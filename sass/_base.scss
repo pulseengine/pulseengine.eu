@@ -19,6 +19,34 @@ body {
   min-height: 100vh;
 }
 
+// ─── Light mode background ─────────────────────────────────────────────
+// In dark mode the animated canvas (#fractal-bg) IS the visual ground.
+// In light mode we hide the canvas (its palettes are tuned for dark)
+// and render a faint blueprint dot-grid on the body instead — the engineering
+// equivalent of paper, calm enough to read in direct sunlight.
+
+@mixin light-background {
+  #fractal-bg { display: none; }
+
+  // Hide the blue-tinted blueprint grid overlay too (defined in _background.scss);
+  // its blue lines were tuned for dark and read poorly on cream.
+  body::after { display: none; }
+
+  body {
+    background-color: $bg;
+    background-image: radial-gradient(circle, var(--grid-dot) 1px, transparent 1.2px);
+    background-size: 28px 28px;
+    background-position: 0 0;
+    background-attachment: fixed;
+  }
+}
+
+:root[data-theme="light"] { @include light-background; }
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) { @include light-background; }
+}
+
 // Focus indicators for keyboard navigation
 :focus-visible {
   outline: 2px solid $accent;
@@ -74,7 +102,7 @@ a {
   transition: color 0.2s;
 
   &:hover {
-    color: lighten($accent, 12%);
+    color: $accent-hover;
   }
 }
 

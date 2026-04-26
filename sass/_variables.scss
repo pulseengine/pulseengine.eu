@@ -1,33 +1,112 @@
-// Colors — aligned with thrum unified dashboard (style.css)
-$bg:             #0f1117;
-$bg-subtle:      #13161f;
-$surface:        #1a1d27;
-$surface-raised: #242836;
-$surface-glass:  rgba(26, 29, 39, 0.72);
-$border:         #4a5068;
-$border-subtle:  #3d4258;
-$text:           #e1e4ed;
-$text-dim:       #8b90a0;
-$text-faint:     #808698;
-$accent:         #6c8cff;
-$accent-glow:    rgba(108, 140, 255, 0.12);
-$green:          #4ade80;
-$red:            #f87171;
-$amber:          #fbbf24;
-$cyan:           #22d3ee;
-$purple:         #c084fc;
+// Theme tokens are CSS custom properties (so they can swap at runtime),
+// with Sass variables aliasing into them so the existing `$bg`-style
+// references in the rest of the partials keep compiling unchanged.
+//
+// Dark is the default; light is opt-in via `:root[data-theme="light"]`
+// or auto-applied when the user's OS reports `prefers-color-scheme: light`
+// AND no explicit `data-theme` was chosen. The manual override (set via
+// the nav button + localStorage) always wins.
+//
+// Note on Sass color functions: `lighten`, `darken`, `mix` etc. cannot
+// operate on `var(--token)` because Sass evaluates them at compile time
+// while CSS variables resolve at render time. The one place that used
+// `lighten` (link hover) has been replaced with a dedicated `--accent-hover`.
 
-// Typography — Braille Institute's Atkinson Hyperlegible
-$font-sans:  'Atkinson Hyperlegible Next', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-$font-mono:  'Atkinson Hyperlegible Mono', 'Fira Code', monospace;
-$font-size:  16px;
+// ─── Dark theme (default) ─────────────────────────────────────────────
+:root {
+  --bg:             #0f1117;
+  --bg-subtle:      #13161f;
+  --surface:        #1a1d27;
+  --surface-raised: #242836;
+  --surface-glass:  rgba(26, 29, 39, 0.72);
+  --border:         #4a5068;
+  --border-subtle:  #3d4258;
+  --text:           #e1e4ed;
+  --text-dim:       #8b90a0;
+  --text-faint:     #808698;
+  --accent:         #6c8cff;
+  --accent-hover:   #8aa3ff;
+  --accent-glow:    rgba(108, 140, 255, 0.12);
+  --green:          #4ade80;
+  --red:            #f87171;
+  --amber:          #fbbf24;
+  --cyan:           #22d3ee;
+  --purple:         #c084fc;
+
+  // Light-mode-only background pattern (no-op in dark mode)
+  --grid-dot: transparent;
+
+  color-scheme: dark;
+}
+
+// ─── Light theme — warm cream / engineering paper ─────────────────────
+// Triggered when the user explicitly chose light, OR when no choice
+// was made and the OS prefers light. The manual `data-theme="dark"`
+// attribute always shadows this.
+
+@mixin light-tokens {
+  --bg:             #f4efe4;        // cream paper
+  --bg-subtle:      #ebe5d6;
+  --surface:        #fbf7ee;        // card body
+  --surface-raised: #fefcf6;
+  --surface-glass:  rgba(251, 247, 238, 0.88);  // mostly opaque — translucency reads poorly on light
+  --border:         #b8ac8c;        // warm beige
+  --border-subtle:  #d9d1bd;
+  --text:           #1a2235;        // deep navy — high AA on cream
+  --text-dim:       #44516a;
+  --text-faint:     #6b7280;
+  --accent:         #3a5fce;        // darkened accent for AA on cream
+  --accent-hover:   #2747ad;
+  --accent-glow:    rgba(58, 95, 206, 0.10);
+  --green:          #15803d;
+  --red:            #b91c1c;
+  --amber:          #a16207;
+  --cyan:           #0e7490;
+  --purple:         #7c3aed;
+
+  --grid-dot:       rgba(68, 81, 106, 0.10);
+
+  color-scheme: light;
+}
+
+:root[data-theme="light"] { @include light-tokens; }
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) { @include light-tokens; }
+}
+
+// ─── Sass aliases that resolve to the live CSS variables ──────────────
+// Existing partials reference these via `color: $text` etc. — the
+// substitution emits `color: var(--text)` in the output CSS, so theme
+// switching works without touching every partial.
+$bg:             var(--bg);
+$bg-subtle:      var(--bg-subtle);
+$surface:        var(--surface);
+$surface-raised: var(--surface-raised);
+$surface-glass:  var(--surface-glass);
+$border:         var(--border);
+$border-subtle:  var(--border-subtle);
+$text:           var(--text);
+$text-dim:       var(--text-dim);
+$text-faint:     var(--text-faint);
+$accent:         var(--accent);
+$accent-hover:   var(--accent-hover);
+$accent-glow:    var(--accent-glow);
+$green:          var(--green);
+$red:            var(--red);
+$amber:          var(--amber);
+$cyan:           var(--cyan);
+$purple:         var(--purple);
+
+// ─── Non-theme tokens (sizes, fonts) — stay as plain Sass values ──────
+$font-sans:   'Atkinson Hyperlegible Next', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+$font-mono:   'Atkinson Hyperlegible Mono', 'Fira Code', monospace;
+$font-size:   16px;
 $line-height: 1.65;
 
-// Glass
 $glass-blur:   blur(12px);
 $glass-radius: 12px;
 
-// Layout
 $max-width:    1100px;
 $content-width: 720px;
 $gap:          20px;
