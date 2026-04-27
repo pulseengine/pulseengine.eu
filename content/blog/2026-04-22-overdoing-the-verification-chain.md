@@ -148,6 +148,7 @@ A one-line gloss for each technique in the matrix below — skip if these read l
 - **tokio-rs/loom** — permutation-checks every possible thread interleaving in a bounded concurrent program.
 - **Sanitizer · Miri** — runtime instrumentation that detects undefined behaviour, memory errors, and data races (ASAN, TSAN, LSAN, UBSAN, Miri).
 - **Mutation testing** — inject small plausible bugs into the source and check whether the test suite catches them; empirical test-suite adequacy.
+- **Structural coverage (Wasm IR)** — branch / MC/DC coverage measured on the post-compile WebAssembly module rather than at source. Closes the §FM.6.7(f) / MC/DC-shaped cell that source-level lcov has long pretended to satisfy across DO-178C, ISO 26262, IEC 61508. Shipping as [witness](https://github.com/pulseengine/witness); the credit-template work for the other four standards is the next post's hook.
 - **Traceability** — requirement ↔ design ↔ code ↔ test ↔ proof chain, validated on every commit (rivet).
 
 At a glance, all seven domains against the core chain techniques:
@@ -166,6 +167,7 @@ At a glance, all seven domains against the core chain techniques:
       <th title="tokio-rs/loom — every thread interleaving">tokio-rs<br>loom</th>
       <th title="Miri + ASAN/TSAN/LSAN/UBSAN — runtime anomaly detection">Sanitizer<br>&nbsp;· Miri</th>
       <th title="cargo-mutants — test-suite adequacy">Mutation<br>testing</th>
+      <th title="witness — branch / MC/DC coverage on post-compile Wasm">Struct.<br>coverage</th>
       <th title="rivet — requirements-to-evidence linking">Trace-<br>ability</th>
     </tr>
   </thead>
@@ -181,6 +183,7 @@ At a glance, all seven domains against the core chain techniques:
       <td class="fit-strong" title="strong — bounded model checking for concurrency (DO-333)">●</td>
       <td class="fit-strong" title="strong — runtime robustness evidence">●</td>
       <td class="fit-strong" title="strong — test-suite adequacy addresses the MC/DC-for-Rust gap">●</td>
+      <td class="fit-strong" title="strong — closes the §FM.6.7(f) / MC/DC-on-object cell witness measures at Wasm IR">●</td>
       <td class="fit-strong" title="strong — rivet artefacts support the full trace chain">●</td>
     </tr>
     <tr>
@@ -194,6 +197,7 @@ At a glance, all seven domains against the core chain techniques:
       <td class="fit-partial" title="partial — Table 10 integration context">◐</td>
       <td class="fit-strong" title="Table 7 analysis techniques">●</td>
       <td class="fit-partial" title="Table 13 referenced as test-quality metric">◐</td>
+      <td class="fit-strong" title="strong — Part 6 Table 12 structural coverage at module integration level">●</td>
       <td class="fit-strong">●</td>
     </tr>
     <tr>
@@ -207,6 +211,7 @@ At a glance, all seven domains against the core chain techniques:
       <td class="fit-strong" title="Annex B concurrency model checking">●</td>
       <td class="fit-strong" title="Annex B defensive programming / dynamic analysis">●</td>
       <td class="fit-strong" title="Annex C.5.12 mutation testing — explicit">●</td>
+      <td class="fit-strong" title="strong — Annex C structural test coverage at object-code-equivalent level">●</td>
       <td class="fit-strong">●</td>
     </tr>
     <tr>
@@ -220,6 +225,7 @@ At a glance, all seven domains against the core chain techniques:
       <td class="fit-strong" title="Table A.17 model checking for concurrency">●</td>
       <td class="fit-strong" title="Table A.5 defensive programming">●</td>
       <td class="fit-strong" title="Table A.17 test coverage adequacy">●</td>
+      <td class="fit-na" title="not yet mapped — credit-template work is the next post's hook"></td>
       <td class="fit-strong">●</td>
     </tr>
     <tr>
@@ -233,6 +239,7 @@ At a glance, all seven domains against the core chain techniques:
       <td class="fit-partial" title="concurrency testing accepted">◐</td>
       <td class="fit-strong" title="UB detection valued for unsafe code">●</td>
       <td class="fit-strong" title="FDA CSA accepts mutation as adequacy evidence">●</td>
+      <td class="fit-na" title="not yet mapped — credit-template work is the next post's hook"></td>
       <td class="fit-strong" title="§9 + FDA DHF requires full traceability">●</td>
     </tr>
     <tr>
@@ -246,6 +253,7 @@ At a glance, all seven domains against the core chain techniques:
       <td class="fit-partial">◐</td>
       <td class="fit-strong">●</td>
       <td class="fit-partial" title="accepted but no established template">◐</td>
+      <td class="fit-na" title="not yet mapped — credit-template work is the next post's hook"></td>
       <td class="fit-partial">◐</td>
     </tr>
     <tr>
@@ -259,6 +267,7 @@ At a glance, all seven domains against the core chain techniques:
       <td class="fit-partial">◐</td>
       <td class="fit-partial">◐</td>
       <td class="fit-partial">◐</td>
+      <td class="fit-na" title="not yet mapped — credit-template work is the next post's hook"></td>
       <td class="fit-partial">◐</td>
     </tr>
   </tbody>
