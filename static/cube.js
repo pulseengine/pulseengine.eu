@@ -155,6 +155,15 @@
       });
     }
 
+    if (reduceMotion) {
+      // Honor prefers-reduced-motion: snap to target rotation, no zoom/rotate animations.
+      cube.style.transition = 'none';
+      scene.style.transition = 'none';
+      apply();
+      if (detailPanel) detailPanel.classList.add('cube-detail--open');
+      return;
+    }
+
     // Animate: rotate the cube
     cube.style.transition = 'transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
     apply();
@@ -177,12 +186,23 @@
     // Hide detail
     if (detailPanel) detailPanel.classList.remove('cube-detail--open');
 
-    // Zoom back in
-    scene.style.transform = 'scale(1)';
-
     // Return to isometric
     rotX = -30;
     rotY = 35;
+
+    if (reduceMotion) {
+      cube.style.transition = 'none';
+      scene.style.transition = 'none';
+      scene.style.transform = 'scale(1)';
+      apply();
+      autoSpin = true;
+      snaps.forEach(function (b) { b.classList.remove('face-btn--active'); });
+      return;
+    }
+
+    // Zoom back in
+    scene.style.transform = 'scale(1)';
+
     cube.style.transition = 'transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
     apply();
 

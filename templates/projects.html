@@ -91,10 +91,6 @@
               <span class="face-tool__name">Lean 4</span>
               <span class="face-tool__desc">scheduling theory</span>
             </a>
-            <a href="https://github.com/pulseengine/witness" class="face-tool" rel="noopener">
-              <span class="face-tool__name">witness</span>
-              <span class="face-tool__desc">MC/DC on Wasm IR</span>
-            </a>
           </div>
           <div class="face-divider"></div>
           <div class="face-edge">
@@ -219,14 +215,13 @@
       </div>
 
       <div class="cube-detail__panel" data-detail="verify" style="display:none">
-        <h3 style="color:#4ade80">Verify — three proof paths and the empirical coverage cell</h3>
-        <p><strong>Verus</strong> proves Rust code via SMT/Z3 — preconditions, postconditions, invariants on every public function. <strong>Rocq</strong> machine-checks abstract invariants that hold regardless of implementation. <strong>Lean 4</strong> proves scheduling theory — priority inheritance, deadline guarantees, starvation freedom. <strong>witness</strong> measures branch / MC/DC coverage at the post-compile WebAssembly level — the empirical counterpart that closes the §FM.6.7(f) / structural-coverage cell DO-178C, ISO 26262 Part 6 Table 12, and IEC 61508 Annex C expect.</p>
-        <p>These are not limited to one tool. Every component in the ecosystem — meld, loom, synth, kiln, gale, relay, wohl — carries formal verification. Four independent verification paths run in CI on every commit: three proof, one coverage.</p>
+        <h3 style="color:#4ade80">Verify — three independent proof paths across everything</h3>
+        <p><strong>Verus</strong> proves Rust code via SMT/Z3 — preconditions, postconditions, invariants on every public function. <strong>Rocq</strong> machine-checks abstract invariants that hold regardless of implementation. <strong>Lean 4</strong> proves scheduling theory — priority inheritance, deadline guarantees, starvation freedom.</p>
+        <p>These are not limited to one tool. Every component in the ecosystem — meld, loom, synth, kiln, gale, relay, wohl — carries formal verification. Three independent paths run in CI on every commit.</p>
         <div class="cube-detail__links">
           <a href="https://github.com/pulseengine/rules_verus" rel="noopener">rules_verus</a>
           <a href="https://github.com/pulseengine/rules_rocq_rust" rel="noopener">rules_rocq_rust</a>
           <a href="https://github.com/pulseengine/rules_lean" rel="noopener">rules_lean</a>
-          <a href="https://github.com/pulseengine/witness" rel="noopener">witness</a>
           <a href="https://github.com/pulseengine/gale" rel="noopener">gale</a>
         </div>
       </div>
@@ -532,6 +527,8 @@
     .cube__face--bottom { transform: rotateX(-90deg) translateZ(135px); }
     .cube-wrap { padding: 2.5rem 0 2rem; }
     .face-component__name { font-size: 1.1rem; }
+    /* Hit-target fix — iOS guideline is 44×44 minimum for touchable controls. */
+    .face-btn { min-height: 44px; padding: 0.6rem 0.9rem; font-size: 0.875rem; }
   }
 
   @media (prefers-reduced-motion: reduce) {
