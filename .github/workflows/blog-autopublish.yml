@@ -46,9 +46,23 @@ jobs:
       RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
       REPO: ${{ github.repository }}
     steps:
+      # Mint a token from the PulseEngine Actions Helper App so this job
+      # can `gh pr create` despite the org policy that disables PR-creation
+      # for the default GITHUB_TOKEN. The App's installation grants
+      # contents: write + pull-requests: write + metadata: read on this
+      # repo only — strictly narrower than what GITHUB_TOKEN would have
+      # had with the org permission flipped.
+      - name: Mint App token
+        id: app_token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.ACTIONS_BOT_APP_ID }}
+          private-key: ${{ secrets.ACTIONS_BOT_PRIVATE_KEY }}
+
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          token: ${{ steps.app_token.outputs.token }}
 
       - uses: actions/setup-python@v5
         with:
@@ -61,7 +75,7 @@ jobs:
 
       - name: Ensure labels exist
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ steps.app_token.outputs.token }}
         run: |
           # `gh label create --force` upserts (creates or updates), so this
           # step is idempotent and immune to a label being deleted manually.
@@ -91,7 +105,7 @@ jobs:
         id: publish
         if: steps.scan.outputs.ready_count != '0'
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ steps.app_token.outputs.token }}
         run: |
           set -euo pipefail
           published='[]'
@@ -146,7 +160,7 @@ jobs:
       - name: Post / update status comment
         if: always()
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ steps.app_token.outputs.token }}
         run: |
           set -euo pipefail
 
@@ -179,7 +193,7 @@ jobs:
       - name: Open failure issue
         if: failure()
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ steps.app_token.outputs.token }}
         run: |
           today=$(date -u +%Y-%m-%d)
           gh issue create \

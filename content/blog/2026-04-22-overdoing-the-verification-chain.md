@@ -2,7 +2,7 @@
 title = "Overdoing the verification chain — and mapping it to six safety domains"
 description = "The prior posts argued for proofs and for traceability. This one shows the full chain, why I chose to overdo rather than undercommit, and where the stack earns credit across six safety domains — with an honest read on what still does not clear the bar."
 date = 2026-04-29
-draft = true
+draft = false
 [taxonomies]
 tags = ["verification", "deep-dive"]
 authors = ["Ralf Anton Beier"]

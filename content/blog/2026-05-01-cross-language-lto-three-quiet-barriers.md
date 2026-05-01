@@ -2,7 +2,7 @@
 title = "Cross-language LTO on Cortex-M: three barriers and a wrong prediction"
 description = "We pushed LLVM cross-language LTO between verified Rust and Zephyr's C kernel. Three barriers nobody documents. Cleared them. Then measured — and the prediction we'd shipped was wrong by a lot. The story of what that taught us, and the framework for picking a regime when the data doesn't dominate."
 date = 2026-05-01
-draft = true
+draft = false
 [taxonomies]
 tags = ["verification", "process", "deep-dive"]
 authors = ["Ralf Anton Beier"]
