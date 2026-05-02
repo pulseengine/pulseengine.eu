@@ -1,5 +1,17 @@
 name: Deploy
 
+# Release variant — never cancel a deploy mid-flight. A cancelled deploy
+# can leave the Netcup site in a half-deleted state (the script does
+# `find . -delete && tar -xzf`). Group by ref so two parallel pushes to
+# the same branch serialize cleanly without race-deleting each other.
+#
+# Security note: this concurrency block uses only server-controlled
+# context vars (github.ref, github.workflow) — no PR-author-controlled
+# input flows into the group key.
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
 on:
   push:
     branches: [main]
