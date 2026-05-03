@@ -191,19 +191,15 @@
   }
 
   // Mermaid renders asynchronously after `mermaid.initialize` is called.
-  // The `mermaid:render-end` event isn't reliably emitted across versions,
-  // so use a MutationObserver: each time a <style> tag appears inside a
-  // .mermaid svg, run the patch. Idempotent — re-running on already-patched
-  // CSS is a no-op (the dark hex strings are gone after the first pass).
-  var mermaidObserver = new MutationObserver(function () {
-    applyMermaidLightFix();
-  });
-  mermaidObserver.observe(document.body, { childList: true, subtree: true });
-
-  // Also run once after a short delay as a fallback in case the observer
-  // misses the timing (e.g. StartOnLoad fires before observer attaches).
-  window.setTimeout(applyMermaidLightFix, 500);
-  window.setTimeout(applyMermaidLightFix, 1500);
+  // No callback API for "after render" works reliably across versions, so
+  // we run the patch on a few delayed timeouts — covers the common timing.
+  // Earlier attempt used a MutationObserver but that created an infinite
+  // loop: rewriting the style tag's textContent triggered more mutations,
+  // which re-triggered the observer, which re-rewrote, ad infinitum →
+  // browser hung. setTimeout fallbacks are bounded and safe.
+  window.setTimeout(applyMermaidLightFix, 300);
+  window.setTimeout(applyMermaidLightFix, 1000);
+  window.setTimeout(applyMermaidLightFix, 2500);
 </script>
 {% endif %}
 {% endblock %}
