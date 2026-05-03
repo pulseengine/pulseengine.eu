@@ -158,6 +158,52 @@
     fontFamily: "'Atkinson Hyperlegible Next', system-ui, sans-serif",
     fontSize: 14,
   });
+
+  // ─── Light-mode mermaid color patcher ─────────────────────────────────
+  // Each post's `classDef` lines compile to CSS rules INSIDE the rendered
+  // SVG's `<style>` tag, scoped by a dynamic `#mermaid-NNN` id and marked
+  // `!important`. Outer CSS can't beat that combination, so we patch the
+  // injected stylesheets directly: rewrite the hardcoded dark-mode hex
+  // values to their cream-mode equivalents. The semantic accent strokes
+  // (blue/green/amber/red/purple) are left alone — they read on either
+  // background and are meaningful (good = green, warning = amber, etc.).
+  //
+  // Replacements only apply to .mermaid svg <style> tags, never the
+  // wider page CSS, so this is scoped strictly to mermaid output.
+  function applyMermaidLightFix() {
+    if (resolveTheme() !== 'light') return;
+    var replacements = [
+      ['#1a1d27', '#fbf7ee'],   // surface dark → cream
+      ['#13161f', '#ebe5d6'],   // bg-subtle dark → bg-subtle cream
+      ['#0f1117', '#f4efe4'],   // bg dark → bg cream
+      ['#3d4258', '#b8ac8c'],   // border-subtle → warm beige
+      ['#4a5068', '#8a7e62'],   // border → darker warm beige
+      ['#e1e4ed', '#1a2235'],   // text → deep navy
+      ['#8b90a0', '#44516a'],   // text-dim → medium navy
+    ];
+    document.querySelectorAll('.mermaid svg style').forEach(function (styleEl) {
+      var css = styleEl.textContent;
+      replacements.forEach(function (pair) {
+        css = css.split(pair[0]).join(pair[1]);
+      });
+      styleEl.textContent = css;
+    });
+  }
+
+  // Mermaid renders asynchronously after `mermaid.initialize` is called.
+  // The `mermaid:render-end` event isn't reliably emitted across versions,
+  // so use a MutationObserver: each time a <style> tag appears inside a
+  // .mermaid svg, run the patch. Idempotent — re-running on already-patched
+  // CSS is a no-op (the dark hex strings are gone after the first pass).
+  var mermaidObserver = new MutationObserver(function () {
+    applyMermaidLightFix();
+  });
+  mermaidObserver.observe(document.body, { childList: true, subtree: true });
+
+  // Also run once after a short delay as a fallback in case the observer
+  // misses the timing (e.g. StartOnLoad fires before observer attaches).
+  window.setTimeout(applyMermaidLightFix, 500);
+  window.setTimeout(applyMermaidLightFix, 1500);
 </script>
 {% endif %}
 {% endblock %}
