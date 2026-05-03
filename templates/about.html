@@ -1,0 +1,424 @@
+{% extends "base.html" %}
+
+{% block title %}About — {{ config.title }}{% endblock %}
+{% block description %}{{ page.description }}{% endblock %}
+
+{% block content %}
+<div class="container">
+  <article class="about-page">
+
+    <!-- Framing — Research-Through-Building Lab voice -->
+    <header class="about-hero">
+      <h1 class="about-hero__title">PulseEngine</h1>
+      <p class="about-hero__lead">
+        An open-source ecosystem of formally-verified WebAssembly tools for safety-critical software. Each tool tests a falsifiable claim about <strong>AI-velocity verification</strong> — the idea that AI authorship makes formal verification both <em>mandatory</em> and <em>tractable</em>.
+      </p>
+      <p class="about-hero__lead about-hero__lead--secondary">
+        The thesis is in the posts. The evidence is in the tools. <a href="https://github.com/pulseengine">GitHub</a> · <a href="{{ get_url(path='@/blog/_index.md') }}">Blog</a> · <a href="{{ get_url(path='@/projects/_index.md') }}">Projects</a>
+      </p>
+    </header>
+
+    <!-- Demo card — the artifact, the headline -->
+    <section class="about-section">
+      <h2 class="about-section__title">The bench, today</h2>
+      <div class="demo-card glass-card">
+        <div class="demo-card__head">
+          <span class="demo-card__tag">Live</span>
+          <code class="demo-card__pipeline">witness verify gale.wasm</code>
+        </div>
+        <div class="demo-card__metrics">
+          <a href="https://github.com/pulseengine/gale" class="demo-card__metric" rel="noopener">
+            <span class="demo-card__num">805</span>
+            <span class="demo-card__lbl">Verus properties verified</span>
+          </a>
+          <a href="https://github.com/pulseengine/gale" class="demo-card__metric" rel="noopener">
+            <span class="demo-card__num">39 / 39</span>
+            <span class="demo-card__lbl">modules covered</span>
+          </a>
+          <a href="https://github.com/pulseengine/witness" class="demo-card__metric" rel="noopener">
+            <span class="demo-card__num">SLSA L2/L3</span>
+            <span class="demo-card__lbl">in-toto signed attestations</span>
+          </a>
+        </div>
+        <div class="demo-card__repro">
+          <div class="demo-card__repro-line">
+            <span class="demo-card__repro-prompt">$</span>
+            <code>bazel test //gale/...</code>
+            <span class="demo-card__repro-tail">— Bazel + Nix hermetic; runs Verus + Kani + Rocq + Lean. <a href="https://github.com/pulseengine/gale#verification">Setup notes →</a></span>
+          </div>
+          <div class="demo-card__repro-line">
+            <span class="demo-card__repro-prompt">$</span>
+            <code>witness verify --module gale.wasm</code>
+            <span class="demo-card__repro-tail">— MC/DC coverage + DSSE-signed attestation. <a href="https://github.com/pulseengine/witness">v0.10 →</a></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="about-posture">
+        <strong>Posture, honestly.</strong> Open source. Pre-1.0 across the toolkit. <code>DO-330 TQL</code> path is documented; <em>not yet qualified</em>. Verus proofs run on the verification cron, not every commit. Some Kani FFI harnesses still gated on Bazel CI. We will tell you when an authority audit happens; we have not been audited yet.
+      </div>
+    </section>
+
+    <!-- 3 / 3 / 2 — claims, ships, unknowns -->
+    <section class="about-section">
+      <h2 class="about-section__title">Three claims, three things shipping, two unknowns</h2>
+      <div class="thesis-grid">
+
+        <div class="thesis-block">
+          <h3 class="thesis-block__head">3 claims we're betting on</h3>
+          <ol class="thesis-list">
+            <li><strong>AI agents collapse the cost</strong> of writing proof annotations to near-zero — formal verification stops being elite.</li>
+            <li><strong>Oracle-gated agent pipelines</strong> are the missing half of spec-driven development. <a href="/blog/spec-driven-development-is-half-the-loop/">Read the post.</a></li>
+            <li><strong>Variant pruning makes MC/DC for AI-authored Rust</strong> strictly easier than MC/DC for C, once all five layers are counted. <a href="/blog/variant-pruning-rust-mcdc/">The argument.</a></li>
+          </ol>
+        </div>
+
+        <div class="thesis-block">
+          <h3 class="thesis-block__head">3 things shipping today</h3>
+          <ol class="thesis-list">
+            <li><a href="https://github.com/pulseengine/witness"><code>witness</code></a> — MC/DC on WebAssembly. v0.10. Coverage reports, DSSE-signed attestations, in-toto provenance.</li>
+            <li><a href="https://github.com/pulseengine/gale"><code>gale</code></a> — formally-verified Rust port of Zephyr RTOS primitives. 805 Verus properties · 39/39 modules · Rocq, Lean, Kani harnesses.</li>
+            <li><a href="https://github.com/pulseengine/rivet"><code>rivet</code></a> — schema-driven SDLC traceability. Schemas for ISO 26262, DO-178C, IEC 61508, ASPICE, STPA, EU AI Act. <code>rivet validate</code> on every commit.</li>
+          </ol>
+        </div>
+
+        <div class="thesis-block">
+          <h3 class="thesis-block__head">2 things we don't know yet</h3>
+          <ol class="thesis-list">
+            <li>Whether checkable-certificate emitters (Z3, Verus, Kani) can collapse DO-330 qualification cost from <em>"qualify the prover"</em> to <em>"qualify a small checker."</em> <a href="/blog/overdoing-the-verification-chain/">In progress.</a></li>
+            <li>Whether AI-velocity verification dossiers survive a real authority audit. We have not been audited.</li>
+          </ol>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Where to start, by role -->
+    <section class="about-section">
+      <h2 class="about-section__title">Where to start, by role</h2>
+      <div class="role-grid">
+
+        <div class="role-block">
+          <h3 class="role-block__head">Embedded / Rust engineer</h3>
+          <ul class="role-list">
+            <li><a href="https://github.com/pulseengine/witness">witness</a> — try MC/DC on a Wasm module</li>
+            <li><a href="https://github.com/pulseengine/gale">gale</a> — Verus-verified RTOS primitives</li>
+            <li><a href="https://github.com/pulseengine/kiln">kiln</a> — no_std Wasm Component Model runtime</li>
+            <li><a href="/blog/cross-language-lto-three-quiet-barriers/">Cross-language LTO on Cortex-M</a></li>
+          </ul>
+        </div>
+
+        <div class="role-block">
+          <h3 class="role-block__head">Formal-methods researcher</h3>
+          <ul class="role-list">
+            <li><a href="/blog/overdoing-the-verification-chain/">Overdoing the verification chain</a> — six-domain credit matrix</li>
+            <li><a href="/blog/variant-pruning-rust-mcdc/">Variant-pruning argument</a></li>
+            <li><a href="/blog/formal-verification-ai-agents/">Formal verification just became practical</a></li>
+            <li><a href="https://github.com/pulseengine/gale">gale's proof tree</a></li>
+          </ul>
+        </div>
+
+        <div class="role-block">
+          <h3 class="role-block__head">Safety / compliance engineer</h3>
+          <ul class="role-list">
+            <li><a href="/blog/overdoing-the-verification-chain/">Six-domain credit matrix</a> (DO-178C, ISO 26262, IEC 61508, EN 50128, IEC 62304, ECSS)</li>
+            <li><a href="https://github.com/pulseengine/rivet">rivet</a> — traceability + compliance schemas</li>
+            <li><a href="{{ get_url(path='@/reports/_index.md') }}">Compliance reports</a></li>
+          </ul>
+        </div>
+
+        <div class="role-block">
+          <h3 class="role-block__head">AI / agent-tooling builder</h3>
+          <ul class="role-list">
+            <li><a href="/blog/spec-driven-development-is-half-the-loop/">Spec-driven development is half the loop</a></li>
+            <li><a href="/blog/mythos-slop-hunt/">Mythos slop-hunt: oracle-gated audits in practice</a></li>
+            <li><a href="/blog/three-patterns-colliding/">Three patterns colliding</a></li>
+          </ul>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Engagement — community-only; no commercial CTA pending Impressum + Datenschutzerklärung -->
+    <section class="about-section">
+      <h2 class="about-section__title">Get involved</h2>
+
+      <p class="about-engagement">
+        Open source. Everything happens in public on the <a href="https://github.com/pulseengine">GitHub org</a> — issues, pull requests, discussions, releases. Posts and notes on the <a href="{{ get_url(path='@/blog/_index.md') }}">blog</a> (RSS at <code><a href="{{ get_url(path='atom.xml') }}">/atom.xml</a></code>). Every commit is on GitHub, every release is signed, every proof is rerunnable.
+      </p>
+
+      <p class="about-engagement">
+        Found something interesting, broken, or worth a deeper post? Open an issue on the relevant repo. Working in a regulated domain and curious how the chain maps to your dossier? The <a href="/blog/overdoing-the-verification-chain/">six-domain credit matrix</a> is the entry point — and the comment thread on the relevant tracking issue is where conversations happen in the open.
+      </p>
+
+      <p class="about-domain-router">
+        Specific standard? See what PulseEngine offers each — DO-178C+DO-333 · ISO 26262 · IEC 61508-3 · EN 50128 · IEC 62304 · ECSS-Q-ST-80C — in the <a href="/blog/overdoing-the-verification-chain/">credit matrix</a>. Per-domain qualification material is being assembled in the open as the work proceeds.
+      </p>
+    </section>
+
+    <!-- Author / sustainability -->
+    <section class="about-section about-author">
+      <p>
+        Built by <a href="https://www.linkedin.com/in/ralfantonbeier" rel="noopener">Ralf Anton Beier</a> with AI-paired authorship — 22 years automotive software architecture, <a href="https://worldwide.espacenet.com/patent/search?q=in%3D%22BEIER%20RALF%20ANTON%22" rel="noopener">8 patents</a>, distinguished engineer.
+      </p>
+      <p class="about-author__small">
+        Bus-factor mitigation in flight: independent contributors welcome. When the project gets big enough that a successor handover note matters, we will publish one. Until then: every commit, every release, every proof — public, signed, rerunnable.
+      </p>
+    </section>
+
+  </article>
+</div>
+
+<style>
+.about-page {
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 2.5rem 0 4rem;
+}
+
+/* Hero */
+.about-hero { margin-bottom: 3rem; }
+.about-hero__title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  margin-bottom: 1.25rem;
+}
+.about-hero__lead {
+  font-size: 1.05rem;
+  line-height: 1.7;
+  color: var(--text);
+  margin-bottom: 1rem;
+}
+.about-hero__lead--secondary {
+  color: var(--text-dim);
+  font-size: 0.95rem;
+}
+.about-hero__lead a {
+  border-bottom: 1px solid rgba(108, 140, 255, 0.3);
+}
+
+/* Sections */
+.about-section { margin-bottom: 2.75rem; }
+.about-section__title {
+  font-size: 1.4rem;
+  font-weight: 600;
+  margin-bottom: 1.25rem;
+  color: var(--text);
+}
+
+/* Demo card */
+.demo-card { padding: 1.5rem 1.75rem; }
+.demo-card__head {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+.demo-card__tag {
+  background: var(--green);
+  color: var(--bg);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 0.2rem 0.55rem;
+  border-radius: 4px;
+}
+.demo-card__pipeline {
+  font-size: 0.9rem;
+  color: var(--text);
+  background: var(--surface-raised);
+  padding: 0.3rem 0.6rem;
+  border-radius: 6px;
+}
+.demo-card__metrics {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+.demo-card__metric {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  text-align: center;
+  padding: 1.1rem 0.5rem;
+  background: var(--surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  text-decoration: none;
+  transition: border-color 0.2s, transform 0.2s;
+}
+.demo-card__metric:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+}
+.demo-card__num {
+  font-size: 1.7rem;
+  font-weight: 700;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+.demo-card__lbl {
+  font-size: 0.72rem;
+  color: var(--text-faint);
+  letter-spacing: 0.02em;
+  line-height: 1.35;
+}
+.demo-card__repro {
+  font-size: 0.82rem;
+  color: var(--text-dim);
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.demo-card__repro-line {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+.demo-card__repro-prompt {
+  color: var(--text-faint);
+  font-family: var(--font-mono, monospace);
+  user-select: none;
+}
+.demo-card__repro-line code {
+  background: var(--surface-raised);
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+  font-size: 0.85rem;
+}
+.demo-card__repro-tail { color: var(--text-faint); font-size: 0.78rem; }
+
+/* Posture line */
+.about-posture {
+  font-size: 0.88rem;
+  color: var(--text-dim);
+  margin-top: 1.25rem;
+  padding: 0.85rem 1.1rem;
+  border-left: 3px solid var(--amber);
+  background: rgba(251, 191, 36, 0.06);
+  border-radius: 0 6px 6px 0;
+  line-height: 1.6;
+}
+.about-posture code {
+  font-size: 0.85em;
+  padding: 0.05em 0.3em;
+  background: rgba(251, 191, 36, 0.08);
+  border-radius: 3px;
+}
+
+/* Thesis grid (3 / 3 / 2) */
+.thesis-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+}
+.thesis-block {
+  padding: 1.3rem 1.4rem;
+  background: var(--surface-glass);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+}
+.thesis-block__head {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--accent);
+  margin-bottom: 0.85rem;
+}
+.thesis-list {
+  margin: 0;
+  padding-left: 1.1rem;
+  font-size: 0.86rem;
+  line-height: 1.65;
+  color: var(--text-dim);
+}
+.thesis-list li { margin-bottom: 0.55rem; }
+.thesis-list li:last-child { margin-bottom: 0; }
+.thesis-list code {
+  font-size: 0.85em;
+  padding: 0.05em 0.3em;
+}
+.thesis-list strong { color: var(--text); }
+
+/* Role grid */
+.role-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.25rem;
+}
+.role-block {
+  padding: 1.1rem 1.3rem;
+  background: var(--surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+}
+.role-block__head {
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin-bottom: 0.65rem;
+  color: var(--text);
+}
+.role-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.55;
+}
+.role-list li { margin-bottom: 0.4rem; }
+.role-list a { border-bottom: 1px solid rgba(108, 140, 255, 0.25); }
+
+/* Engagement */
+.about-engagement {
+  font-size: 0.95rem;
+  line-height: 1.7;
+  color: var(--text-dim);
+  margin-bottom: 1rem;
+}
+.about-engagement strong { color: var(--text); }
+
+.about-domain-router {
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  padding: 0.85rem 1.1rem;
+  border-left: 3px solid var(--accent);
+  background: var(--accent-glow);
+  border-radius: 0 6px 6px 0;
+  margin-top: 1.25rem;
+  line-height: 1.6;
+}
+
+/* Author block */
+.about-author {
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--border-subtle);
+}
+.about-author p {
+  color: var(--text-dim);
+  font-size: 0.9rem;
+  line-height: 1.65;
+  margin-bottom: 0.65rem;
+}
+.about-author__small {
+  font-size: 0.8rem !important;
+  color: var(--text-faint) !important;
+}
+
+@media (max-width: 768px) {
+  .about-hero__title { font-size: 2rem; }
+  .demo-card__metrics { grid-template-columns: 1fr; }
+  .thesis-grid { grid-template-columns: 1fr; }
+  .role-grid { grid-template-columns: 1fr; }
+  .demo-card__head { flex-direction: column; align-items: flex-start; }
+}
+</style>
+{% endblock %}
