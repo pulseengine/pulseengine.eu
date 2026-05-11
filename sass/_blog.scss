@@ -236,6 +236,24 @@
     }
   }
 
+}
+
+// Mermaid light-mode color override is handled in JS, not CSS.
+//
+// Why: each post's `classDef` lines compile to CSS rules INSIDE the
+// rendered SVG's `<style>` tag, scoped by a dynamic id (`#mermaid-NNN`)
+// and marked `!important`. That combination of (ID selector +
+// !important + later source order than main.css) means outer CSS
+// cannot override them, regardless of attribute / class selectors or
+// added !importants.
+//
+// The fix lives in `templates/blog-page.html`: after mermaid renders,
+// the script walks each `.mermaid svg style` element and rewrites the
+// hardcoded dark hex values to their cream-mode equivalents. See the
+// `applyMermaidLightFix` function there.
+
+.blog-post__content {
+
   // Tables
   table {
     width: 100%;
