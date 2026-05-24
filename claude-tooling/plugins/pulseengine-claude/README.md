@@ -13,6 +13,7 @@ PulseEngine engineering methodology as installable Claude Code tooling.
   - `release-execution/` — end-to-end release machinery: PRs → reviewers → fixes → merge → CI → tag → GitHub Release + crates.io verify. Includes the per-release falsification statement.
   - `oracle-gate-a-change/` — per-change procedure: name the mechanical oracle (rivet check / spar pass / witness gap / sigil verify / Kani / Verus / fuzz / nm symbol check), write it first if it doesn't exist, only the diff that flips it counts.
   - `pulseengine-feature-loop/` — end-to-end compose loop: spar (AADL) → WIT → rivet typed artifacts → code (oracle-gated) → witness MC/DC → sigil attestation → clean-room verify.
+  - `release-artifact-pipeline/` — the standardized release.yml: signed `SHA256SUMS.txt`, CycloneDX SBOM, SLSA attestation, cosign keyless OIDC. Canonical implementation in `pulseengine/synth/.github/workflows/release.yml`.
 
 ## Install
 
