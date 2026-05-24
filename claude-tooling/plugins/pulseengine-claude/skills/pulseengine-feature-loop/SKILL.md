@@ -1,0 +1,99 @@
+---
+name: pulseengine-feature-loop
+description: This skill should be used when doing a feature end-to-end on a PulseEngine project (rivet, spar, witness, sigil, meld, loom, synth, wohl, kiln) — including "implement a feature", "add a new requirement", "extend the architecture", "write a new pass", "ship a feature end-to-end", "do this properly with traceability", "model-driven implementation", or any feature work that should pass through the full AADL → WIT → typed traceability → oracle-gated code → MC/DC → attestation → verify loop. ALWAYS use this skill when the user authorizes feature work on a PulseEngine project and the work touches more than a single file.
+metadata:
+  author: pulseengine.eu
+  version: "0.1.0"
+---
+
+# PulseEngine feature loop
+
+## When this fires
+
+End-to-end feature work on a PulseEngine project where the methodology actually composes: spar (AADL architecture) → rivet (typed traceability) → code (agent-written, oracle-gated) → witness (MC/DC on Wasm) → sigil (signed attestation) → smithy (clean-room verify). This is the "MBSE is mandatory infrastructure for AI-authored safety code" claim made concrete.
+
+Use this when the feature touches more than one layer of the stack. Single-file refactors don't need the full loop; reach for [`oracle-gate-a-change`] alone.
+
+## The compose loop (ordered steps, each producing a concrete artifact)
+
+### 1. Start in spar — model the architecture
+
+If the feature changes architecture (new component, new mode, new interaction, new resource sharing):
+- Edit / create the AADL model in spar's `.aadl` files.
+- Run the relevant spar analysis passes:
+  - EMV2 fault trees if it touches safety.
+  - ARINC 653 partitioning if it's an avionics-style isolation question.
+  - ASIL decomposition if it's automotive.
+  - Modal-filtered scheduling + piecewise-affine TSN arrival curves if it touches timing.
+- Confirm the analysis passes are green for the new model.
+- **Artifact:** updated `.aadl` files + spar analysis output.
+
+### 2. Generate WIT from spar
+
+WIT interfaces are *derived from AADL via spar*, never hand-written. From `wohl/spar-generates-wit.md`.
+- Run the spar → WIT generator.
+- The new WIT lands in the consumers (wohl, witness, etc.).
+- **Artifact:** updated `.wit` files. Their diff against main is a function of the AADL change, not a manual edit.
+
+### 3. Write typed requirements / decisions / tests in rivet
+
+For each new property the feature claims:
+- Add a requirement / decision / test artifact in the project's rivet directories.
+- Use the appropriate schema (STPA, ASPICE, IEC 61508, DO-178C, EN 50128, EU AI Act, or custom).
+- Link via rivet's typed predicates: `verifies`, `implements`, `traced-by`.
+- Run `rivet validate` and `rivet check` — both must be green.
+- **Artifact:** new YAML in `requirements/`, `decisions/`, `tests/`. `rivet coverage` should show the trace topology now covering the new property.
+
+### 4. Write the code, oracle-gated per change
+
+Per [`oracle-gate-a-change`]:
+- Identify the mechanical oracle for each property the code claims (rivet check / Kani / Verus / fuzz / witness gap / sigil verify / `nm` symbol check).
+- Write missing oracles first.
+- Land code that flips the oracle from red to green.
+- Each PR passes through `oracle-gate-a-change`.
+- **Artifact:** code diff + a now-green oracle traceable to the rivet requirement.
+
+### 5. Witness — MC/DC truth table on the Wasm artifact
+
+If the feature lands a new branch / decision / variant:
+- Run `witness` on the relevant Wasm component.
+- Inspect the **truth table** (not the coverage percentage) — confirm masking / unique-cause vectors exist for each new condition.
+- If gaps appear, witness-viz suggests test stubs — add them, rerun.
+- **Artifact:** truth table file under `witness-out/` (or similar) showing zero unresolved gap rows.
+
+### 6. Sigil — sign the attestation chain
+
+If the feature lands a new build artifact or a new build-stage:
+- Run sigil to sign the relevant outputs.
+- Confirm the verification chain end-to-end: detached verifier accepts the signed artifact.
+- **Artifact:** signed component manifest, verifiable detached.
+
+### 7. Clean-room verify the whole loop
+
+Per [`clean-room-verification`]:
+- Write the feature's claims as discrete falsifiable claims.
+- Spawn smithy (or equivalent subagent) cold — no inherited framing.
+- Reconcile.
+
+### 8. Land via release-execution
+
+When the feature is green end-to-end, ship it via [`release-execution`]. Include the falsification statement for the new behavior in the release notes.
+
+## What "MBSE is mandatory infrastructure" means here
+
+This loop is not optional ritual. It's the cheap version of safety-critical engineering — agent-minutes replace half-a-day-per-requirement, the model drives the build instead of sitting alongside it, and the alternative (untraceable AI-authored code) is unshippable in regulated domains.
+
+The loop's *cost* is now in tooling, not labor. Skipping a step skips the corresponding evidence; assessor confidence is the metric, not throughput.
+
+## Anti-patterns
+
+- Hand-writing WIT files. Spar generates them; if WIT changes, the AADL changed first.
+- Writing code before the rivet typed artifacts exist. The traceability must lead, not follow.
+- Trusting `witness` coverage percentages. Read the gap rows in the truth table. From `witness-the-truth-table-not-the-percentage` and `witness-wasm-mcdc`.
+- Skipping sigil "because internal." If the artifact ever leaves your machine — including to CI — the attestation chain is the gate that lets others trust what you built.
+- Inlining clean-room verification or oracle-gating instead of pointing at those skills. Duplication is the failure mode this whole stack is designed to avoid.
+- Calling the feature "done" before all eight steps have a green artifact.
+
+## Where this composes
+
+Sits at the top of the composition tree. Calls [`oracle-gate-a-change`] per change. Calls [`clean-room-verification`] for the verify step. Hands off to [`release-execution`] when green.

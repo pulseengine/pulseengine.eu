@@ -1,0 +1,38 @@
+---
+name: pulseengine-toolchain
+description: "What each pulseengine-* tool does — rivet, spar, witness, sigil, meld, loom, synth, smithy, wohl, kiln. Directory only; the compose-loop procedure lives in the pulseengine-feature-loop skill."
+metadata:
+  node_type: memory
+  type: reference
+  scope: plugin-bundled
+---
+
+Map of the PulseEngine tools. Each lives in `/Users/r/git/pulseengine/<name>` on Ralf's machine and has its own per-project memory store under `~/.claude/projects/-Users-r-git-pulseengine-<name>/memory/`. Treat this as a directory, not a spec — read the project memory for current state.
+
+## Core stack
+
+**rivet** — typed traceability CLI. YAML artifacts in git, schemas, `rivet validate / check / coverage / impact`, typed link predicates (verifies, implements, traced-by), MCP server so agents maintain traceability as they work. Schema support: STPA, ASPICE, IEC 61508, DO-178C, EN 50128, EU AI Act. Installed at `/Users/r/.cargo/bin/rivet`. From `2026-03-15-rivet-v0.1.0`.
+
+**spar** — AADL v2.3 architecture analysis. 27+ analysis passes including scheduling, latency, ARINC 653 partitioning, EMV2 fault trees, ASIL decomposition solver. Modal filtering on operations modes, piecewise-affine arrival curves for TSN, PMOO/LUDB multiplexing. Feeds rivet's traceability graph. Generates WIT interfaces from AADL (don't hand-write WIT in wohl). MCP server for agent access. From `2026-05-11-spar-v0.9.x-milestone`.
+
+**witness** — Wasm MC/DC coverage. Instruments Wasm, runs tests, emits **truth tables with masking / unique-cause proofs**, not coverage percentages. `witness-viz` shows which condition vectors are missing and suggests test stubs. Philosophy: structured evidence (truth table + gap identification + test suggestion) is the artifact, not a number. From `2026-04-25-witness-wasm-mcdc` + `2026-05-05-witness-the-truth-table-not-the-percentage`.
+
+**sigil** — signed attestation chains. Build-stage pipelines, multi-scheme signatures, key rotation, content-addressed stores, detached verification. Sits at intersection of TrustMee (Aalto, signed Wasm verifier) and Cerisier (Aarhus, Iris-formalized sealing predicates) — but the time-indexed, scheme-aware, detached sister logic to those doesn't yet exist, so sigil contains real open research. From `2026-05-11-attestation-chains-trustmee-to-cerisier`.
+
+**meld** — verification fusion tool. Track-3 passes (consult per-project memory for current scope). v0.1.0 in `2026-03-02-meld-v0.1.0`.
+
+**synth** — WebAssembly Component Model engine that transcodes via program synthesis to ARM/RISC-V with Rocq proofs. Cover targets are i.MX RT1062 / STM32H743 (never name NXP S32G publicly). RV32 parity is a tracked goal. See synth project memory for cadence.
+
+**loom** — companion project with its own Rocq Formal Proofs CI; upstream toolchain breakages occasionally turn that gate red.
+
+**kiln** — interpreter and runtime (not just a runtime, not AOT). Companion to synth.
+
+**smithy** — clean-room verifier *agent* (not a CLI). The pattern: spawn smithy (or equivalent subagent) with only the claims, no prior context, to confirm/refute/cannot-verify findings. The procedure lives in the `clean-room-verification` skill.
+
+**wohl** — application of the stack to a wireless field-sensor product (STM32G0 + door contact, CCSDS payload, sub-GHz radio, Matter Bridge at the hub but never native Matter at sensors).
+
+## How they compose
+
+The procedure for composing these tools end-to-end (spar → WIT → rivet → code → witness → sigil → smithy) lives in the **`pulseengine-feature-loop` skill** shipped with this plugin, not here. This memory is the directory; the skill is the recipe.
+
+See also: [[pulseengine-philosophy]], and the four procedural skills in this plugin.

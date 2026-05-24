@@ -1,0 +1,9 @@
+{
+  "name": "pulseengine-claude",
+  "version": "0.1.0",
+  "description": "PulseEngine methodology as installable Claude Code tooling — philosophy + toolchain reference memory, plus four procedural skills (clean-room verification, release execution, oracle-gating, and the full feature loop).",
+  "author": {
+    "name": "PulseEngine",
+    "url": "https://pulseengine.eu"
+  }
+}
