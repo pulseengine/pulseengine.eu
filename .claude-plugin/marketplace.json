@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
+  "name": "pulseengine-eu",
+  "version": "0.1.0",
+  "description": "PulseEngine engineering plugins for Claude Code — verification + traceability + attestation methodology, the tool directory, and the procedural skills that compose them.",
+  "owner": {
+    "name": "PulseEngine",
+    "url": "https://pulseengine.eu"
+  },
+  "plugins": [
+    {
+      "name": "pulseengine-claude",
+      "description": "PulseEngine methodology as installable Claude Code tooling — philosophy + toolchain reference memory, plus four procedural skills (clean-room verification, release execution, oracle-gating, and the full feature loop).",
+      "version": "0.1.0",
+      "source": "./claude-tooling/plugins/pulseengine-claude",
+      "category": "development"
+    }
+  ]
+}

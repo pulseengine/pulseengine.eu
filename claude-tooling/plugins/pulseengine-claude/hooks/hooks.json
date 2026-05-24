@@ -1,0 +1,16 @@
+{
+  "description": "Inject PulseEngine philosophy + toolchain reference memory at session start so the methodology is always in context for any PulseEngine project work.",
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/inject-pulseengine-memory.sh",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  }
+}
