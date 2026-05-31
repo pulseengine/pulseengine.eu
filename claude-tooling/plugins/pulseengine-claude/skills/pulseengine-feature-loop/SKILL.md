@@ -14,6 +14,10 @@ End-to-end feature work on a PulseEngine project where the methodology actually 
 
 Use this when the feature touches more than one layer of the stack. Single-file refactors don't need the full loop; reach for [`oracle-gate-a-change`] alone.
 
+## Standing practice across every step
+
+Friction is data. At any step below, if a tool errors, produces wrong output, lacks a capability you needed, or forces a workaround, file it via [`report-tool-friction`] in that tool's repo *as you hit it* — then continue. A workaround you don't report is friction the next feature re-hits. This is woven through the whole loop, not a phase of it.
+
 ## The compose loop (ordered steps, each producing a concrete artifact)
 
 ### 1. Start in spar — model the architecture
@@ -77,7 +81,7 @@ Per [`clean-room-verification`]:
 
 ### 8. Land via release-execution
 
-When the feature is green end-to-end, ship it via [`release-execution`]. Include the falsification statement for the new behavior in the release notes.
+When the feature is green end-to-end, ship it via [`release-execution`]. Its **traceability completeness gate** is where this loop gets audited at release time: every `approved`/`implemented` artifact must have the full V closed — requirement → architecture → implementation, and up the right side (tests via `verifies`, witness MC/DC with zero gap rows, sigil attestation). If a step here was skipped, that gate is where it surfaces as a blocker. Include the falsification statement for the new behavior in the release notes.
 
 ## What "MBSE is mandatory infrastructure" means here
 
@@ -92,8 +96,9 @@ The loop's *cost* is now in tooling, not labor. Skipping a step skips the corres
 - Trusting `witness` coverage percentages. Read the gap rows in the truth table. From `witness-the-truth-table-not-the-percentage` and `witness-wasm-mcdc`.
 - Skipping sigil "because internal." If the artifact ever leaves your machine — including to CI — the attestation chain is the gate that lets others trust what you built.
 - Inlining clean-room verification or oracle-gating instead of pointing at those skills. Duplication is the failure mode this whole stack is designed to avoid.
+- Working around a tool silently. If you hand-edit generated WIT, `|| true` a failing check, or do a step outside the tool "for now," that's friction — file it via [`report-tool-friction`]. Unreported workarounds are how the tools stop improving.
 - Calling the feature "done" before all eight steps have a green artifact.
 
 ## Where this composes
 
-Sits at the top of the composition tree. Calls [`oracle-gate-a-change`] per change. Calls [`clean-room-verification`] for the verify step. Hands off to [`release-execution`] when green.
+Sits at the top of the composition tree. Calls [`oracle-gate-a-change`] per change. Calls [`clean-room-verification`] for the verify step. [`report-tool-friction`] runs as a standing practice across every step. Hands off to [`release-execution`] when green — whose traceability completeness gate audits the artifacts this loop produced.

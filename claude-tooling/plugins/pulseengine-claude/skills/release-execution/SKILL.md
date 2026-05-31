@@ -31,21 +31,34 @@ Carry the whole sequence autonomously — that's the point. Stop only at the nam
 - Merge each PR once green. Squash, rebase-and-merge, or merge-commit per project convention.
 - After each merge, kick the next dependent PR's CI if it needs to pick up the new main.
 
-### 4. Tag and release
-- Once the queue is empty and main is green, **PAUSE for fork**: confirm the new tag (`v0.X.Y`) and whether this is the right moment to cut, vs. holding for more. Use `AskUserQuestion` — this is a genuine decision boundary, not a routine step.
+### 4. Traceability completeness gate (blocking — before tag)
+The release does not get tagged until the V-model is closed for everything it claims to ship. This is the "what did we approve, what did we implement, is it all there and tested" check, made mechanical.
+
+- Run rivet over the project: `rivet validate`, `rivet check`, and `rivet coverage`. All green is the entry condition.
+- For **every artifact whose status is `approved` or `implemented`**, confirm the full chain exists and is traced — left side down, right side up:
+  - feature → requirement → architecture (spar/AADL) → design decision → implementation, and
+  - implementation → verification evidence → up the right side of the V: test(s) linked via `verifies`, witness MC/DC truth-table with zero unresolved gap rows for any new decision, sigil attestation for any new build artifact.
+- The gate is **mechanical, not narrative**: an `approved`/`implemented` artifact with no `verifies` link, an untested branch (witness gap row), a requirement with no architecture above it, or an implementation with no requirement tracing to it is a **release blocker** — not a follow-up. Fix the trace or the test, or explicitly demote the artifact's status, before tagging.
+- The rivet **compliance report** (the signed bundle the release-artifact pipeline produces, surfaced on pulseengine.eu) is the human-readable view of this gate. The report passing is necessary; the per-artifact check above is what makes it sufficient.
+- If a *tool* can't express or verify part of the chain, that's friction → [`report-tool-friction`], then carry on with the gate.
+
+This composes [`pulseengine-feature-loop`] (which produces the artifacts this gate audits) and [`clean-room-verification`] (verify the "the V is closed" claim cold, don't infer it from a green dashboard).
+
+### 5. Tag and release
+- Once the queue is empty, main is green, **and the traceability gate (step 4) passes**, **PAUSE for fork**: confirm the new tag (`v0.X.Y`) and whether this is the right moment to cut, vs. holding for more. Use `AskUserQuestion` — this is a genuine decision boundary, not a routine step.
 - After confirmation: tag, push tag, watch the release workflow.
 
-### 5. Verify the release shipped
+### 6. Verify the release shipped
 - GitHub Release: artifacts present, notes correct.
 - crates.io: `cargo search <crate>` shows the new version.
 - Any downstream — Docker image, Bazel rules dep update, MCP server restart — kicked.
 - Apply [`clean-room-verification`] to the "release looks good" claim before reporting done.
 
-### 6. Write the falsification statement
+### 7. Write the falsification statement
 - Per PulseEngine methodology, every release should carry a falsifiable kill-criterion: "this release would be wrong if X is observed in the field." Add it to release notes or a follow-up issue.
 - The point is to make the claim measurable, not to draft prose. One sentence is fine.
 
-### 7. Release tail cleanup
+### 8. Release tail cleanup
 - Doc updates, version bumps in dependent repos, milestone close-out, follow-up issues opened for known-deferred items.
 - This is where most teams quit too early. Don't.
 
@@ -57,6 +70,7 @@ These are non-routine and consequential — `AskUserQuestion` here, don't decide
 - **Destructive git** (force-push to main, branch deletion of unmerged work, history rewrites).
 - **Putting RC / unproven code on a safety or signing path** (anything that affects wohl OTA verification, sigil attestation, synth-produced binaries on a cover target).
 - **Milestone scope choices** (does this PR belong in v0.X.Y or v0.X+1.0).
+- **Demoting an artifact's status to pass the traceability gate** (step 4). Marking an `approved`/`implemented` artifact down so the gate goes green is a scope decision, not a mechanical fix — confirm it, don't do it silently.
 
 Between these forks: keep moving. Single-letter prompts like "c" mean continue.
 
@@ -66,8 +80,10 @@ Between these forks: keep moving. Single-letter prompts like "c" mean continue.
 - Asking for confirmation between routine steps (merge a green PR, rebase, re-run a flaky check). Don't.
 - Stopping at "tag pushed" without verifying the artifacts actually shipped.
 - Skipping the falsification statement because "the release is small." Small releases still need kill-criteria.
+- **Tagging with an open traceability gap recorded as a "follow-up."** The gate (step 4) is blocking by design — an untested `implemented` artifact or a missing `verifies` link is a reason not to tag, not a TODO to ship around.
+- **Carrying tool friction in your head through the release tail.** When a tool fails or forces a workaround during the release, file it via [`report-tool-friction`] as you hit it.
 - Inlining clean-room verification of findings instead of pointing at [`clean-room-verification`]. Duplicate procedure = duplicate maintenance.
 
 ## Where this composes
 
-`pulseengine-feature-loop` ends here when the feature lands. `oracle-gate-a-change` is what each PR in the queue *passes through* on the way to merge.
+`pulseengine-feature-loop` ends here when the feature lands. `oracle-gate-a-change` is what each PR in the queue *passes through* on the way to merge. The traceability completeness gate (step 4) audits the artifacts the feature loop produced and leans on [`clean-room-verification`]. [`report-tool-friction`] fires throughout — any tool that fails or forces a workaround during the release becomes a tracked issue.
