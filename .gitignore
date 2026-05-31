@@ -1,3 +1,8 @@
 public/
 .DS_Store
 target/
+
+# Node / Playwright (vendoring + tests)
+node_modules/
+test-results/
+playwright-report/

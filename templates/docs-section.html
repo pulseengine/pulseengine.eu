@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}{{ section.title }} — Docs — {{ config.title }}{% endblock %}
+{% block description %}{{ section.description | default(value=config.description) }}{% endblock %}
+
+{% block content %}
+<div class="docs-layout">
+  <aside class="docs-sidebar" aria-label="Documentation navigation">
+    {% set docs = get_section(path="docs/_index.md") %}
+
+    <!-- Guide -->
+    {% set guide = get_section(path="docs/guide/_index.md") %}
+    <div class="docs-sidebar__group">
+      <a href="{{ guide.permalink }}" class="docs-sidebar__title{% if section.permalink is starting_with(guide.permalink) %} docs-sidebar__title--active{% endif %}">
+        Guide
+      </a>
+    </div>
+
+    <!-- Tool sections -->
+    {% for tool_path in docs.subsections %}
+      {% set tool = get_section(path=tool_path) %}
+      {% if tool.title != "Guide" %}
+      <div class="docs-sidebar__group">
+        <a href="{{ tool.permalink }}" class="docs-sidebar__title{% if section.permalink is starting_with(tool.permalink) %} docs-sidebar__title--active{% endif %}">
+          {{ tool.title }}
+        </a>
+        {% for doc_page in tool.pages %}
+        <a href="{{ doc_page.permalink }}" class="docs-sidebar__link">
+          {{ doc_page.title }}
+        </a>
+        {% endfor %}
+      </div>
+      {% endif %}
+    {% endfor %}
+  </aside>
+
+  <article class="docs-content">
+    <h1>{{ section.title }}</h1>
+    <div class="blog-post__content">
+      {{ section.content | safe }}
+    </div>
+  </article>
+</div>
+{% endblock %}
+
+{% block head_extra %}
+{% include "docs-styles.html" %}
+{% endblock %}

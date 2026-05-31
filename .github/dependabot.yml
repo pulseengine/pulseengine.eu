@@ -1,0 +1,42 @@
+# Dependabot — keep vendored deps current and surface CVE alerts.
+#
+# We self-host mermaid (static/mermaid.min.js) and Playwright (testing only).
+# By declaring mermaid as an npm devDependency we let GitHub's vulnerability
+# scanner watch it: any published advisory triggers a Dependabot security PR.
+#
+# Version-update flow when a Dependabot PR appears:
+#   1. Pull the PR branch
+#   2. `npm install`
+#   3. `npm run vendor:mermaid`   (regenerates static/mermaid.min.js)
+#   4. Commit the new bundle
+#   5. CI watchdog (no-third-party-loads) validates the new bundle
+
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: "Europe/Berlin"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "autopublish"  # reuse the autopublish-style label so existing PR routing applies
+    commit-message:
+      prefix: deps
+      include: scope
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+      time: "06:00"
+      timezone: "Europe/Berlin"
+    open-pull-requests-limit: 3
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: deps(actions)
+      include: scope
