@@ -5,9 +5,14 @@ Three modes:
 
   --mode scan
       Print a JSON inventory to stdout: {today, ready, scheduled, held}.
-      A draft is "ready" when date <= today and hold is not true.
-      A draft is "scheduled" when date > today (and hold is not true).
-      A draft is "held" when hold = true (regardless of date).
+      Safe-by-default: a draft auto-publishes ONLY when it explicitly opts
+      in with `ready = true` AND its `date` has arrived. Concretely:
+      A draft is "ready"     when ready = true, hold is not true, date <= today.
+      A draft is "scheduled" when ready = true, hold is not true, date > today.
+      A draft is "held"      otherwise — no ready flag, ready = false, an
+                             explicit hold = true, or ready but missing a date.
+      The absence of `ready` is the default, so forgetting it can never
+      publish a post early; you have to opt in.
 
   --mode flip --file PATH
       Atomically replace the first `draft = true` line in PATH with
@@ -18,9 +23,9 @@ Three modes:
       bot marker) suitable for posting on the pinned status issue.
 
 The frontmatter parser is intentionally regex-based, not full-TOML — it
-only reads the four fields that drive the cron (date, draft, hold, title)
-and does not need to interpret arrays or tables. This avoids a dependency
-on `tomllib` and keeps the script readable.
+only reads the five fields that drive the cron (date, draft, ready, hold,
+title) and does not need to interpret arrays or tables. This avoids a
+dependency on `tomllib` and keeps the script readable.
 """
 
 import argparse
@@ -35,6 +40,7 @@ BLOG_DIR = pathlib.Path("content/blog")
 FRONTMATTER_RE = re.compile(r"\A\+\+\+\n(.*?)\n\+\+\+", re.S)
 DATE_RE = re.compile(r"^date\s*=\s*(\d{4}-\d{2}-\d{2})\s*$", re.M)
 DRAFT_RE = re.compile(r"^draft\s*=\s*(true|false)\s*$", re.M)
+READY_RE = re.compile(r"^ready\s*=\s*(true|false)\s*$", re.M)
 HOLD_RE = re.compile(r"^hold\s*=\s*(true|false)\s*$", re.M)
 TITLE_RE = re.compile(r'^title\s*=\s*"([^"]*)"\s*$', re.M)
 DRAFT_TRUE_LINE = re.compile(r"^draft\s*=\s*true\s*$", re.M)
@@ -49,6 +55,7 @@ def parse_post(path: pathlib.Path) -> dict | None:
     fm = fm_match.group(1)
     date_m = DATE_RE.search(fm)
     draft_m = DRAFT_RE.search(fm)
+    ready_m = READY_RE.search(fm)
     hold_m = HOLD_RE.search(fm)
     title_m = TITLE_RE.search(fm)
     return {
@@ -57,6 +64,7 @@ def parse_post(path: pathlib.Path) -> dict | None:
         "title": title_m.group(1) if title_m else path.stem,
         "date": date_m.group(1) if date_m else None,
         "draft": bool(draft_m and draft_m.group(1) == "true"),
+        "ready": bool(ready_m and ready_m.group(1) == "true"),
         "hold": bool(hold_m and hold_m.group(1) == "true"),
     }
 
@@ -71,10 +79,16 @@ def scan(today: str) -> dict:
             continue
         if record["draft"]:
             drafts.append(record)
-    held = [p for p in drafts if p["hold"]]
-    active = [p for p in drafts if not p["hold"]]
-    ready = [p for p in active if p["date"] and p["date"] <= today]
-    scheduled = [p for p in active if p["date"] and p["date"] > today]
+    # Safe-by-default partition. A draft auto-publishes ONLY if it explicitly
+    # opts in with `ready = true`, is not explicitly held, and has a date.
+    # Everything else stays held — so a missing `ready` flag can never ship a
+    # post early. Each draft lands in exactly one bucket.
+    ready, scheduled, held = [], [], []
+    for p in drafts:
+        if p["ready"] and not p["hold"] and p["date"]:
+            (ready if p["date"] <= today else scheduled).append(p)
+        else:
+            held.append(p)
     return {
         "today": today,
         "ready": ready,

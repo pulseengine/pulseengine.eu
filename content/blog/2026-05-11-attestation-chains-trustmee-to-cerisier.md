@@ -2,7 +2,7 @@
 title = "Reasoning about attestation chains: from TrustMee to Cerisier"
 description = "Two academic papers — TrustMee verifies single attestations in Wasm, Cerisier reasons about their composition in a capability machine — and what is still missing to close sigil's PQ-migration trust story. An internal milestone, not a finished result."
 date = 2026-05-11
-draft = false
+draft = true
 [taxonomies]
 tags = ["verification", "attestation", "sigil", "deep-dive"]
 authors = ["Ralf Anton Beier"]

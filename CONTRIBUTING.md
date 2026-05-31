@@ -43,23 +43,36 @@ title = "Post Title"
 description = "One-line summary — shown on listing cards and in <meta> tags."
 date = 2026-03-05
 draft = true
+ready = true   # opt in to auto-publishing on `date`; omit to keep it a pure draft
 [taxonomies]
 tags = ["deep-dive", "meld"]
 +++
 ```
 
-- `date` controls sort order on the blog listing
+- `date` controls sort order on the blog listing, and (for `ready` posts) the day the cron publishes
 - `description` is required — it appears on the blog index cards
 - `tags` render as accent badges and generate tag pages at `/tags/<name>/`
-- `draft = true` excludes the post from production builds — remove it when ready to publish
+- `draft = true` excludes the post from production builds
+- `ready = true` is the **explicit opt-in** that lets the daily cron auto-publish the post once `date` arrives
 
-### Draft workflow
+### Publishing model — three states (safe by default)
 
-Posts start as drafts and get published when ready:
+A post is in exactly one of these states. The key property: **a draft never auto-publishes unless you explicitly opt in** with `ready = true`. Forgetting the flag can't ship a post early.
 
-1. Write with `draft = true` in frontmatter
-2. Preview locally: `zola serve --drafts`
-3. Publish: remove `draft = true`, commit, push — deploy is automatic
+| State | Frontmatter | What the cron does |
+|---|---|---|
+| **Draft** | `draft = true` (no `ready`, or `ready = false`) | Nothing — stays unpublished indefinitely. Preview with `zola serve --drafts`. |
+| **Ready / scheduled** | `draft = true` + `ready = true` + `date` | On/after `date`, flips `draft = false`, commits, deploys. Before `date` it shows as *scheduled*. |
+| **Published** | `draft = false` | Live on the site. |
+
+`hold = true` is still honored as a hard belt-and-suspenders override (forces *held* even if `ready = true`), but it's no longer needed — absence of `ready` is the safe default.
+
+**To publish a post:**
+
+1. Write it with `draft = true` (and no `ready`) — it's a private draft.
+2. Preview locally: `zola serve --drafts`.
+3. When you genuinely want it to go live, add `ready = true` and set `date` to the intended publish day. The daily cron publishes it on/after that date.
+4. To publish immediately by hand instead, just set `draft = false`, commit, push — deploy is automatic.
 
 ### What you get automatically
 
