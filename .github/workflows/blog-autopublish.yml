@@ -73,6 +73,26 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
+      # The smithy self-hosted runners (migrated in #51) don't ship the gh
+      # CLI — only GitHub-hosted images do — so every gh call below failed
+      # with "command not found" (exit 127), breaking this cron daily.
+      # Drop a pinned gh binary into a user-writable dir, the same no-sudo
+      # pattern used for Zola via taiki-e/install-action. The durable fix is
+      # baking gh into the runner image; this is the repo-level remedy.
+      - name: Install gh CLI
+        run: |
+          set -euo pipefail
+          if command -v gh >/dev/null 2>&1; then
+            echo "gh already on PATH: $(gh --version | head -1)"
+            exit 0
+          fi
+          GH_VERSION=2.62.0
+          cd "$RUNNER_TEMP"
+          curl -fsSL "https://github.com/cli/cli/releases/download/v${GH_VERSION}/gh_${GH_VERSION}_linux_amd64.tar.gz" -o gh.tar.gz
+          tar -xzf gh.tar.gz
+          echo "${RUNNER_TEMP}/gh_${GH_VERSION}_linux_amd64/bin" >> "$GITHUB_PATH"
+          "${RUNNER_TEMP}/gh_${GH_VERSION}_linux_amd64/bin/gh" --version
+
       - name: Ensure labels exist
         env:
           GH_TOKEN: ${{ steps.app_token.outputs.token }}
