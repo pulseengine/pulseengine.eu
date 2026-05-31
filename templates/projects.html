@@ -30,7 +30,7 @@
             <a href="https://github.com/pulseengine/spar" class="face-component__name" rel="noopener">spar</a>
             <div class="face-component__caps">
               <span>pluggable analyses</span>
-              <span>AADL v2.2</span>
+              <span>AADL v2.3</span>
               <span>SysML v2</span>
               <span>deployment solver</span>
               <span>code generation</span>
@@ -91,6 +91,10 @@
               <span class="face-tool__name">Lean 4</span>
               <span class="face-tool__desc">scheduling theory</span>
             </a>
+            <a href="https://github.com/pulseengine/scry" class="face-tool" rel="noopener">
+              <span class="face-tool__name">scry</span>
+              <span class="face-tool__desc">abstract interpretation</span>
+            </a>
             <a href="https://github.com/pulseengine/witness" class="face-tool" rel="noopener">
               <span class="face-tool__name">witness</span>
               <span class="face-tool__desc">MC/DC on Wasm IR</span>
@@ -115,10 +119,11 @@
             <div class="face-component__caps">
               <span>safety standard schemas</span>
               <span>ISO 26262</span>
+              <span>ISO/PAS 8800</span>
               <span>ASPICE</span>
               <span>DO-178C</span>
               <span>EU AI Act</span>
-              <span>STPA / STPA-Sec</span>
+              <span>STPA / STPA-Sec / STPA-AI</span>
               <span>compliance reports</span>
             </div>
           </div>
@@ -142,7 +147,7 @@
             </a>
             <a href="https://github.com/pulseengine/gale" class="face-tool" rel="noopener">
               <span class="face-tool__name">gale</span>
-              <span class="face-tool__desc">Zephyr RTOS in Rust</span>
+              <span class="face-tool__desc">ASIL-D Zephyr primitives</span>
             </a>
           </div>
           <div class="face-divider"></div>
@@ -197,7 +202,7 @@
 
       <div class="cube-detail__panel" data-detail="architect" style="display:none">
         <h3 style="color:#6c8cff">Architect — spar</h3>
-        <p>AADL v2.2 and SysML v2 architecture analysis toolchain. Pluggable analysis passes, deployment solver, code generation (WIT, Rust, Lean 4 proofs, rivet docs), SVG rendering, LSP server. Compiles to a single WebAssembly component.</p>
+        <p>AADL v2.3 and SysML v2 architecture analysis toolchain. Pluggable analysis passes, deployment solver, code generation (WIT, Rust, Lean 4 proofs, rivet docs), SVG rendering, LSP server. Compiles to a single WebAssembly component.</p>
         <p>spar is architecturally upstream — it validates system design before any code exists, then generates the interfaces and skeletons that feed into the build pipeline.</p>
         <div class="cube-detail__links">
           <a href="https://github.com/pulseengine/spar" rel="noopener">GitHub</a>
@@ -219,13 +224,14 @@
       </div>
 
       <div class="cube-detail__panel" data-detail="verify" style="display:none">
-        <h3 style="color:#4ade80">Verify — three proof paths and the empirical evidence half</h3>
-        <p><strong>Verus</strong> proves Rust code via SMT/Z3 — preconditions, postconditions, invariants on every public function. <strong>Rocq</strong> machine-checks abstract invariants that hold regardless of implementation. <strong>Lean 4</strong> proves scheduling theory — priority inheritance, deadline guarantees, starvation freedom. These three operate <em>pre-compilation</em> on Rust source. <strong>witness</strong> measures MC/DC structural coverage on the resulting <em>post-compilation</em> Wasm — the empirical half that closes the §FM.6.7(f) / structural-coverage cell DO-178C, ISO 26262 Part 6 Table 12, and IEC 61508 Annex C expect. Together they form the evidence chain neither half spans alone: the proof tools cover all inputs in principle but reason about source; witness measures what actually ships in the wasm bytecode. v0.14 emits v3 MC/DC envelopes with DWARF inline-chain tracking up to 8 levels deep on real Rust (httparse).</p>
-        <p>These are not limited to one tool. Every component in the ecosystem — meld, loom, synth, kiln, gale, relay, wohl — carries formal verification. Four independent verification paths run in CI on every commit: three proof, one coverage.</p>
+        <h3 style="color:#4ade80">Verify — deductive proof, abstract interpretation, and empirical coverage</h3>
+        <p><strong>Verus</strong> proves Rust code via SMT/Z3 — preconditions, postconditions, invariants on every public function. <strong>Rocq</strong> machine-checks abstract invariants that hold regardless of implementation. <strong>Lean 4</strong> proves scheduling theory — priority inheritance, deadline guarantees, starvation freedom. These three deductive paths operate <em>pre-compilation</em> on Rust source. <strong>scry</strong> adds the third DO-333 formal-methods technique — sound abstract interpretation over the fused Wasm Core module, computing invariants that hold for all executions and feeding them downstream to loom and sigil-signed evidence to rivet. <strong>witness</strong> then measures MC/DC structural coverage on the resulting <em>post-compilation</em> Wasm — the empirical half that closes the §FM.6.7(f) / structural-coverage cell DO-178C, ISO 26262 Part 6 Table 12, and IEC 61508 Annex C expect. Together they form an evidence chain no single technique spans: proof and abstract interpretation cover all inputs in principle; witness measures what actually ships in the wasm bytecode. witness v0.14+ emits v3 MC/DC envelopes with DWARF inline-chain tracking up to 8 levels deep on real Rust (httparse).</p>
+        <p>These are not limited to one tool. Every component in the ecosystem — meld, loom, synth, kiln, gale, relay, wohl — carries formal verification. Multiple independent verification techniques run in CI on every commit: three deductive-proof paths (Verus, Rocq, Lean), sound abstract interpretation (scry), and structural coverage (witness).</p>
         <div class="cube-detail__links">
           <a href="https://github.com/pulseengine/rules_verus" rel="noopener">rules_verus</a>
           <a href="https://github.com/pulseengine/rules_rocq_rust" rel="noopener">rules_rocq_rust</a>
           <a href="https://github.com/pulseengine/rules_lean" rel="noopener">rules_lean</a>
+          <a href="https://github.com/pulseengine/scry" rel="noopener">scry</a>
           <a href="https://github.com/pulseengine/witness" rel="noopener">witness</a>
           <a href="https://github.com/pulseengine/gale" rel="noopener">gale</a>
         </div>
@@ -233,8 +239,8 @@
 
       <div class="cube-detail__panel" data-detail="trace" style="display:none">
         <h3 style="color:#fbbf24">Trace — rivet</h3>
-        <p>Schema-driven SDLC artifact manager. Schemas covering ISO 26262, ASPICE, DO-178C, IEC 61508, IEC 62304, EN 50128, EU AI Act, SOTIF, STPA, STPA-Sec, cybersecurity, supply chain, and more. Validates on every commit — broken links fail the build.</p>
-        <p>Imports AADL models from spar, STPA analysis from meld, test results from CI. Compliance reports generate on every release. LSP server, MCP server, dashboard.</p>
+        <p>Schema-driven SDLC artifact manager with two dozen-plus built-in schemas covering ISO 26262, ISO/PAS 8800, ASPICE, DO-178C, IEC 61508, IEC 62304, EN 50128, EU AI Act, SOTIF, STPA, STPA-Sec, STPA-AI, GSN safety cases, AADL import, Eclipse SCORE, V&amp;V coverage, cybersecurity, supply chain, and more — plus cross-domain bridge schemas. Validates on every commit — broken links fail the build.</p>
+        <p>Imports AADL models from spar and test results from CI. Compliance reports generate on every release. LSP server, MCP server, dashboard.</p>
         <div class="cube-detail__links">
           <a href="https://github.com/pulseengine/rivet" rel="noopener">GitHub</a>
           <a href="https://github.com/pulseengine/rivet/releases" rel="noopener">Releases</a>
@@ -244,7 +250,7 @@
 
       <div class="cube-detail__panel" data-detail="run" style="display:none">
         <h3 style="color:#f87171">Run — platforms &amp; applications</h3>
-        <p><strong>kiln</strong> is a WebAssembly Component Model runtime with full WASI 0.2 and no_std architecture for embedded targets. <strong>gale</strong> provides formally verified Zephyr RTOS kernel primitives in Rust.</p>
+        <p><strong>kiln</strong> is a WebAssembly Component Model runtime with a WASI 0.2 and no_std architecture for embedded targets — in active early development. <strong>gale</strong> provides formally verified Zephyr RTOS kernel primitives in Rust — ASIL-D targeted, with triple-track verification (Verus SMT/Z3 + Rocq theorem proving + Lean scheduler proofs).</p>
         <p>Built on top: <strong>relay</strong> — formally verified flight software inspired by NASA's cFS, reimagined as generic WebAssembly components. <strong>wohl</strong> — safety-critical home supervision. Real applications proving the ecosystem works end-to-end.</p>
         <div class="cube-detail__links">
           <a href="https://github.com/pulseengine/kiln" rel="noopener">kiln</a>
