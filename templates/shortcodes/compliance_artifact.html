@@ -1,0 +1,20 @@
+{# compliance_artifact: embed an artifact card by ID from a project's compliance report.
+   Generic across all projects — data is keyed by `prefix` (the project name).
+   Usage: {{ compliance_artifact(id="REQ-001", prefix="rivet") }}
+#}
+{% set prefix = prefix | default(value="rivet") %}
+{% set data = load_data(path="data/" ~ prefix ~ "/artifacts.json") %}
+{% set matches = data.artifacts | filter(attribute="id", value=id) %}
+{% if matches | length > 0 %}
+{% set art = matches | first %}
+<div class="rivet-artifact-card" style="border:1px solid #444; border-radius:6px; padding:12px; margin:8px 0;">
+  <div>
+    <span style="background:#2563eb;color:#fff;padding:2px 8px;border-radius:3px;font-size:0.85em;">{{ art.type }}</span>
+    <span style="background:#059669;color:#fff;padding:2px 8px;border-radius:3px;font-size:0.85em;">{{ art.status }}</span>
+  </div>
+  <strong><a href="/{{ prefix }}/artifacts/{{ art.id | lower | replace(from=".", to="-") }}/">{{ art.id }}</a></strong>: {{ art.title }}
+  {% if art.description %}<p style="margin:4px 0;font-size:0.9em;">{{ art.description | truncate(length=200) }}</p>{% endif %}
+</div>
+{% else %}
+<span style="color:red;">Unknown artifact: {{ id }}</span>
+{% endif %}

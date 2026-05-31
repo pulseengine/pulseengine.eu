@@ -1,0 +1,16 @@
+{# compliance_stats: show artifact counts for a project's compliance report.
+   Generic across all projects — data is keyed by `prefix` (the project name).
+   Usage: {{ compliance_stats(prefix="rivet") }}
+#}
+{% set prefix = prefix | default(value="rivet") %}
+{% set data = load_data(path="data/" ~ prefix ~ "/stats.json") %}
+<div class="rivet-stats" style="display:flex;gap:16px;flex-wrap:wrap;margin:8px 0;">
+  <div style="padding:8px 16px;background:#1e293b;border-radius:6px;">
+    <strong>{{ data.total }}</strong> artifacts
+  </div>
+  {% for type_name, count in data.by_type %}
+  <div style="padding:8px 16px;background:#1e293b;border-radius:6px;">
+    <strong>{{ count }}</strong> {{ type_name }}
+  </div>
+  {% endfor %}
+</div>

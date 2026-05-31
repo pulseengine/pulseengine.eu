@@ -1,0 +1,28 @@
+{
+  "by_status": {
+    "active": 2,
+    "approved": 823,
+    "draft": 21
+  },
+  "by_type": {
+    "finding": 2,
+    "hazard": 6,
+    "loss": 3,
+    "safety-context": 2,
+    "safety-goal": 5,
+    "safety-solution": 4,
+    "safety-strategy": 1,
+    "source-provenance": 34,
+    "stakeholder-req": 108,
+    "sw-arch-component": 40,
+    "sw-detail-design": 98,
+    "sw-integration-verification": 35,
+    "sw-req": 266,
+    "sw-verification": 89,
+    "sys-verification": 40,
+    "system-constraint": 6,
+    "system-req": 49,
+    "unit-verification": 58
+  },
+  "total": 846
+}
