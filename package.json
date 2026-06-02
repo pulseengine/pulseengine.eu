@@ -1,0 +1,16 @@
+{
+  "name": "pulseengine-eu-tests",
+  "version": "0.0.0",
+  "private": true,
+  "description": "GDPR / no-third-party-loads watchdog for pulseengine.eu (Playwright). Runs against the zola build output in public/.",
+  "scripts": {
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "vendor:mermaid": "cp node_modules/mermaid/dist/mermaid.min.js static/mermaid.min.js && echo 'vendored mermaid → static/mermaid.min.js'"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.49.0",
+    "http-server": "^14.1.1",
+    "mermaid": "11.14.0"
+  }
+}
