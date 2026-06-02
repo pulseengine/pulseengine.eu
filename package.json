@@ -11,6 +11,6 @@
   "devDependencies": {
     "@playwright/test": "^1.60.0",
     "http-server": "^14.1.1",
-    "mermaid": "11.14.0"
+    "mermaid": "11.15.0"
   }
 }
