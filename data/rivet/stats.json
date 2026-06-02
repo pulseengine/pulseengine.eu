@@ -1,0 +1,32 @@
+{
+  "by_status": {
+    "accepted": 4,
+    "active": 2,
+    "approved": 238,
+    "draft": 63,
+    "implemented": 20,
+    "partial": 1,
+    "unset": 295
+  },
+  "by_type": {
+    "aadl-component": 32,
+    "controlled-process": 5,
+    "controller": 8,
+    "controller-constraint": 67,
+    "design-decision": 51,
+    "feature": 149,
+    "hazard": 39,
+    "loss": 13,
+    "loss-scenario": 39,
+    "requirement": 47,
+    "sec-constraint": 13,
+    "sec-hazard": 11,
+    "sec-loss": 8,
+    "sec-scenario": 8,
+    "sec-uca": 9,
+    "sub-hazard": 12,
+    "system-constraint": 45,
+    "uca": 67
+  },
+  "total": 623
+}

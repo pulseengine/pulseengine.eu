@@ -1,0 +1,27 @@
+{
+  "by_status": {
+    "implemented": 117,
+    "not-implemented": 51,
+    "partial": 9,
+    "pass": 5,
+    "passing": 70,
+    "planned": 45,
+    "unset": 330
+  },
+  "by_type": {
+    "control-action": 21,
+    "controlled-process": 10,
+    "controller": 22,
+    "controller-constraint": 47,
+    "design-decision": 72,
+    "feature": 113,
+    "hazard": 32,
+    "loss": 19,
+    "loss-scenario": 36,
+    "requirement": 168,
+    "safety-requirement": 6,
+    "system-constraint": 24,
+    "uca": 57
+  },
+  "total": 627
+}

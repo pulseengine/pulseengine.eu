@@ -45,6 +45,75 @@ struct ResolvedVersion {
     download_url: String,
 }
 
+// ── Generic-yaml (artifacts.yaml) types ──────────────────────────────────
+//
+// The compliance bundle includes `artifacts.yaml` (rivet's generic-yaml
+// export) whenever the producer runs the compliance action with
+// `include-data-formats: true`. We parse the subset of fields the website
+// needs and ignore the rest (fields, fields-per-variant, provenance) — so
+// no `deny_unknown_fields` here.
+
+#[derive(Debug, Deserialize)]
+struct GenericFile {
+    artifacts: Vec<GenericArtifact>,
+}
+
+#[derive(Debug, Deserialize)]
+struct GenericArtifact {
+    id: String,
+    #[serde(rename = "type")]
+    artifact_type: String,
+    #[serde(default)]
+    title: String,
+    #[serde(default)]
+    description: Option<String>,
+    #[serde(default)]
+    status: Option<String>,
+    #[serde(default)]
+    tags: Vec<String>,
+    #[serde(default)]
+    links: Vec<Link>,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+struct Link {
+    target: String,
+    #[serde(rename = "type")]
+    link_type: String,
+}
+
+// ── data/{project}/ output types ─────────────────────────────────────────
+//
+// Shapes match what the `compliance_stats` / `compliance_artifact`
+// shortcodes load via `load_data(path="data/{project}/...")`.
+
+#[derive(Debug, Serialize)]
+struct StatsJson {
+    total: usize,
+    /// Counts keyed by artifact type. BTreeMap → deterministic, sorted keys.
+    by_type: std::collections::BTreeMap<String, usize>,
+    /// Counts keyed by status; a missing status is bucketed as "unset"
+    /// (matching rivet-core's `snapshot.rs` aggregation).
+    by_status: std::collections::BTreeMap<String, usize>,
+}
+
+#[derive(Debug, Serialize)]
+struct ArtifactsJson {
+    artifacts: Vec<OutArtifact>,
+}
+
+#[derive(Debug, Serialize)]
+struct OutArtifact {
+    id: String,
+    #[serde(rename = "type")]
+    artifact_type: String,
+    title: String,
+    description: String,
+    status: String,
+    tags: Vec<String>,
+    links: Vec<Link>,
+}
+
 // ── index.json types ────────────────────────────────────────────────────
 
 #[derive(Debug, Serialize)]
@@ -375,6 +444,67 @@ fn write_config_js(
     Ok(())
 }
 
+// ── data/{project}/ generation ────────────────────────────────────────────
+
+/// Parse `artifacts.yaml` from an extracted bundle and (re)write
+/// `data/{project}/stats.json` + `data/{project}/artifacts.json`.
+///
+/// Aggregation mirrors rivet-core's `snapshot.rs`: `by_type` groups on the
+/// artifact type, `by_status` maps a missing status to "unset", `total` is
+/// the artifact count. Returns the artifact count on success.
+fn generate_data_files(
+    project_name: &str,
+    yaml_path: &Path,
+    root: &Path,
+) -> Result<usize, String> {
+    let content = fs::read_to_string(yaml_path)
+        .map_err(|e| format!("failed to read {}: {e}", yaml_path.display()))?;
+    let file: GenericFile = serde_yaml::from_str(&content)
+        .map_err(|e| format!("failed to parse artifacts.yaml: {e}"))?;
+
+    let mut by_type = std::collections::BTreeMap::new();
+    let mut by_status = std::collections::BTreeMap::new();
+    let mut artifacts = Vec::with_capacity(file.artifacts.len());
+
+    for a in file.artifacts {
+        *by_type.entry(a.artifact_type.clone()).or_insert(0usize) += 1;
+        let status = a.status.unwrap_or_else(|| "unset".to_string());
+        *by_status.entry(status.clone()).or_insert(0usize) += 1;
+        artifacts.push(OutArtifact {
+            id: a.id,
+            artifact_type: a.artifact_type,
+            title: a.title,
+            description: a.description.unwrap_or_default(),
+            status,
+            tags: a.tags,
+            links: a.links,
+        });
+    }
+
+    let total = artifacts.len();
+    let data_dir = root.join("data").join(project_name);
+    fs::create_dir_all(&data_dir)
+        .map_err(|e| format!("failed to create {}: {e}", data_dir.display()))?;
+
+    let stats = StatsJson {
+        total,
+        by_type,
+        by_status,
+    };
+    let stats_json = serde_json::to_string_pretty(&stats)
+        .map_err(|e| format!("failed to serialize stats.json: {e}"))?;
+    fs::write(data_dir.join("stats.json"), stats_json + "\n")
+        .map_err(|e| format!("failed to write stats.json: {e}"))?;
+
+    let arts = ArtifactsJson { artifacts };
+    let arts_json = serde_json::to_string_pretty(&arts)
+        .map_err(|e| format!("failed to serialize artifacts.json: {e}"))?;
+    fs::write(data_dir.join("artifacts.json"), arts_json + "\n")
+        .map_err(|e| format!("failed to write artifacts.json: {e}"))?;
+
+    Ok(total)
+}
+
 // ── main ────────────────────────────────────────────────────────────────
 
 fn main() {
@@ -513,6 +643,29 @@ fn main() {
             }
         }
 
+        // Regenerate data/{project}/ summary files from the latest bundle's
+        // generic-yaml export, if present. The producer emits artifacts.yaml
+        // only when its compliance action runs with `include-data-formats:
+        // true` (rivet does today). When absent, we leave any hand-maintained
+        // data/{project}/ files untouched — generation is purely additive.
+        let artifacts_yaml = latest_src.join("artifacts.yaml");
+        if artifacts_yaml.exists() {
+            match generate_data_files(project_name, &artifacts_yaml, &root) {
+                Ok(n) => println!(
+                    "[{project_name}] data/: wrote stats.json + artifacts.json ({n} artifacts)"
+                ),
+                Err(e) => {
+                    eprintln!("[{project_name}] Warning: failed to generate data/: {e}")
+                }
+            }
+        } else {
+            println!(
+                "[{project_name}] no artifacts.yaml in bundle \
+                 (set `include-data-formats: true` on the compliance action to \
+                 auto-generate data/); leaving data/{project_name}/ as-is"
+            );
+        }
+
         // Compute display versions: latest patch per minor version.
         // Versions are already sorted descending, so first seen per (major, minor) wins.
         let display_versions = {
@@ -545,4 +698,64 @@ fn main() {
         serde_json::to_string_pretty(&index).expect("failed to serialize index.json");
     fs::write(&index_path, index_json + "\n").expect("failed to write index.json");
     println!("Wrote {}", index_path.display());
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn generate_data_files_aggregates_like_snapshot() {
+        // Sample matching rivet's generic-yaml export shape, exercising:
+        // a present status, a duplicate type, and a missing status (-> "unset").
+        let yaml = r#"
+artifacts:
+  - id: FEAT-001
+    type: feature
+    title: First feature
+    description: A feature.
+    status: approved
+    tags: [phase-1]
+    links:
+      - target: REQ-001
+        type: satisfies
+  - id: FEAT-002
+    type: feature
+    title: Second feature
+    status: draft
+  - id: UCA-1
+    type: uca
+    title: An unsafe control action
+"#;
+        // Dedicated temp dir for this test (cleaned at the start of each run).
+        let root = std::env::temp_dir().join("fetch-reports-gen-data-test");
+        let _ = fs::remove_dir_all(&root);
+        let bundle = root.join("bundle");
+        fs::create_dir_all(&bundle).unwrap();
+        let yaml_path = bundle.join("artifacts.yaml");
+        fs::write(&yaml_path, yaml).unwrap();
+
+        let total = generate_data_files("rivet", &yaml_path, &root).unwrap();
+        assert_eq!(total, 3);
+
+        let stats: serde_json::Value =
+            serde_json::from_str(&fs::read_to_string(root.join("data/rivet/stats.json")).unwrap())
+                .unwrap();
+        assert_eq!(stats["total"], 3);
+        assert_eq!(stats["by_type"]["feature"], 2);
+        assert_eq!(stats["by_type"]["uca"], 1);
+        assert_eq!(stats["by_status"]["approved"], 1);
+        assert_eq!(stats["by_status"]["draft"], 1);
+        assert_eq!(stats["by_status"]["unset"], 1); // missing status bucketed
+
+        let arts: serde_json::Value = serde_json::from_str(
+            &fs::read_to_string(root.join("data/rivet/artifacts.json")).unwrap(),
+        )
+        .unwrap();
+        assert_eq!(arts["artifacts"].as_array().unwrap().len(), 3);
+        // Field projection: renamed `type`, "unset" status, links round-trip.
+        assert_eq!(arts["artifacts"][2]["type"], "uca");
+        assert_eq!(arts["artifacts"][2]["status"], "unset");
+        assert_eq!(arts["artifacts"][0]["links"][0]["type"], "satisfies");
+    }
 }
