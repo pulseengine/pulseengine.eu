@@ -1,5 +1,5 @@
 +++
-title = "Compliance Reports"
-description = "Versioned compliance reports for PulseEngine components — coverage, traceability, and verification data from rivet"
+title = "Reports"
+description = "Versioned verification reports for PulseEngine components — rivet compliance traceability and witness MC/DC coverage"
 template = "reports.html"
 +++

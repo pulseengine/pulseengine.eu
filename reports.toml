@@ -40,3 +40,23 @@ exclude = ["*-rc*", "*-alpha*"]
 repo = "pulseengine/gale"
 asset_pattern = "{name}-v{version}-compliance-report.tar.gz"
 exclude = ["*-rc*", "*-alpha*"]
+
+# ── MC/DC coverage reports (witness) ──────────────────────────────────
+# kind = "mcdc" fetches a witness MC/DC evidence bundle and serves its own
+# self-contained suite-index.html viewer (no rivet config.js). Projects with
+# no published bundle yet are simply skipped until they ship one.
+#
+#   kind          = "mcdc"
+#   asset_pattern = witness evidence tarball name on the repo's releases
+
+[projects.witness]
+repo = "pulseengine/witness"
+kind = "mcdc"
+asset_pattern = "{name}-v{version}-compliance-evidence.tar.gz"
+exclude = ["*-rc*", "*-alpha*"]
+
+[projects.scry]
+repo = "pulseengine/scry"
+kind = "mcdc"
+asset_pattern = "{name}-v{version}-mcdc-evidence.tar.gz"
+exclude = ["*-rc*", "*-alpha*"]

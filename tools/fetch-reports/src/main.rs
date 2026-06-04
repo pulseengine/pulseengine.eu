@@ -20,6 +20,23 @@ struct ProjectConfig {
     repo: String,
     asset_pattern: String,
     exclude: Vec<String>,
+    /// Report kind: "compliance" (rivet HTML bundle, the default) or "mcdc"
+    /// (witness MC/DC evidence bundle). Controls the extract subdirectory and
+    /// the entry-point HTML file the website links to.
+    #[serde(default = "default_kind")]
+    kind: String,
+}
+
+fn default_kind() -> String {
+    "compliance".to_string()
+}
+
+/// Map a report kind to its (extract subdirectory, entry-point HTML filename).
+fn kind_layout(kind: &str) -> (&'static str, &'static str) {
+    match kind {
+        "mcdc" => ("mcdc", "suite-index.html"),
+        _ => ("compliance", "index.html"),
+    }
 }
 
 // ── GitHub API types ────────────────────────────────────────────────────
@@ -123,6 +140,8 @@ struct IndexJson {
 
 #[derive(Debug, Serialize)]
 struct ProjectIndex {
+    /// "compliance" or "mcdc" — lets the reports page group the two kinds.
+    kind: String,
     latest: String,
     /// All versions, sorted descending by semver.
     versions: Vec<String>,
@@ -357,6 +376,7 @@ fn download_and_extract(
     token: &Option<String>,
     url: &str,
     dest_dir: &Path,
+    subdir: &str,
 ) -> Result<(), String> {
     // Download to a temporary file.
     let tmp_path = dest_dir.join("_download.tar.gz");
@@ -383,16 +403,16 @@ fn download_and_extract(
     // Validate tarball safety.
     validate_tarball(&tmp_path)?;
 
-    // Extract into compliance/ subdirectory (rivet tarballs have flat files).
-    let compliance_dir = dest_dir.join("compliance");
-    fs::create_dir_all(&compliance_dir)
-        .map_err(|e| format!("failed to create compliance dir: {e}"))?;
+    // Extract into the kind's subdirectory (the tarballs have flat files).
+    let out_dir = dest_dir.join(subdir);
+    fs::create_dir_all(&out_dir)
+        .map_err(|e| format!("failed to create {subdir} dir: {e}"))?;
     let file = fs::File::open(&tmp_path)
         .map_err(|e| format!("failed to open tarball for extraction: {e}"))?;
     let decoder = GzDecoder::new(file);
     let mut archive = Archive::new(decoder);
     archive
-        .unpack(&compliance_dir)
+        .unpack(&out_dir)
         .map_err(|e| format!("failed to extract tarball: {e}"))?;
 
     // Clean up temp file.
@@ -573,22 +593,23 @@ fn main() {
             resolved.len()
         );
 
+        let (subdir, entry) = kind_layout(&config.kind);
         let project_dir = reports_dir.join(project_name);
         let mut successful_versions: Vec<Version> = Vec::new();
 
         for rv in &resolved {
             let version_str = rv.version.to_string();
             let version_dir = project_dir.join(&version_str);
-            let index_html = version_dir.join("compliance").join("index.html");
+            let entry_html = version_dir.join(subdir).join(entry);
 
-            if index_html.exists() {
+            if entry_html.exists() {
                 println!("[{project_name}] v{version_str}: cached, skipping");
                 successful_versions.push(rv.version.clone());
                 continue;
             }
 
             println!("[{project_name}] v{version_str}: downloading...");
-            match download_and_extract(&agent, &token, &rv.download_url, &version_dir) {
+            match download_and_extract(&agent, &token, &rv.download_url, &version_dir, subdir) {
                 Ok(()) => {
                     println!("[{project_name}] v{version_str}: extracted");
                     successful_versions.push(rv.version.clone());
@@ -607,23 +628,25 @@ fn main() {
 
         // Versions are already sorted descending from filter_releases.
         let version_refs: Vec<&Version> = successful_versions.iter().collect();
+        let is_compliance = config.kind == "compliance";
 
-        // Write config.js for each version directory.
-        for v in &successful_versions {
-            let version_dir = project_dir.join(v.to_string());
-            if let Err(e) = write_config_js(project_name, &version_refs, &version_dir) {
-                eprintln!(
-                    "[{project_name}] Warning: failed to write config.js for v{v}: {e}"
-                );
+        // config.js (the rivet HTML report's version switcher) is compliance-
+        // specific; the witness MC/DC bundle ships its own self-contained viewer.
+        if is_compliance {
+            for v in &successful_versions {
+                let version_dir = project_dir.join(v.to_string());
+                if let Err(e) = write_config_js(project_name, &version_refs, &version_dir) {
+                    eprintln!(
+                        "[{project_name}] Warning: failed to write config.js for v{v}: {e}"
+                    );
+                }
             }
         }
 
         // Copy latest version to {project}/latest/.
         let latest_version = &successful_versions[0]; // highest semver (sorted desc)
-        let latest_src = project_dir
-            .join(latest_version.to_string())
-            .join("compliance");
-        let latest_dst = project_dir.join("latest").join("compliance");
+        let latest_src = project_dir.join(latest_version.to_string()).join(subdir);
+        let latest_dst = project_dir.join("latest").join(subdir);
 
         // Remove existing latest directory.
         let _ = remove_dir_if_exists(&project_dir.join("latest"));
@@ -632,38 +655,41 @@ fn main() {
             if let Err(e) = copy_dir_recursive(&latest_src, &latest_dst) {
                 eprintln!("[{project_name}] Warning: failed to copy latest: {e}");
             } else {
-                // Also write config.js for the latest directory.
-                let latest_dir = project_dir.join("latest");
-                if let Err(e) = write_config_js(project_name, &version_refs, &latest_dir) {
-                    eprintln!(
-                        "[{project_name}] Warning: failed to write config.js for latest: {e}"
-                    );
+                if is_compliance {
+                    // Also write config.js for the latest directory.
+                    let latest_dir = project_dir.join("latest");
+                    if let Err(e) = write_config_js(project_name, &version_refs, &latest_dir) {
+                        eprintln!(
+                            "[{project_name}] Warning: failed to write config.js for latest: {e}"
+                        );
+                    }
                 }
                 println!("[{project_name}] latest -> v{latest_version}");
             }
         }
 
-        // Regenerate data/{project}/ summary files from the latest bundle's
-        // generic-yaml export, if present. The producer emits artifacts.yaml
-        // only when its compliance action runs with `include-data-formats:
-        // true` (rivet does today). When absent, we leave any hand-maintained
-        // data/{project}/ files untouched — generation is purely additive.
-        let artifacts_yaml = latest_src.join("artifacts.yaml");
-        if artifacts_yaml.exists() {
-            match generate_data_files(project_name, &artifacts_yaml, &root) {
-                Ok(n) => println!(
-                    "[{project_name}] data/: wrote stats.json + artifacts.json ({n} artifacts)"
-                ),
-                Err(e) => {
-                    eprintln!("[{project_name}] Warning: failed to generate data/: {e}")
+        // Regenerate data/{project}/ summary files from the latest compliance
+        // bundle's generic-yaml export, if present (rivet emits it when its
+        // compliance action runs with `include-data-formats: true`). Only the
+        // compliance kind carries artifacts.yaml; the MC/DC bundle does not.
+        if is_compliance {
+            let artifacts_yaml = latest_src.join("artifacts.yaml");
+            if artifacts_yaml.exists() {
+                match generate_data_files(project_name, &artifacts_yaml, &root) {
+                    Ok(n) => println!(
+                        "[{project_name}] data/: wrote stats.json + artifacts.json ({n} artifacts)"
+                    ),
+                    Err(e) => {
+                        eprintln!("[{project_name}] Warning: failed to generate data/: {e}")
+                    }
                 }
+            } else {
+                println!(
+                    "[{project_name}] no artifacts.yaml in bundle \
+                     (set `include-data-formats: true` on the compliance action to \
+                     auto-generate data/); leaving data/{project_name}/ as-is"
+                );
             }
-        } else {
-            println!(
-                "[{project_name}] no artifacts.yaml in bundle \
-                 (set `include-data-formats: true` on the compliance action to \
-                 auto-generate data/); leaving data/{project_name}/ as-is"
-            );
         }
 
         // Compute display versions: latest patch per minor version.
@@ -685,6 +711,7 @@ fn main() {
         index.projects.insert(
             project_name.clone(),
             ProjectIndex {
+                kind: config.kind.clone(),
                 latest: latest_version.to_string(),
                 versions: successful_versions.iter().map(|v| v.to_string()).collect(),
                 display_versions,
