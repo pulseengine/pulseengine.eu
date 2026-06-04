@@ -34,7 +34,8 @@ fn default_kind() -> String {
 /// Map a report kind to its (extract subdirectory, entry-point HTML filename).
 fn kind_layout(kind: &str) -> (&'static str, &'static str) {
     match kind {
-        "mcdc" => ("mcdc", "suite-index.html"),
+        // The witness evidence bundle nests its viewer under verdict-evidence/.
+        "mcdc" => ("mcdc", "verdict-evidence/suite-index.html"),
         _ => ("compliance", "index.html"),
     }
 }
