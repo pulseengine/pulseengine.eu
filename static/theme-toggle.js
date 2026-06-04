@@ -27,9 +27,24 @@
     return 'dark';
   }
 
+  // Sync ARIA state to the rendered theme. aria-pressed="true" when light
+  // is active (the non-default state); aria-label describes what the click
+  // would *do*, which is what screen readers announce.
+  function syncAria() {
+    var theme = currentTheme();
+    btn.setAttribute('aria-pressed', theme === 'light' ? 'true' : 'false');
+    btn.setAttribute(
+      'aria-label',
+      theme === 'light' ? 'Switch to dark theme' : 'Switch to light theme'
+    );
+  }
+
+  syncAria();
+
   btn.addEventListener('click', function () {
     var next = currentTheme() === 'dark' ? 'light' : 'dark';
     document.documentElement.setAttribute('data-theme', next);
     try { localStorage.setItem(STORAGE_KEY, next); } catch (e) { /* private mode */ }
+    syncAria();
   });
 })();
