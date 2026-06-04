@@ -538,6 +538,8 @@
     .cube__face--bottom { transform: rotateX(-90deg) translateZ(135px); }
     .cube-wrap { padding: 2.5rem 0 2rem; }
     .face-component__name { font-size: 1.1rem; }
+    /* Hit-target fix — iOS guideline is 44×44 minimum for touchable controls. */
+    .face-btn { min-height: 44px; padding: 0.6rem 0.9rem; font-size: 0.875rem; }
   }
 
   @media (prefers-reduced-motion: reduce) {
