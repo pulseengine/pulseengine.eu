@@ -12,44 +12,65 @@
     {% endif %}
 
     {# NOTE: load_data will error if the file does not exist.                    #}
-    {# The rivet build tool (or CI) must ensure static/reports/index.json exists  #}
-    {# before zola build runs. An empty skeleton is: {"projects": {}}             #}
+    {# fetch-reports (run in the deploy workflow) writes static/reports/index.json #}
+    {# before zola build. An empty skeleton is: {"projects": {}}                  #}
     {% set report_index = load_data(path="static/reports/index.json") %}
 
+    {# Each project carries a `kind`: "compliance" (rivet HTML bundle, served at #}
+    {# .../compliance/) or "mcdc" (witness evidence, served at .../mcdc/suite-index.html). #}
+    {# Overview shows the latest 3 minor versions; the rest are one click away.   #}
+
     {% if report_index.projects %}
-    <div class="grid">
-      {% for name, project in report_index.projects %}
-        <div class="glass-card">
-          <div class="glass-card__title">{{ name }}</div>
-          <div class="glass-card__desc">
-            Latest: v{{ project.latest }}
-            &middot;
-            {{ project.versions | length }} version{{ project.versions | length | pluralize }}
-          </div>
-          {# Overview shows only the latest 3 minor-version reports; the full #}
-          {# set is one click away via the "all N versions" link.            #}
-          {% set shown = project.display_versions | slice(end=3) %}
-          <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.75rem; align-items: center;">
-            {% for version in shown %}
-              <a href="{{ get_url(path='reports/' ~ name ~ '/' ~ version ~ '/compliance/') }}"
-                 class="badge {% if version == project.latest %}badge--accent{% else %}badge--cyan{% endif %}"
-                 style="text-decoration: none;">
-                v{{ version }}
-              </a>
-            {% endfor %}
-            {% if project.versions | length > shown | length %}
-              <a href="{{ get_url(path='reports/' ~ name ~ '/latest/compliance/') }}"
-                 style="font-size: 0.8rem; color: #8b90a0;">
-                all {{ project.versions | length }} versions
-              </a>
-            {% endif %}
-          </div>
-        </div>
-      {% endfor %}
-    </div>
+      {# ── Compliance reports (rivet) ────────────────────────────────── #}
+      <h2 class="section-heading" style="font-size:1.35rem;">Compliance Reports</h2>
+      <p style="margin-bottom:1rem; color:var(--text-dim);">Traceability and verification evidence from rivet.</p>
+      <div class="grid">
+        {% for name, project in report_index.projects %}
+          {% if project.kind != "mcdc" %}
+            {% set shown = project.display_versions | slice(end=3) %}
+            <div class="glass-card">
+              <div class="glass-card__title">{{ name }}</div>
+              <div class="glass-card__desc">Latest: v{{ project.latest }} &middot; {{ project.versions | length }} version{{ project.versions | length | pluralize }}</div>
+              <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.75rem; align-items: center;">
+                {% for version in shown %}
+                  <a href="{{ get_url(path='reports/' ~ name ~ '/' ~ version ~ '/compliance/') }}"
+                     class="badge {% if version == project.latest %}badge--accent{% else %}badge--cyan{% endif %}" style="text-decoration: none;">v{{ version }}</a>
+                {% endfor %}
+                {% if project.versions | length > shown | length %}
+                  <a href="{{ get_url(path='reports/' ~ name ~ '/latest/compliance/') }}" style="font-size: 0.8rem; color: #8b90a0;">all {{ project.versions | length }} versions</a>
+                {% endif %}
+              </div>
+            </div>
+          {% endif %}
+        {% endfor %}
+      </div>
+
+      {# ── MC/DC coverage (witness) ──────────────────────────────────── #}
+      <h2 class="section-heading" style="font-size:1.35rem; margin-top:2.5rem;">MC/DC Coverage</h2>
+      <p style="margin-bottom:1rem; color:var(--text-dim);">Structural MC/DC coverage truth tables and V-model traceability from witness, measured on the post-compile WebAssembly.</p>
+      <div class="grid">
+        {% for name, project in report_index.projects %}
+          {% if project.kind == "mcdc" %}
+            {% set shown = project.display_versions | slice(end=3) %}
+            <div class="glass-card">
+              <div class="glass-card__title">{{ name }}</div>
+              <div class="glass-card__desc">Latest: v{{ project.latest }} &middot; {{ project.versions | length }} version{{ project.versions | length | pluralize }}</div>
+              <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.75rem; align-items: center;">
+                {% for version in shown %}
+                  <a href="{{ get_url(path='reports/' ~ name ~ '/' ~ version ~ '/mcdc/suite-index.html') }}"
+                     class="badge {% if version == project.latest %}badge--accent{% else %}badge--cyan{% endif %}" style="text-decoration: none;">v{{ version }}</a>
+                {% endfor %}
+                {% if project.versions | length > shown | length %}
+                  <a href="{{ get_url(path='reports/' ~ name ~ '/latest/mcdc/suite-index.html') }}" style="font-size: 0.8rem; color: #8b90a0;">all {{ project.versions | length }} versions</a>
+                {% endif %}
+              </div>
+            </div>
+          {% endif %}
+        {% endfor %}
+      </div>
     {% else %}
     <div class="glass-card">
-      <p>No compliance reports available yet.</p>
+      <p>No reports available yet.</p>
     </div>
     {% endif %}
   </section>
