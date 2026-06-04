@@ -26,15 +26,18 @@
             &middot;
             {{ project.versions | length }} version{{ project.versions | length | pluralize }}
           </div>
+          {# Overview shows only the latest 3 minor-version reports; the full #}
+          {# set is one click away via the "all N versions" link.            #}
+          {% set shown = project.display_versions | slice(end=3) %}
           <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.75rem; align-items: center;">
-            {% for version in project.display_versions %}
+            {% for version in shown %}
               <a href="{{ get_url(path='reports/' ~ name ~ '/' ~ version ~ '/compliance/') }}"
                  class="badge {% if version == project.latest %}badge--accent{% else %}badge--cyan{% endif %}"
                  style="text-decoration: none;">
                 v{{ version }}
               </a>
             {% endfor %}
-            {% if project.versions | length > project.display_versions | length %}
+            {% if project.versions | length > shown | length %}
               <a href="{{ get_url(path='reports/' ~ name ~ '/latest/compliance/') }}"
                  style="font-size: 0.8rem; color: #8b90a0;">
                 all {{ project.versions | length }} versions
