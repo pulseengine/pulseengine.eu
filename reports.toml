@@ -41,6 +41,15 @@ repo = "pulseengine/gale"
 asset_pattern = "{name}-v{version}-compliance-report.tar.gz"
 exclude = ["*-rc*", "*-alpha*"]
 
+[projects.wohl]
+repo = "pulseengine/wohl"
+asset_pattern = "{name}-v{version}-compliance-report.tar.gz"
+exclude = ["*-rc*", "*-alpha*"]
+
+# relay intentionally omitted: it tags releases `falcon-v*`, which the
+# semver-based fetcher and the {name}-v{version} asset pattern don't match.
+# Supporting it needs a per-project tag prefix — tracked separately.
+
 # ── MC/DC coverage reports (witness) ──────────────────────────────────
 # kind = "mcdc" fetches a witness MC/DC evidence bundle and serves its own
 # self-contained suite-index.html viewer (no rivet config.js). Projects with
