@@ -1,5 +1,5 @@
 {
-  "description": "Inject PulseEngine philosophy + toolchain reference memory at session start so the methodology is always in context for any PulseEngine project work.",
+  "description": "Always-on PulseEngine context: at session start inject the methodology memory + situational awareness (git state, repo category, resumed working context); persist a working-context checkpoint on session end and before compaction so work resumes instead of starting cold.",
   "hooks": {
     "SessionStart": [
       {
@@ -8,6 +8,33 @@
             "type": "command",
             "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/inject-pulseengine-memory.sh",
             "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/inject-situational-awareness.sh",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/save-working-context.sh",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/save-working-context.sh",
+            "timeout": 10
           }
         ]
       }
