@@ -42,7 +42,7 @@ The release does not get tagged until the V-model is closed for everything it cl
 - The rivet **compliance report** (the signed bundle the release-artifact pipeline produces, surfaced on pulseengine.eu) is the human-readable view of this gate. The report passing is necessary; the per-artifact check above is what makes it sufficient.
 - If a *tool* can't express or verify part of the chain, that's friction → [`report-tool-friction`], then carry on with the gate.
 
-This composes [`pulseengine-feature-loop`] (which produces the artifacts this gate audits) and [`clean-room-verification`] (verify the "the V is closed" claim cold, don't infer it from a green dashboard).
+The level-by-level closure rules — every requirement decomposed to architecture/design/code, and verified up through **unit, integration, and requirements-qualification** tests (with passing results), not just "has a `verifies` link" — are defined in [`traceability-audit`]; this gate is that audit run before tagging. It composes [`pulseengine-feature-loop`] (which produces the artifacts this gate audits) and [`clean-room-verification`] (verify the "the V is closed" claim cold, don't infer it from a green dashboard).
 
 ### 5. Tag and release
 - Once the queue is empty, main is green, **and the traceability gate (step 4) passes**, **PAUSE for fork**: confirm the new tag (`v0.X.Y`) and whether this is the right moment to cut, vs. holding for more. Use `AskUserQuestion` — this is a genuine decision boundary, not a routine step.

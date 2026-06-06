@@ -1,7 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
   "name": "pulseengine-eu",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "PulseEngine engineering plugins for Claude Code — verification + traceability + attestation methodology, the tool directory, and the procedural skills that compose them.",
   "owner": {
     "name": "PulseEngine",
@@ -10,8 +10,8 @@
   "plugins": [
     {
       "name": "pulseengine-claude",
-      "description": "PulseEngine methodology as installable Claude Code tooling — philosophy + toolchain + repo-taxonomy memory, memory-persistence hooks (situational awareness + working-context across sessions/compaction), plus nine procedural skills (clean-room verification, release execution with a V-model traceability gate, oracle-gating, the full feature loop, the standardized release-artifact pipeline, tool-friction reporting, session-learning capture, STPA/STPA-Sec hazard-analysis audit, and backend-agnostic proof synthesis).",
-      "version": "0.2.0",
+      "description": "PulseEngine methodology as installable Claude Code tooling — philosophy + toolchain + repo-taxonomy memory, memory-persistence hooks (situational awareness + working-context across sessions/compaction), plus ten procedural skills (clean-room verification, release execution with a V-model traceability gate, oracle-gating, the full feature loop, the standardized release-artifact pipeline, tool-friction reporting, session-learning capture, STPA/STPA-Sec hazard-analysis audit, backend-agnostic proof synthesis, and full bidirectional traceability audit across the V).",
+      "version": "0.3.0",
       "source": "./claude-tooling/plugins/pulseengine-claude",
       "category": "development"
     }
