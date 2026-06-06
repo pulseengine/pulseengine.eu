@@ -1,7 +1,7 @@
 {
   "name": "pulseengine-claude",
-  "version": "0.3.0",
-  "description": "PulseEngine methodology as installable Claude Code tooling — philosophy + toolchain + repo-taxonomy memory, memory-persistence hooks (situational awareness at session start, working-context checkpoints across sessions/compaction), plus ten procedural skills (clean-room verification, release execution with a V-model traceability gate, oracle-gating, the full feature loop, the standardized release-artifact pipeline, tool-friction reporting, session-learning capture, STPA/STPA-Sec hazard-analysis audit, backend-agnostic proof synthesis, and full bidirectional traceability audit across the V).",
+  "version": "0.4.0",
+  "description": "PulseEngine methodology as installable Claude Code tooling — philosophy + toolchain + repo-taxonomy memory, memory-persistence hooks (situational awareness at session start, working-context checkpoints across sessions/compaction), plus eleven procedural skills (clean-room verification, release execution with a V-model traceability gate, oracle-gating, the full feature loop, the standardized release-artifact pipeline, tool-friction reporting, session-learning capture, STPA/STPA-Sec hazard-analysis audit, backend-agnostic proof synthesis, full bidirectional traceability audit across the V, and greenfield verification bootstrap).",
   "author": {
     "name": "PulseEngine",
     "url": "https://pulseengine.eu"
