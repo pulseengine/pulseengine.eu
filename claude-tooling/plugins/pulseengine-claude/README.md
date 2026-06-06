@@ -21,6 +21,7 @@ PulseEngine engineering methodology as installable Claude Code tooling.
   - `release-artifact-pipeline/` — the standardized release.yml: signed `SHA256SUMS.txt`, CycloneDX SBOM, SLSA attestation, cosign keyless OIDC. Canonical implementation in `pulseengine/synth/.github/workflows/release.yml`.
   - `report-tool-friction/` — standing dogfooding practice: when a tool errors, misbehaves, or forces a workaround during real work, file it as a `tool-friction` issue in the tool's own repo — automatically, as you hit it. Referenced by the feature loop and release execution.
   - `capture-session-learnings/` — continuous learning: distill a session's resume-state into the working-context checkpoint, and promote durable patterns/decisions into memory or a new skill. The agent-authored counterpart to the memory-persistence hooks; where recurring `report-tool-friction` workarounds get promoted so they stop recurring.
+  - `stpa-audit/` — conduct or **audit** an STPA / STPA-Sec hazard analysis on rivet's typed artifacts: completeness as a mechanical oracle (`rivet check` over the loss→hazard→constraint→UCA→scenario closure rules + STPA-Sec CIA/adversarial-causation/attacker-type) plus soundness as a clean-room reasoning review. The safety-case front-end of the feature loop; feeds the release V-model gate.
 
 ## Install
 
