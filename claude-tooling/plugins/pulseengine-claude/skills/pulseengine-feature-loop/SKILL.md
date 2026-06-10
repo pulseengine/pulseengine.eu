@@ -18,7 +18,7 @@ Use this when the feature touches more than one layer of the stack. Single-file 
 
 Friction is data. At any step below, if a tool errors, produces wrong output, lacks a capability you needed, or forces a workaround, file it via [`report-tool-friction`] in that tool's repo *as you hit it* — then continue. A workaround you don't report is friction the next feature re-hits. This is woven through the whole loop, not a phase of it.
 
-This is a long-running explorer (see [`pulseengine-operating-contract`]): self-verify at an interval as you build — re-check the work against the requirements/architecture with fresh-context subagents ([`clean-room-verification`]), not just at the end.
+This is a long-running explorer (see [`pulseengine-operating-contract`]): self-verify at an interval as you build, with fresh-context subagents ([`clean-room-verification`]) — re-checking **both** the work (against requirements/architecture) **and** the campaign machinery (is the merge gate actually non-empty? is everything claimed "released" really tagged with a `success` CI run, not `cancelled`? — the campaign invariants in the operating contract). Across a multi-feature round the machinery failures are the ones per-feature review misses.
 
 ## The compose loop (ordered steps, each producing a concrete artifact)
 

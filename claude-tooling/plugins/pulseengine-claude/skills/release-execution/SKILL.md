@@ -61,8 +61,9 @@ The release does not get tagged until the V-model is closed for everything it cl
 The level-by-level closure rules — every requirement decomposed to architecture/design/code, and verified up through **unit, integration, and requirements-qualification** tests (with passing results), not just "has a `verifies` link" — are defined in [`traceability-audit`]; this gate is that audit run before tagging. It composes [`pulseengine-feature-loop`] (which produces the artifacts this gate audits) and [`clean-room-verification`] (verify the "the V is closed" claim cold, don't infer it from a green dashboard).
 
 ### 5. Tag and release
+- **First assert the campaign invariants** ([`pulseengine-operating-contract`] → "Verify the machinery"): the protected branch's `required_status_checks.contexts` is non-empty (the gate is real), **HEAD's CI completed `success`** — not `cancelled` by a merge-train `cancel-in-progress`, which leaves the commit unverified — and everything previously claimed "released" actually carries a tag + a `success` run. A green-looking dashboard over an empty gate or a cancelled HEAD run is not a tag-able state.
 - Once the queue is empty, main is green, **and the traceability gate (step 4) passes**, **PAUSE for fork**: confirm the new tag (`v0.X.Y`) and whether this is the right moment to cut, vs. holding for more. Use `AskUserQuestion` — this is a genuine decision boundary, not a routine step.
-- After confirmation: tag, push tag, watch the release workflow.
+- After confirmation: tag, push tag, watch the release workflow; the release is "verified" only once that run completes `success`.
 
 ### 6. Verify the release shipped
 - GitHub Release: artifacts present, notes correct.

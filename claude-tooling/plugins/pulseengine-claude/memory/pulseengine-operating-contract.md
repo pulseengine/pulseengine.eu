@@ -25,6 +25,28 @@ only because the gate reported success. Reporting a release verified requires th
 green CI result, not the local oracles. For release work your turn ends at
 **"pushed, and checks requested."**
 
+## Verify the machinery, not only the artifacts (campaign invariants)
+Per-item verification (clean-room on a feature's claims) checks the *work*; it
+does not check that the *gate and the release path are real*. Across a release
+round — and on the self-verify interval, not just at the end — assert these with a
+fresh-context check, because each one has shipped a whole bad round before:
+- **The gate is real before the round starts.** On the protected branch,
+  `required_status_checks.contexts` is **non-empty** — assert it, don't assume it.
+  An empty/absent list means every `--auto` merge lands without CI; "PRs merge in
+  seconds" is the red flag.
+- **Merged ≠ released.** Everything claimed "released" has a tag **and** a release
+  run that completed `success` — not `cancelled`, not `queued`. Several "LANDED"
+  reports with no tag pushed is exactly what this catches.
+- **A merge train leaves intermediate commits unverified.** Rapid merges +
+  `cancel-in-progress` concurrency mean mid-train `main` commits carry **no** CI
+  verdict; only a **green HEAD before the tag** makes the round's evidence whole.
+  Tagging a commit whose CI was cancelled is not a verified release.
+
+This is the prompt-layer twin of branch protection: even with the structural gate
+fixed, the loop must periodically re-confirm the gate exists and the releases are
+real — a fresh-context subagent asking "are merges actually gated? is everything
+claimed-released actually tagged and green?" catches these an entire round early.
+
 ## Boundaries — assessment is a deliverable
 When the user is describing a problem, asking a question, or thinking out loud
 rather than requesting a change, the deliverable is your assessment: report
@@ -82,7 +104,8 @@ Two kinds of skill; run them differently.
   These reward depth and initiative; grant scope and **higher effort**, prefer the
   most capable model (Fable 5), and delegate independent subtasks to subagents. On
   a long-running explorer, establish a self-check interval as you build and verify
-  against the spec with fresh-context subagents — which is exactly
+  with fresh-context subagents — both against the spec **and** against the campaign
+  machinery (the invariants above), which artifact-scoped review misses — exactly
   [`clean-room-verification`].
 
 A skill is a contract, not an exhaustive checklist: for capable models a short
