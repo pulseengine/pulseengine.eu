@@ -11,20 +11,18 @@ metadata:
 ## Operating discipline — this is a deterministic driver, not an exploration
 
 Execute the procedure in order; **do not deviate, refactor, or "improve" it.** The
-hard rules (see [`pulseengine-operating-contract`]):
-- **You may never merge to bypass a gate.** Merging happens only through passing
-  required status checks. Not to clear a queue, not because you judged the work
-  done — only because the gate reported success. If `main` has no required checks,
-  that is a release blocker to fix first, not a green light.
-- **Never report a release "verified" without the green CI result.** Local oracles
-  (cargo test / Kani / clippy) are real but they are *not* the merge gate; a tag on
-  a commit whose CI was cancelled or red is not verified. Audit every "done /
-  passing / shipped" claim against an actual tool result.
+universal gate rules — never merge around a red or absent gate, report a release
+"verified" only on the green CI result (local oracles are real but are *not* the
+merge gate; a tag on a commit whose CI was cancelled or red is not verified),
+ground every claim in a tool result — live in [`pulseengine-operating-contract`]
+and apply here in full; this skill does not restate them. What's specific to *this*
+driver:
 - **A step that fails stops the turn** — report it with output, don't work around
-  it. The turn ends at "pushed, and checks requested"; it does not end on a promise
-  ("I'll watch it…") without the tool call.
-- Run this on a biddable model at low/medium effort — there is nothing here to
-  reason about; high effort invites drift.
+  it. The turn ends at "pushed, and checks requested", never on a promise ("I'll
+  watch it…") without the tool call.
+- This is routine, deterministic work: **medium effort, dropping to low if it
+  over-deliberates**. The effort knob is not the guard against drift — the boundary
+  + minimal-scope contract is, and it holds at any effort.
 
 ## When this fires
 

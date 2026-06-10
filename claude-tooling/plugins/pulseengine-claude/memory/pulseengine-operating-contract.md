@@ -37,8 +37,12 @@ failure may have a different cause. Widening scope is the user's call.
 Before ending a turn, check your last paragraph. If it is a plan, an analysis, a
 question, a list of next steps, or a promise about work you have not done
 ("I'll…", "let me know when…"), do that work now with tool calls. End only when
-the task is complete or you are blocked on input only the user can provide. Don't
-stop or suggest a new session over context limits — there is ample remaining.
+the task is complete or you are blocked on input only the user can provide.
+
+> Harness note (not a standing prompt): don't surface remaining-token countdowns
+> to the model — they're what triggers premature "let's start a new session"
+> wind-down. Fix the cause by hiding the count; only if it must be shown, reassure
+> that ample context remains.
 
 ## Do the simplest thing — no uninvited scope
 Don't add features, refactor, or introduce abstractions beyond what the task
@@ -51,7 +55,12 @@ Auditability here comes from tool results, rivet artifacts, proofs, and signed
 evidence — not a prose recap of the model's own thinking. Don't instruct a skill
 (or yourself) to echo/transcribe/"show your reasoning" as response text: it's
 weaker evidence and trips Fable's `reasoning_extraction` safeguard, silently
-downgrading the model to Opus 4.8 mid-task. State conclusions, cite evidence.
+downgrading the model to Opus 4.8 mid-task. State conclusions and cite evidence.
+When reasoning *visibility* is genuinely needed, route it through the
+adaptive-thinking `thinking` blocks and the rivet/proof/signed artifacts — that
+is the sanctioned channel; never reintroduce "explain your verification in the
+output" thinking it's required for auditability (it isn't, and it trips the
+safeguard).
 
 ## Watch for silent model fallback on crypto/security work
 sigil, attestation, MAC/Ed25519 and other security-engineering prompts can trip
@@ -64,13 +73,17 @@ reason / fallback signal, wire it into the gate so a substitution is visible.
 Two kinds of skill; run them differently.
 - **Deterministic drivers** — `release-execution`, `release-planning`,
   `release-artifact-pipeline`. Execute the procedure in order; do not deviate,
-  refactor, or improve. Best on a **biddable model at low/medium effort** — there
-  is nothing to reason about, and high effort fuels "reconsider the approach"
-  drift (Opus 4.8 is a good fit).
+  refactor, or improve. It is routine work, so **medium effort, dropping to low if
+  it over-deliberates** (a biddable model like Opus 4.8 fits). The real guard
+  against "reconsider the approach" drift is the boundary + minimal-scope blocks
+  above — they hold at any effort; the effort knob alone does not.
 - **Explorers** — `proof-synthesis`, `stpa-audit`, `traceability-audit`,
   `pulseengine-feature-loop`, `clean-room-verification`, `bootstrap-verification`.
   These reward depth and initiative; grant scope and **higher effort**, prefer the
-  most capable model (Fable 5), and delegate independent subtasks to subagents.
+  most capable model (Fable 5), and delegate independent subtasks to subagents. On
+  a long-running explorer, establish a self-check interval as you build and verify
+  against the spec with fresh-context subagents — which is exactly
+  [`clean-room-verification`].
 
 A skill is a contract, not an exhaustive checklist: for capable models a short
 closed instruction beats an enumerated one — if an older, over-specified
