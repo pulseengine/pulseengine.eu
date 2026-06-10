@@ -1,6 +1,6 @@
 ---
 name: report-tool-friction
-description: This skill should be used whenever a PulseEngine tool (rivet, spar, witness, sigil, smithy, wohl, kiln, synth, loom, meld, thrum, temper) produces friction during real work — it errors, crashes, produces wrong or surprising output, is missing a capability you needed, has confusing/undocumented behavior, or forced you into a workaround. ALWAYS use this skill the moment you notice yourself working *around* a tool instead of *with* it, or saying "this should just work but doesn't." The friction is the signal; capturing it as an issue in the tool's own repo is the action. Fires inside [`pulseengine-feature-loop`] and [`release-execution`] and any standalone tool use.
+description: This skill should be used whenever a PulseEngine tool (rivet, spar, witness, sigil, meld, loom, synth, kiln, gale, scry, smithy, thrum, temper, mcp — the roster lives in the pulseengine-toolchain memory) produces friction during real work — it errors, crashes, produces wrong or surprising output, is missing a capability you needed, has confusing/undocumented behavior, or forced you into a workaround. ALWAYS use this skill the moment you notice yourself working *around* a tool instead of *with* it, or saying "this should just work but doesn't." The friction is the signal; capturing it as an issue in the tool's own repo is the action. Fires inside [`pulseengine-feature-loop`] and [`release-execution`] and any standalone tool use.
 metadata:
   author: pulseengine.eu
   version: "0.1.0"

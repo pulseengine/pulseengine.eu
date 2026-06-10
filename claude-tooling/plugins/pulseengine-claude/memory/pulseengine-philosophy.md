@@ -54,6 +54,6 @@ When advising on any PulseEngine project (or movement-tracker, which uses the sa
 - Don't propose techniques without a measurable adoption gate.
 - Don't propose minimum-viable verification when defense-in-depth is on the table.
 
-The procedural how — feature-loop composition, oracle selection per change, release tail, clean-room verification of findings — lives in the four skills shipped with this plugin, not in this memory file. This memory is the always-on framing; the skills load on trigger.
+The procedural how — feature-loop composition, oracle selection per change, release tail, clean-room verification of findings — lives in the procedural skills shipped with this plugin, not in this memory file. This memory is the always-on framing; the skills load on trigger.
 
 See also: [[pulseengine-toolchain]], the `oracle-gate-a-change` skill, the `pulseengine-feature-loop` skill.

@@ -15,9 +15,9 @@ fi
   echo
   echo "Reference memory that travels with the PulseEngine plugin install."
   echo "These describe always-on framing: vocabulary, methodology stances,"
-  echo "and the tool directory. The procedural skills that operate on this"
-  echo "framing (clean-room-verification, release-execution, oracle-gate-a-change,"
-  echo "pulseengine-feature-loop) load on trigger — they are not in this file."
+  echo "and the tool directory. The plugin's procedural skills operate on this"
+  echo "framing and load on trigger — they are not in this file; see the plugin's"
+  echo "skills/ directory for the current set."
   echo
   for f in "$MEM_DIR"/*.md; do
     [ -e "$f" ] || continue

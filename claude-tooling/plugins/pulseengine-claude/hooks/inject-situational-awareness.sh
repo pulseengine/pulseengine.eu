@@ -23,7 +23,8 @@ branch="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo '?')"
 
 # Best-effort category hint. The taxonomy memory is the source of truth; this
 # is only a nudge. Keep the tool list roughly in sync with the toolchain memory.
-tools=" rivet spar witness sigil meld loom synth kiln gale scry smithy mcp temper rules_lean rules_rocq_rust rules_verus rules_wasm_component rules_moonbit "
+# Category heuristic only — the authoritative roster is the pulseengine-toolchain memory.
+tools=" rivet spar witness sigil meld loom synth kiln gale scry smithy thrum mcp temper rules_lean rules_rocq_rust rules_verus rules_wasm_component rules_moonbit "
 consumers=" wohl relay example-kvs "
 if printf '%s' "$tools" | grep -q " $repo "; then
   category="toolchain development (tool builds itself — inward lens; oracle-gate the tool, dogfood the chain)"
