@@ -1,6 +1,6 @@
 ---
 name: pulseengine-toolchain
-description: "What each pulseengine-* tool does — rivet, spar, witness, sigil, meld, loom, synth, smithy, wohl, kiln. Directory only; the compose-loop procedure lives in the pulseengine-feature-loop skill."
+description: "The single roster of what each pulseengine tool does — rivet, spar, witness, sigil, meld, loom, synth, kiln, gale, scry, smithy, thrum, temper, mcp, wohl. Directory only; the compose-loop procedure lives in the pulseengine-feature-loop skill."
 metadata:
   node_type: memory
   type: reference
@@ -31,8 +31,20 @@ Map of the PulseEngine tools. Each lives in `/Users/r/git/pulseengine/<name>` on
 
 **wohl** — application of the stack to a wireless field-sensor product (STM32G0 + door contact, CCSDS payload, sub-GHz radio, Matter Bridge at the hub but never native Matter at sensors).
 
+**gale** — formally verified Zephyr RTOS kernel primitives in Rust, ASIL-D targeted. Triple-track verification: Verus (SMT/Z3) + Rocq (theorem proving) + Lean (scheduler/priority proofs); hundreds of Verus-verified properties. A load-bearing target of the `proof-synthesis` skill.
+
+**scry** — sound **abstract interpretation** for Wasm (Cousot framework) — the third DO-333 formal-methods leg alongside deductive proof (gale) and structural coverage (witness). Computes invariants over the fused Wasm Core module, feeds them to loom and sigil-signed evidence to rivet. A named backend in `proof-synthesis`. Runs witness MC/DC as a live CI gate.
+
+**thrum** — observability / unified dashboard (`thrum-api`) over the toolchain; also the design-system source for the pulseengine.eu site.
+
+**temper** — GitHub App that hardens org repos to standards (dependabot routing, config, auto-merge). Org automation, not a per-project CLI.
+
+**mcp** — Rust framework for building Model Context Protocol servers and clients (the MCP layer rivet/spar expose). Published to crates.io.
+
 ## How they compose
 
 The procedure for composing these tools end-to-end (spar → WIT → rivet → code → witness → sigil → smithy) lives in the **`pulseengine-feature-loop` skill** shipped with this plugin, not here. This memory is the directory; the skill is the recipe.
 
-See also: [[pulseengine-philosophy]], and the four procedural skills in this plugin.
+This file is the **single roster** for the tools — other files (skills, hooks)
+should reference it, not re-enumerate. See also: [[pulseengine-philosophy]] and the
+plugin's procedural skills.
