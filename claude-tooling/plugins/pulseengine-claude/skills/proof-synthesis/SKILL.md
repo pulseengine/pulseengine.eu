@@ -22,6 +22,10 @@ obligations.
 > catches ([arXiv 2605.26457](https://arxiv.org/abs/2605.26457)). A proof that
 > the prover hasn't accepted is not a proof.
 
+This is a long-running explorer (see [`pulseengine-operating-contract`]): self-verify
+at an interval as you build — re-check progress against the spec with fresh-context
+subagents ([`clean-room-verification`]), rather than trusting your own running thread.
+
 ## The loop (identical across backends)
 
 1. **Specify first.** Write the property/contract/invariant *before* the proof.
