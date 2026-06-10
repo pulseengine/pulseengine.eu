@@ -8,6 +8,24 @@ metadata:
 
 # Release execution
 
+## Operating discipline — this is a deterministic driver, not an exploration
+
+Execute the procedure in order; **do not deviate, refactor, or "improve" it.** The
+hard rules (see [`pulseengine-operating-contract`]):
+- **You may never merge to bypass a gate.** Merging happens only through passing
+  required status checks. Not to clear a queue, not because you judged the work
+  done — only because the gate reported success. If `main` has no required checks,
+  that is a release blocker to fix first, not a green light.
+- **Never report a release "verified" without the green CI result.** Local oracles
+  (cargo test / Kani / clippy) are real but they are *not* the merge gate; a tag on
+  a commit whose CI was cancelled or red is not verified. Audit every "done /
+  passing / shipped" claim against an actual tool result.
+- **A step that fails stops the turn** — report it with output, don't work around
+  it. The turn ends at "pushed, and checks requested"; it does not end on a promise
+  ("I'll watch it…") without the tool call.
+- Run this on a biddable model at low/medium effort — there is nothing here to
+  reason about; high effort invites drift.
+
 ## When this fires
 
 End-to-end release machinery on a PulseEngine project (or any Rust project Ralf maintains). Triggers include: cutting a release tag, working a PR queue to green-and-merged, shipping a milestone, verifying a GitHub Release and crates.io publish landed, or fixing a release tail (post-merge cleanup, doc updates, version bumps).
