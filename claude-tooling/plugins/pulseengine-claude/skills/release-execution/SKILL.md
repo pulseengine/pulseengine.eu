@@ -8,6 +8,22 @@ metadata:
 
 # Release execution
 
+## Operating discipline — this is a deterministic driver, not an exploration
+
+Execute the procedure in order; **do not deviate, refactor, or "improve" it.** The
+universal gate rules — never merge around a red or absent gate, report a release
+"verified" only on the green CI result (local oracles are real but are *not* the
+merge gate; a tag on a commit whose CI was cancelled or red is not verified),
+ground every claim in a tool result — live in [`pulseengine-operating-contract`]
+and apply here in full; this skill does not restate them. What's specific to *this*
+driver:
+- **A step that fails stops the turn** — report it with output, don't work around
+  it. The turn ends at "pushed, and checks requested", never on a promise ("I'll
+  watch it…") without the tool call.
+- This is routine, deterministic work: **medium effort, dropping to low if it
+  over-deliberates**. The effort knob is not the guard against drift — the boundary
+  + minimal-scope contract is, and it holds at any effort.
+
 ## When this fires
 
 End-to-end release machinery on a PulseEngine project (or any Rust project Ralf maintains). Triggers include: cutting a release tag, working a PR queue to green-and-merged, shipping a milestone, verifying a GitHub Release and crates.io publish landed, or fixing a release tail (post-merge cleanup, doc updates, version bumps).

@@ -18,6 +18,8 @@ Use this when the feature touches more than one layer of the stack. Single-file 
 
 Friction is data. At any step below, if a tool errors, produces wrong output, lacks a capability you needed, or forces a workaround, file it via [`report-tool-friction`] in that tool's repo *as you hit it* — then continue. A workaround you don't report is friction the next feature re-hits. This is woven through the whole loop, not a phase of it.
 
+This is a long-running explorer (see [`pulseengine-operating-contract`]): self-verify at an interval as you build — re-check the work against the requirements/architecture with fresh-context subagents ([`clean-room-verification`]), not just at the end.
+
 ## The compose loop (ordered steps, each producing a concrete artifact)
 
 ### 1. Start in spar — model the architecture
