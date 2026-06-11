@@ -18,7 +18,7 @@ Use this when the feature touches more than one layer of the stack. Single-file 
 
 Friction is data. At any step below, if a tool errors, produces wrong output, lacks a capability you needed, or forces a workaround, file it via [`report-tool-friction`] in that tool's repo *as you hit it* — then continue. A workaround you don't report is friction the next feature re-hits. This is woven through the whole loop, not a phase of it.
 
-This is a long-running explorer (see [`pulseengine-operating-contract`]): self-verify at an interval as you build, with fresh-context subagents ([`clean-room-verification`]) — re-checking **both** the work (against requirements/architecture) **and** the campaign machinery (is the merge gate actually non-empty? is everything claimed "released" really tagged with a `success` CI run, not `cancelled`? — the campaign invariants in the operating contract). Across a multi-feature round the machinery failures are the ones per-feature review misses.
+This is a long-running explorer (see [`pulseengine-operating-contract`]): self-verify at a **concrete interval — before every tag, and at least every ~2 features/releases in a round** (not "at some point") — with fresh-context subagents ([`clean-room-verification`]) — re-checking **both** the work (against requirements/architecture) **and** the campaign machinery (is the merge gate actually non-empty? is everything claimed "released" really tagged with a `success` CI run, not `cancelled`? — the campaign invariants in the operating contract). Across a multi-feature round the machinery failures are the ones per-feature review misses.
 
 ## The compose loop (ordered steps, each producing a concrete artifact)
 
@@ -74,6 +74,12 @@ If the feature lands a new build artifact or a new build-stage:
 - Confirm the verification chain end-to-end: detached verifier accepts the signed artifact.
 - **Artifact:** signed component manifest, verifiable detached.
 
+> **Recurring N/A is a backlog item, not an exemption.** Steps 5 and 6 are
+> conditional ("if the feature lands…"), which makes them easy to wave off. If you
+> mark either one N/A for the same reason **three features running**, file it (an
+> issue / [`report-tool-friction`]) — that pattern is exactly how a real-flight
+> MC/DC gap and a missing attestation chain stayed hidden across ~20 features.
+
 ### 7. Clean-room verify the whole loop
 
 Per [`clean-room-verification`]:
@@ -84,6 +90,8 @@ Per [`clean-room-verification`]:
 ### 8. Land via release-execution
 
 When the feature is green end-to-end, ship it via [`release-execution`]. Its **traceability completeness gate** is where this loop gets audited at release time: every `approved`/`implemented` artifact must have the full V closed — requirement → architecture → implementation, and up the right side (tests via `verifies`, witness MC/DC with zero gap rows, sigil attestation). If a step here was skipped, that gate is where it surfaces as a blocker. Include the falsification statement for the new behavior in the release notes.
+
+**Own the merge-wait — don't delegate and assume.** The merge must block on the required gate: a PR that landed in seconds didn't wait for CI, and a tag on that commit is not verified. Confirm the merge actually waited (HEAD run `completed`/`success`, not `cancelled` by a merge-train and not skipped on an empty gate) before treating the feature as shipped. This is the same assert release-execution makes — the loop doesn't get to skip it just because it handed the merge off. *(Restated inline for execution-time reachability — the deliberate redundancy exception to single-source; see [`pulseengine-operating-contract`] → "Single-source by default". Keep in sync; don't drift-sweep it away.)*
 
 ## What "MBSE is mandatory infrastructure" means here
 

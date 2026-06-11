@@ -11,12 +11,24 @@ metadata:
 ## Operating discipline — this is a deterministic driver, not an exploration
 
 Execute the procedure in order; **do not deviate, refactor, or "improve" it.** The
-universal gate rules — never merge around a red or absent gate, report a release
-"verified" only on the green CI result (local oracles are real but are *not* the
-merge gate; a tag on a commit whose CI was cancelled or red is not verified),
-ground every claim in a tool result — live in [`pulseengine-operating-contract`]
-and apply here in full; this skill does not restate them. What's specific to *this*
-driver:
+gate rules below are restated here on purpose — they gate a safety-critical action,
+so they must be reachable at execution time even if the operating-contract memory
+isn't loaded; that file carries the rationale, this carries the operational
+asserts. *This is the deliberate **reachability-redundancy exception** to the
+plugin's single-source rule ([`pulseengine-operating-contract`] → "Single-source
+by default — restate inline only where absence is unsafe"): keep these in sync with
+the contract; a drift-sweep must **not** re-consolidate them away — the redundancy
+is the safety property.*
+- **Never merge around a red or absent gate.** Merge only through passing required
+  status checks — not to clear a queue, not because you judged it done.
+- **A merge that landed in seconds didn't wait for checks** — that's a red flag,
+  not a convenience; confirm the merge actually blocked on the gate.
+- **"Verified" requires the green CI result**, not the local oracles. A tag on a
+  commit whose HEAD run was `cancelled`/`red`/`queued` is not a verified release.
+- **Ground every claim in a tool result** (and trust a test *exit code*, not a
+  grepped "all green" summary).
+
+What's specific to *this* driver:
 - **A step that fails stops the turn** — report it with output, don't work around
   it. The turn ends at "pushed, and checks requested", never on a promise ("I'll
   watch it…") without the tool call.
