@@ -17,10 +17,13 @@ was skipped, say that; when something is done and verified, state it plainly.
 **"The local oracle passed" is not "the gate passed"; "I implemented it" is not
 "CI is green."** A verifier the model didn't run is not a verifier — this is the
 prompt-layer twin of oracle-gating. And a *summary* of a verifier is not the
-verifier: a piped or grepped "all green" can hide an aborted run (e.g. fail-fast
-stopping a suite early prints a clean-looking tail). Run the local gate with
-`--no-fail-fast` and trust the **exit code**, not the printed total; run one
-`cargo` at a time (concurrent invocations corrupt the incremental cache).
+verifier: a piped or grepped "all green" can hide a **non-zero exit** — an aborted
+or fail-fast run prints a clean-looking tail. This holds for **any** verifier whose
+output you grep — `cargo test`, `pytest`, `kani`, `verus`, a proof check, a CI log:
+trust the **exit code**, not the printed total, and don't let a fail-fast abort end
+the count early. (Cargo is just the example: `cargo test --no-fail-fast`, and run
+one `cargo` at a time — concurrent invocations corrupt the incremental cache. The
+*rule* is exit-code-over-summary; the cargo bits are its instance.)
 
 ## Never merge around a red or absent gate
 Merging happens **only** through passing required status checks. Never merge to
@@ -63,6 +66,30 @@ When runners wedge, queues stall, or runs zombie, the signal is ambiguous:
   instantly", "everything queued for an hour" are *machinery* signals — find the
   cause (saturated/wedged runner, dead queue, empty gate) before retrying. Hours
   disappear into blind re-dispatch loops.
+
+## Single-source by default — restate inline only where absence is unsafe
+The plugin's rule is single-source: a fact (the tool roster, the disposition
+taxonomy, the philosophy framing) lives in **one** place and everything else
+references it; unlabeled duplication is drift and gets consolidated. **There is
+one deliberate exception.** A rule whose *absence at execution time causes a
+safety failure* — the gate / merge / "verified" asserts — is **restated inline**
+in the skill that executes it (`release-execution`, the feature-loop land step),
+even though it also lives here. Why: this contract is *memory*, injected at
+SessionStart; a skill that fires deep in a session, inside a fresh-context
+subagent, or after a compaction that dropped the memory can run with the contract
+**not loaded** — and "defer to the contract" then means the gate rules silently
+aren't present at the moment of the merge. That is the same class of bug as an
+empty branch-protection gate: a safety rule that exists in principle but isn't
+enforced at the point of action. So the policy is explicit:
+- **Execution-critical safety rules are intentionally redundant** (inline in the
+  skill *and* here), and **each inline copy is labeled** as deliberate
+  reachability-redundancy, kept in sync — not drift.
+- **Everything non-safety-critical stays single-source.** The test: does running
+  without this rule produce an *unsafe action* or merely *worse output*? Unsafe →
+  inline it and mark it. Worse → leave it single-source and reference it.
+- A future drift-sweep (the #86 logic) must **not** re-consolidate the labeled
+  inline copies into this file — the redundancy *is* the safety property. The
+  label is what tells the sweep "known-redundant, leave it."
 
 ## Boundaries — assessment is a deliverable
 When the user is describing a problem, asking a question, or thinking out loud
