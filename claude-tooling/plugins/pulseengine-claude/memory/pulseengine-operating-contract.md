@@ -16,7 +16,11 @@ verified, say so explicitly. If tests fail, say so with the output; if a step
 was skipped, say that; when something is done and verified, state it plainly.
 **"The local oracle passed" is not "the gate passed"; "I implemented it" is not
 "CI is green."** A verifier the model didn't run is not a verifier — this is the
-prompt-layer twin of oracle-gating.
+prompt-layer twin of oracle-gating. And a *summary* of a verifier is not the
+verifier: a piped or grepped "all green" can hide an aborted run (e.g. fail-fast
+stopping a suite early prints a clean-looking tail). Run the local gate with
+`--no-fail-fast` and trust the **exit code**, not the printed total; run one
+`cargo` at a time (concurrent invocations corrupt the incremental cache).
 
 ## Never merge around a red or absent gate
 Merging happens **only** through passing required status checks. Never merge to
@@ -27,25 +31,38 @@ green CI result, not the local oracles. For release work your turn ends at
 
 ## Verify the machinery, not only the artifacts (campaign invariants)
 Per-item verification (clean-room on a feature's claims) checks the *work*; it
-does not check that the *gate and the release path are real*. Across a release
-round — and on the self-verify interval, not just at the end — assert these with a
-fresh-context check, because each one has shipped a whole bad round before:
-- **The gate is real before the round starts.** On the protected branch,
-  `required_status_checks.contexts` is **non-empty** — assert it, don't assume it.
-  An empty/absent list means every `--auto` merge lands without CI; "PRs merge in
-  seconds" is the red flag.
-- **Merged ≠ released.** Everything claimed "released" has a tag **and** a release
-  run that completed `success` — not `cancelled`, not `queued`. Several "LANDED"
-  reports with no tag pushed is exactly what this catches.
-- **A merge train leaves intermediate commits unverified.** Rapid merges +
-  `cancel-in-progress` concurrency mean mid-train `main` commits carry **no** CI
-  verdict; only a **green HEAD before the tag** makes the round's evidence whole.
-  Tagging a commit whose CI was cancelled is not a verified release.
+does not check that the *gate and the release path are real*. Each of the three
+below has shipped a whole bad round before — so run this as a **hard checklist**,
+not a paragraph: **before every tag, and at least every ~2 releases in a round**,
+a fresh-context check asserts each, mechanically:
+
+1. **`assert` the gate is real** — `gh api .../branches/main/protection` →
+   `required_status_checks.contexts` is **non-empty**. Empty/absent means every
+   `--auto` merge lands without CI; "PRs merge in seconds" is the red flag.
+2. **`assert` merged ≠ released** — every item claimed "released" has a **tag**
+   AND a release run that completed **`success`** (not `cancelled`, not `queued`).
+   "LANDED" with no tag pushed is what this catches.
+3. **`assert` HEAD is actually verified** — a `cancel-in-progress` merge train
+   leaves mid-train `main` commits with **no** verdict; only a **completed-`success`
+   HEAD run before the tag** makes the round whole. A cancelled HEAD run is not
+   verified.
 
 This is the prompt-layer twin of branch protection: even with the structural gate
-fixed, the loop must periodically re-confirm the gate exists and the releases are
-real — a fresh-context subagent asking "are merges actually gated? is everything
-claimed-released actually tagged and green?" catches these an entire round early.
+fixed, the loop must re-confirm the gate exists and releases are real. (Field note:
+hardening the gate has second-order traps — `paths-ignore` × required checks makes
+docs-only PRs permanently unmergeable unless a companion no-op job reports the
+context; `strict: true` on a solo repo turns merges into a manual update→CI→merge
+train, which `--auto` does not drive for you.)
+
+## Degraded infrastructure is not failure — diagnose before acting
+When runners wedge, queues stall, or runs zombie, the signal is ambiguous:
+- **`queued` ≠ `failed`.** A queued run is not a failing gate; don't treat it as
+  one, and **never clear queued main-branch CI as "stale"** — that discards a real
+  pending verdict. Wait or diagnose; re-dispatch only once you know why.
+- **Diagnose before re-dispatching.** "Merges in seconds", "release runs
+  instantly", "everything queued for an hour" are *machinery* signals — find the
+  cause (saturated/wedged runner, dead queue, empty gate) before retrying. Hours
+  disappear into blind re-dispatch loops.
 
 ## Boundaries — assessment is a deliverable
 When the user is describing a problem, asking a question, or thinking out loud

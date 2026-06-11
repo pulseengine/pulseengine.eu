@@ -17,11 +17,36 @@ and not a re-scan from zero every run. It is the tracker-facing front of
 
 ## State — the watermark (what makes it incremental)
 
-Keep a per-repo watermark in **`.claude/pulseengine/issue-hunt-state.json`**
-(git-excluded, same convention as the working-context checkpoint): the timestamp
-the last successful hunt finished, per repo. Read it at the start of a pass;
-write the pass's start time at the end — **only after the pass succeeded** — so
-nothing is missed or double-processed.
+Keep a per-repo watermark in **`.claude/pulseengine/issue-hunt-state.json`**: the
+timestamp the last successful hunt finished, per repo. Read it at the start of a
+pass; write the pass's start time at the end — **only after the pass succeeded** —
+so nothing is missed or double-processed.
+
+**Verify the state file is actually git-excluded — don't assume `.claude/` is.**
+Before the first write, confirm the path is ignored: `git check-ignore
+.claude/pulseengine/issue-hunt-state.json` must print the path (exit 0). It has
+been committed by accident once when only part of `.claude/` was excluded. If it
+isn't ignored, add the rule (and `git rm --cached` any already-tracked copy)
+before writing — a tracked state file leaks the loop's bookkeeping into every PR.
+
+**Re-pull with a small overlap, then dedup — exact-boundary misses.** GitHub's
+`updatedAt`/`createdAt` and your local clock can skew by seconds, and `>=` on an
+exact watermark can drop an item that landed in the same second. Query from
+**watermark minus ~60s** and dedup against what the last pass already processed
+(by issue number + last-seen comment id, below) rather than trusting the boundary
+to be tight. Cheap re-reads are fine; a silently skipped comment is not.
+
+The state is more than one timestamp — keep, per repo:
+- `watermark` — pass-start time of the last successful pass.
+- `last_seen_comment_id` per touched issue — the highest comment id already
+  digested, so a re-pull (or a self-echo, below) is recognized and skipped
+  without re-triaging.
+- **`pending_gates`** — open PRs this loop is waiting on, each as
+  `{ pr, repo, watcher_run_id?, action_on_green }` (e.g. "merge", "tag vX.Y",
+  "close #N"). A pass that opens a PR but can't land it yet (CI still running, a
+  fork it must pause at) records the gate here instead of dropping it; the **next
+  pass checks `pending_gates` first** and acts on any that went green — that's how
+  a deferred merge gets owned across passes instead of forgotten.
 
 First run (no watermark): bound the window explicitly — the last N days, or
 "since the last release tag" — and **say which window you chose**. Don't silently
@@ -29,13 +54,27 @@ digest the entire backlog.
 
 ## Each pass
 
-1. **Pull what's new since the watermark.**
+0. **Resolve `pending_gates` first.** Before pulling new work, check the gates the
+   last pass left open: for each, look at the PR's current check status and act on
+   `action_on_green` if it went green (merge / tag / close), or leave it and
+   re-record if still pending. This is what makes a deferred merge get *owned*
+   across passes instead of silently dropped.
+
+1. **Pull what's new since the watermark** (from watermark − ~60s; see State).
    - New / updated open issues:
      `gh issue list --repo <R> --state open --search "updated:>=<WATERMARK>" --json number,title,updatedAt,labels,author`
      (a new comment bumps an issue's `updatedAt`, so this catches comment
      activity too, not just new issues).
    - New comments on each touched issue:
      `gh issue view <N> --repo <R> --json comments --jq '.comments[] | select(.createdAt > "<WATERMARK>")'`.
+   - **Filter your own echoes.** This loop comments on issues (triage notes,
+     "landed in rivet", "fixed in #NN") — and every such comment bumps `updatedAt`,
+     so the next pass re-pulls the issue and sees *its own* comment as "new". Drop
+     any item whose **only** post-watermark activity is a comment by the operating
+     account, and skip any comment at or below `last_seen_comment_id`. Without this
+     the loop chases its own tail and re-triages settled issues every pass. (Be
+     careful at the boundary: with the −60s overlap, a real human comment can share
+     the window with your echo — filter by *author + comment id*, not by time.)
    - **State the count up front.** If it's large, process in priority order and
      say what you deferred — never silently truncate.
 2. **Digest & triage each item** (the [`release-planning`] evaluate step — measure,
@@ -55,8 +94,13 @@ digest the entire backlog.
    [`oracle-gate-a-change`] / [`proof-synthesis`], closing the V
    ([`traceability-audit`]). Ground every "fixed / done / passing" claim in the
    tool result; **never merge around a red or absent gate** (see
-   [`pulseengine-operating-contract`]).
-5. **Advance the watermark** to this pass's start time.
+   [`pulseengine-operating-contract`]). If you open a PR but can't land it this
+   pass (CI still running, a release fork you must pause at), **record it in
+   `pending_gates`** with its `action_on_green` — don't end the pass on the
+   promise of a merge you didn't make.
+5. **Advance the watermark** to this pass's start time, **and** update
+   `last_seen_comment_id` for every issue you touched (so your own echoes and
+   re-pulls are recognized next pass). Both only on a successful pass.
 
 ## The exit condition is a release, not an empty tracker
 
@@ -95,3 +139,9 @@ half (see [`pulseengine-operating-contract`]).
   to the release plan and resurfaces as a gate surprise.
 - **Looping with no release target** — the loop's product is releases; an
   open-ended "keep working issues" never converges.
+- **Re-digesting your own comments** — the loop's triage/status comments bump
+  `updatedAt`; without the self-echo filter (step 1) it re-pulls and re-triages
+  issues it just touched, chasing its own tail forever.
+- **Dropping a deferred merge on the floor** — opening a PR you can't land this
+  pass and not recording it in `pending_gates` means the next pass never checks
+  it; the "fix" sits green-and-unmerged indefinitely.
