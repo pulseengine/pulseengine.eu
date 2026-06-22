@@ -1,9 +1,9 @@
 ---
 name: release-artifact-pipeline
-description: This skill should be used when setting up, standardizing, auditing, or modifying a release artifact pipeline on a PulseEngine project — including "standardize release artifacts", "set up release workflow", "fix the release pipeline", "add cosign signing", "add SLSA attestation", "add SBOM", "switch to signed SHA256SUMS", "audit release artifacts", "migrate off per-file .sha256 sidecars", or any GitHub Actions release.yml setup/refactor. ALWAYS use this skill when proposing or reviewing changes to a release.yml workflow, when adopting the PulseEngine release-artifact standard for a new repo, or before claiming a release pipeline is "compliant" or "signed".
+description: This skill should be used when setting up, standardizing, auditing, or modifying a release artifact pipeline on a PulseEngine project — including "standardize release artifacts", "set up release workflow", "fix the release pipeline", "add cosign signing", "add SLSA attestation", "add SBOM", "switch to signed SHA256SUMS", "sign the wasm with sigil", "add a witness/scry gate to the release", "publish to crates.io / npm", "add a Pages verification dashboard", "audit release artifacts", "migrate off per-file .sha256 sidecars", or any GitHub Actions release.yml setup/refactor. ALWAYS use this skill when proposing or reviewing changes to a release.yml workflow, when adopting the PulseEngine release-artifact standard for a new repo, or before claiming a release pipeline is "compliant" or "signed". Covers all five tracks: native binaries, distribution channels (crates.io + npm), wasm signing (sigil + cosign) and wasm verification gates (witness MC/DC + scry), the Pages verification dashboard, and rivet verification extraction.
 metadata:
   author: pulseengine.eu
-  version: "0.1.0"
+  version: "0.2.0"
 ---
 
 # Release artifact pipeline
@@ -14,9 +14,26 @@ Anytime you touch the *release workflow itself* on a PulseEngine project — set
 
 This is distinct from `release-execution`, which fires when you're *cutting* a release on top of an already-working pipeline. Pipeline setup is the rarer, deeper task.
 
-## The standard
+## The standard — match it for *every artifact type the repo ships*
 
-Every PulseEngine repo that ships binaries shares one release-artifact convention. The canonical implementation lives at **`pulseengine/synth/.github/workflows/release.yml`** — Phase 6 onward. **Copy that block verbatim** into the target repo's release workflow, then adapt the SBOM step's manifest path to point at the target repo's main crate.
+A repo's release is compliant only when **each kind of artifact it produces** meets
+its track below. The recurring org-wide defect (2026-06 sweep): the *native binary*
+gets the full supply chain everywhere, while the *wasm* it ships gets weaker signing
+and no verification gate. Hold wasm to the **same bar** as the binary.
+
+- **Track A — native binaries** → the cosign+SBOM+SLSA bundle (canonical: synth).
+- **Track B — distribution channels** → crates.io for everything Rust; npm for CLIs/tools.
+- **Track C — wasm artifacts** → sigil + cosign signature, **and** a witness MC/DC
+  gate **and** a scry abstract-interpretation gate. No wasm ships unverified.
+- **Track D — Pages verification dashboard** → witness-viz / scry-viz (canonical:
+  witness, scry).
+
+A repo skips a track only if it produces none of that artifact type — and "we emit
+wasm but only Track A is wired" is the exact drift this skill exists to close.
+
+## Track A — native binaries
+
+The canonical implementation lives at **`pulseengine/synth/.github/workflows/release.yml`** — Phase 6 onward. **Copy that block verbatim** into the target repo's release workflow, then adapt the SBOM step's manifest path to point at the target repo's main crate.
 
 ### Required release assets (and no others for checksums/attestation)
 
@@ -55,6 +72,88 @@ permissions:
 - **All per-file `<asset>.sha256` sidecars.** The single signed `SHA256SUMS.txt` replaces them.
 - **Exception**: witness keeps its per-asset `.cert` / `.sig` files because they're consumed as certification evidence. For witness, the signed sums file is *added*, not replacing.
 
+## Track B — distribution channels
+
+Distribution is currently incoherent (rivet npm-only, sigil/synth/scry crates.io-only,
+mcp a stale unsigned manual script). The rule:
+
+- **crates.io for everything written in Rust** — canonical, published from CI via
+  OIDC trusted publishing, never a hand-run `cargo publish` from a laptop. Keep it
+  in a dedicated `publish-to-crates-io.yml` on the `v*` tag (canonical: sigil,
+  synth, scry) so the artifact-release and the registry-publish don't race.
+  **mcp's manual `scripts/publish.sh` is the anti-pattern — it ships unsigned, out
+  of CI, with stale pinned versions; move it into CI.**
+- **npm for CLIs and tools** — the platform-package wrapper pattern (canonical:
+  rivet's `release-npm.yml`: per-target `@pulseengine/<tool>-<platform>` packages
+  wired to a root launcher via `optionalDependencies`), triggered `workflow_run`
+  after the GitHub Release so the binaries exist. This is **not** rivet-only —
+  every user-facing CLI (rivet, spar, …) should ship it.
+- **More channels (OCI, editor marketplaces) are in scope later** — sigil's GHCR
+  `oras push` and rivet/spar's VS Code Marketplace are precedents; not required now.
+
+A Rust tool is compliant on Track B only when it is on crates.io **and** (if it's a
+CLI) on npm. crates.io-but-no-npm and npm-but-no-crates.io are both drift.
+
+## Track C — wasm artifacts (same bar as the binary)
+
+Any repo that **ships or emits wasm** (component or module) must sign and verify it
+to the binary's standard. The sweep found this is where every repo cuts corners.
+
+### Signing — sigil + cosign
+- **sigil signature** (dogfood the attestation tool) **and** cosign over the sums.
+  Canonical signer: sigil's own `wsc sign --keyless` (see sigil `release.yml` /
+  `wasm-signing.yml`).
+- **Prerequisite — fix sigil first.** sigil cannot yet parse its own `wasm32-wasip2`
+  output, so it ships unsigned-on-failure. **Do not mandate the sigil step on a repo
+  until that parser blocker is fixed** (tracked upstream in `pulseengine/sigil`); add
+  cosign now, add the sigil signature as the blocker clears. Mandating a broken step
+  just reintroduces `continue-on-error` theatre.
+- SLSA `subject-path` must cover the **`.wasm`**, not only the `.o`/`.tar.gz`
+  (gale's provenance currently covers the `.o` objects but not the wasm — fix).
+
+### Verification gates — witness AND scry (both required)
+Every wasm-emitting repo runs, as a **CI/release gate** (not a manual side-script):
+- **witness** — MC/DC truth-table on the wasm; the gate asserts zero unresolved gap
+  rows for new decisions (canonical: witness `ci.yml` dogfood + `verdict-suite`;
+  scry's `mcdc-gate.sh` is the consume-as-library exemplar). Where the bundled
+  witness can't parse component-format exports (relay #145), that's a witness bug to
+  file via [`report-tool-friction`] — not a reason to leave the gate manual.
+- **scry** — sound abstract interpretation over the fused Wasm core (consume scry as
+  a crates.io library, v1.15+; canonical: scry's self-analysis dogfood).
+
+"We emit wasm and run neither" is the headline gap (loom — a wasm *optimizer* — runs
+no wasm verification; meld, gale, spar likewise). Manual witness runs (relay, wohl)
+count as **not a gate** until they're in CI.
+
+## Track D — Pages verification dashboard
+
+Publish the verification evidence as a browsable dashboard on every repo that runs
+witness/scry. Canonical: witness's and scry's `publish-pages` job (witness-viz /
+scry-viz MC/DC truth-table + self-analysis, `actions/upload-pages-artifact` +
+`deploy-pages`). **One-time setup gotcha to document in the PR** (it bit both repos):
+Pages *Source* must be "GitHub Actions", and the `github-pages` environment needs a
+`v*` **tag** deployment-branch policy or tag deploys are rejected —
+`gh api -X POST repos/<org>/<repo>/environments/github-pages/deployment-branch-policies -f name='v*' -f type=tag`.
+(gale's `pages.yml` deploys only the gust demo, not a verification dashboard — that's
+the gap, not coverage.)
+
+## Track E — the verification IS extracted into rivet (gate, not prose)
+
+A signed, dashboarded wasm is still non-compliant if the requirement→test mapping
+isn't in the rivet graph. The right side of the V must be *driven*, not narrated.
+The in-house exemplars already exist — **copy them, don't reinvent**:
+- **relay** — test/target-level `verifies` links (e.g. a specific bazel coverage
+  target → `SWREQ-…`), all 174 verification artifacts linked, + a `verification-gate.yml`
+  that *executes* the steps (`run-falcon-verification.py`). The model for "name the
+  actual test, not the crate."
+- **gale** (642 links, ~complete coverage) and **synth** (141) for volume.
+- The rivet-driven PR gate (`tools/run_verification.py` over `type: test-case`
+  artifacts) is canonical in witness/loom/spar — adopt it where missing.
+
+Laggards as of the sweep: scry (0 links despite 111 tests + 12 Rocq proofs + a live
+MC/DC gate), witness (2/55), loom, meld, mcp. The procedure for closing this lives in
+[`traceability-audit`]; this track just makes it a release-pipeline requirement.
+
 ## Verification — the oracle for this skill
 
 Per [`oracle-gate-a-change`], the release pipeline is itself a mechanical oracle. The diff that flips it red→green is one where the verification one-liner below runs cleanly against the published release. **Paste this verification block into the release notes of every release that uses this pipeline**, so consumers can re-run the check:
@@ -73,12 +172,21 @@ If either of these fails on the published release, the pipeline did not actually
 ## How to apply to a target repo
 
 1. **Read the canonical**: open `pulseengine/synth/.github/workflows/release.yml`. Find Phase 6 onward (the artifact-generation block).
-2. **Identify the target repo's deltas**:
-   - Does it already have binary archives? (loom: no — missing upload step entirely. Fix that first; the sums/signing flow is moot until artifacts exist.)
-   - Does it have per-file `.sha256` sidecars? (sigil/wsc: yes — must be replaced.)
-   - Does it have a SBOM? (most repos: no — add it.)
-   - Does it have cosign signing? (spar: no — add it.)
-   - Does it have SLSA attestation? (most repos: no — add it.)
+2. **Identify the target repo's deltas** — Track A is broadly done org-wide; the
+   live gaps from the 2026-06 sweep are Tracks B–E:
+   - **Track A (binaries):** mostly compliant. Exceptions: sigil lacks the CycloneDX
+     SBOM; kiln/mcp have no real release at all.
+   - **Track B (distribution):** rivet is npm-only (no crates.io); sigil/synth/scry
+     crates.io-only (no npm CLI wrapper); **mcp publishes via a stale unsigned manual
+     script — move it into CI.**
+   - **Track C (wasm):** the big one. loom/meld/gale/spar emit/handle wasm and run
+     **neither** witness nor scry; relay/wohl run witness **manually** (not a gate);
+     gale has an open `TODO(sigil)` and SLSA that misses the `.wasm`. (sigil-sign step
+     is blocked on the wasip2-parser fix — add cosign now.)
+   - **Track D (Pages):** only witness + scry deploy a verification dashboard — roll
+     it to every repo running witness/scry.
+   - **Track E (rivet extraction):** scry (0 links), witness (2/55), loom, meld, mcp
+     are the laggards; copy relay's test-level pattern.
 3. **Copy the Phase 6+ block from synth verbatim**, adapt only:
    - The main crate manifest path for the SBOM step.
    - The `<tool>` name in the verification one-liner.
