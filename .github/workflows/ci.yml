@@ -12,7 +12,7 @@ jobs:
   build:
     runs-on: [self-hosted, linux, x64, light]
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Install Zola
         uses: taiki-e/install-action@v2
