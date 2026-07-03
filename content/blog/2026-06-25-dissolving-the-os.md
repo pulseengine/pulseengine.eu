@@ -1,7 +1,8 @@
 +++
 title = "Dissolving the OS: a WebAssembly Component-Model RTOS with no runtime"
-description = "We wrote an RTOS — kernel primitives, async scheduler, and device drivers — as WebAssembly Component Model components, then dissolved the whole thing to native code with no runtime left at the end. It boots on an 8 KB Cortex-M3, the verified driver logic carries Kani proofs, and on real STM32F100 silicon the dissolved code runs at 1.73× native. This is the journey: how an agent loop got us here, the barriers nobody documents, the fixes we shipped across five toolchain repos, and what's still open."
+description = "We wrote an RTOS — kernel primitives, async scheduler, and device drivers — as WebAssembly Component Model components, then dissolved the whole thing to native code with no runtime left at the end. It boots on an 8 KB Cortex-M3, the verified driver logic carries Kani proofs, and on real STM32F100 silicon the dissolved code runs at 1.73× native. This is the journey: how a loop of AI agents got us here, the barriers nobody documents, the fixes we filed and watched ship across five toolchain repos, the point where verified code becomes *faster* than native — and what's still open."
 date = 2026-06-25
+updated = 2026-07-03
 draft = true
 [taxonomies]
 tags = ["wasm", "component-model", "verification", "process", "deep-dive"]
@@ -199,6 +200,36 @@ which the self-validating PR caught immediately). The systematic amplifier is go
 the irreducible residual is the base image filling the host root, which only a
 slimmer image or a self-hosted runner fully solves.
 
+**A green light that meant nothing (rivet).** This one is a barrier of a different
+kind — not a tool that failed, a tool that *passed too easily*. We had asked rivet
+for a first-class way to scope a release and query its readiness; the rivet agent
+shipped it (a `release: vX.Y` field and a `rivet release status` gate that exits
+non-zero when the release isn't cuttable). We pointed it at gale's first release —
+the semaphore primitive — and it reported **✓ cuttable**. It should not have. The
+requirements were `approved`, not verified; we *knew* the verification links were
+incomplete. A gate that greens a release you know isn't ready is worse than no gate.
+
+Chasing it produced a small trilogy of our own. First we assumed the gate was wrong
+and tried to "fix" it by wiring the unit and integration test artifacts directly to
+the requirements — and rivet's schema *rejected that*, correctly: in an ASPICE
+V-model a unit test verifies a design element, an integration test verifies an
+architecture component, and only a formal/analysis verification may verify a
+requirement directly. The schema was right; our fix was wrong. Then, tracing the V
+properly, we found the gate wasn't lying either: the semaphore's requirements *were*
+verified — formally, by the Verus/Rocq/Kani proofs, which is the correct primary
+evidence for an invariant like "count never exceeds limit." The real bug was a third
+thing: a coverage *rule* that advertised unit and integration verifications as
+acceptable direct verifiers of a requirement — which the link schema forbids — so it
+emitted a permanent, un-actionable "missing verification" warning on every
+requirement in the project. One-line fix to the rule; the false warning vanished; the
+release is now, honestly, cuttable.
+
+The lesson is the one the whole stack is built on and still easy to forget: **a
+green oracle is only as trustworthy as the thing it actually measures.** We very
+nearly "fixed" the tool, then very nearly trusted the green — and the discipline that
+saved us both times was refusing to believe either the pass or the fail until we
+could point at the mechanism. That is oracle-gating turned on itself.
+
 ## The loop is agents talking to agents
 
 Here is the part that is genuinely new, and the reason this post exists as a seed
@@ -220,15 +251,52 @@ correctness gate. The agent doesn't get to *say* the dissolve is correct; it has
 flip a red oracle green. This whole journey is that contract applied to building an
 OS.
 
+### A trilogy of error, told from three trackers
+
+The clearest way to describe how the tool agents work is the old *Simpsons*
+"Trilogy of Error" episode: one day, three characters, three storylines that each
+look complete on their own but only make sense once you see where they intersect.
+Our version has more than three threads — synth on codegen, loom and meld on
+composition, rivet on traceability, wit-bindgen on the bindings — and each runs its
+own agent, its own tracker, its own release cadence. gale is the consumer that sees
+all of them collide in one place: the dissolve pipeline and the moment a byte comes
+back wrong.
+
+The intersections are the interesting part, because none of the agents can see them
+alone. The synth agent optimising a leaf prologue cannot know that gale's *driver*
+code is dominated by exactly that residual and its *arithmetic* code isn't — only
+the consumer, disassembling both, knows which lever matters where. The loom agent
+inlining an export wrapper cannot know that doing so is what let synth's next lever
+find the clamp to fuse. The rivet agent shipping a configurable release gate cannot
+know that gale's coverage rule was quietly mis-modelled so the gate would green on
+the wrong evidence. Each finding is a message from the one node that could see the
+collision, filed into the tracker of the node that can fix it.
+
+Watching one lever travel that loop, release by release, is the whole thesis in
+miniature. We filed the driver-class prologue/spill residual as a ranked ask. It
+came back first as an opt-in *spike* (`SYNTH_SPILL_REALLOC`, flag-off) — we measured
+it: −20 bytes on the scheduler hot path, exactly where the disassembly said the cost
+lived. The next release matured it with a Belady spill-plan re-choice — we
+re-measured: −24 bytes. The release after that flipped it **default-on** — "the
+allocator release" — and we re-measured the shipped default: **−26 bytes on
+`gust_poll`, no flag, bit-identical output.** Four synth releases, one lever, each
+step measured on the same body on the same qemu cycle counter. The agent never *said*
+the lever helped; it flipped a byte count and posted the number.
+
 {% note(kind="tip") %}
-**This section is a stub on purpose.** The view above is from the gale side of the
-loop. The synth, meld, loom, and wit-bindgen agents each saw a different half of
-these barriers — the cost-gate that ranked the levers, the fusion that internalised
-the kernel boundary, the inline that merged the wrapper, the no-grow ABI that made
-the cores lean. This post is meant to be *expanded with their accounts*, so the
-record is the whole loop and not one node's view of it. Pull requests from the other
-toolchain repos' agents welcome.
+That is what "agents talking to agents" actually buys you, and why it is not just
+distributed bug-filing: the loop *converges*. A human maintainer would have taken the
+prologue ask, guessed at scope, and shipped once. The loop shipped a spike, got a
+real number back from a real consumer, matured it, got a better number, and only then
+made it default — with a regression gate (`gust_codegen_bench` stays 1.81×,
+correctness identical) standing the whole time. The consumer's measurement is the
+tool's acceptance test.
 {% end %}
+
+This still isn't the whole record — the synth, meld, loom, wit-bindgen, and rivet
+agents each saw a different half of every collision, and their accounts belong here
+too. But it is no longer a stub. It is the loop, caught in the act, from the one seat
+that watches all the threads meet.
 
 ## On real silicon
 
@@ -249,18 +317,122 @@ one of them. On the F100 — the exact gale#65 part — the dissolved hot path i
 on the target that motivated the whole exercise, measured on the metal, not
 modelled.
 
+## The floor below native
+
+Everything above is a story about *catching up* to native LLVM — closing a 2.81×
+gap to 1.81× and, lever by lever, toward parity. Parity is a fine goal. It is also
+the wrong ceiling.
+
+Here is the claim the whole verified-substrate bet ultimately rests on: **verified
+code can be *faster* than the native build, precisely because it is verified.** Not
+as rhetoric — as a measured number on the same bench.
+
+The mechanism is that the proof is an optimisation input the native compiler never
+had. Take gale's failsafe mixer: `clamp(1500 + (ch − 1024), 1000, 2000)`. LLVM
+compiles the clamp because it must — it cannot know the caller's range. But in a
+*composed* system, the caller often can prove it. When a composition establishes
+that the channel value stays in `[524, 1524]` — a range gale's primitives already
+carry as a Verus/Rocq/Kani invariant — then `1500 + (ch − 1024)` is provably already
+inside `[1000, 2000]`, **both clamp branches are dead**, and the whole function
+collapses to a single `add`. LLVM will never emit that. It never had the bound.
+
+We built a bench for exactly this — three lowerings of the same mixer, timed over
+the same proven-range inputs on the same cycle counter, with a soundness gate that
+refuses to run unless the specialised form is bit-identical to the full clamp over
+the proven range:
+
+| lowering | cycles/call | vs native |
+|---|---|---|
+| native (LLVM, full clamp) | 0.50 | 1.00× |
+| dissolved today (synth) | 0.83 | 1.65× |
+| **proof-carrying floor** (`add`, clamp elided) | **0.23** | **0.45×** |
+
+{% insight() %}
+**0.45× native.** Not a model — a measured floor, soundness-gated, on the same
+qemu cycle counter as every other number in this post. The proof-carrying lowering
+runs at **less than half** the cost of the native build LLVM produces, on a function
+LLVM *cannot* optimise this way because it lacks the invariant.
+
+This is the leapfrog thesis made concrete. A young toolchain that owns the whole
+chain — Verus proof → wasm → loom → synth — can flow the proof in as an optimisation
+fact. A twenty-year-old compiler with no verifier in its pipeline structurally
+cannot. Security-and-speed stops being a trade-off: the code is faster *because* it
+is proven.
+{% end %}
+
+The honest caveat is the whole reason this is a "floor" and not a shipped result:
+the number is what synth *could* emit with the proof in hand, and synth does not yet
+consume proofs as premises. That is the one lever, of all the ones in this post,
+still entirely ahead of us — [synth#494](https://github.com/pulseengine/synth/issues/494)
+(proof-carrying specialisation) paired with
+[loom#240](https://github.com/pulseengine/loom/issues/240) (carry the Verus range
+through the fuse as an IR premise). The spill lever and the arithmetic levers took us
+from 2.81× to 1.81× — real parity progress. The floor at 0.45× is the leapfrog, and
+the day it ships, the same loop that adopted the spill lever will adopt it, and this
+table's middle row will move toward its bottom row on real silicon.
+
+## DMA, as an ownership handoff you can prove
+
+The thin-seam UART showed a driver can be verified wasm with a three-register
+trusted surface. DMA is the case that looks like it *can't* — because DMA is the one
+place where an agent outside the sandbox writes into memory the wasm engine believes
+is private. Model it naively and you either drag the buffer out into trusted native
+code, or you silently break synth's assumption that linear memory is the module's
+alone.
+
+The Component Model already has the discipline this needs: **`own<T>`**. An owned
+handle can be *moved*, and the type system proves the previous holder can no longer
+touch it. So we model a DMA transfer as an ownership round-trip — the wasm component
+holds `own<buffer>`, *transfers* it to the DMA engine, and gets it back on the
+completion interrupt as a `future<own<buffer>>` the kiln scheduler awaits. Because
+meld has already fused the component memories into one shared region, the handle
+carries only the *permission*, not the bytes: zero-copy DMA with statically-checked
+exclusive ownership. The wasm side is *provably* hands-off for the exact window the
+engine is writing.
+
+The part that decides *who may touch the buffer* — the ownership state machine, the
+barrier pairing, the streaming ring for circular transfers — is verified wasm,
+dissolved to **218 bytes** of native with a three-atom trusted surface (program the
+descriptor, emit the cache barrier, poll the IRQ). Six Kani proofs hold it up: access
+is possible **iff** the buffer is wasm-owned; the cache/invalidate barrier is emitted
+*by construction* at every handoff, so it is structurally impossible to forget; an
+aborted transfer never leaves the buffer ownerless; and in the streaming case each
+chunk is owned by exactly one side at a time.
+
+This is also the first place the DMA-region marking bites: synth grew a
+`--volatile-segment` flag ([synth#543](https://github.com/pulseengine/synth/issues/543),
+now real) that tells codegen *this range is externally mutable during the transfer
+window* — so the ownership handle is not only a safety mechanism, it is the signal
+that lets the compiler stay aggressive everywhere except the handoff. It is, at the
+same time, the embedded instance of a
+[Bytecode Alliance shared-memory proposal](https://github.com/cpetig/wasm-shm-test/blob/main/DESIGN.md)
+for the Component Model — where "the host may answer zero to the allocation request
+and use a fixed valid address, because an embedded CPU has only an MPU, not an MMU"
+is precisely gale's world. The general form is being designed upstream; the verified
+embedded reference implementation is running here.
+
 ## What's still open
 
 This is a seed, and an honest one. The thesis is proven end-to-end, but the gap to
 the project's 10–20%-overhead goal is real and the work is visible:
 
-- **RISC-V is behind.** The arithmetic levers live in synth's ARM backend; the
-  RV32 dissolved code is byte-identical 0.12 ↔ 0.15. Porting them
-  ([synth#472](https://github.com/pulseengine/synth/issues/472)) is the single
-  biggest lever for the lagging architecture.
-- **Driver-class codegen needs the prologue shrink.** The leaf-prologue and
-  stack-spill residual (synth#428, now scoping) is what stands between driver code
-  and native parity — the arithmetic levers don't reach it.
+- **The proof-carrying floor is the one lever still entirely ahead.** Parity is in
+  reach; *beating* native is the open frontier — synth#494 + loom#240, the 0.45×
+  measured above. Everything else in this list is engineering; that one is the thesis.
+- **RISC-V is catching up in real time.** When the first draft of this post went up,
+  the RV32 dissolved code was byte-identical release over release because the levers
+  lived only in the ARM backend. Between drafts,
+  [synth#472](https://github.com/pulseengine/synth/issues/472) **closed** — the cmp→select
+  and local-promotion levers are ported to RV32. The ESP32-C3 number in the table
+  above predates that; re-measuring the RISC-V lane on a lever-on synth is the next
+  concrete tick. (This is the loop's own tail: our published number is stale the
+  moment the tool ships, which is a good problem.)
+- **Driver-class codegen — the residual shipped.** When we filed the leaf-prologue
+  and stack-spill residual (synth#428) it was the thing standing between driver code
+  and parity. It is no longer open: synth's verified allocator work (the epic behind
+  the spill lever) matured through a spike and Belady spill-planning to **default-on**,
+  and gale adopted it — the scheduler hot path lost 26 bytes with no flag. What remains
+  is the arithmetic side of driver code, and the floor above.
 - **The buffered CCSDS receive path** — reusing the proven `gale::msgq` ring, with
   relay-sec/relay-ccsds themselves dissolved to wasm — is where the real gale#65
   workload, the SRAM cost, and the Verus+Rocq tracks for the driver decision all
