@@ -419,14 +419,18 @@ the project's 10–20%-overhead goal is real and the work is visible:
 - **The proof-carrying floor is the one lever still entirely ahead.** Parity is in
   reach; *beating* native is the open frontier — synth#494 + loom#240, the 0.45×
   measured above. Everything else in this list is engineering; that one is the thesis.
-- **RISC-V is catching up in real time.** When the first draft of this post went up,
-  the RV32 dissolved code was byte-identical release over release because the levers
-  lived only in the ARM backend. Between drafts,
-  [synth#472](https://github.com/pulseengine/synth/issues/472) **closed** — the cmp→select
-  and local-promotion levers are ported to RV32. The ESP32-C3 number in the table
-  above predates that; re-measuring the RISC-V lane on a lever-on synth is the next
-  concrete tick. (This is the loop's own tail: our published number is stale the
-  moment the tool ships, which is a good problem.)
+- **RISC-V caught up between drafts.** When the first draft went up, the RV32
+  dissolved code was byte-identical release over release because the levers lived only
+  in the ARM backend. Then [synth#472](https://github.com/pulseengine/synth/issues/472)
+  **closed** — four arithmetic levers ported to RV32 (cmp→select, immediate-shift-fold,
+  i32 local-promotion, const-address-fold). We re-measured on the ESP32-C3 lane: with
+  the levers enabled, `gust_mix` shrinks **132 → 116 bytes (−12%)**, all of it from
+  cmp→select and shift-fold (the other two don't apply to this function, and we didn't
+  invent a win for them). They ship flag-off for now, so the 2.12× silicon number above
+  is unchanged until they default-on — but the lagging architecture is no longer
+  standing still. (This is the loop's own tail: our published number goes stale the
+  moment the tool ships, which is a good problem, and the same loop that measured the
+  ARM levers just measured these.)
 - **Driver-class codegen — the residual shipped.** When we filed the leaf-prologue
   and stack-spill residual (synth#428) it was the thing standing between driver code
   and parity. It is no longer open: synth's verified allocator work (the epic behind
