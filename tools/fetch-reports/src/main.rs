@@ -52,7 +52,17 @@ struct Release {
 struct Asset {
     name: String,
     browser_download_url: String,
+    /// Asset size in bytes (from the GitHub API). Used to skip pathologically
+    /// large report bundles that would bloat `site.tar.gz` until the deploy hangs.
+    #[serde(default)]
+    size: u64,
 }
+
+/// A compliance/MC-DC report is HTML + YAML + a few SVGs — single-digit MB in a
+/// healthy release (witness ships 169 of them for ~52 MB total). A multi-hundred-MB
+/// asset is a packaging bug (e.g. `target/` bundled in); fetching it balloons
+/// `static/reports/` until the scp deploy stalls. Skip anything over this cap.
+const MAX_REPORT_BYTES: u64 = 50 * 1024 * 1024;
 
 // ── Resolved version ────────────────────────────────────────────────────
 
@@ -319,6 +329,19 @@ fn filter_releases(
             Some(a) => a,
             None => continue,
         };
+
+        // Skip pathologically large report assets — a packaging bug (e.g. rivet
+        // v0.4.x/v0.7–0.9 shipped ~800 MB bundles) that would bloat site.tar.gz
+        // until the deploy scp hangs. Warn loudly rather than silently ship it.
+        if asset.size > MAX_REPORT_BYTES {
+            eprintln!(
+                "[{project_name}] {}: SKIPPING oversized report ({} MB > {} MB cap) — likely a packaging bug in the report producer",
+                release.tag_name,
+                asset.size / (1024 * 1024),
+                MAX_REPORT_BYTES / (1024 * 1024),
+            );
+            continue;
+        }
 
         resolved.push(ResolvedVersion {
             version,
