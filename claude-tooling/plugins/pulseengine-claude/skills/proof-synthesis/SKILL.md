@@ -86,8 +86,16 @@ actually do — and where they have already been bitten:
   the code fools *every* backend identically. The one leg that catches this is a
   **differential against an external artifact the author didn't write** — wasmtime
   execution, an independent optimizer (`wasm-opt`), a POSIX/FreeRTOS reference,
-  WasmCert-Coq. Weight those; they attack model-vs-reality, which no same-authored
-  proof can.
+  WasmCert-Coq — or a structural-coverage measurement of the *compiled* artifact
+  (witness MC/DC on the shipped wasm, which honestly measures rather than claims to
+  prove). Weight those; they attack model-vs-reality, which no same-authored proof
+  can. The *strongest* form of "external model" is proving **published theory you
+  didn't invent**: spar proves Liu & Layland / Joseph & Pandya / Dertouzos scheduling
+  bounds in Lean, so the spec has peer-reviewed ground truth, not a self-authored
+  mirror. But then the **theory↔code link becomes the trusted-base item** — spar
+  labels its Lean→Rust step a "manual extraction, checked via property tests"; name
+  that link and back it (property tests, or a refinement proof), or the honest
+  external theory silently reconnects to unverified code.
 - **Keep the same agent/context off both sides of a check.** Spec vs its proof,
   artifact vs its oracle, model vs its implementation — different lineage. Route the
   *spec* review through a cold [`clean-room-verification`] subagent (relay's 11/0
