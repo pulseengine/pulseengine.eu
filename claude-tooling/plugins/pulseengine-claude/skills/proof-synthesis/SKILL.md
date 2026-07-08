@@ -70,12 +70,12 @@ When the verifier can't be invoked or behaves wrongly, that's a tooling gap →
 
 ## Driving the loop with an AI prover — the acceptance gate
 
-When the *generator* in step 2 is a capable theorem-proving model (a
-Leanstral-class Lean agent, or the Verus/Rocq equivalents), the loop is
-unchanged — the verifier is still the oracle — but four disciplines are
-load-bearing, and each is **checkable**. Grounded in PulseEngine's own graded
-trials of a benchmark-topping Lean model against real ordeal and gale
-obligations:
+When the *generator* in step 2 is a capable theorem-proving model — e.g. Mistral's
+**Leanstral** driven by the **`vibe`** agent (the concrete stack is spelled out
+below), or the Verus/Rocq equivalents — the loop is unchanged (the verifier is
+still the oracle), but four disciplines are load-bearing, and each is
+**checkable**. Grounded in PulseEngine's own graded trials of a benchmark-topping
+Lean model against real ordeal and gale obligations:
 
 - **Clean-room the model, not just the review.** A proving agent with filesystem
   access will `grep` the real proof (or its compiled `.olean`) and copy it — *a
@@ -103,6 +103,30 @@ obligations:
 - **Wire the language-server MCP.** Live goal state (`lean-lsp-mcp` for Lean; the
   equivalent for other backends) was the difference between *zero* proof attempts
   and genuine engagement — without it the agent can't see what it's proving.
+
+### The concrete stack (worked example)
+
+The trials ran on an off-the-shelf agent + MCP — nothing bespoke — so the recipe
+is reproducible:
+
+- **Agent harness — Mistral's `vibe`.** `vibe --agent lean` drives the model
+  through an edit → run → read loop. The agent is a small TOML (e.g.
+  `~/.vibe/agents/leanmcp.toml`) that pins the model and knobs:
+  `model = "labs-leanstral-1-5"` (the free hosted API; the open weights are
+  `mistralai/Leanstral-1.5-119B-A6B`), `thinking = "high"`, `temperature = 1.0`.
+- **Verifier as a tool — the Lean LSP MCP.** Wire `uvx lean-lsp-mcp` into the agent
+  so it works against *live goal state* (goal, hover, diagnostics) from the language
+  server rather than blind text. This was the single biggest lever — without it the
+  model made zero proof attempts.
+- **The sandbox.** A scratch dir containing only the target statement (proof →
+  `sorry`) and a mathlib-warm `.lake` — nothing else on disk to copy from.
+- **The grade.** `lake env lean <file>` (read the *unpiped* exit code), a fresh
+  `#print axioms`, and a scan of the agent transcript for reads of the real
+  source/`.olean`.
+
+Same shape for the other backends: an agent loop **+ the verifier exposed as a
+tool/MCP + a clean-room dir + a mechanical grade.** Swap Leanstral / `vibe` /
+`lean-lsp-mcp` for the Verus / Rocq / Dafny equivalent — the discipline is identical.
 
 Why this is safe: across every trial the model never produced a wrong proof the
 kernel accepted — failures were honest `sorry`/errors only. That is the
