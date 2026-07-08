@@ -100,6 +100,7 @@
         {# <a href="{{ get_url(path='@/docs/_index.md') }}"{% if current_path is starting_with("/docs") %} class="active"{% endif %}>Docs</a> #}
         <a href="{{ get_url(path='@/reports/_index.md') }}"{% if current_path is starting_with("/reports") %} class="active"{% endif %}>Reports</a>
         <a href="https://github.com/pulseengine" rel="noopener">GitHub</a>
+        <a href="https://www.youtube.com/@pulseengine-eu" rel="noopener">YouTube</a>
         <button type="button" class="theme-toggle" aria-label="Toggle light / dark theme" title="Toggle theme">
           <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <circle cx="12" cy="12" r="4"></circle>
@@ -120,6 +121,8 @@
   <footer class="site-footer">
     <div class="container">
       &copy; {{ now() | date(format="%Y") }} PulseEngine &middot; Built with <a href="https://www.getzola.org">Zola</a>
+      &middot; <a href="https://github.com/pulseengine" rel="noopener">GitHub</a>
+      &middot; <a href="https://www.youtube.com/@pulseengine-eu" rel="noopener">YouTube</a>
       <span class="build-ref"><!-- BUILD_INFO --></span>
     </div>
   </footer>

@@ -41,6 +41,13 @@ filed, and several *shipped*, through a loop of AI agents handing findings to ea
 other.
 {% end %}
 
+{% note(kind="tip") %}
+**Try it in your browser:** [**gale + gust, live**](https://pulseengine.github.io/gale/)
+runs the *same* verified wasm components this post dissolves to a Cortex-M3 — here
+executing on wasmtime-in-the-browser, so you can poke the kernel and the driver
+before reading how they compile away to native.
+{% end %}
+
 ## Why we cared
 
 Safety-critical embedded systems still run a C RTOS, for the same reason the rest

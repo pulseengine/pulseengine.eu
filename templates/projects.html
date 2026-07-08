@@ -32,6 +32,8 @@
               <span>pluggable analyses</span>
               <span>AADL v2.3</span>
               <span>SysML v2</span>
+              <span>CAN/DBC</span>
+              <span>TSN timing bounds</span>
               <span>deployment solver</span>
               <span>code generation</span>
               <span>SVG rendering</span>
@@ -210,7 +212,7 @@
 
       <div class="cube-detail__panel" data-detail="architect" style="display:none">
         <h3 style="color:#6c8cff">Architect — spar</h3>
-        <p>AADL v2.3 and SysML v2 architecture analysis toolchain. Pluggable analysis passes, deployment solver, code generation (WIT, Rust, Lean 4 proofs, rivet docs), SVG rendering, LSP server. Compiles to a single WebAssembly component.</p>
+        <p>A compiler for system-architecture models: it ingests AADL v2.3, SysML v2, and CAN/DBC into one semantic model, then runs pluggable analysis passes — safety analysis, ARINC 653 partitioning, and TSN timing bounds — plus a deployment solver, code generation (WIT, Rust, Lean 4 proofs, rivet docs, Bazel), SVG rendering, and an LSP server. Compiles to a single WebAssembly component.</p>
         <p>spar is architecturally upstream — it validates system design before any code exists, then generates the interfaces and skeletons that feed into the build pipeline.</p>
         <div class="cube-detail__links">
           <a href="https://github.com/pulseengine/spar" rel="noopener">GitHub</a>
@@ -259,11 +261,12 @@
 
       <div class="cube-detail__panel" data-detail="run" style="display:none">
         <h3 style="color:#f87171">Run — platforms &amp; applications</h3>
-        <p><strong>kiln</strong> is a WebAssembly Component Model runtime with a WASI 0.2 and no_std architecture for embedded targets — in active early development. <strong>gale</strong> provides formally verified Zephyr RTOS kernel primitives in Rust — ASIL-D targeted, with triple-track verification (Verus SMT/Z3 + Rocq theorem proving + Lean scheduler proofs).</p>
+        <p><strong>kiln</strong> is a WebAssembly Component Model runtime with a WASI 0.2 and no_std architecture for embedded targets — in active early development. <strong>gale</strong> provides formally verified Zephyr RTOS kernel primitives in Rust — ASIL-D targeted, with triple-track verification (Verus SMT/Z3 + Rocq theorem proving + Lean scheduler proofs). The same verified components <a href="https://pulseengine.github.io/gale/" rel="noopener">run live in your browser</a> and dissolve to a bare-metal Cortex-M3.</p>
         <p>Built on top: <strong>relay</strong> — formally verified flight software inspired by NASA's cFS, reimagined as generic WebAssembly components. <strong>wohl</strong> — safety-critical home supervision. Real applications proving the ecosystem works end-to-end.</p>
         <div class="cube-detail__links">
           <a href="https://github.com/pulseengine/kiln" rel="noopener">kiln</a>
           <a href="https://github.com/pulseengine/gale" rel="noopener">gale</a>
+          <a href="https://pulseengine.github.io/gale/" rel="noopener">gale demo ↗</a>
           <a href="https://github.com/pulseengine/relay" rel="noopener">relay</a>
           <a href="https://github.com/pulseengine/wohl" rel="noopener">wohl</a>
         </div>
