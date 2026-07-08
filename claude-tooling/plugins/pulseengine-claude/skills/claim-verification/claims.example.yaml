@@ -1,0 +1,45 @@
+# claims.example.yaml — reference for the claim-verification skill.
+# Gate a repo's load-bearing DOC CLAIMS against live evidence. Run in CI:
+#   claim-check.py claims.yaml
+# Each claim binds a verbatim doc string to predicates re-derived from source —
+# never a number typed in prose. When the evidence moves, the claim fails the build.
+#
+# These three model the real drifts hand-fixed after an external FV review:
+
+claims:
+  # loom said "Formally verified optimizer" (a green badge) while it only does
+  # per-run Z3 translation validation. The claim now asserts the honest wording,
+  # and gates that the "proof" doesn't lean on more stub axioms than recorded.
+  - id: LOOM-OPTIMIZER
+    doc: README.md
+    text: "Translation-validated WebAssembly optimizer"   # NOT "Formally verified"
+    evidence:
+      - kind: file-exists
+        path: proofs/Correctness.v
+      - kind: count-max                       # Correctness.v carries `Axiom … := True` stubs
+        pattern: 'Axiom .*:=\s*True'
+        glob: ['proofs/**/*.v']
+        max: 1                                # if a second `:= True` stub appears, the claim is now weaker → red
+
+  # gale's headline "N/N verified": gate the trusted base so the badge can't
+  # outrun the ledger. Re-count external_body and Admitted from the actual tree.
+  - id: GALE-TRUSTED-BASE
+    doc: README.md
+    text: "triple-track verification"          # honest framing, not "fully verified"
+    evidence:
+      - kind: count-max                        # ledger records 133 external_body; fail if it grew
+        pattern: '#\[verifier::external_body\]'
+        glob: ['src/**/*.rs']
+        max: 133
+      - kind: no-new                           # ledger discloses 74 admitted Rocq stubs; no fresh ones
+        pattern: '\bAdmitted\b'
+        glob: ['proofs/**/*.v']
+        recorded: 74
+
+  # relay scoped "formally verified flight software" to the specific proofs.
+  - id: RELAY-SCOPE
+    doc: README.md
+    text: "formal proofs of specific safety properties (Kani bounded model checking + Lean)"
+    evidence:
+      - kind: file-exists
+        path: crates/falcon-esc-dshot/src/kani_proofs.rs
