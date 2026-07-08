@@ -99,6 +99,10 @@
               <span class="face-tool__name">witness</span>
               <span class="face-tool__desc">MC/DC on Wasm IR</span>
             </a>
+            <a href="https://github.com/pulseengine/ordeal" class="face-tool" rel="noopener">
+              <span class="face-tool__name">ordeal</span>
+              <span class="face-tool__desc">certificate-checked SMT solver</span>
+            </a>
           </div>
           <div class="face-divider"></div>
           <div class="face-edge">
@@ -186,6 +190,10 @@
               <span class="face-tool__name">spar wasm</span>
               <span class="face-tool__desc">in-browser analysis via WASM</span>
             </a>
+            <a href="https://github.com/pulseengine/agora" class="face-tool" rel="noopener">
+              <span class="face-tool__name">agora</span>
+              <span class="face-tool__desc">real-time agent coordination</span>
+            </a>
           </div>
           <div class="face-edge">
             <span class="face-edge__dot" style="background:#fbbf24"></span>
@@ -226,13 +234,14 @@
       <div class="cube-detail__panel" data-detail="verify" style="display:none">
         <h3 style="color:#4ade80">Verify — deductive proof, abstract interpretation, and empirical coverage</h3>
         <p><strong>Verus</strong> proves Rust code via SMT/Z3 — preconditions, postconditions, invariants on every public function. <strong>Rocq</strong> machine-checks abstract invariants that hold regardless of implementation. <strong>Lean 4</strong> proves scheduling theory — priority inheritance, deadline guarantees, starvation freedom. These three deductive paths operate <em>pre-compilation</em> on Rust source. <strong>scry</strong> adds the third DO-333 formal-methods technique — sound abstract interpretation over the fused Wasm Core module, computing invariants that hold for all executions and feeding them downstream to loom and sigil-signed evidence to rivet. <strong>witness</strong> then measures MC/DC structural coverage on the resulting <em>post-compilation</em> Wasm — the empirical half that closes the §FM.6.7(f) / structural-coverage cell DO-178C, ISO 26262 Part 6 Table 12, and IEC 61508 Annex C expect. Together they form an evidence chain no single technique spans: proof and abstract interpretation cover all inputs in principle; witness measures what actually ships in the wasm bytecode. witness v0.14+ emits v3 MC/DC envelopes with DWARF inline-chain tracking up to 8 levels deep on real Rust (httparse).</p>
-        <p>These are not limited to one tool. Every component in the ecosystem — meld, loom, synth, kiln, gale, relay, wohl — carries formal verification. Multiple independent verification techniques run in CI on every commit: three deductive-proof paths (Verus, Rocq, Lean), sound abstract interpretation (scry), and structural coverage (witness).</p>
+        <p>These are not limited to one tool. Every component in the ecosystem — meld, loom, synth, kiln, gale, relay, wohl — carries formal verification. Multiple independent verification techniques run in CI on every commit: three deductive-proof paths (Verus, Rocq, Lean), sound abstract interpretation (scry), and structural coverage (witness). <strong>ordeal</strong> underwrites the deductive layer itself — a pure-Rust, wasm-native QF_BV SMT solver whose untrusted core is paired with a formally-verified LRAT proof checker (the CompCert pattern), so even the solver's own answers carry evidence a checker can re-verify.</p>
         <div class="cube-detail__links">
           <a href="https://github.com/pulseengine/rules_verus" rel="noopener">rules_verus</a>
           <a href="https://github.com/pulseengine/rules_rocq_rust" rel="noopener">rules_rocq_rust</a>
           <a href="https://github.com/pulseengine/rules_lean" rel="noopener">rules_lean</a>
           <a href="https://github.com/pulseengine/scry" rel="noopener">scry</a>
           <a href="https://github.com/pulseengine/witness" rel="noopener">witness</a>
+          <a href="https://github.com/pulseengine/ordeal" rel="noopener">ordeal</a>
           <a href="https://github.com/pulseengine/gale" rel="noopener">gale</a>
         </div>
       </div>
@@ -263,11 +272,12 @@
       <div class="cube-detail__panel" data-detail="agent" style="display:none">
         <h3 style="color:#c084fc">Agent — AI-native development</h3>
         <p><strong>rivet mcp</strong> exposes a full tool suite to AI agents — validate, add artifacts, link, check coverage, stamp provenance. Agents write code AND maintain traceability as part of their workflow.</p>
-        <p><strong>rivet stamp</strong> records AI session provenance. <strong>mcp</strong> is the Rust framework for building MCP servers. <strong>spar wasm</strong> runs architecture analysis in-browser at 1.3 MB.</p>
+        <p><strong>rivet stamp</strong> records AI session provenance. <strong>mcp</strong> is the Rust framework for building MCP servers. <strong>spar wasm</strong> runs architecture analysis in-browser at 1.3 MB. <strong>agora</strong> is the real-time coordination substrate — named agents subscribe to channels and coordinate on a durable, signed, traceable fact log, augmenting the issue-driven loop.</p>
         <div class="cube-detail__links">
           <a href="https://github.com/pulseengine/rivet" rel="noopener">rivet</a>
           <a href="https://github.com/pulseengine/mcp" rel="noopener">mcp framework</a>
           <a href="https://github.com/pulseengine/spar" rel="noopener">spar</a>
+          <a href="https://github.com/pulseengine/agora" rel="noopener">agora</a>
         </div>
       </div>
     </div>
