@@ -17,11 +17,11 @@ scheduling-theory suite in [gale](https://github.com/pulseengine/gale). (We didn
 re-measure the benchmark — we measured *our* proofs.)
 
 On gale's Mathlib-flavoured lemmas it **converged cleanly** — axiom-clean, and it even
-re-derived one of our theorems by a *different* valid path than the human proof. On
-ordeal's hardest leaf it engaged just as seriously — finding the right lemmas on its own
-— and mapped, precisely and safely, the boundary where the hand-written proof still earns
-its keep. Same model, two surfaces: a **genuine win, and a genuinely useful limit** — both
-of them good outcomes.
+re-derived one of our theorems by a *different* valid path than the one already in our
+repo. On ordeal's hardest leaf it engaged just as seriously — finding the right lemmas on
+its own — and mapped, precisely and safely, the boundary where our fuller, human-guided
+workflow still earns its keep. Same model, two surfaces: a **genuine win, and a genuinely
+useful limit** — both of them good outcomes.
 
 And the property that matters more than either result: **in neither evaluation, across
 any trial, did it produce a wrong proof that Lean accepted.** Every failure was an honest
@@ -47,10 +47,13 @@ dominated by the **Aeneas-simulation idiom**, not textbook mathematics.
 in self-contained, **Mathlib-flavoured** Lean. This is the surface that looks most like
 the mathematics the model was trained to saturate.
 
-Every obligation we tested was already closed by hand — zero `sorry`, axiom-clean. So the
-question was never "can the model save us." It was the honest one: **is a
-benchmark-topping Lean model worth adopting as a proving backend for work like ours —
-and where?**
+One thing to be plain about up front: **every proof in our repos is AI-assisted.** There
+is no hand-authored baseline — the human's role is guidance, tactics, and gating, and the
+kernel's role is to be the final judge; the proofs themselves are machine-generated and
+machine-checked. The obligations we tested here were already closed and axiom-clean *that*
+way. So the question was never "can the model save us." It was the honest one: **is this
+particular benchmark-topping model, run on its own, worth adopting as a proving backend for
+work like ours — and where?**
 
 ## How we ran it
 
@@ -85,8 +88,8 @@ capability up to it, and no pretending past it.
 
 - **Re-derivation** — handed the real `task_utilization_bounded` statement with the helper
   lemmas stripped, it produced a **passing, axiom-clean** proof by a *different* valid
-  Mathlib path than ours (a general `calc` through `div_nonneg`/`div_self` where the human
-  proof went through `Rat.div_def`). The statement was diff-confirmed byte-identical to
+  Mathlib path than ours (a general `calc` through `div_nonneg`/`div_self` where our
+  existing proof went through `Rat.div_def`). The statement was diff-confirmed byte-identical to
   gale's source — the same theorem, an independent proof.
 - **Extend** — asked for a genuinely new theorem (`rmaBound_le_one`, a universal upper
   bound gale didn't have), it correctly discovered it had to peel the argument down to
@@ -140,16 +143,19 @@ Falsification-first, the honest reading across both evaluations:
 - **Adopt** it for gale's **Mathlib-flavoured / self-contained** Lean obligations and for
   **repo-aware navigation and lemma reuse** — it earns its keep there, cleanly and
   axiom-free.
-- **Let the human lead on the Aeneas-simulation idiom** that dominates ordeal's hard
-  leaves — for now, that's where hand-written proofs earn their keep, and the model is a
-  useful pair of eyes rather than the author. A clear division of labour, not a gap.
+- **Don't expect a single model, run solo, to author the Aeneas-simulation idiom** that
+  dominates ordeal's hard leaves — for now that's where our fuller assisted loop earns its
+  keep: human guidance on process and tactics, iteration, and the oracle-gated refine
+  cycle, with the model as one contributor rather than a one-shot author. A workflow, not a
+  lone prover.
 - **Wire the language-server MCP** for any real use — live goal state was the difference
   between "zero attempts" and genuine engagement.
 - **Re-verify under the pinned oracle.** gale's runs used a newer Lean/Mathlib than gale's
   pinned toolchain; a passing proof gets re-checked through the project's own build before
   it counts. The generator is never the oracle — not even when it succeeds.
-- **Keep the human on the idiom the model can't reach** — and on the question no checker
-  answers: *is this the right theorem, and does the proof match the code.*
+- **Keep the human guiding the process** — steering tactics, spotting the shortcut the
+  model missed — and owning the question no checker answers: *is this the right theorem,
+  and does the proof match the code.*
 
 ## The falsification statement
 
