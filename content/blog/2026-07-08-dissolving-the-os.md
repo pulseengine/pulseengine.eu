@@ -1,9 +1,8 @@
 +++
-title = "Dissolving the OS: a WebAssembly Component-Model RTOS with no runtime"
-description = "We wrote an RTOS — kernel primitives, async scheduler, and device drivers — as WebAssembly Component Model components, then dissolved the whole thing to native code with no runtime left at the end. It boots on an 8 KB Cortex-M3, the verified driver logic carries Kani proofs, and on real STM32F100 silicon the dissolved code runs at 1.73× native. This is the journey: how a loop of AI agents got us here, the barriers nobody documents, the fixes we filed and watched ship across five toolchain repos, the point where verified code becomes *faster* than native — and what's still open."
-date = 2026-06-25
-updated = 2026-07-03
-draft = true
+title = "Dissolving the OS: a WebAssembly Component-Model kernel with no runtime"
+description = "We wrote OS kernel primitives, a cooperative async scheduler, and a device driver as WebAssembly Component Model components, then dissolved the whole thing to native code with no runtime left at the end. It boots on a Cortex-M3, the verified driver logic carries Kani proofs, and on real STM32F100 silicon the dissolved hot path runs at 1.73× native (a 73% slowdown — the honest cost of the maximal-wasm choice). This is the journey: how a loop of AI agents got us here, the barriers nobody documents, the fixes we filed and watched ship across five tool repos, what a proof-carrying lowering could reach — and what's still open."
+date = 2026-07-08
+draft = false
 [taxonomies]
 tags = ["wasm", "component-model", "verification", "process", "deep-dive"]
 authors = ["Ralf Anton Beier"]
@@ -15,9 +14,10 @@ WebAssembly and run it through meld → loom → synth; only the bare-minimum ha
 is native.* This post applies that to the operating system itself.
 
 **[gust](https://github.com/pulseengine/gale/tree/main/benches/gust)** is a
-maximal-wasm mini-RTOS: the verified [gale](https://github.com/pulseengine/gale)
-kernel primitives plus the [kiln](https://github.com/pulseengine/kiln) async
-scheduler, authored as Component Model components, **fused by
+maximal-wasm mini-kernel: the verified [gale](https://github.com/pulseengine/gale)
+kernel primitives plus the [kiln](https://github.com/pulseengine/kiln) *cooperative*
+async scheduler (no preemption, priorities, or WCET bound yet — those are open;
+see *What's still open*), authored as Component Model components, **fused by
 [meld](https://github.com/pulseengine/meld), optimised by
 [loom](https://github.com/pulseengine/loom), and compiled to a native relocatable
 object by [synth](https://github.com/pulseengine/synth)** — so the OS rides the
@@ -28,8 +28,12 @@ It works. The composed `run-demo` component boots bare-metal on a Cortex-M3 and
 returns the same `53` it returns on wasmtime. A driver added through the new
 `gust:hal` seam keeps its whole protocol in verified wasm with only a ~10-line
 register-poke as trusted code. And on a real STM32F100 (the gale#65 px4io
-failsafe class) the dissolved hot path measures **1.73× native LLVM, bit-identical
-output** — consistent across qemu, a real Cortex-M4, and a RISC-V ESP32-C3.
+failsafe class) the dissolved hot path measures **1.73× native LLVM** with
+**bit-identical output** — the *output* matches across qemu, a real Cortex-M4, and a
+RISC-V ESP32-C3; the *overhead* itself ranges 1.73×–2.21× by target (table below).
+(Convention throughout: native LLVM = 1.00×, lower is closer to native — so 1.73× is
+a 73% slowdown, the honest cost of the maximal-wasm choice against the project's
+10–20% goal.)
 
 The interesting part isn't the result. It's that getting there meant clearing
 barriers in five different toolchain repos — and that most of those fixes were
@@ -94,7 +98,7 @@ driven by kiln on the device.
 ## Adding a driver without trusting it
 
 An RTOS that can't get a byte in or out is a demo. The question gale#65 really
-poses is: *how do you add a driver — a UART, an engine-control loop, whatever Jess
+poses is: *how do you add a driver — a UART, an engine-control loop, whatever jess
 brings next — without growing the trusted computing base?*
 
 The answer is a typed seam, **`gust:hal`**. A driver is a wasm component that
@@ -235,11 +239,12 @@ could point at the mechanism. That is oracle-gating turned on itself.
 Here is the part that is genuinely new, and the reason this post exists as a seed
 rather than a finished artifact.
 
-Almost none of the above was a human reading a stack trace. The gale work was driven
-by an agent running a long, oracle-gated loop: check for new tool releases, dissolve
-the body, measure, find where the cost is, file the finding in the owning tool's
-tracker with a falsifiable claim, and — when the tool ships the fix — re-measure and
-verify. synth#428, #472, #474 were filed that way. synth shipped the levers and the
+Little of the *perf grind* above was a human reading a stack trace — though humans
+ranked the asks, authored the architecture and the proofs, and authorised every
+release. The gale work was driven by an agent running a long, oracle-gated loop:
+check for new tool releases, dissolve the body, measure, find where the cost is, file
+the finding in the owning tool's tracker with a falsifiable claim, and — when the
+tool ships the fix — re-measure and verify. synth#428, #472, #474 were filed that way. synth shipped the levers and the
 #474 fix; we verified each on the next release. The tools — synth, meld, loom,
 wit-bindgen — each have their own agents. **The perf loop is those agents handing
 each other evidence through issues.**
@@ -315,7 +320,10 @@ Correctness was bit-identical to native LLVM over the full input domain on every
 one of them. On the F100 — the exact gale#65 part — the dissolved hot path is
 45.0 cycles/call against native's 26.0. That is the cost of the maximal-wasm choice
 on the target that motivated the whole exercise, measured on the metal, not
-modelled.
+modelled. To be precise about what "on silicon" means here: these are **halt-and-read
+cycle counts of the hot path** (DWT CYCCNT on the ARM parts, systimer on RISC-V), not
+an end-to-end run — confirming the driver's literal bytes on the wire is still open
+(*What's still open*, below).
 
 ## The floor below native
 
@@ -323,9 +331,10 @@ Everything above is a story about *catching up* to native LLVM — closing a 2.8
 gap to 1.81× and, lever by lever, toward parity. Parity is a fine goal. It is also
 the wrong ceiling.
 
-Here is the claim the whole verified-substrate bet ultimately rests on: **verified
-code can be *faster* than the native build, precisely because it is verified.** Not
-as rhetoric — as a measured number on the same bench.
+Here is the claim the whole verified-substrate bet ultimately points at: **verified
+code *could* be faster than the native build, precisely because it is verified** —
+not as rhetoric, but as a number we can already hand-lower and measure, even though
+the pipeline cannot emit it yet.
 
 The mechanism is that the proof is an optimisation input the native compiler never
 had. Take gale's failsafe mixer: `clamp(1500 + (ch − 1024), 1000, 2000)`. LLVM
@@ -334,7 +343,9 @@ compiles the clamp because it must — it cannot know the caller's range. But in
 that the channel value stays in `[524, 1524]` — a range gale's primitives already
 carry as a Verus/Rocq/Kani invariant — then `1500 + (ch − 1024)` is provably already
 inside `[1000, 2000]`, **both clamp branches are dead**, and the whole function
-collapses to a single `add`. LLVM will never emit that. It never had the bound.
+collapses to a single `add` — one LLVM won't emit here, because it never had the
+bound. (LLVM elides clamps all the time when the range is locally visible; the point
+is that this range lives across a component boundary it can't see.)
 
 We built a bench for exactly this — three lowerings of the same mixer, timed over
 the same proven-range inputs on the same cycle counter, with a soundness gate that
@@ -345,19 +356,23 @@ the proven range:
 |---|---|---|
 | native (LLVM, full clamp) | 0.50 | 1.00× |
 | dissolved today (synth) | 0.83 | 1.65× |
-| **proof-carrying floor** (`add`, clamp elided) | **0.23** | **0.45×** |
+| **proof-carrying floor** (`add`, clamp elided — *hand-lowered, not yet pipeline-emitted*) | **0.23** | **0.45×** |
 
 {% insight() %}
-**0.45× native.** Not a model — a measured floor, soundness-gated, on the same
-qemu cycle counter as every other number in this post. The proof-carrying lowering
-runs at **less than half** the cost of the native build LLVM produces, on a function
-LLVM *cannot* optimise this way because it lacks the invariant.
+**0.45× native — a hand-lowered lower bound, not a pipeline output.** synth cannot
+emit this yet ([synth#494](https://github.com/pulseengine/synth/issues/494) +
+[loom#240](https://github.com/pulseengine/loom/issues/240) are open); this is the
+`add` an ideal proof-carrying lowering *would* produce — hand-written, and
+soundness-gated to be bit-identical to the full clamp over the proven range, on the
+same qemu `-icount` bench as every other number here. It runs at less than half the
+cost of the native build.
 
-This is the leapfrog thesis made concrete. A young toolchain that owns the whole
-chain — Verus proof → wasm → loom → synth — can flow the proof in as an optimisation
-fact. A twenty-year-old compiler with no verifier in its pipeline structurally
-cannot. Security-and-speed stops being a trade-off: the code is faster *because* it
-is proven.
+The reason LLVM doesn't reach it isn't incapacity — LLVM elides clamps routinely when
+the bound is locally visible. It's *information*: the range that kills the clamp
+crosses a component boundary an external verifier supplies, which a standalone
+compiler never sees. A stack that owns the whole chain — Verus proof → wasm → loom →
+synth — can flow that proof in as an IR premise. That is the leapfrog thesis, and it
+is still ahead of us, not shipped.
 {% end %}
 
 The honest caveat is the whole reason this is a "floor" and not a shipped result:
