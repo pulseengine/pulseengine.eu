@@ -3,6 +3,7 @@ title = "Jagged by nature, honest by construction: a state-of-the-art prover mee
 description = "We pointed Leanstral 1.5 — Mistral's open-weights Lean prover, which its makers report scores 100% on the standard math benchmark — at two of our real proofs: the soundness of an SMT-certificate checker, and a suite of scheduling-theory lemmas. On one it couldn't converge; on the other it succeeded cleanly and even found a proof path we hadn't. In neither case, across any trial, did it produce a wrong proof the checker accepted. The value of an AI prover in safety-critical work isn't that it closes your proofs — it's that the architecture makes both its wins and its failures safe."
 date = 2026-07-09
 draft = true
+ready = true
 [taxonomies]
 tags = ["verification", "ai-agents", "lean", "process"]
 authors = ["Ralf Anton Beier"]
