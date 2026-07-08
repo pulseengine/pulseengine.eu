@@ -3,7 +3,7 @@ name: proof-synthesis
 description: This skill should be used when writing, repairing, or strengthening a machine-checked proof, spec, contract, or invariant in ANY PulseEngine verification backend — Verus (SMT/Z3), Rocq/Coq, Lean 4, Dafny, Kani (bounded model checking), or scry (sound abstract interpretation) — and whenever a proof obligation, assertion, or verification job is failing and needs an iterative generate→verify→refine loop. Backend-agnostic by design: the verifier's own output is the oracle, never an LLM's opinion. Fires across gale, scry, the rules_* proof toolchains, and any repo that carries proofs. Use it for the production of proofs; pair it with oracle-gate-a-change (the verifier is the gate) and stpa-audit/feature-loop (which say *what* must be proven).
 metadata:
   author: pulseengine.eu
-  version: "0.1.0"
+  version: "0.2.0"
 ---
 
 # Proof synthesis
@@ -68,6 +68,56 @@ It is the concrete instantiation of [`oracle-gate-a-change`] for proofs.
 When the verifier can't be invoked or behaves wrongly, that's a tooling gap →
 [`report-tool-friction`] against the backend, then continue by hand.
 
+## Independence — and the new AI common mode
+
+Producing one proof correctly (the loop above) is necessary but not sufficient.
+Multiple verification legs only shrink the trusted base if their **trusted bases
+differ and no single author sits on both sides.** One agent (or one context)
+authoring the spec, the proof, the model, *and* the test silently re-correlates
+legs that look independent — the diversity becomes theatre. Humans decorrelate by
+default; one AI *re-correlates* by default. Grounded in what the PulseEngine repos
+actually do — and where they have already been bitten:
+
+- **Prove against the code, or an *external* model — not a hand-mirror you also
+  wrote.** Most proofs here verify a hand-transcribed model, not the shipped code:
+  `coq_of_rust` of the *same* Verus source (gale), γ-mirrors of the Rust crate
+  (scry), a Rocq model "not yet refined to the Rust" (relay), a selector model that
+  "diverges from the shipped selector in 5 ways" (synth). A model that drifts from
+  the code fools *every* backend identically. The one leg that catches this is a
+  **differential against an external artifact the author didn't write** — wasmtime
+  execution, an independent optimizer (`wasm-opt`), a POSIX/FreeRTOS reference,
+  WasmCert-Coq. Weight those; they attack model-vs-reality, which no same-authored
+  proof can.
+- **Keep the same agent/context off both sides of a check.** Spec vs its proof,
+  artifact vs its oracle, model vs its implementation — different lineage. Route the
+  *spec* review through a cold [`clean-room-verification`] subagent (relay's 11/0
+  then 10/1 confirm/refute is the model). This is the direct antidote to the AI
+  common mode — load-bearing now, not nice-to-have.
+- **Prefer the certifying-algorithm pattern — it defeats the common mode by
+  construction.** An untrusted producer emits a *checkable certificate*; a small,
+  separately-authored, verified checker validates it (ordeal: LRAT certificate +
+  independent `ordeal-lrat` checker; synth: untrusted selector + trusted per-op
+  validator; ordeal-vs-Z3 where a verdict disagreement is a hard error). The checker
+  provably is *not* the checked thing, so a producer's blind spots — including an
+  AI's — can never make a wrong answer accepted. Reach for this over "trust the
+  prover" whenever the property admits a certificate.
+- **Mutation / vacuity is a *required* meta-oracle, not nightly.** It is the one
+  check that catches a proof that passes because the spec is *vacuous* — exactly the
+  AI-authored failure. In this org it is nightly-only (gale) or absent (scry)
+  precisely where it's needed most. Gate it per-change on any AI-authored proof.
+- **Don't let two "independent" legs share a backend.** Verus + Kani over the same
+  Verus-stripped *mirror* (relay), two provers both bottoming in Z3, one γ-style
+  across backends (scry). If they share a solver or a model, name it as trusted base
+  — the redundancy is only real *above* the shared layer.
+
+**Vacuity has already shipped green here — learn the smells.** A match catch-all
+`| _ => Some s` made *all* i64 proofs vacuously true (synth `WasmSemantics.v`, since
+fixed). An `Axiom foo := True` stood in for a master lemma (loom `Correctness.v`). A
+"proof" was a false structural-equality masked by a broken toolchain (scry join).
+**When a hard obligation goes green fast, suspect vacuity:** confirm the spec isn't
+trivially satisfiable, the model isn't a no-op fall-through, and no `Axiom`/`admit`
+is quietly doing the work. This is the spec-side twin of "the verifier is the oracle."
+
 ## Advanced patterns (from the research, use when they fit)
 
 - **Cross-language bootstrap** — translate an already-verified artifact from a
@@ -97,6 +147,13 @@ When the verifier can't be invoked or behaves wrongly, that's a tooling gap →
   use it instead of guessing.
 - **Grinding a genuinely-too-hard obligation forever** instead of decomposing,
   strengthening the invariant, or flagging it as an open lemma.
+- **One agent on both sides of the check.** The spec and its proof, or the model
+  and the code, authored by the same context — the AI becomes the shared blind spot
+  and your "independent" legs re-correlate. Split the authorship; review the spec
+  cold (see Independence, above).
+- **Proving a hand-mirror model that can silently drift from the shipped code.** A
+  green prover on a model you also wrote is not a correct binary. Pair it with a
+  differential against an external artifact, or refine the proof to the actual code.
 
 ## Where this composes
 
