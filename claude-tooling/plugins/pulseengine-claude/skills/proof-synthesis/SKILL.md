@@ -3,7 +3,7 @@ name: proof-synthesis
 description: This skill should be used when writing, repairing, or strengthening a machine-checked proof, spec, contract, or invariant in ANY PulseEngine verification backend — Verus (SMT/Z3), Rocq/Coq, Lean 4, Dafny, Kani (bounded model checking), or scry (sound abstract interpretation) — and whenever a proof obligation, assertion, or verification job is failing and needs an iterative generate→verify→refine loop. Backend-agnostic by design: the verifier's own output is the oracle, never an LLM's opinion. Fires across gale, scry, the rules_* proof toolchains, and any repo that carries proofs. Use it for the production of proofs; pair it with oracle-gate-a-change (the verifier is the gate) and stpa-audit/feature-loop (which say *what* must be proven).
 metadata:
   author: pulseengine.eu
-  version: "0.2.0"
+  version: "0.3.0"
 ---
 
 # Proof synthesis
@@ -125,6 +125,35 @@ fixed). An `Axiom foo := True` stood in for a master lemma (loom `Correctness.v`
 **When a hard obligation goes green fast, suspect vacuity:** confirm the spec isn't
 trivially satisfiable, the model isn't a no-op fall-through, and no `Axiom`/`admit`
 is quietly doing the work. This is the spec-side twin of "the verifier is the oracle."
+
+### Make the common mode structurally unlikely (the approach)
+
+The rules above are *defensive* — they catch re-correlation. Three moves make it
+structurally unlikely, and they are where the strongest verification work heads:
+
+- **Generation over checking.** A drift gate — a freshness check, `claim-check`, a
+  sorry-budget — *catches* divergence; **generation** makes it unrepresentable by
+  emitting the dependent artifacts from one source, so there is nothing to diverge.
+  ordeal's `regen.sh` regenerates the Lean model from the Rust; the limit is a single
+  definition that *emits* the spec, the code, the proof-model, the prose, and the
+  tests together (how a formal language standard is generated from one source rather
+  than kept in sync). Generation is checking taken to its limit. **When you find
+  yourself writing a gate to keep two artifacts in sync, ask whether one can be
+  generated from the other instead** — a hand-mirror that could drift is a generation
+  opportunity, not a thing to police.
+- **Independence as a bug-finder, not just a comfort.** Two independent mechanisations
+  of the *same* obligation are a tool: **run both and mine the disagreements** — a
+  divergence localizes a spec ambiguity or a translation gap exactly where the trusted
+  base bites. Don't shelve the second checker as a "fallback" (a `bv_decide`-style
+  Lean checker beside an Aeneas-translated one; hand-written abstract proofs beside
+  `coq_of_rust`-translated ones) — a benched second mechanisation is a bug-finder
+  you're not running.
+- **Invest a reference oracle.** The highest-value use of a verified/executable
+  artifact is often not "it's proven" but "it's the thing everything else is
+  *differential-tested against*" — an interpreter you didn't write (an external
+  verified reference), an independent optimizer, a coverage oracle on the shipped
+  artifact. Pick one artifact per layer, make it the oracle, and differential the rest
+  against it — the value is the independent witness, not the proof badge.
 
 ## Advanced patterns (from the research, use when they fit)
 
