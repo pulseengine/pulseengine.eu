@@ -53,8 +53,11 @@ before reading how they compile away to native.
 Safety-critical embedded systems still run a C RTOS, for the same reason the rest
 of embedded does: the certification ecosystem grew up around C. PulseEngine's bet
 is that the substrate should be a verified WebAssembly Component Model instead —
-components with proofs, fused and optimised by tools that are themselves verified,
-compiled to native with an attestation chain an assessor can check.
+components with proofs, fused and optimised by tools that are themselves being
+brought under verification (loom translation-validates each optimization; synth's
+i32 codegen carries Rocq proofs), compiled to native with an attestation chain an
+assessor can check. Today those proofs live on the wasm *source*; carrying them
+through the toolchain to the shipped native is open work, not a solved claim.
 
 We had already shown the *application* layer dissolves: a gale component imports
 `gale:kernel`, kiln provides it over Verus-proven decisions, and the composition
