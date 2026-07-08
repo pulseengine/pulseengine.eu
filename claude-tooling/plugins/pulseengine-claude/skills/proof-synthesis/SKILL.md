@@ -128,6 +128,36 @@ Same shape for the other backends: an agent loop **+ the verifier exposed as a
 tool/MCP + a clean-room dir + a mechanical grade.** Swap Leanstral / `vibe` /
 `lean-lsp-mcp` for the Verus / Rocq / Dafny equivalent — the discipline is identical.
 
+### When the stack drifts (a tool renames, breaks, or vanishes)
+
+The names above are a fast-moving *instance*, not the method — a free API gets
+retired, `vibe`/`lean-lsp-mcp` get renamed, a model is superseded. Keep the
+**shape** (agent loop + verifier-as-tool + clean-room + mechanical grade), swap the
+broken part, and **never relax the gate because a convenience broke:**
+
+- **Smoke-test the harness before you trust it.** Run one *known-passing* and one
+  *known-failing* obligation through the stack first. If the known-*failing* one
+  comes back green, the oracle or the wiring is broken and *measures nothing* — the
+  same "oracle that measures nothing" trap [`claim-verification`] guards against.
+  Fix the harness before grading any real proof.
+- **Model / API gone or rate-limited** → the method is model-agnostic. Run the open
+  weights locally (`mistralai/Leanstral-1.5-119B-A6B`), or substitute any other
+  prover-capable model. Treat the replacement as *unknown* — re-run the graded
+  trials on *your* surface; don't inherit trust from a benchmark or from the old
+  model.
+- **`vibe` (or any agent harness) unavailable** → any edit → run → read agent works
+  (Claude Code itself, another MCP-capable agent). The harness is not load-bearing;
+  the oracle is.
+- **`lean-lsp-mcp` missing/broken** → fall back to invoking the verifier directly in
+  the loop (`lake build` / `lake env lean`). Expect *degraded* engagement — live
+  goal state was the biggest lever, so budget more turns or restore an LSP bridge —
+  and file [`report-tool-friction`] against it.
+- **The one thing you may never swap, skip, or degrade:** the verifier-as-oracle,
+  the clean-room isolation, and the `#print axioms` + leak-scan grade. If you
+  *can't* run those — verifier won't build, can't isolate the sandbox — then **do
+  not accept AI-authored proofs at all**; stop and gate by hand. A broken tool costs
+  you throughput, never your trusted base.
+
 Why this is safe: across every trial the model never produced a wrong proof the
 kernel accepted — failures were honest `sorry`/errors only. That is the
 certifying-algorithm / untrusted-producer property (see Independence) applied to
