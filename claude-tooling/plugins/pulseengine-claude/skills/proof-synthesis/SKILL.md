@@ -3,7 +3,7 @@ name: proof-synthesis
 description: This skill should be used when writing, repairing, or strengthening a machine-checked proof, spec, contract, or invariant in ANY PulseEngine verification backend — Verus (SMT/Z3), Rocq/Coq, Lean 4, Dafny, Kani (bounded model checking), or scry (sound abstract interpretation) — and whenever a proof obligation, assertion, or verification job is failing and needs an iterative generate→verify→refine loop. Backend-agnostic by design: the verifier's own output is the oracle, never an LLM's opinion. Fires across gale, scry, the rules_* proof toolchains, and any repo that carries proofs. Use it for the production of proofs; pair it with oracle-gate-a-change (the verifier is the gate) and stpa-audit/feature-loop (which say *what* must be proven).
 metadata:
   author: pulseengine.eu
-  version: "0.3.0"
+  version: "0.4.0"
 ---
 
 # Proof synthesis
@@ -67,6 +67,48 @@ It is the concrete instantiation of [`oracle-gate-a-change`] for proofs.
 
 When the verifier can't be invoked or behaves wrongly, that's a tooling gap →
 [`report-tool-friction`] against the backend, then continue by hand.
+
+## Driving the loop with an AI prover — the acceptance gate
+
+When the *generator* in step 2 is a capable theorem-proving model (a
+Leanstral-class Lean agent, or the Verus/Rocq equivalents), the loop is
+unchanged — the verifier is still the oracle — but four disciplines are
+load-bearing, and each is **checkable**. Grounded in PulseEngine's own graded
+trials of a benchmark-topping Lean model against real ordeal and gale
+obligations:
+
+- **Clean-room the model, not just the review.** A proving agent with filesystem
+  access will `grep` the real proof (or its compiled `.olean`) and copy it — *a
+  proof it copies is not a proof it found.* Run every attempt in a sandbox
+  containing only the target statement (its proof replaced by `sorry`) and its
+  dependencies. **Check:** scan the agent transcript for reads of the
+  source/`.olean`, and **diff the produced statement byte-for-byte** against the
+  real one to confirm it proved *your* theorem, not a lookalike — spec-equivalence
+  (step 1) is still the wall even when the proof passes.
+- **Accept on `#print axioms` + a leak scan, never on "it passed."** A green build
+  is necessary, not sufficient. Gate every AI-authored proof on: exit 0, no
+  `sorry`, `#print axioms` reporting only the expected core
+  (`propext`/`Classical.choice`/`Quot.sound` — **no `sorryAx`/`native_decide`**),
+  and a clean transcript leak scan. Then **re-verify under the project's pinned
+  toolchain** — an AI run on a newer Lean/Mathlib (or unpinned Verus/Z3) that
+  passes is a *candidate*, not evidence, until the pinned build re-checks it. The
+  generator is never the oracle, even when it succeeds.
+- **Measure on your surface, not the benchmark.** Capability is jagged and
+  domain-specific: the same model that saturates miniF2F (100%) converged cleanly
+  on Mathlib-flavoured scheduling lemmas here yet could **not** close the
+  Aeneas-simulation idiom that dominates a systems proof — same model, same week,
+  same harness. Don't read a benchmark score as reliability on your workload; run a
+  few graded trials on *your* obligations and record where it converges and where
+  it doesn't, so adoption is domain-scoped.
+- **Wire the language-server MCP.** Live goal state (`lean-lsp-mcp` for Lean; the
+  equivalent for other backends) was the difference between *zero* proof attempts
+  and genuine engagement — without it the agent can't see what it's proving.
+
+Why this is safe: across every trial the model never produced a wrong proof the
+kernel accepted — failures were honest `sorry`/errors only. That is the
+certifying-algorithm / untrusted-producer property (see Independence) applied to
+the *prover itself*: a jagged generator cannot corrupt the record when a trusted,
+separately-checked oracle has the final say — whether it fails *or* succeeds.
 
 ## Independence — and the new AI common mode
 
