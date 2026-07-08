@@ -3,7 +3,7 @@ name: proof-synthesis
 description: This skill should be used when writing, repairing, or strengthening a machine-checked proof, spec, contract, or invariant in ANY PulseEngine verification backend — Verus (SMT/Z3), Rocq/Coq, Lean 4, Dafny, Kani (bounded model checking), or scry (sound abstract interpretation) — and whenever a proof obligation, assertion, or verification job is failing and needs an iterative generate→verify→refine loop. Backend-agnostic by design: the verifier's own output is the oracle, never an LLM's opinion. Fires across gale, scry, the rules_* proof toolchains, and any repo that carries proofs. Use it for the production of proofs; pair it with oracle-gate-a-change (the verifier is the gate) and stpa-audit/feature-loop (which say *what* must be proven).
 metadata:
   author: pulseengine.eu
-  version: "0.3.0"
+  version: "0.4.0"
 ---
 
 # Proof synthesis
@@ -67,6 +67,102 @@ It is the concrete instantiation of [`oracle-gate-a-change`] for proofs.
 
 When the verifier can't be invoked or behaves wrongly, that's a tooling gap →
 [`report-tool-friction`] against the backend, then continue by hand.
+
+## Driving the loop with an AI prover — the acceptance gate
+
+When the *generator* in step 2 is a capable theorem-proving model — e.g. Mistral's
+**Leanstral** driven by the **`vibe`** agent (the concrete stack is spelled out
+below), or the Verus/Rocq equivalents — the loop is unchanged (the verifier is
+still the oracle), but four disciplines are load-bearing, and each is
+**checkable**. Grounded in PulseEngine's own graded trials of a benchmark-topping
+Lean model against real ordeal and gale obligations:
+
+- **Clean-room the model, not just the review.** A proving agent with filesystem
+  access will `grep` the real proof (or its compiled `.olean`) and copy it — *a
+  proof it copies is not a proof it found.* Run every attempt in a sandbox
+  containing only the target statement (its proof replaced by `sorry`) and its
+  dependencies. **Check:** scan the agent transcript for reads of the
+  source/`.olean`, and **diff the produced statement byte-for-byte** against the
+  real one to confirm it proved *your* theorem, not a lookalike — spec-equivalence
+  (step 1) is still the wall even when the proof passes.
+- **Accept on `#print axioms` + a leak scan, never on "it passed."** A green build
+  is necessary, not sufficient. Gate every AI-authored proof on: exit 0, no
+  `sorry`, `#print axioms` reporting only the expected core
+  (`propext`/`Classical.choice`/`Quot.sound` — **no `sorryAx`/`native_decide`**),
+  and a clean transcript leak scan. Then **re-verify under the project's pinned
+  toolchain** — an AI run on a newer Lean/Mathlib (or unpinned Verus/Z3) that
+  passes is a *candidate*, not evidence, until the pinned build re-checks it. The
+  generator is never the oracle, even when it succeeds.
+- **Measure on your surface, not the benchmark.** Capability is jagged and
+  domain-specific: the same model that saturates miniF2F (100%) converged cleanly
+  on Mathlib-flavoured scheduling lemmas here yet could **not** close the
+  Aeneas-simulation idiom that dominates a systems proof — same model, same week,
+  same harness. Don't read a benchmark score as reliability on your workload; run a
+  few graded trials on *your* obligations and record where it converges and where
+  it doesn't, so adoption is domain-scoped.
+- **Wire the language-server MCP.** Live goal state (`lean-lsp-mcp` for Lean; the
+  equivalent for other backends) was the difference between *zero* proof attempts
+  and genuine engagement — without it the agent can't see what it's proving.
+
+### The concrete stack (worked example)
+
+The trials ran on an off-the-shelf agent + MCP — nothing bespoke — so the recipe
+is reproducible:
+
+- **Agent harness — Mistral's `vibe`.** `vibe --agent lean` drives the model
+  through an edit → run → read loop. The agent is a small TOML (e.g.
+  `~/.vibe/agents/leanmcp.toml`) that pins the model and knobs:
+  `model = "labs-leanstral-1-5"` (the free hosted API; the open weights are
+  `mistralai/Leanstral-1.5-119B-A6B`), `thinking = "high"`, `temperature = 1.0`.
+- **Verifier as a tool — the Lean LSP MCP.** Wire `uvx lean-lsp-mcp` into the agent
+  so it works against *live goal state* (goal, hover, diagnostics) from the language
+  server rather than blind text. This was the single biggest lever — without it the
+  model made zero proof attempts.
+- **The sandbox.** A scratch dir containing only the target statement (proof →
+  `sorry`) and a mathlib-warm `.lake` — nothing else on disk to copy from.
+- **The grade.** `lake env lean <file>` (read the *unpiped* exit code), a fresh
+  `#print axioms`, and a scan of the agent transcript for reads of the real
+  source/`.olean`.
+
+Same shape for the other backends: an agent loop **+ the verifier exposed as a
+tool/MCP + a clean-room dir + a mechanical grade.** Swap Leanstral / `vibe` /
+`lean-lsp-mcp` for the Verus / Rocq / Dafny equivalent — the discipline is identical.
+
+### When the stack drifts (a tool renames, breaks, or vanishes)
+
+The names above are a fast-moving *instance*, not the method — a free API gets
+retired, `vibe`/`lean-lsp-mcp` get renamed, a model is superseded. Keep the
+**shape** (agent loop + verifier-as-tool + clean-room + mechanical grade), swap the
+broken part, and **never relax the gate because a convenience broke:**
+
+- **Smoke-test the harness before you trust it.** Run one *known-passing* and one
+  *known-failing* obligation through the stack first. If the known-*failing* one
+  comes back green, the oracle or the wiring is broken and *measures nothing* — the
+  same "oracle that measures nothing" trap [`claim-verification`] guards against.
+  Fix the harness before grading any real proof.
+- **Model / API gone or rate-limited** → the method is model-agnostic. Run the open
+  weights locally (`mistralai/Leanstral-1.5-119B-A6B`), or substitute any other
+  prover-capable model. Treat the replacement as *unknown* — re-run the graded
+  trials on *your* surface; don't inherit trust from a benchmark or from the old
+  model.
+- **`vibe` (or any agent harness) unavailable** → any edit → run → read agent works
+  (Claude Code itself, another MCP-capable agent). The harness is not load-bearing;
+  the oracle is.
+- **`lean-lsp-mcp` missing/broken** → fall back to invoking the verifier directly in
+  the loop (`lake build` / `lake env lean`). Expect *degraded* engagement — live
+  goal state was the biggest lever, so budget more turns or restore an LSP bridge —
+  and file [`report-tool-friction`] against it.
+- **The one thing you may never swap, skip, or degrade:** the verifier-as-oracle,
+  the clean-room isolation, and the `#print axioms` + leak-scan grade. If you
+  *can't* run those — verifier won't build, can't isolate the sandbox — then **do
+  not accept AI-authored proofs at all**; stop and gate by hand. A broken tool costs
+  you throughput, never your trusted base.
+
+Why this is safe: across every trial the model never produced a wrong proof the
+kernel accepted — failures were honest `sorry`/errors only. That is the
+certifying-algorithm / untrusted-producer property (see Independence) applied to
+the *prover itself*: a jagged generator cannot corrupt the record when a trusted,
+separately-checked oracle has the final say — whether it fails *or* succeeds.
 
 ## Independence — and the new AI common mode
 
