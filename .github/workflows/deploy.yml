@@ -21,6 +21,10 @@ on:
 jobs:
   deploy:
     runs-on: [self-hosted, linux, x64, rust-cpu]
+    # Fail fast instead of hanging: a stuck deploy (e.g. a wedged scp) must not
+    # hold the release-${{ github.ref }} concurrency slot for the 6h default and
+    # jam every later deploy. 15 min is generous for a build + tar + scp.
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
         with:
@@ -68,16 +72,24 @@ jobs:
           mkdir -p ~/.ssh
           echo "$DEPLOY_KEY" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
-          ssh-keyscan -H "$DEPLOY_HOST" >> ~/.ssh/known_hosts 2>/dev/null
+          # Always remove the key, even if a later step fails.
+          trap 'rm -f ~/.ssh/deploy_key' EXIT
+          ssh-keyscan -T 20 -H "$DEPLOY_HOST" >> ~/.ssh/known_hosts 2>/dev/null
+
+          # Fail fast instead of hanging on a wedged connection:
+          #  - BatchMode: never block on a prompt
+          #  - ConnectTimeout: give up if the TCP connect stalls
+          #  - ServerAlive*: abort if the session goes dead mid-transfer (~60s)
+          SSH_OPTS="-o BatchMode=yes -o ConnectTimeout=20 -o ServerAliveInterval=15 -o ServerAliveCountMax=4"
 
           # Package site into a tarball
           tar -czf site.tar.gz -C public .
 
           # Upload tarball
-          scp -i ~/.ssh/deploy_key "site.tar.gz" "${DEPLOY_USER}@${DEPLOY_HOST}:${DEPLOY_PATH}/site.tar.gz"
+          scp -i ~/.ssh/deploy_key $SSH_OPTS "site.tar.gz" "${DEPLOY_USER}@${DEPLOY_HOST}:${DEPLOY_PATH}/site.tar.gz"
 
           # Extract on remote, replacing old content
-          ssh -i ~/.ssh/deploy_key "${DEPLOY_USER}@${DEPLOY_HOST}" "
+          ssh -i ~/.ssh/deploy_key $SSH_OPTS "${DEPLOY_USER}@${DEPLOY_HOST}" "
             cd ${DEPLOY_PATH} &&
             find . -mindepth 1 -not -name site.tar.gz -delete 2>/dev/null;
             tar -xzf site.tar.gz &&
