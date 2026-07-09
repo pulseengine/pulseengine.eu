@@ -430,7 +430,7 @@ now real) that tells codegen *this range is externally mutable during the transf
 window* — so the ownership handle is not only a safety mechanism, it is the signal
 that lets the compiler stay aggressive everywhere except the handoff. It is, at the
 same time, the embedded instance of a
-[Bytecode Alliance shared-memory proposal](https://github.com/cpetig/wasm-shm-test/blob/main/DESIGN.md)
+[shared-memory proposal](https://github.com/cpetig/wasm-shm-test/blob/main/DESIGN.md)
 for the Component Model — where "the host may answer zero to the allocation request
 and use a fixed valid address, because an embedded CPU has only an MPU, not an MMU"
 is precisely gale's world. The general form is being designed upstream; the verified
