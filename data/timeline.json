@@ -422,7 +422,7 @@
         }
       ]
     },
-    "trend": "The build/verify spine arrives: **sigil** (attestation), **loom** (optimizer), and **synth** (native transcode) are all born in one month and immediately dominate the commits (synth 144, loom 103). glsp-mcp is retired. The toolchain's real shape is now visible."
+    "trend": "The build/verify spine arrives: **sigil** (attestation), **loom** (optimizer), and **synth** (native transcode) are all born in one month, and loom/synth immediately dominate the commits (synth 144, loom 103). sigil is less *born* than *taken over* \u2014 it starts from Frank Denis's [wasmsign2](https://github.com/jedisct1/wasmsign2) (MIT) and diverges hard from here. glsp-mcp is retired. The toolchain's real shape is now visible."
   },
   {
     "month": "2025-12",
