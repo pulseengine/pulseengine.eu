@@ -69,6 +69,8 @@ Apply [`clean-room-verification`] to the claim "this change passed its oracle." 
 - **Write the oracle first if it's missing.** If the property is worth claiming it's worth checking.
 - **Specification completeness is the bottleneck.** Per `formal-verification-ai-agents`, agent-written proofs are cheap now — the limiting factor is whether the spec covers what the change is actually doing.
 - **Kill-criteria are mandatory.** A claim without a falsifier is not a claim, it's a hope.
+- **A documented gap with an "unreachable" judgment is a standing obligation, not a closed item.** Re-verify the reachability claim whenever a new code path lands near the gap. Field case: an independently-mechanized model bridge documented a semantics divergence as "unreachable via input masking" — a later code path made it reachable, and the divergence let a vacuous proof certify hardware-wrong code for weeks.
+- **Byte-changing fixes re-pin goldens only AFTER the full differential suite passes on the new bytes.** They move together; a re-pin before the differentials is a frozen lie. Keep a printable re-pin aid inside the gate itself (an env-gated branch that emits the new golden tuples instead of asserting) so the ritual is mechanical, not hand-copied.
 
 ## Anti-patterns
 

@@ -77,6 +77,13 @@ The level-by-level closure rules — every requirement decomposed to architectur
 - Once the queue is empty, main is green, **and the traceability gate (step 4) passes**, **PAUSE for fork**: confirm the new tag (`v0.X.Y`) and whether this is the right moment to cut, vs. holding for more. Use `AskUserQuestion` — this is a genuine decision boundary, not a routine step.
 - After confirmation: tag, push tag, watch the release workflow; the release is "verified" only once that run completes `success`.
 
+### 5b. Mind the notes-vs-assets race
+If the flow publishes release notes at tag time while a workflow builds and
+uploads platform binaries afterwards, downstream consumers polling the release
+see it asset-less for those minutes and may file it as broken (it happened).
+Either state "binaries attach ~N min after the tag" in the notes, or hold the
+notes publish until the asset upload lands — pick one and keep it consistent.
+
 ### 6. Verify the release shipped
 - GitHub Release: artifacts present, notes correct.
 - crates.io: `cargo search <crate>` shows the new version.

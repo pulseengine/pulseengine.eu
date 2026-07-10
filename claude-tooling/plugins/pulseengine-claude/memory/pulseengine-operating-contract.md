@@ -32,6 +32,15 @@ only because the gate reported success. Reporting a release verified requires th
 green CI result, not the local oracles. For release work your turn ends at
 **"pushed, and checks requested."**
 
+Where a repo treats some checks as advisory (coverage bots), condition the
+merge on the **names** of the failing checks against an explicit allowlist —
+never on the count. "One failure is probably the coverage bot" is a
+pattern-match that broke once: a red Clippy was merged past because the
+previous dozen single-failures had all been codecov. Read the name, every
+time — or make the merge script check it mechanically. Corollary: a clean
+local lint does not predict CI after a toolchain release; the gate's verdict
+is the only verdict.
+
 ## Verify the machinery, not only the artifacts (campaign invariants)
 Per-item verification (clean-room on a feature's claims) checks the *work*; it
 does not check that the *gate and the release path are real*. Each of the three
@@ -56,6 +65,31 @@ hardening the gate has second-order traps — `paths-ignore` × required checks 
 docs-only PRs permanently unmergeable unless a companion no-op job reports the
 context; `strict: true` on a solo repo turns merges into a manual update→CI→merge
 train, which `--auto` does not drive for you.)
+
+## Delegated agents: never end a turn waiting, and salvage before relaunching
+Two field-proven rules for subagent briefs, learned across eight agent deaths
+in one campaign:
+
+1. **Waiting is fatal in every form.** A subagent that ends its turn "waiting
+   for the build notification" is dead — the turn end is terminal. Prohibit
+   the *mechanisms by name* in the brief (backgrounded shell commands, monitor
+   watchers, `--watch` flags), not just the behavior; agents rediscover new
+   ways to wait. The root cause is usually a cold build exceeding the
+   foreground timeout, so give the recipe, not only the rule: build the test
+   binaries first as their own step, and **re-run the same command on
+   timeout** — incremental compilation resumes where it stopped. Then run
+   per-crate/per-target tests (fast once built), then the full sweep.
+2. **A dead agent's workspace usually holds most of the work.** Before
+   relaunching a brief from scratch, census the worktree (`git log
+   origin/main..HEAD`, `git status --short`, diff stats) — then dispatch a
+   *closer* into the same worktree with a salvage-provenance commit, rather
+   than a fresh start. One interrupted lane held 500+ finished lines its
+   relaunch would have rewritten.
+
+Related brief hygiene: per-agent isolated build directories with a disk
+budget (parallel waves fill volumes; sparse-image-backed caches don't free
+host space when purged from inside), and never `git stash` in a worktree —
+the stash stack is shared repo-wide.
 
 ## Degraded infrastructure is not failure — diagnose before acting
 When runners wedge, queues stall, or runs zombie, the signal is ambiguous:
