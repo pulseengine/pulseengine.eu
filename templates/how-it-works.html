@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block title %}{{ page.title }} — {{ config.title }}{% endblock %}
+{% block description %}{{ page.description }}{% endblock %}
+
+{% block content %}
+<div class="container">
+  <article class="blog-post">
+    <header class="blog-post__header">
+      <h1 class="blog-post__title">{{ page.title }}</h1>
+      {% if page.description %}
+      <p class="blog-post__lede">{{ page.description }}</p>
+      {% endif %}
+    </header>
+    <div class="blog-post__content">
+      {{ page.content | safe }}
+    </div>
+  </article>
+</div>
+
+{% include "partials/content-scripts.html" %}
+{% endblock %}
+
+{% block head_extra %}
+<style>
+  .blog-post__lede {
+    color: var(--text-dim);
+    font-size: 1.05rem;
+    line-height: 1.6;
+    margin-top: 0.75rem;
+    max-width: 46rem;
+  }
+  /* Stage legend chips reused in the prose */
+  .stage-key { display:flex; flex-wrap:wrap; gap:0.4rem; margin:1rem 0 0; }
+  .stage-key span {
+    font-size:0.7rem; color:var(--text-faint);
+    border:1px solid var(--border-subtle); border-radius:4px;
+    padding:0.15rem 0.5rem;
+  }
+</style>
+{% endblock %}
