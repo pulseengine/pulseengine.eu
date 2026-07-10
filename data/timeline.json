@@ -31,7 +31,8 @@
         }
       ]
     },
-    "trend": "It begins \u2014 quietly. **kiln**, a WebAssembly Component Model runtime, is the only repo and the only thing moving: ~160 commits, one release, no issues yet. A single-project month, all runtime."
+    "trend": "It begins \u2014 quietly. **kiln**, a WebAssembly Component Model runtime, is the only repo and the only thing moving: ~160 commits, one release, no issues yet. A single-project month, all runtime.",
+    "milestones": []
   },
   {
     "month": "2025-04",
@@ -57,7 +58,8 @@
         }
       ]
     },
-    "trend": "Heads-down on kiln \u2014 no new repos, ~100 commits all in the runtime, another release out. The calm before the tooling sprawl."
+    "trend": "Heads-down on kiln \u2014 no new repos, ~100 commits all in the runtime, another release out. The calm before the tooling sprawl.",
+    "milestones": []
   },
   {
     "month": "2025-05",
@@ -90,7 +92,8 @@
         }
       ]
     },
-    "trend": "Still kiln-centric; the `.github` org repo appears (scaffolding). Activity holds in the low hundreds, and the very first issue is filed \u2014 a hint that others are starting to look."
+    "trend": "Still kiln-centric; the `.github` org repo appears (scaffolding). Activity holds in the low hundreds, and the very first issue is filed \u2014 a hint that others are starting to look.",
+    "milestones": []
   },
   {
     "month": "2025-06",
@@ -123,7 +126,8 @@
         }
       ]
     },
-    "trend": "The first branch-out: **glsp-mcp**, an early MCP/graphical-protocol experiment (later archived). kiln keeps ticking as a second track opens and commits pick up."
+    "trend": "The first branch-out: **glsp-mcp**, an early MCP/graphical-protocol experiment (later archived). kiln keeps ticking as a second track opens and commits pick up.",
+    "milestones": []
   },
   {
     "month": "2025-07",
@@ -202,7 +206,8 @@
         }
       ]
     },
-    "trend": "The MCP era opens with force \u2014 **mcp** (the Rust framework) and **rules_wasm_component** are born alongside two experiments that won't survive (wasi-mcp, studio-mcp). 26 releases and a jump to 76 issues: the project goes from one repo to a small fleet, and people start filing against it."
+    "trend": "The MCP era opens with force \u2014 **mcp** (the Rust framework) and **rules_wasm_component** are born alongside two experiments that won't survive (wasi-mcp, studio-mcp). 26 releases and a jump to 76 issues: the project goes from one repo to a small fleet, and people start filing against it.",
+    "milestones": []
   },
   {
     "month": "2025-08",
@@ -270,7 +275,8 @@
         }
       ]
     },
-    "trend": "MCP tooling hardens \u2014 timedate-mcp and a template server ship, and rules_wasm_component becomes the busiest repo (244 commits) as the Bazel/wasm build path takes shape. PRs and issues both climb; collaboration is ramping."
+    "trend": "MCP tooling hardens \u2014 timedate-mcp and a template server ship, and rules_wasm_component becomes the busiest repo (244 commits) as the Bazel/wasm build path takes shape. PRs and issues both climb; collaboration is ramping.",
+    "milestones": []
   },
   {
     "month": "2025-09",
@@ -300,7 +306,8 @@
         }
       ]
     },
-    "trend": "A consolidation month: no new repos, but 94 PRs \u2014 almost all into rules_wasm_component as the build rules get serious. Low commits, high PR churn is the signature of refinement over expansion."
+    "trend": "A consolidation month: no new repos, but 94 PRs \u2014 almost all into rules_wasm_component as the build rules get serious. Low commits, high PR churn is the signature of refinement over expansion.",
+    "milestones": []
   },
   {
     "month": "2025-10",
@@ -354,7 +361,8 @@
         }
       ]
     },
-    "trend": "First retirement \u2014 **studio-mcp** is archived. The build rules and kiln keep moving, with bazel-file-ops-component in the mix; ten releases mark a picking-up shipping cadence."
+    "trend": "First retirement \u2014 **studio-mcp** is archived. The build rules and kiln keep moving, with bazel-file-ops-component in the mix; ten releases mark a picking-up shipping cadence.",
+    "milestones": []
   },
   {
     "month": "2025-11",
@@ -422,7 +430,8 @@
         }
       ]
     },
-    "trend": "The build/verify spine arrives: **sigil** (attestation), **loom** (optimizer), and **synth** (native transcode) are all born in one month, and loom/synth immediately dominate the commits (synth 144, loom 103). sigil is less *born* than *taken over* \u2014 it starts from Frank Denis's [wasmsign2](https://github.com/jedisct1/wasmsign2) (MIT) and diverges hard from here. glsp-mcp is retired. The toolchain's real shape is now visible."
+    "trend": "The build/verify spine arrives: **sigil** (attestation), **loom** (optimizer), and **synth** (native transcode) are all born in one month, and loom/synth immediately dominate the commits (synth 144, loom 103). sigil is less *born* than *taken over* \u2014 it starts from Frank Denis's [wasmsign2](https://github.com/jedisct1/wasmsign2) (MIT) and diverges hard from here. glsp-mcp is retired. The toolchain's real shape is now visible.",
+    "milestones": []
   },
   {
     "month": "2025-12",
@@ -486,7 +495,8 @@
         }
       ]
     },
-    "trend": "SMT arrives by fork \u2014 **z3** and z3.rs absorbed as the proof backend \u2014 plus wasm-component-examples. Work stays spread across kiln, the build rules, mcp, and loom: a broad, steady month with no single focus."
+    "trend": "SMT arrives by fork \u2014 **z3** and z3.rs absorbed as the proof backend \u2014 plus wasm-component-examples. Work stays spread across kiln, the build rules, mcp, and loom: a broad, steady month with no single focus.",
+    "milestones": []
   },
   {
     "month": "2026-01",
@@ -561,7 +571,8 @@
         }
       ]
     },
-    "trend": "Proof toolchains formalize \u2014 **rules_rocq_rust** and rules_moonbit are born and renode is absorbed for emulation. 88 PRs and 49 issues as the multi-prover Bazel story takes shape (rules_rocq_rust logs 41 commits in its first month)."
+    "trend": "Proof toolchains formalize \u2014 **rules_rocq_rust** and rules_moonbit are born and renode is absorbed for emulation. 88 PRs and 49 issues as the multi-prover Bazel story takes shape (rules_rocq_rust logs 41 commits in its first month).",
+    "milestones": []
   },
   {
     "month": "2026-02",
@@ -647,7 +658,8 @@
         }
       ]
     },
-    "trend": "The fusion and governance layer: **meld** (component fusion), **temper** (repo-hardening app), **rules_verus**, and thrum (a dashboard, later archived) all appear, with meld leading commits. A bridging month, just before the spine lands."
+    "trend": "The fusion and governance layer: **meld** (component fusion), **temper** (repo-hardening app), **rules_verus**, and thrum (a dashboard, later archived) all appear, with meld leading commits. A bridging month, just before the spine lands.",
+    "milestones": []
   },
   {
     "month": "2026-03",
@@ -762,7 +774,8 @@
         }
       ]
     },
-    "trend": "The big bang. In one month the backbone is born \u2014 **rivet** (traceability), **spar** (architecture), **gale** (verified RTOS), rules_lean, and this website \u2014 with zephyr and picolibc forked in underneath. PRs quadruple to 448; spar and gale lead. Two earlier directions retire (wasi-mcp, thrum): the pivot to the safety-critical spine is decisive."
+    "trend": "The big bang. In one month the backbone is born \u2014 **rivet** (traceability), **spar** (architecture), **gale** (verified RTOS), rules_lean, and this website \u2014 with zephyr and picolibc forked in underneath. PRs quadruple to 448; spar and gale lead. Two earlier directions retire (wasi-mcp, thrum): the pivot to the safety-critical spine is decisive.",
+    "milestones": []
   },
   {
     "month": "2026-04",
@@ -863,7 +876,8 @@
         }
       ]
     },
-    "trend": "Applications land on the new spine \u2014 **relay** (flight software), **wohl** (home), and **witness** (MC/DC), with wasmtime and wit-bindgen absorbed. 65 releases, and rivet is now the busiest repo (210): traceability is being wired into everything. The toolchain starts being *used*, not just built."
+    "trend": "Applications land on the new spine \u2014 **relay** (flight software), **wohl** (home), and **witness** (MC/DC), with wasmtime and wit-bindgen absorbed. 65 releases, and rivet is now the busiest repo (210): traceability is being wired into everything. The toolchain starts being *used*, not just built.",
+    "milestones": []
   },
   {
     "month": "2026-05",
@@ -966,7 +980,14 @@
         }
       ]
     },
-    "trend": "Verification depth \u2014 **scry** (abstract interpretation), **example-kvs**, and **playground-eclipse-score** arrive as the chain gets pointed at real, external specs. Shipping explodes to 164 releases; work spreads evenly across rivet, witness, relay, and synth. The month the pipeline began proving itself on inputs it didn't invent."
+    "trend": "Verification depth \u2014 **scry** (abstract interpretation), **example-kvs**, and **playground-eclipse-score** arrive as the chain gets pointed at real, external specs. Shipping explodes to 164 releases; work spreads evenly across rivet, witness, relay, and synth. The month the pipeline began proving itself on inputs it didn't invent. It's also when the *methodology* becomes tooling: the **pulseengine-claude** skills are born in this repo \u2014 proof-synthesis, oracle-gating, clean-room verification, release-execution \u2014 so the way of working is installable, not tribal.",
+    "milestones": [
+      {
+        "label": "the pulseengine-claude skills are born",
+        "detail": "the methodology itself, packaged as installable Claude Code tooling \u2014 inside this repo",
+        "url": "https://github.com/pulseengine/pulseengine.eu/tree/main/claude-tooling/plugins/pulseengine-claude"
+      }
+    ]
   },
   {
     "month": "2026-06",
@@ -1074,6 +1095,7 @@
         }
       ]
     },
-    "trend": "Peak so far \u2014 **jess** (hardware integration) and **agora** (agent coordination) are born, wasm-tools is absorbed, and the numbers crest: 235 releases, 1,300+ PRs, 300+ issues. synth, relay, and jess lead as the story turns toward getting verified components onto real hardware. The tether's on; the bird's almost ready."
+    "trend": "Peak so far \u2014 **jess** (hardware integration) and **agora** (agent coordination) are born, wasm-tools is absorbed, and the numbers crest: 235 releases, 1,300+ PRs, 300+ issues. synth, relay, and jess lead as the story turns toward getting verified components onto real hardware. The tether's on; the bird's almost ready.",
+    "milestones": []
   }
 ]

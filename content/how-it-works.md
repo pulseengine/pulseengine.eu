@@ -185,6 +185,12 @@ fact log — a spike; signing is stubbed and transport is in-memory), and
 code *and* keep the traceability and verification current as they go — never as an
 afterthought.
 
+And the methodology those agents follow is itself packaged as tooling — the
+[**pulseengine-claude**](https://github.com/pulseengine/pulseengine.eu/tree/main/claude-tooling/plugins/pulseengine-claude)
+skills (proof-synthesis, oracle-gating, clean-room verification, release-execution,
+and more), which live in this very site's repo. "Write the code and close the V" is
+an installable practice here, not tribal knowledge.
+
 ## A worked example
 
 Two real repositories show the chain on real inputs today — and are honest about

@@ -32,7 +32,7 @@
         {% if mo.born %}
         <div class="tl-row"><span class="tl-tag tl-tag--born">born</span>
           {% for r in mo.born %}
-          <a class="tl-chip{% if r.fork %} tl-chip--fork{% elif r.archived %} tl-chip--arch{% endif %}"
+          <a class="tl-chip{% if r.fork %} tl-chip--fork{% endif %}"
              href="https://github.com/pulseengine/{{ r.name }}" rel="noopener"
              {% if r.desc %}title="{{ r.desc }}"{% endif %}>{{ r.name }}{% if r.fork %} ⑂{% endif %}</a>
           {% endfor %}
@@ -53,6 +53,16 @@
           <a class="tl-chip tl-chip--arch" href="https://github.com/pulseengine/{{ r.name }}" rel="noopener">{{ r.name }}</a>
           {% endfor %}
         </div>
+        {% endif %}
+
+        {% if mo.milestones %}
+        {% for ms in mo.milestones %}
+        <div class="tl-row"><span class="tl-tag tl-tag--ms">milestone</span>
+          {% if ms.url %}<a class="tl-chip tl-chip--ms" href="{{ ms.url }}" rel="noopener">{{ ms.label }}</a>
+          {% else %}<span class="tl-chip tl-chip--ms">{{ ms.label }}</span>{% endif %}
+          {% if ms.detail %}<span class="tl-ms-detail">{{ ms.detail }}</span>{% endif %}
+        </div>
+        {% endfor %}
         {% endif %}
 
         {% set a = mo.activity %}
@@ -113,6 +123,9 @@
   .tl-tag--born   { color: #6c8cff; background: rgba(108,140,255,.1); }
   .tl-tag--ship   { color: #4ade80; background: rgba(74,222,128,.1); }
   .tl-tag--retire { color: #8b90a0; background: rgba(139,144,160,.12); }
+  .tl-tag--ms     { color: #c084fc; background: rgba(192,132,252,.12); }
+  .tl-chip--ms    { color: #c084fc; background: rgba(192,132,252,.06); }
+  .tl-ms-detail   { font-size: .7rem; color: var(--text-faint); align-self: center; }
 
   .tl-chip { font-size: .78rem; text-decoration: none; color: var(--text);
     background: rgba(108,140,255,.06); border: 1px solid var(--border-subtle);

@@ -164,7 +164,7 @@ def build_months(target_months: set[str]) -> dict[str, dict]:
     months: dict[str, dict] = {
         m: {"month": m, "born": [], "released": {"count": 0, "repos": []}, "retired": [],
             "activity": {"commits": 0, "prs_opened": 0, "issues_opened": 0, "busiest": []},
-            "trend": None}
+            "milestones": [], "trend": None}
         for m in target_months
     }
     # per-month per-repo tallies for "busiest" (commits) and grouped releases
@@ -253,9 +253,13 @@ def main() -> int:
     fresh = build_months(to_collect)
     merged = dict(existing)
     for m, block in fresh.items():
-        # preserve an existing hand/AI-written trend on --force
+        # preserve hand-authored fields across re-collection (--force): the AI/
+        # written trend and any curated milestones (intra-repo events like the
+        # birth of the skills, which the repo-driven collector can't see).
         if m in existing and existing[m].get("trend"):
             block["trend"] = existing[m]["trend"]
+        if m in existing and existing[m].get("milestones"):
+            block["milestones"] = existing[m]["milestones"]
         merged[m] = block
 
     ordered = [merged[m] for m in sorted(merged)]
