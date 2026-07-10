@@ -1,0 +1,32 @@
+name: Timeline freshness
+
+# The development timeline (content/timeline.md, data/timeline.json) is delta-
+# collected: once a calendar month completes, its data + an AI-written trend
+# narrative must be added. This gate goes RED when a completed month is missing
+# or its trend is unfilled — the signal that "we need to fill in the development."
+#
+# To clear it: `python3 scripts/collect-timeline.py` (collects the new month),
+# then write the `trend` narrative for it, commit data/timeline.json.
+
+on:
+  schedule:
+    - cron: "17 7 2 * *"   # 2nd of each month, 07:17 UTC — just after a month closes
+  pull_request:
+    paths:
+      - "data/timeline.json"
+      - "scripts/collect-timeline.py"
+      - ".github/workflows/timeline-freshness.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check the timeline is current
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 scripts/collect-timeline.py --check
