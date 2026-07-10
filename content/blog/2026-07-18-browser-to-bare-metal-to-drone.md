@@ -4,7 +4,7 @@ description = "The same component set runs four ways: live in a browser tab, fus
 date = 2026-07-18
 draft = true
 [taxonomies]
-tags = ["wasm", "embedded", "verification"]
+tags = ["wasm", "embedded", "verification", "how-it-works"]
 authors = ["Ralf Anton Beier"]
 +++
 

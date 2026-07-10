@@ -5,7 +5,7 @@ date = 2026-07-09
 draft = false
 ready = true
 [taxonomies]
-tags = ["verification", "ai-agents", "lean", "process"]
+tags = ["verification", "ai-agents", "lean", "process", "how-it-works"]
 authors = ["Ralf Anton Beier"]
 +++
 

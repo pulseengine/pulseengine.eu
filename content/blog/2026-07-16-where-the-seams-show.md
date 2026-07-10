@@ -4,7 +4,7 @@ description = "\"Works together\" is not a yes-or-no. A toolchain is a set of co
 date = 2026-07-16
 draft = true
 [taxonomies]
-tags = ["verification", "process", "traceability"]
+tags = ["verification", "process", "traceability", "how-it-works"]
 authors = ["Ralf Anton Beier"]
 +++
 

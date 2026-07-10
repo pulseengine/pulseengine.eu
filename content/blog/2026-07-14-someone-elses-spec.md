@@ -4,7 +4,7 @@ description = "It's easy to make a toolchain look integrated on a demo you built
 date = 2026-07-14
 draft = true
 [taxonomies]
-tags = ["traceability", "verification", "process"]
+tags = ["traceability", "verification", "process", "how-it-works"]
 authors = ["Ralf Anton Beier"]
 +++
 

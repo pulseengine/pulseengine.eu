@@ -100,7 +100,7 @@ is shared across them:
 - **Verus · Rocq · Lean 4** — deductive proof (SMT/Z3, theorem proving, scheduling
   theory). Some legs prove the Rust source directly; others prove a hand-transcribed
   model, and where they do, that model↔code link is itself named as trusted base
-  (see [the seams](/blog/where-the-seams-show/)).
+  (see [the maturity series](/tags/how-it-works/)).
 - **[scry](https://github.com/pulseengine/scry)** — sound abstract interpretation
   over the fused *wasm* (the third DO-333 leg). Soundness is machine-checked over
   scry's integer model; the proof against canonical Wasm semantics is still in
@@ -172,7 +172,7 @@ key-value store — and expresses it through the whole stack: rivet typed artifa
 harness, a sigil release manifest, and a verification gate — the last of these still
 *skeletons that show the shape*, with the gate running as a stub. It's an honest map
 of how the pieces interlock on something we didn't invent; the
-[companion post](/blog/someone-elses-spec/) walks which layers are
+[maturity series](/tags/how-it-works/) walks which layers are
 live. (And
 [playground-eclipse-score](https://github.com/pulseengine/playground-eclipse-score)
 converts **2,985** Eclipse **safety artifacts** — requirements, architecture, FMEA,
@@ -202,8 +202,6 @@ Being honest about maturity is part of the method:
 - [Projects](@/projects/_index.md) — the parts, by role, as an interactive map.
 - [Reports](@/reports/_index.md) — live compliance and coverage output from rivet
   and witness.
-- The honest maturity map, in three posts:
-  [where the seams still show](/blog/where-the-seams-show/) ·
-  [someone else's spec](/blog/someone-elses-spec/) ·
-  [browser to bare metal to drone](/blog/browser-to-bare-metal-to-drone/).
+- [The honest maturity map](/tags/how-it-works/) — a growing series of deep dives
+  into where the seams still show, tagged `how-it-works`.
 - [GitHub](https://github.com/pulseengine) — every repository named above.
