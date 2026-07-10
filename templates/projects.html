@@ -223,7 +223,7 @@
 
       <div class="cube-detail__panel" data-detail="build" style="display:none">
         <h3 style="color:#22d3ee">Build — the pipeline</h3>
-        <p><strong>meld</strong> fuses multiple WebAssembly components into a single module. <strong>loom</strong> runs multi-pass optimization via Cranelift ISLE. <strong>synth</strong> transcodes to native ARM and RISC-V through program synthesis. <strong>sigil</strong> signs and attests every transformation with Sigstore or Ed25519.</p>
+        <p><strong>meld</strong> fuses multiple WebAssembly components into a single module. <strong>loom</strong> runs multi-pass optimization via Cranelift ISLE. <strong>synth</strong> transcodes to native ARM and RISC-V through program synthesis. <strong>sigil</strong> signs and attests transformations with Sigstore or Ed25519; it began as a takeover of Frank Denis's <a href="https://github.com/jedisct1/wasmsign2" rel="noopener">wasmsign2</a> (MIT), since heavily diverged.</p>
         <p>Four separate tools, one flow. Every stage is independently verifiable.</p>
         <div class="cube-detail__links">
           <a href="https://github.com/pulseengine/meld" rel="noopener">meld</a>

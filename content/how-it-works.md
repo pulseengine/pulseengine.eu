@@ -138,7 +138,11 @@ is the point. (For an honest look at the limits, see
 
 [sigil](https://github.com/pulseengine/sigil) can sign artifacts and
 transformations — embedded signatures, Sigstore keyless, SLSA provenance — so what
-Verify establishes stays bound to exactly the bytes that run.
+Verify establishes stays bound to exactly the bytes that run. sigil's
+embedded-signature lineage traces to Frank Denis's
+[wasmsign2](https://github.com/jedisct1/wasmsign2) (MIT): we took it over and
+diverged substantially — roughly 18× the code and the signing engine rewritten — but
+the original DNA is his.
 
 ### 6 · Run — kiln · gale
 
