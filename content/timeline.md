@@ -8,4 +8,5 @@ It started with **kiln** in March 2025. Everything below is generated from the o
 own history and refreshed each month: **born** is a new repository, **shipped** is a
 release, **retired** is an archived one. A `⑂` marks a **fork** — an upstream we
 absorbed — and struck-through names are retired directions. The written note on each
-month is the trend we read in the flow of commits, issues, and PRs.
+month is the trend we read in the flow of commits, issues, and PRs. For how the pieces
+that emerged here fit together today, see [How it works](@/how-it-works.md).

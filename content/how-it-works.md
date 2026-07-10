@@ -200,6 +200,8 @@ Being honest about maturity is part of the method:
 ## See also
 
 - [Projects](@/projects/_index.md) — the parts, by role, as an interactive map.
+- [Timeline](@/timeline.md) — the month-by-month story of how all of this got built,
+  from kiln onward.
 - [Reports](@/reports/_index.md) — live compliance and coverage output from rivet
   and witness.
 - [The honest maturity map](/tags/how-it-works/) — a growing series of deep dives
