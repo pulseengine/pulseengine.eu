@@ -50,16 +50,17 @@ merged-memory core with no runtime `memory.grow` between them.
 ## 3 · Native ARM, bare metal
 
 [synth](https://github.com/pulseengine/synth) transcodes wasm toward native ARM
-Cortex-M and RISC-V — the earliest stop on this path. synth targets Cortex-M4 today,
-and doesn't yet lower floating-point or meld-fused multi-memory components, so a
-float-heavy flight controller isn't synth-native yet. What *is* demonstrated is
-gale's integer kernel primitives dissolving to a bare-metal (**emulated**) Cortex-M3
-behind a tiny native shim, with no wasm runtime left at the bottom — the *dissolving
-the OS* demo above. Separately, the [relay](https://github.com/pulseengine/relay)
-flight stack — falcon's control cascade (an Invariant-EKF estimator, geometric SE(3)
-attitude control, an ADRC inner loop) — flies in Gazebo SITL and runs on an
-**emulated** Cortex-M7 through a hermetic Bazel chain and Renode. Every Cortex-M run
-here is emulation (QEMU/Renode), not physical silicon.
+Cortex-M and RISC-V. synth targets Cortex-M4 today and doesn't yet lower
+floating-point or meld-fused multi-memory components. And this is the stop that
+reached **real silicon**: gale's `gust` composition — app + kiln-async scheduler +
+dissolved primitives — runs on a physical **Nucleo G474RE (Cortex-M4)**, flashed via
+probe-rs, correctness-matched to wasmtime, with no wasm runtime left at the bottom.
+gale's integer kernel also dissolves to an *emulated* Cortex-M3 (the *dissolving the
+OS* demo above; the M3 board is pending). Separately, the
+[relay](https://github.com/pulseengine/relay) flight stack — falcon's control cascade
+(an Invariant-EKF estimator, geometric SE(3) attitude control, an ADRC inner loop) —
+still flies only in Gazebo SITL and on an **emulated** Cortex-M7. So: gale/gust has
+reached real M4 silicon; the *flight* stack has not.
 
 ## 4 · Onto the drone — the tether is still on
 
@@ -92,7 +93,10 @@ doesn't — but because it lets us name each boundary honestly:
   reference wasm semantics — **not** proven equivalent. gale's own
   verification-honesty ledger insists on exactly this distinction, and so do we.
   It's the boundary where there is still something to verify.
-- **native → hardware** (jess): still ahead. The tether is on.
+- **native → real silicon:** gale's `gust` already boots on a physical Cortex-M4
+  (Nucleo G474RE), correctness-matched to wasmtime. Reached.
+- **silicon → a flying drone** (jess): this is what's still ahead — getting the
+  *flight* stack onto real hardware. The tether is on.
 
 witness measures MC/DC on the *wasm* that ships; it does not instrument the native
 ARM synth emits, so even the coverage claim stops at the wasm boundary. One artifact

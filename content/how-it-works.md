@@ -159,8 +159,10 @@ timers — as the *supply chain* the OS composes from. Proofs run across three p
 (Verus, Rocq, Lean), ASIL-D-targeted, and honest work-in-progress: some primitives
 are proven, others (parts of the scheduler) are still admitted stubs, the Rocq/Lean
 proofs are over abstract models, and multi-tenant isolation is still on the roadmap.
-What boots today dissolves app + runtime + primitives into a single native object on
-a bare-metal (emulated) Cortex-M3; the same components also
+What boots today dissolves app + runtime + primitives into a single native object
+that runs on **real Cortex-M4 silicon** (a Nucleo G474RE, flashed via probe-rs) — the
+whole composition, correctness-matched to wasmtime, with no runtime underneath — as
+well as on emulated Cortex-M3; the same components also
 [run live in a browser](https://pulseengine.github.io/gale/).
 
 ### 7 · Integrate — relay · wohl · jess
@@ -177,13 +179,17 @@ the Phase-2 arc (its name is the falconry tether, on purpose).
 
 ### Across all of it — the agent loop
 
-rivet's MCP tools, the [mcp](https://github.com/pulseengine/mcp) framework,
-[agora](https://github.com/pulseengine/agora) (agent coordination on a traceable
-fact log — a spike; signing is stubbed and transport is in-memory), and
-[temper](https://github.com/pulseengine/temper)
-(a GitHub App that holds every repo to the same standards) let AI agents write
-code *and* keep the traceability and verification current as they go — never as an
-afterthought.
+Today PulseEngine's agents coordinate the plain way — they synchronize through
+**GitHub issues and releases**, running in loops to hunt issues, implement features,
+and check whether a new release actually works.
+[agora](https://github.com/pulseengine/agora) is the early substrate meant to make
+that agent-to-agent chatter faster than round-tripping through GitHub (still a spike:
+signing stubbed, transport in-memory). Around that, [rivet](https://github.com/pulseengine/rivet)'s
+MCP tools expose validate / add / link / coverage to agents, and
+[temper](https://github.com/pulseengine/temper) (a GitHub App) holds every repo to
+the same standards. The [mcp](https://github.com/pulseengine/mcp) framework was our
+early Rust MCP bet — its future is now unclear, since the official MCP Rust SDK went
+its own way and mcp was stripped back.
 
 And the methodology those agents follow is itself packaged as tooling — the
 [**pulseengine-claude**](https://github.com/pulseengine/pulseengine.eu/tree/main/claude-tooling/plugins/pulseengine-claude)
@@ -211,10 +217,11 @@ and more — into rivet's typed YAML, testing schema coverage at real scale.)
 
 **Run + hardware — falcon → jess.** relay's falcon flight stack — an Invariant-EKF
 estimator, geometric SE(3) attitude control, an ADRC inner loop — flies in Gazebo
-SITL and runs on an **emulated** Cortex-M7. gale's primitives run in the browser and
-dissolve to an emulated Cortex-M3. [jess](https://github.com/pulseengine/jess) is the
-evidence-as-code hub for taking that from simulation toward hardware-in-the-loop
-and, eventually, a drone — the tether is still on.
+SITL and runs on an **emulated** Cortex-M7. gale's gust composition, meanwhile,
+already runs on **real Cortex-M4 silicon** (a Nucleo G474RE) and in the browser. So
+silicon itself is reached; [jess](https://github.com/pulseengine/jess) — the
+evidence-as-code hub — is about taking the *flight* stack from simulation toward
+hardware-in-the-loop and, eventually, a drone. The tether is still on.
 
 ## Where the seams still show
 

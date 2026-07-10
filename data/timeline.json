@@ -430,7 +430,7 @@
         }
       ]
     },
-    "trend": "The build/verify spine arrives: **sigil** (attestation), **loom** (optimizer), and **synth** (native transcode) are all born in one month, and loom/synth immediately dominate the commits (synth 144, loom 103). sigil is less *born* than *taken over* \u2014 it starts from Frank Denis's [wasmsign2](https://github.com/jedisct1/wasmsign2) (MIT) and diverges hard from here. glsp-mcp is retired. The toolchain's real shape is now visible.",
+    "trend": "The build/verify spine arrives: **sigil** (attestation), **loom** (optimizer), and **synth** (native transcode) are all born in one month, and loom/synth immediately dominate the commits (synth 144, loom 103). sigil is less *born* than *taken over* \u2014 it starts from Frank Denis's [wasmsign2](https://github.com/jedisct1/wasmsign2) (MIT) and diverges hard from here. **glsp-mcp** is retired \u2014 the graphical-protocol (GLSP) experiment became unnecessary once a standard for the graphical application layer was defined. The toolchain's real shape is now visible.",
     "milestones": []
   },
   {
@@ -658,7 +658,7 @@
         }
       ]
     },
-    "trend": "The fusion and governance layer: **meld** (component fusion), **temper** (repo-hardening app), **rules_verus**, and thrum (a dashboard, later archived) all appear, with meld leading commits. A bridging month, just before the spine lands.",
+    "trend": "The fusion and governance layer: **meld** (component fusion), **temper** (repo-hardening app), **rules_verus**, and **thrum** (a verification dashboard) all appear, with meld leading commits. A bridging month, just before the spine lands.",
     "milestones": []
   },
   {
@@ -774,7 +774,7 @@
         }
       ]
     },
-    "trend": "The big bang. In one month the backbone is born \u2014 **rivet** (traceability), **spar** (architecture), **gale** (verified RTOS), rules_lean, and this website \u2014 with zephyr and picolibc forked in underneath. PRs quadruple to 448; spar and gale lead. Two earlier directions retire (wasi-mcp, thrum): the pivot to the safety-critical spine is decisive.",
+    "trend": "The big bang. In one month the backbone is born \u2014 **rivet** (traceability), **spar** (architecture), **gale** (verified RTOS), rules_lean, and this website \u2014 with zephyr and picolibc forked in underneath. PRs quadruple to 448; spar and gale lead. Two earlier directions retire: **thrum** \u2014 the dashboard, once Claude Code's own subagents and then skills came to run the gates we'd built it for \u2014 and **wasi-mcp**. The pivot to the safety-critical spine is decisive.",
     "milestones": []
   },
   {
