@@ -29,7 +29,7 @@ flowchart TB
   loom["loom · optimize"]
   kiln["kiln<br/>interpret &amp; run wasm"]
   synth["synth<br/>transcode → native ARM / RISC-V"]
-  gale["gale<br/>RTOS primitives"]
+  gale["gale<br/>verified primitives → gust"]
   sigil["sigil<br/>sign · attest"]
   apps["relay · wohl · jess<br/>applications"]
   rivet[("rivet<br/>traceability spine")]
@@ -145,13 +145,19 @@ Verify establishes stays bound to exactly the bytes that run.
 [kiln](https://github.com/pulseengine/kiln) is an interpreter and runtime for
 Component-Model wasm (partial WASI 0.2, early development). The interpreter runs on
 std; getting to bare metal is synth's native path, not the interpreter on-target.
-[gale](https://github.com/pulseengine/gale) provides Zephyr RTOS kernel primitives
-in Rust with machine-checked proofs across three provers (Verus, Rocq, Lean),
-targeting ASIL-D. It's honest work-in-progress: some primitives are proven, others
-— including parts of the scheduler — are still admitted stubs, and the proofs run
-over abstract models with a named trusted base; gale's README keeps the ledger. The
-components [run live in a browser](https://pulseengine.github.io/gale/) and dissolve
-to a bare-metal (emulated) Cortex-M3.
+[gale](https://github.com/pulseengine/gale)'s North Star is **gust** — a general,
+multi-tenant *verified OS*, where mutually-distrusting components are MPU-isolated
+over one tiny (~4-item) Rust trusted base, composed entirely from verified parts. It
+reached toward that from the other end: gale began as a formally-verified Rust
+replacement for **Zephyr** RTOS kernel primitives (39 modules across the Zephyr
+kernel surface), and still provides those verified primitives — sem, mutex, msgq,
+timers — as the *supply chain* the OS composes from. Proofs run across three provers
+(Verus, Rocq, Lean), ASIL-D-targeted, and honest work-in-progress: some primitives
+are proven, others (parts of the scheduler) are still admitted stubs, the Rocq/Lean
+proofs are over abstract models, and multi-tenant isolation is still on the roadmap.
+What boots today dissolves app + runtime + primitives into a single native object on
+a bare-metal (emulated) Cortex-M3; the same components also
+[run live in a browser](https://pulseengine.github.io/gale/).
 
 ### 7 · Integrate — relay · wohl · jess
 

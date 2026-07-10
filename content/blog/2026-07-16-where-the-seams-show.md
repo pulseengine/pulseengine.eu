@@ -65,8 +65,9 @@ side [here](@/blog/2026-07-09-honest-failure-by-construction.md).)
 provenance work; binding them as a mandatory release gate across every repo is not
 uniform yet.
 
-**kiln / gale run.** *Mixed.* gale carries machine-checked proofs across three
-provers (Verus, Rocq, Lean) — some primitives proven, others still admitted stubs —
+**kiln / gale run.** *Mixed.* gale — now composing its verified Zephyr primitives
+toward **gust**, a multi-tenant verified OS — carries machine-checked proofs across
+three provers (Verus, Rocq, Lean), some primitives proven, others still admitted stubs,
 and the same components run in a browser and dissolve to a bare-metal (emulated)
 Cortex-M3, which is demonstrated and genuinely fun to watch. kiln, the interpreter
 and runtime, is earlier — a std interpreter today, not yet running on-target.

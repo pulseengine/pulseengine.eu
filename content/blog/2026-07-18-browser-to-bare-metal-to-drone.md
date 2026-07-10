@@ -27,11 +27,13 @@ Here's the same journey, four stops.
 
 ## 1 · A browser tab
 
-[gale](https://github.com/pulseengine/gale) provides Zephyr RTOS kernel primitives
-in Rust with machine-checked proofs of specific properties across three provers
-(Verus, Rocq, Lean). It's honest work-in-progress: some primitives are proven,
-others — including parts of the scheduler — are still admitted stubs, and gale's
-README keeps a running ledger of exactly which is which. The components
+[gale](https://github.com/pulseengine/gale) is reaching for **gust** — a
+multi-tenant verified OS built from verified parts — and it got there from verified
+**Zephyr** kernel primitives, which it still provides (sem, mutex, msgq, timers). The
+proofs run across three provers (Verus, Rocq, Lean), and it's honest work-in-progress:
+some primitives are proven, others — including parts of the scheduler — are still
+admitted stubs, and gale's README keeps a running ledger of exactly which is which.
+The components
 [run live in a browser](https://pulseengine.github.io/gale/) — the same `gale::*`
 decisions the proofs are about, executing in a tab. It's the most approachable way
 to meet the RTOS: no board, no flash, just a URL.
