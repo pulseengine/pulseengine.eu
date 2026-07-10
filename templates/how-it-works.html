@@ -37,5 +37,17 @@
     border:1px solid var(--border-subtle); border-radius:4px;
     padding:0.15rem 0.5rem;
   }
+
+  /* Keep diagrams and wide content inside the viewport on phones. Mermaid and
+     the hand-SVG pipeline can otherwise blow past the screen edge. */
+  .blog-post__content svg { max-width: 100%; height: auto; }
+  .blog-post__content .mermaid { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .blog-post__content .mermaid svg { max-width: 100%; height: auto; display: block; margin: 0 auto; }
+  @media (max-width: 640px) {
+    .blog-post__lede { font-size: 1rem; }
+    .blog-post__content { overflow-wrap: anywhere; }
+    .blog-post__content pre { overflow-x: auto; }
+    .blog-post__content table { display: block; overflow-x: auto; }
+  }
 </style>
 {% endblock %}

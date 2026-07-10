@@ -23,40 +23,55 @@ stage is early, we say so.
 
 {% mermaid() %}
 flowchart TB
-  spar["spar · design<br/>AADL · SysML · CAN/DBC"]
+  spar["spar<br/>design"]
   code["component code<br/>Rust → wasm"]
   meld["meld · fuse"]
   loom["loom · optimize"]
-  synth["synth · transcode → ARM / RISC-V"]
-  sigil["sigil · sign · SLSA · SBOM"]
-  run["kiln — interpreter &amp; runtime<br/>gale — RTOS primitives"]
-  apps["relay · wohl<br/>applications"]
-  hw["jess<br/>HIL → real drone → flight"]
-  rivet[("rivet · traceability spine")]
-  verify{{"Verify gate<br/>Verus · Rocq · Lean · scry · witness · ordeal"}}
+  kiln["kiln<br/>interpret &amp; run wasm"]
+  synth["synth<br/>transcode → native ARM / RISC-V"]
+  gale["gale<br/>RTOS primitives"]
+  sigil["sigil<br/>sign · attest"]
+  apps["relay · wohl · jess<br/>applications"]
+  rivet[("rivet<br/>traceability spine")]
+  vext{{"Verus · Rocq · Lean<br/>external proof engines"}}
+  vours{{"scry · witness · ordeal<br/>our verifiers"}}
 
-  spar -->|WIT · skeletons · proof obligations| code
-  code --> meld --> loom --> synth --> sigil --> run --> apps --> hw
-  verify -. gates .-> meld
-  verify -. gates .-> synth
-  spar -. typed artifacts .-> rivet
-  verify -. evidence .-> rivet
+  spar -->|WIT · skeletons| code
+  code --> meld --> loom
+  loom -->|run as wasm| kiln
+  loom -->|transcode| synth --> gale
+  kiln --> apps
+  gale --> apps
+  loom --> sigil --> apps
+  vext -. gates .-> loom
+  vours -. gates .-> loom
+  spar -. artifacts .-> rivet
+  vours -. evidence .-> rivet
   apps -. evidence .-> rivet
 
+  classDef ours fill:#242836,stroke:#6c8cff,color:#e1e4ed;
+  classDef ext fill:#161922,stroke:#8b90a0,stroke-dasharray:4 3,color:#b6bac8;
   classDef spine fill:#242836,stroke:#fbbf24,color:#e1e4ed;
-  classDef gate fill:#242836,stroke:#4ade80,color:#e1e4ed;
+  class spar,code,meld,loom,kiln,synth,gale,sigil,apps,vours ours
+  class vext ext
   class rivet spine
-  class verify gate
 {% end %}
 
-Two things run *across* the flow rather than sitting in it:
+A few reading notes:
 
-- **rivet** is the traceability spine (amber): every stage's inputs, decisions,
-  and evidence are typed artifacts it links into a V-model and re-checks on every
-  commit — a broken link fails the check. (rivet validates *traceability
-  integrity*, not that a test actually exercises its requirement.)
-- **Verify** is a gate, not a stage (green): several independent techniques run in
-  CI and turn the build red when the evidence isn't there.
+- **Blue nodes are PulseEngine's own tools; dashed grey are external engines we
+  build on** — Verus (and Z3), Rocq, Lean, plus Sigstore, Aeneas, and the forked
+  upstreams. We own the composition and the checkers around them, not the engines
+  themselves.
+- **Two ways to run the wasm:** kiln *interprets* it directly, or synth
+  *transcodes* it to native for bare-metal targets — the same component, two
+  runtimes.
+- **rivet** is the traceability spine (amber): every stage's evidence is a typed
+  artifact it links into a V-model and re-checks each commit — *traceability
+  integrity*, not that a test actually exercises its requirement.
+- **Verify is a gate, not a stage:** the external proof engines and our own
+  verifiers (scry, witness, ordeal) run in CI and turn the build red when the
+  evidence isn't there.
 
 ## Following the flow
 
