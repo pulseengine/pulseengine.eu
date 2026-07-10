@@ -56,7 +56,7 @@ it through the *entire* PulseEngine stack, layer by layer:
 
 | Layer | What it adds |
 |---|---|
-| rivet typed YAML | 8 requirements + 8 architecture elements + FMEA + decisions + test-specs, schema-checked by `rivet validate` |
+| rivet typed YAML | requirements, architecture elements, FMEA entries, decisions, and test-specs — all schema-checked by `rivet validate` |
 | spar AADL | a typed architecture model with ARP4761 safety properties — a file Eclipse's setup doesn't have at all |
 | WIT contract | a binary interface that `wit-bindgen` turns into a Rust trait the implementation must satisfy at link time |
 | witness | an MC/DC harness carrying truth-table evidence per predicate |

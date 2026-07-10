@@ -53,9 +53,10 @@ Two things run *across* the flow rather than sitting in it:
 
 - **rivet** is the traceability spine (amber): every stage's inputs, decisions,
   and evidence are typed artifacts it links into a V-model and re-checks on every
-  commit — a broken link fails the build.
+  commit — a broken link fails the check. (rivet validates *traceability
+  integrity*, not that a test actually exercises its requirement.)
 - **Verify** is a gate, not a stage (green): several independent techniques run in
-  CI and block the build when the evidence isn't there.
+  CI and turn the build red when the evidence isn't there.
 
 ## Following the flow
 
@@ -64,8 +65,10 @@ Two things run *across* the flow rather than sitting in it:
 [spar](https://github.com/pulseengine/spar) ingests AADL v2.3, SysML v2, and
 CAN/DBC into one semantic model, runs safety analysis and TSN timing bounds, and
 then *generates* what everything downstream starts from: WIT interfaces, Rust
-skeletons, Lean 4 proof obligations, and rivet artifacts. The design is checked
-before any code exists.
+skeletons, Lean 4 proof-obligation skeletons (theorem statements to discharge
+downstream), and rivet artifacts. The design is checked before any code exists.
+(spar's scheduling proofs are fully discharged; its TSN timing bounds are
+cross-validated against a reference tool, not yet machine-proven.)
 
 ### 2 · Trace — rivet (the spine)
 
@@ -73,17 +76,19 @@ before any code exists.
 manager: requirement → architecture → design → code → test, with built-in schemas
 for ISO 26262, DO-178C, IEC 61508, EN 50128, IEC 62304, the EU AI Act, and STPA /
 STPA-Sec / STPA-AI. It imports spar's models and CI's test results, validates the
-whole V on every commit, and generates compliance reports each release. It's the
-thread every other tool hangs its evidence on.
+traceability integrity of the whole V on every commit, and generates compliance
+reports each release. It's the thread every other tool hangs its evidence on.
 
 ### 3 · Build — meld → loom → synth
 
 Component code compiles to wasm; [meld](https://github.com/pulseengine/meld)
 fuses multiple components into one module;
 [loom](https://github.com/pulseengine/loom) optimizes it and is
-**translation-validated** — the optimization is *checked*, not trusted;
-[synth](https://github.com/pulseengine/synth) transcodes wasm to native ARM
-Cortex-M and RISC-V through program synthesis.
+**translation-validated** — each optimization is *checked* per run (Z3 where the
+function is in scope, a structural + differential backstop otherwise), not trusted;
+[synth](https://github.com/pulseengine/synth) transcodes wasm toward native ARM
+Cortex-M and RISC-V (early — Cortex-M4 today, no floating-point or fused
+multi-memory components yet).
 
 {{ pipeline() }}
 
@@ -92,16 +97,22 @@ Cortex-M and RISC-V through program synthesis.
 Not one technique but several, deliberately independent, so no single blind spot
 is shared across them:
 
-- **Verus · Rocq · Lean 4** — deductive proof on the Rust *source*: SMT/Z3,
-  theorem proving, and scheduling theory.
+- **Verus · Rocq · Lean 4** — deductive proof (SMT/Z3, theorem proving, scheduling
+  theory). Some legs prove the Rust source directly; others prove a hand-transcribed
+  model, and where they do, that model↔code link is itself named as trusted base
+  (see [the seams](/blog/where-the-seams-show/)).
 - **[scry](https://github.com/pulseengine/scry)** — sound abstract interpretation
-  over the fused *wasm* (the third DO-333 formal-methods leg).
-- **[witness](https://github.com/pulseengine/witness)** — MC/DC structural
-  coverage on the *compiled* wasm: it measures what actually ships.
+  over the fused *wasm* (the third DO-333 leg). Soundness is machine-checked over
+  scry's integer model; the proof against canonical Wasm semantics is still in
+  progress.
+- **[witness](https://github.com/pulseengine/witness)** — MC/DC-style structural
+  coverage on the *compiled* wasm: it measures the bytecode that actually ships
+  (source-level mapping rests on a stated DWARF-correctness assumption).
 - **[ordeal](https://github.com/pulseengine/ordeal)** underwrites the deductive
   layer itself — a certificate-checked SMT solver whose untrusted core is paired
-  with a formally-verified LRAT checker (the CompCert pattern), so even the
-  solver's answers carry evidence a checker can re-verify.
+  with an LRAT (RUP) checker whose soundness (*accept ⇒ UNSAT*) is machine-checked
+  in Lean 4 over an Aeneas-generated model of the Rust (Charon/Aeneas trusted). Even
+  its UNSAT answers carry evidence a checker can re-verify — a rare, strong core.
 
 Proof and abstract interpretation cover all inputs *in principle*; witness
 measures the bytecode that actually ships. No single technique spans both — which
@@ -110,58 +121,69 @@ is the point. (For an honest look at the limits, see
 
 ### 5 · Attest — sigil
 
-[sigil](https://github.com/pulseengine/sigil) signs every artifact and
-transformation — embedded signatures, Sigstore keyless, SLSA provenance, SBOM —
-so what Verify established stays bound to exactly the bytes that run.
+[sigil](https://github.com/pulseengine/sigil) can sign artifacts and
+transformations — embedded signatures, Sigstore keyless, SLSA provenance — so what
+Verify establishes stays bound to exactly the bytes that run.
 
 ### 6 · Run — kiln · gale
 
 [kiln](https://github.com/pulseengine/kiln) is an interpreter and runtime for
-Component-Model wasm (WASI 0.2, with a no_std path for embedded targets).
-[gale](https://github.com/pulseengine/gale) provides formally-verified Zephyr RTOS
-kernel primitives in Rust (Verus + Rocq), targeting ASIL-D. The same verified
-components [run live in a browser](https://pulseengine.github.io/gale/) and
-dissolve to a bare-metal Cortex-M3.
+Component-Model wasm (partial WASI 0.2, early development). The interpreter runs on
+std; getting to bare metal is synth's native path, not the interpreter on-target.
+[gale](https://github.com/pulseengine/gale) provides Zephyr RTOS kernel primitives
+in Rust with machine-checked proofs across three provers (Verus, Rocq, Lean),
+targeting ASIL-D. It's honest work-in-progress: some primitives are proven, others
+— including parts of the scheduler — are still admitted stubs, and the proofs run
+over abstract models with a named trusted base; gale's README keeps the ledger. The
+components [run live in a browser](https://pulseengine.github.io/gale/) and dissolve
+to a bare-metal (emulated) Cortex-M3.
 
 ### 7 · Integrate — relay · wohl · jess
 
-Applications prove the chain end-to-end.
-[relay](https://github.com/pulseengine/relay) is flight software — a verified
-control cascade — built as WebAssembly components;
-[wohl](https://github.com/pulseengine/wohl) is home supervision.
-[jess](https://github.com/pulseengine/jess) is where software meets metal: it
-brings the falcon flight stack from simulation, through hardware-in-the-loop, onto
-a real drone.
+Applications exercise the chain end-to-end.
+[relay](https://github.com/pulseengine/relay) is flight software — a formally
+*verifiable* control cascade: its geometric SE(3) attitude loop carries a
+Lean-proven Lyapunov argument, while the IEKF estimator is property-tested with a
+proof still to land. [wohl](https://github.com/pulseengine/wohl) is home
+supervision. [jess](https://github.com/pulseengine/jess) is where software meets
+metal: an evidence-as-code hub for taking the falcon stack from simulation, through
+hardware-in-the-loop, *toward* a real drone. It hasn't flown on hardware — that's
+the Phase-2 arc (its name is the falconry tether, on purpose).
 
 ### Across all of it — the agent loop
 
 rivet's MCP tools, the [mcp](https://github.com/pulseengine/mcp) framework,
-[agora](https://github.com/pulseengine/agora) (real-time agent coordination on a
-signed, traceable fact log), and [temper](https://github.com/pulseengine/temper)
+[agora](https://github.com/pulseengine/agora) (agent coordination on a traceable
+fact log — a spike; signing is stubbed and transport is in-memory), and
+[temper](https://github.com/pulseengine/temper)
 (a GitHub App that holds every repo to the same standards) let AI agents write
 code *and* keep the traceability and verification current as they go — never as an
 afterthought.
 
 ## A worked example
 
-Two real repositories carry the whole thing end-to-end today.
+Two real repositories show the chain on real inputs today — and are honest about
+which layers are live and which are still skeletons.
 
 **Build + verify + trace — [example-kvs](https://github.com/pulseengine/example-kvs).**
 It takes a real third-party specification — Eclipse S-CORE's persistency
-key-value store — and runs it through the full stack: rivet typed artifacts, a
-spar AADL model, a WIT contract, a witness MC/DC harness, a sigil release
-manifest, and an artifact-driven verification gate. It's the shortest way to watch
-the pieces interlock on something we didn't invent. (And
+key-value store — and expresses it through the whole stack: rivet typed artifacts
+(which validate today), plus a spar AADL model, a WIT contract, a witness MC/DC
+harness, a sigil release manifest, and a verification gate — the last of these still
+*skeletons that show the shape*, with the gate running as a stub. It's an honest map
+of how the pieces interlock on something we didn't invent; the
+[companion post](/blog/someone-elses-spec/) walks which layers are
+live. (And
 [playground-eclipse-score](https://github.com/pulseengine/playground-eclipse-score)
-converts **2,985** of that project's requirements into rivet's typed YAML —
-traceability at real scale.)
+converts **2,985** Eclipse **safety artifacts** — requirements, architecture, FMEA,
+and more — into rivet's typed YAML, testing schema coverage at real scale.)
 
 **Run + hardware — falcon → jess.** relay's falcon flight stack — an Invariant-EKF
 estimator, geometric SE(3) attitude control, an ADRC inner loop — flies in Gazebo
-SITL and runs bare-metal on an emulated Cortex-M. gale runs the same verified
-primitives in the browser and dissolves them to a Cortex-M3.
-[jess](https://github.com/pulseengine/jess) closes the loop onto real hardware:
-HIL, then a real drone, then flight.
+SITL and runs on an **emulated** Cortex-M7. gale's primitives run in the browser and
+dissolve to an emulated Cortex-M3. [jess](https://github.com/pulseengine/jess) is the
+evidence-as-code hub for taking that from simulation toward hardware-in-the-loop
+and, eventually, a drone — the tether is still on.
 
 ## Where the seams still show
 
@@ -180,4 +202,8 @@ Being honest about maturity is part of the method:
 - [Projects](@/projects/_index.md) — the parts, by role, as an interactive map.
 - [Reports](@/reports/_index.md) — live compliance and coverage output from rivet
   and witness.
+- The honest maturity map, in three posts:
+  [where the seams still show](/blog/where-the-seams-show/) ·
+  [someone else's spec](/blog/someone-elses-spec/) ·
+  [browser to bare metal to drone](/blog/browser-to-bare-metal-to-drone/).
 - [GitHub](https://github.com/pulseengine) — every repository named above.

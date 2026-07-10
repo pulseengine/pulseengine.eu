@@ -1,6 +1,6 @@
 +++
 title = "From a browser tab to a real drone"
-description = "The same verified components run four ways: live in a browser tab, fused as one WebAssembly module, transcoded to native ARM, and — the arc we're on now — onto a drone's flight controller. Portability isn't the headline. The point is that the verification done once travels with the artifact across every substrate."
+description = "The same component set runs four ways: live in a browser tab, fused as one WebAssembly module, transcoded toward native ARM, and — the arc we're on now — onto a drone's flight controller. Portability isn't the headline. The honest one is what each boundary between them does, and doesn't yet, verify."
 date = 2026-07-18
 draft = true
 [taxonomies]
@@ -9,28 +9,32 @@ authors = ["Ralf Anton Beier"]
 +++
 
 {% insight() %}
-One set of verified components; four places it runs. A **browser tab**, a **fused
-wasm module**, **native ARM**, and — the arc we're climbing now — a **drone's
-flight controller**. The interesting part isn't portability for its own sake. It's
-that the verification you did once rides along with the artifact, unchanged, from
-the tab to the metal.
+One component set; four places it runs — a **browser tab**, a **fused wasm
+module**, **native ARM**, and, the arc we're climbing now, a **drone's flight
+controller**. The interesting part isn't portability for its own sake. It's being
+honest about the *boundaries*: which crossing is backed by a proof, which by
+differential testing, and which is still ahead of us.
 {% end %}
 
 Most software is written for one substrate and stuck there. A kernel primitive is
 kernel code; a browser demo is browser code; flight software is flight software. The
 Component Model lets us treat all of those as the *same artifact* pointed at
-different backends — and if that artifact is verified, the verification comes with
-it.
+different backends. What *doesn't* come for free is the verification: each boundary
+the artifact crosses has its own honest status, and this post is mostly about naming
+them.
 
 Here's the same journey, four stops.
 
 ## 1 · A browser tab
 
-[gale](https://github.com/pulseengine/gale) provides formally-verified Zephyr RTOS
-kernel primitives in Rust (Verus + Rocq). The verified components
-[run live in a browser](https://pulseengine.github.io/gale/) — the exact same
-`gale::*` decisions the proofs are about, executing in a tab. It's the most
-approachable way to meet a verified RTOS: no board, no flash, just a URL.
+[gale](https://github.com/pulseengine/gale) provides Zephyr RTOS kernel primitives
+in Rust with machine-checked proofs of specific properties across three provers
+(Verus, Rocq, Lean). It's honest work-in-progress: some primitives are proven,
+others — including parts of the scheduler — are still admitted stubs, and gale's
+README keeps a running ledger of exactly which is which. The components
+[run live in a browser](https://pulseengine.github.io/gale/) — the same `gale::*`
+decisions the proofs are about, executing in a tab. It's the most approachable way
+to meet the RTOS: no board, no flash, just a URL.
 
 ## 2 · One fused module
 
@@ -43,13 +47,17 @@ merged-memory core with no runtime `memory.grow` between them.
 
 ## 3 · Native ARM, bare metal
 
-[synth](https://github.com/pulseengine/synth) transcodes the fused wasm to native
-ARM Cortex-M through program synthesis; the same components dissolve to a bare-metal
-**Cortex-M3** behind a tiny native shim — no wasm runtime left at the bottom. The
-[relay](https://github.com/pulseengine/relay) flight stack — falcon's control
-cascade (an Invariant-EKF estimator, geometric SE(3) attitude control, an ADRC inner
-loop) — flies in Gazebo SITL and runs bare-metal on an emulated Cortex-M, exercised
-through a hermetic Bazel firmware chain and Renode emulation.
+[synth](https://github.com/pulseengine/synth) transcodes wasm toward native ARM
+Cortex-M and RISC-V — the earliest stop on this path. synth targets Cortex-M4 today,
+and doesn't yet lower floating-point or meld-fused multi-memory components, so a
+float-heavy flight controller isn't synth-native yet. What *is* demonstrated is
+gale's integer kernel primitives dissolving to a bare-metal (**emulated**) Cortex-M3
+behind a tiny native shim, with no wasm runtime left at the bottom — the *dissolving
+the OS* demo above. Separately, the [relay](https://github.com/pulseengine/relay)
+flight stack — falcon's control cascade (an Invariant-EKF estimator, geometric SE(3)
+attitude control, an ADRC inner loop) — flies in Gazebo SITL and runs on an
+**emulated** Cortex-M7 through a hermetic Bazel chain and Renode. Every Cortex-M run
+here is emulation (QEMU/Renode), not physical silicon.
 
 ## 4 · Onto the drone — the tether is still on
 
@@ -71,17 +79,23 @@ improvised.
 
 ## Why the four stops matter
 
-A demo that only runs in a browser proves it runs in a browser. A proof that only
-applies to a hand-written model proves something about the model. The reason to make
-one artifact travel all four substrates is that the *verification travels with it*:
-the properties gale's proofs establish, and the coverage witness measures on the
-shipped wasm, are about the same bytes that get fused, transcoded, and — when the
-tether comes off — flown.
+A demo that only runs in a browser proves it runs in a browser. A proof over a
+hand-written model proves something about the model. Making one artifact travel all
+four substrates is worth it *not* because verification comes free across them — it
+doesn't — but because it lets us name each boundary honestly:
 
-That last step isn't finished, and we won't pretend it is. But the path is one
-artifact wide the whole way down, which is the point: you verify once, and you don't
-re-verify at every substrate boundary because there's nothing new to verify — it's
-the same thing, moved.
+- **wasm → fused wasm** (meld + loom): loom checks each optimization per run
+  (translation-validated) and reverts on a counterexample.
+- **wasm → native ARM** (synth): this crossing is *differentially tested* against a
+  reference wasm semantics — **not** proven equivalent. gale's own
+  verification-honesty ledger insists on exactly this distinction, and so do we.
+  It's the boundary where there is still something to verify.
+- **native → hardware** (jess): still ahead. The tether is on.
+
+witness measures MC/DC on the *wasm* that ships; it does not instrument the native
+ARM synth emits, so even the coverage claim stops at the wasm boundary. One artifact
+the whole way down means one thing to point at each step — and an honest label on
+every crossing, including the ones that aren't proofs yet.
 
 ---
 

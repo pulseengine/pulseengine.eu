@@ -43,28 +43,37 @@ the machine checks most often.
 
 **component code → meld → loom → synth.** *Mixed.* meld (fuse) and loom (optimize)
 are the more travelled part of the build tail, and loom is **translation-validated**
-— the optimization is checked rather than trusted. synth (wasm → native ARM/RISC-V)
-is earlier; treat native transcode as demonstrated, not routine.
+— each optimization is checked rather than trusted, with Z3 where the function is in
+scope (straight-line integer/bitvector code) and a structural + differential backstop
+for the rest, not SMT everywhere. synth (wasm → native ARM/RISC-V) is earlier — no
+float or fused multi-memory yet; treat native transcode as demonstrated, not routine.
 
 **the Verify gate.** *Wired, with an honest asterisk.* Verus, Rocq, Lean, scry,
 witness, and ordeal run in CI. The asterisk: several deductive proofs verify a
-**hand-transcribed model** of the code, not the shipped code itself. Where that's
-true, the model ↔ code link is a *trusted-base item* — and we name it as one rather
-than let the green check imply more. witness is the leg that resists this: it
-measures MC/DC on the **compiled wasm that actually ships**, so it can't drift from
-a model. (We wrote about a concrete limit of the proof side
-[here](@/blog/2026-07-09-honest-failure-by-construction.md).)
+**hand-transcribed model** of the code, not the shipped code itself — gale's Rocq
+proofs, for instance, run over abstract models, and some of its modules (parts of
+the scheduler) are still admitted stubs. Where that's true, the model ↔ code link is
+a *trusted-base item* — and we name it as one rather than let the green check imply
+more. (scry's soundness is likewise machine-checked over its integer model, with the
+proof against canonical Wasm semantics still to come.) witness is the leg that
+resists this: it measures MC/DC on the **compiled wasm that actually ships**, so it
+can't drift from the *bytecode* — though its source-level mapping still rests on a
+stated DWARF-correctness assumption. (We wrote about a concrete limit of the proof
+side [here](@/blog/2026-07-09-honest-failure-by-construction.md).)
 
-**sigil attest.** *Demonstrated.* Signing, SLSA provenance, and SBOM emission work;
-binding them as a mandatory release gate across every repo is not uniform yet.
+**sigil attest.** *Demonstrated.* Embedded signing, Sigstore keyless, and SLSA
+provenance work; binding them as a mandatory release gate across every repo is not
+uniform yet.
 
-**kiln / gale run.** *Mixed.* gale's verified RTOS primitives (Verus + Rocq) are
-real, and the same components run in a browser and dissolve to a bare-metal
-Cortex-M3 — demonstrated, and genuinely fun to watch. kiln, the Component-Model
-runtime, is earlier.
+**kiln / gale run.** *Mixed.* gale carries machine-checked proofs across three
+provers (Verus, Rocq, Lean) — some primitives proven, others still admitted stubs —
+and the same components run in a browser and dissolve to a bare-metal (emulated)
+Cortex-M3, which is demonstrated and genuinely fun to watch. kiln, the interpreter
+and runtime, is earlier — a std interpreter today, not yet running on-target.
 
 **relay / wohl / jess.** *Demonstrated → in progress.* relay's falcon flight stack
-flies in Gazebo SITL and runs bare-metal on an emulated Cortex-M. jess — the
+flies in Gazebo SITL and runs on an emulated Cortex-M7; its SE(3) attitude loop is
+Lean-proven while the estimator is property-tested (proof next). jess — the
 hardware-integration hub — is, by its own name, *the falconry tether that holds the
 bird during training before free flight.* Real hardware (HIL → drone → flight) is
 the Phase-2 arc, not a shipped fact.
