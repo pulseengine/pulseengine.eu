@@ -50,17 +50,16 @@ merged-memory core with no runtime `memory.grow` between them.
 ## 3 · Native ARM, bare metal
 
 [synth](https://github.com/pulseengine/synth) transcodes wasm toward native ARM
-Cortex-M and RISC-V. synth targets Cortex-M4 today and doesn't yet lower
-floating-point or meld-fused multi-memory components. And this is the stop that
-reached **real silicon**: gale's `gust` composition — app + kiln-async scheduler +
-dissolved primitives — runs on a physical **Nucleo G474RE (Cortex-M4)**, flashed via
-probe-rs, correctness-matched to wasmtime, with no wasm runtime left at the bottom.
-gale's integer kernel also dissolves to an *emulated* Cortex-M3 (the *dissolving the
-OS* demo above; the M3 board is pending). Separately, the
-[relay](https://github.com/pulseengine/relay) flight stack — falcon's control cascade
-(an Invariant-EKF estimator, geometric SE(3) attitude control, an ADRC inner loop) —
-still flies only in Gazebo SITL and on an **emulated** Cortex-M7. So: gale/gust has
-reached real M4 silicon; the *flight* stack has not.
+Cortex-M and RISC-V; it doesn't yet lower floating-point or meld-fused multi-memory
+components. And this is the stop that reached **real silicon — three chips across two
+architectures**: gale's `gust` composition (app + kiln-async scheduler + dissolved
+primitives) runs bit-identical on a physical **Cortex-M4** (Nucleo G474RE, via
+probe-rs), a **Cortex-M3** (STM32F100), and — the RISC-V proof point — an **ESP32-C3**
+(RV32IMC), each correctness-matched to native with no wasm runtime left at the bottom.
+Separately, the [relay](https://github.com/pulseengine/relay) flight stack — falcon's
+control cascade (an Invariant-EKF estimator, geometric SE(3) attitude control, an ADRC
+inner loop) — still flies only in Gazebo SITL and on an **emulated** Cortex-M7. So:
+gale/gust runs on real silicon; the *flight* stack does not yet.
 
 ## 4 · Onto the drone — the tether is still on
 
@@ -93,8 +92,9 @@ doesn't — but because it lets us name each boundary honestly:
   reference wasm semantics — **not** proven equivalent. gale's own
   verification-honesty ledger insists on exactly this distinction, and so do we.
   It's the boundary where there is still something to verify.
-- **native → real silicon:** gale's `gust` already boots on a physical Cortex-M4
-  (Nucleo G474RE), correctness-matched to wasmtime. Reached.
+- **native → real silicon:** gale's `gust` already boots bit-identical on three real
+  chips across two architectures — Cortex-M4 (G474RE), Cortex-M3 (F100), and RISC-V
+  (ESP32-C3). Reached.
 - **silicon → a flying drone** (jess): this is what's still ahead — getting the
   *flight* stack onto real hardware. The tether is on.
 

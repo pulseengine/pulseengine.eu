@@ -68,9 +68,9 @@ uniform yet.
 **kiln / gale run.** *Mixed.* gale — now composing its verified Zephyr primitives
 toward **gust**, a multi-tenant verified OS — carries machine-checked proofs across
 three provers (Verus, Rocq, Lean), some primitives proven, others still admitted stubs,
-and the same components run in a browser and dissolve to a bare-metal Cortex-M4 on
-**real silicon** (a Nucleo G474RE, correctness-matched to wasmtime) plus an emulated
-Cortex-M3 — demonstrated, and genuinely fun to watch. kiln, the interpreter and
+and the same components run in a browser and dissolve, bit-identical, to **real
+silicon** on three chips across two architectures — Cortex-M4 (G474RE), Cortex-M3
+(F100), and RISC-V (ESP32-C3) — demonstrated, and genuinely fun to watch. kiln, the interpreter and
 runtime, is earlier — a std interpreter today, not yet running on-target.
 
 **relay / wohl / jess.** *Demonstrated → in progress.* relay's falcon flight stack

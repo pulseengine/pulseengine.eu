@@ -102,8 +102,9 @@ fuses multiple components into one module;
 **translation-validated** — each optimization is *checked* per run (Z3 where the
 function is in scope, a structural + differential backstop otherwise), not trusted;
 [synth](https://github.com/pulseengine/synth) transcodes wasm toward native ARM
-Cortex-M and RISC-V (early — Cortex-M4 today, no floating-point or fused
-multi-memory components yet).
+Cortex-M and RISC-V — demonstrated on **real silicon** across Cortex-M3, Cortex-M4,
+and RISC-V (ESP32-C3); still early (no floating-point or fused multi-memory
+components yet).
 
 {{ pipeline() }}
 
@@ -160,10 +161,10 @@ timers — as the *supply chain* the OS composes from. Proofs run across three p
 are proven, others (parts of the scheduler) are still admitted stubs, the Rocq/Lean
 proofs are over abstract models, and multi-tenant isolation is still on the roadmap.
 What boots today dissolves app + runtime + primitives into a single native object
-that runs on **real Cortex-M4 silicon** (a Nucleo G474RE, flashed via probe-rs) — the
-whole composition, correctness-matched to wasmtime, with no runtime underneath — as
-well as on emulated Cortex-M3; the same components also
-[run live in a browser](https://pulseengine.github.io/gale/).
+that runs on **real silicon across three chips and two architectures** — Cortex-M4
+(STM32 G474RE), Cortex-M3 (STM32F100), and RISC-V (ESP32-C3) — each dissolved from the
+same components and bit-identical to native, with no runtime underneath; the same
+components also [run live in a browser](https://pulseengine.github.io/gale/).
 
 ### 7 · Integrate — relay · wohl · jess
 
@@ -218,8 +219,9 @@ and more — into rivet's typed YAML, testing schema coverage at real scale.)
 **Run + hardware — falcon → jess.** relay's falcon flight stack — an Invariant-EKF
 estimator, geometric SE(3) attitude control, an ADRC inner loop — flies in Gazebo
 SITL and runs on an **emulated** Cortex-M7. gale's gust composition, meanwhile,
-already runs on **real Cortex-M4 silicon** (a Nucleo G474RE) and in the browser. So
-silicon itself is reached; [jess](https://github.com/pulseengine/jess) — the
+already runs on **real silicon** — Cortex-M4 (G474RE), Cortex-M3 (F100), and RISC-V
+(ESP32-C3) — and in the browser. So silicon itself is reached;
+[jess](https://github.com/pulseengine/jess) — the
 evidence-as-code hub — is about taking the *flight* stack from simulation toward
 hardware-in-the-loop and, eventually, a drone. The tether is still on.
 

@@ -1095,7 +1095,13 @@
         }
       ]
     },
-    "trend": "Peak so far \u2014 **jess** (hardware integration) and **agora** (agent coordination) are born, wasm-tools is absorbed, and the numbers crest: 235 releases, 1,300+ PRs, 300+ issues. synth, relay, and jess lead as the story turns toward getting verified components onto real hardware. The tether's on; the bird's almost ready.",
-    "milestones": []
+    "trend": "Peak so far \u2014 **jess** (hardware integration) and **agora** (agent coordination) are born, wasm-tools is absorbed, and the numbers crest: 235 releases, 1,300+ PRs, 300+ issues. synth, relay, and jess lead as the story turns toward getting verified components onto real hardware. The tether's on; the bird's almost ready. And a hardware first: gust's dissolved stack boots **bit-identical on real silicon** across three chips and two architectures \u2014 Cortex-M4, Cortex-M3, and RISC-V (ESP32-C3).",
+    "milestones": [
+      {
+        "label": "gust boots on real silicon \u2014 three chips, two architectures",
+        "detail": "the dissolved composition runs bit-identical on Cortex-M4 (STM32 G474RE), Cortex-M3 (STM32F100), and RISC-V (ESP32-C3)",
+        "url": "https://github.com/pulseengine/gale/tree/main/benches/gust/silicon"
+      }
+    ]
   }
 ]
