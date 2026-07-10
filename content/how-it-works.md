@@ -102,9 +102,11 @@ fuses multiple components into one module;
 **translation-validated** — each optimization is *checked* per run (Z3 where the
 function is in scope, a structural + differential backstop otherwise), not trusted;
 [synth](https://github.com/pulseengine/synth) transcodes wasm toward native **ARM —
-Cortex-M, Cortex-R5, and AArch64 (ARMv8) — and RISC-V**, demonstrated on **real
-silicon** across Cortex-M3, Cortex-M4, and RISC-V (ESP32-C3). Still early: integer
-only (scalar float is rejected, not miscompiled), no fused multi-memory yet.
+Cortex-M, Cortex-R5, and AArch64 (ARMv8) — and RISC-V**, and it's exercised on **real
+silicon**: bare-metal and cycle-gated on Cortex-M3, Cortex-M4, and RISC-V (ESP32-C3),
+and host-native on **Apple Silicon** (AArch64/ARMv8-A, differential-tested against
+wasmtime). Still early: integer only (scalar float is rejected, not miscompiled), no
+fused multi-memory yet.
 
 {{ pipeline() }}
 
