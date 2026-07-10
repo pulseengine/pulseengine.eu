@@ -21,17 +21,13 @@
     },
     "retired": [],
     "activity": {
-      "commits": 167,
+      "commits": 166,
       "prs_opened": 27,
       "issues_opened": 0,
       "busiest": [
         {
           "repo": "kiln",
           "commits": 166
-        },
-        {
-          "repo": "sigil",
-          "commits": 1
         }
       ]
     },
@@ -336,7 +332,7 @@
       }
     ],
     "activity": {
-      "commits": 223,
+      "commits": 197,
       "prs_opened": 60,
       "issues_opened": 14,
       "busiest": [
@@ -353,12 +349,12 @@
           "commits": 36
         },
         {
-          "repo": "sigil",
-          "commits": 26
+          "repo": "mcp",
+          "commits": 16
         }
       ]
     },
-    "trend": "First retirement \u2014 **studio-mcp** is archived. The build rules and kiln keep moving and sigil edges into the busiest list; ten releases mark a picking-up shipping cadence."
+    "trend": "First retirement \u2014 **studio-mcp** is archived. The build rules and kiln keep moving, with bazel-file-ops-component in the mix; ten releases mark a picking-up shipping cadence."
   },
   {
     "month": "2025-11",
@@ -543,7 +539,7 @@
     },
     "retired": [],
     "activity": {
-      "commits": 302,
+      "commits": 299,
       "prs_opened": 88,
       "issues_opened": 49,
       "busiest": [

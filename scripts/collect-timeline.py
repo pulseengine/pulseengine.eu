@@ -193,8 +193,11 @@ def build_months(target_months: set[str]) -> dict[str, dict]:
         # would swamp every activity signal. Count activity for our own repos only.
         if r["isFork"]:
             continue
+        # Count activity only from the repo's creation month onward. Some repos
+        # (e.g. sigil) carry imported/vendored history predating their creation —
+        # commits from that history would otherwise leak into earlier months.
         for mm, c in commits_by_month(name, target_months).items():
-            if mm in months:
+            if mm in months and mm >= bm:
                 months[mm]["activity"]["commits"] += c
                 repo_commits[mm][name] += c
         for mm, c in created_by_month(name, PRS_QUERY, "pullRequests").items():
