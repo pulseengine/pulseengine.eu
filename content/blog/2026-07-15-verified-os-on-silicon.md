@@ -80,20 +80,26 @@ line.
 
 ## How it composes
 
-Composition is a build-time operation, and the exact chain is worth seeing, because
-"fuse → optimize → compile" hides what actually happens:
+Composition happens at build time — two typed components in, one native image out:
 
-```text
-gale-app-demo.wasm   (~0.6 KB, imports gale:kernel, memory.grow = 0)
-gale-kiln.wasm       (~1.2 KB, exports gale:kernel, memory.grow = 0)
+{% mermaid() %}
+flowchart TB
+  app["gale-app-demo · ~0.6 KB<br/>imports gale:kernel"]
+  kiln["gale-kiln · ~1.2 KB<br/>exports gale:kernel"]
+  fused["meld fuse → one core module<br/>shared memory · 0 memory.grow"]
+  opt["loom · inline + strip<br/>→ 240 B wasm"]
+  obj["synth compile → cortex-m3<br/>→ 668 B .text"]
+  img["link + ~77-line native TCB<br/>~3.5 KB image · fits F100's 8 KB SRAM"]
 
-meld  fuse --memory shared --address-rebase   →  fused.wasm   # imports resolved against
-                                                              # exports, ONE shared memory
-loom  optimize --passes inline                →  whole-program inline
-      strip exports  (keep {memory, run-demo}) →  240 B wasm
-synth compile --target cortex-m3 --relocatable →  fused.o      # 668 B .text, 0 undefined symbols
-link  fused.o + ~77-line native TCB shim       →  3.5 KB image, 8 B bss   # fits F100's 8 KB SRAM
-```
+  app ==> fused
+  kiln ==> fused
+  fused ==> opt ==> obj ==> img
+
+  classDef ours fill:#242836,stroke:#6c8cff,color:#e1e4ed;
+  classDef base fill:#161922,stroke:#4ade80,color:#e1e4ed;
+  class app,kiln,fused,opt ours
+  class obj,img base
+{% end %}
 
 Upstream of `meld` it's separate components with typed WIT worlds. The instant `meld`
 resolves the app's `import gale:kernel` against gale-kiln's `export`, the boundaries are
