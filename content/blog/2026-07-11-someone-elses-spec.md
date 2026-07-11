@@ -2,7 +2,7 @@
 title = "Someone else's spec: running an external corpus through the whole chain"
 description = "It's easy to make a toolchain look integrated on a demo you built to flatter it. The honest test is to feed it a specification you didn't write and can't edit. We did that with Eclipse S-CORE — 2,985 real safety artifacts through rivet, and one component expressed through the whole stack — and kept a running log of every place our tools didn't fit."
 date = 2026-07-11
-draft = true
+draft = false
 ready = true
 [taxonomies]
 tags = ["traceability", "verification", "process", "how-it-works"]
