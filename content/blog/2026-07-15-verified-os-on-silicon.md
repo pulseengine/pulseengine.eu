@@ -120,7 +120,7 @@ bit, not yet proven. Second, it's measured on real hardware and it's fast: bit-i
 against native LLVM, the dissolved code runs at **1.73×** on the Cortex-M3 (STM32F100),
 **1.45×** on the Cortex-M4 (Nucleo G474RE), and **1.84×** on RISC-V (ESP32-C3).
 
-## What it buys, and where it is
+## What it buys
 
 The point of composing an OS this way is the shape of the trust: **verified logic all
 the way up, a tiny fixed native base at the bottom, and no runtime in between.** A new
@@ -128,12 +128,52 @@ peripheral is a new verified-wasm driver over the same two-function seam — it 
 grow the thing you trust. And because the components dissolve to native, you pay
 nothing at runtime for the abstraction: one small image, on the metal.
 
-Honest about where it stands: the **semaphore is fully shipped** (Verus + Rocq + Kani +
-on-hardware tests); the other primitives and the drivers are Kani-proven with some
-Renode content-gates still landing; the wasm→native dissolve is differentially tested,
-not yet proven-equivalent; and multi-tenant isolation (MPU) is still on the roadmap.
-It's work in progress. But the composition is real, and it runs — a verified operating
-system that dissolves to 3.5 KB of native code, on three real chips.
+## The architecture, and where it's headed
+
+v0.2 is a deliberate rung, not the destination. The **North Star is a general
+multi-tenant verified OS**: several mutually-distrusting components on one chip, each
+isolated by its own MPU region, each holding only the capabilities it's granted — all
+over that same thin TCB. The path there is a ladder, and it's honest about where each
+rung stands:
+
+- **v0.1 — a primitive, fully closed** *(shipped).* The semaphore, proven end-to-end
+  (Verus + Rocq + Kani) and tested on hardware.
+- **v0.2 — the composition, on silicon** *(shipped — everything above).* App +
+  scheduler + primitives + drivers, dissolved to one native image on three chips.
+- **v0.3 — driver breadth** *(next).* Prove the thin-seam model generalizes — GPIO,
+  timer, SPI as verified-wasm drivers over the same two-function seam, **zero new
+  trusted atoms**, fused into one node that still fits the F100's 8 KB.
+- **v0.4 — the `gust:os` seam.** Replace ad-hoc imports with one typed syscall world:
+  `time`, `log`, `spawn`, `channel`, `io`. The I/O is an **io_uring-shaped
+  submit/completion queue** — *composed, not invented*, from parts already proven
+  (`gale::msgq` for the rings, kiln for the executor, the driver seam for the device,
+  `dma-own`'s `own<buffer>` for registered buffers), with the "valid until complete"
+  buffer lifecycle enforced by the Component-Model type system instead of tracked at
+  runtime.
+- **v0.5 — isolation.** Two mutually-distrusting components in one image, each in its
+  own MPU region; a faulting tenant can't corrupt a sibling or the TCB — hardware
+  enforcement, not a trusted check. (Blocked on synth growing multi-memory lowering.)
+- **v1.0 — the OS, cut.** The whole composition, signed, booting the *same* components
+  on Cortex-M3 and Cortex-M4.
+
+The invariant that makes the ladder tractable is the one from the driver row: **it
+grows without growing the trusted base.** Every new capability is verified wasm over
+the same two-function seam; MPU isolation is hardware, not new trusted code. The
+kill-criterion is literally an `nm` atom-count check — the day a fourth native bridge
+atom appears, the milestone fails.
+
+Even *loading* an image is meant to be verified rather than trusted:
+[scry](https://github.com/pulseengine/scry) computes the memory and stack bounds
+host-side, [sigil](https://github.com/pulseengine/sigil) signs them into the module,
+and kiln checks that signature before it believes the bounds — reject-at-load, on a
+device that can't recompute them itself.
+
+None of v0.3–v1.0 is built yet; the roadmap is tracked as typed requirements in rivet,
+where readiness is a query over closed verification, not a calendar. The wasm→native
+dissolve is still differentially tested, not proven-equivalent — the honest bound. But
+the shape is fixed and v0.2 already runs: a verified OS that dissolves to 3.5 KB of
+native code on three real chips, with a roadmap to a multi-tenant one that never grows
+what you have to trust.
 
 ---
 
