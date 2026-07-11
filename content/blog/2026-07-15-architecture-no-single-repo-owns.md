@@ -9,8 +9,10 @@ authors = ["Ralf Anton Beier"]
 +++
 
 {% insight() %}
-For a long time the toolchain was a **line**: architecture → code → fuse →
-optimize → transcode → sign → run. This month it quietly became a **graph**.
+PulseEngine is a dozen small repositories that turn **WebAssembly components** into
+verified native code — or interpret them — for safety-critical embedded targets. For
+a long time that toolchain was a **line**: architecture → code → fuse → optimize →
+transcode → sign → run. This month it quietly became a **graph**.
 Proofs now flow *between* stages — loom hands synth machine-checked invariants;
 one solver, [ordeal](https://github.com/pulseengine/ordeal), is shared as the
 verification substrate across repos; and the agents' own coordination is mirrored
@@ -25,15 +27,57 @@ drift hides, and it's why we've started running a different kind of check:
 A month ago you could draw the build path as a straight arrow. Look at what each
 component *ingests* today and the arrow has folded back on itself:
 
-- **One shared solver.** [synth](https://github.com/pulseengine/synth)'s
-  translation validation — does the native ARM match the wasm? — no longer calls
+{% mermaid() %}
+flowchart TB
+  spar["spar<br/>architecture"]
+  code["components<br/>(Rust → wasm)"]
+  meld["meld<br/>fuse"]
+  loom["loom<br/>optimize"]
+  synth["synth<br/>compile → native"]
+  kiln["kiln<br/>interpret (host)"]
+  gale["gale · gust<br/>on real silicon"]
+  ordeal["ordeal<br/>shared solver"]
+  sigil["sigil<br/>attest"]
+  agora["agora<br/>agents"]
+  rivet[("rivet<br/>everything reports here")]
+
+  spar ==>|WIT + skeletons| code ==> meld ==> loom
+  loom ==>|compile| synth ==> gale
+  loom -.->|interpret · on-target planned| kiln
+
+  loom -.->|proofs · wsc.facts| synth
+  synth -.->|checks with| ordeal
+  loom -.->|slated| ordeal
+  loom -.-> sigil
+  synth -.-> sigil
+  sigil -.->|signed evidence · designed| rivet
+  agora -.->|coordination facts| rivet
+  spar -.->|typed artifacts| rivet
+
+  classDef ours fill:#242836,stroke:#6c8cff,color:#e1e4ed;
+  classDef edge fill:#242836,stroke:#c084fc,color:#e1e4ed;
+  classDef spine fill:#242836,stroke:#fbbf24,color:#e1e4ed;
+  class spar,code,meld,loom,synth,kiln,gale,ordeal,sigil ours
+  class agora edge
+  class rivet spine
+{% end %}
+
+*Colours: **blue** = pipeline tools · **amber** = rivet, where every stage's evidence
+converges · **purple** = the agent layer. **Thick** arrows are the component moving
+through the pipeline; **dashed** arrows are the new cross-repo edges — proofs, the
+shared solver, attestation, coordination. Edges marked *planned / slated / designed*
+aren't live yet (the honest version of the graph, not the flattering one).*
+
+- **One shared solver.** When [synth](https://github.com/pulseengine/synth) (the tool
+  that transcodes wasm to native) validates its own output — *does the native ARM
+  match the wasm?* — it no longer calls
   Z3. Since v0.27 its default engine is **ordeal**, a pure-Rust, certificate-checked
   QF_BV solver from a *different repo*; Z3 is kept only as a differential oracle
   (141/141 agreement, zero disagreements). loom is slated to follow. So a repo whose
   job used to be "a solver" is now the **verification substrate the build layer
   depends on** — a cross-repo edge that didn't exist before.
 - **Proofs flow downstream, not just wasm.**
-  [loom](https://github.com/pulseengine/loom) now emits a `wsc.facts` section
+  [loom](https://github.com/pulseengine/loom) (the optimizer) now emits a `wsc.facts` section
   carrying the invariants it *proved* while optimizing (this value is in range, this
   divisor is nonzero). synth (v0.31) **ingests those facts** as premises for its own
   codegen. The pipeline became *proof-carrying*: each stage hands the next not just
@@ -46,13 +90,6 @@ component *ingests* today and the arrow has folded back on itself:
   now also ingests **the interaction between the agents themselves**, durably and
   auditably. (agora is still a spike — two agents, one channel, stubbed signing —
   but the edge is real.)
-- **A composition that only exists across repos.** `gust`, gale's verified-OS
-  North Star, is not in any one repository: it's gale's primitives + kiln's async
-  scheduler + app and driver components, **fused by meld, optimized by loom,
-  transcoded by synth**, linked against a `kiln-builtins` crate that only started
-  existing this month. That five-repo composition now runs *bit-identical on three
-  real chips* (Cortex-M4, Cortex-M3, and RISC-V). It works only when all five repos
-  line up.
 - **The attestation sink that's meant to span everything.**
   [sigil](https://github.com/pulseengine/sigil) is *designed* to be where the graph's
   evidence converges — ingesting a transformation attestation from every stage (loom's
@@ -67,13 +104,47 @@ component *ingests* today and the arrow has folded back on itself:
 None of these edges live inside a single repository. Each repo's CI is green — and
 the interesting behaviour is in the wiring *between* them.
 
+## The composition itself
+
+The strongest edge is the one that only *exists* across repos. `gust` — gale's
+verified-OS target — is a **Component-Model composition**: an app component *imports*
+the `gale:kernel` interface; a `gale-kiln` component (gale's verified primitives
+driven by kiln's cooperative scheduler) *exports* it; and driver components import
+only the thin `gust:hal/mmio` capability. meld **resolves those typed imports against
+the exports and flattens the result into a single core wasm module** — after which
+loom optimizes and synth transcodes that one module to native.
+
+{% mermaid() %}
+flowchart TB
+  subgraph comps["separate components — typed WIT worlds"]
+    direction LR
+    app["app<br/>imports gale:kernel"]
+    prov["gale-kiln<br/>exports gale:kernel"]
+    drv["drivers<br/>import gust:hal/mmio"]
+    app -->|gale:kernel| prov
+  end
+  comps ==>|"meld: resolve imports↔exports,<br/>flatten to one core module"| core["one core wasm module<br/>(no component boundaries left)"]
+  core ==>|"loom optimize → synth transcode"| native["native object<br/>Cortex-M · RISC-V · on silicon"]
+
+  classDef ours fill:#242836,stroke:#6c8cff,color:#e1e4ed;
+  class app,prov,drv,core,native ours
+{% end %}
+
+Upstream of meld it's separate components with typed interfaces; downstream it's *one
+core module*, and loom and synth never see a component boundary again. That
+composition — five repositories' outputs (gale, kiln, meld, loom, synth) lining up —
+now runs **bit-identical on three real chips** (Cortex-M4, Cortex-M3, RISC-V). It
+holds only when all five do; and no single repo could have claimed it.
+
 ## No single repo's CI owns the seams
 
 Here's the failure mode that graph creates. Every repo can be internally correct —
 tests pass, proofs close, coverage is measured — and the **architecture spanning
 them can still be wrong**, because nothing between two repos is anyone's build gate.
 
-We keep finding exactly this. In one sweep this week:
+We keep finding exactly this. These look like housekeeping — they are not: each is a
+claim one repo makes that only *another* repo, or the shipped artifact, can falsify.
+In one sweep this week:
 
 - **[ordeal](https://github.com/pulseengine/ordeal)** — the *shipped* soundness
   proof is complete and CI-gated, but its `lean/README.md` still says the proof is
