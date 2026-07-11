@@ -53,6 +53,16 @@ component *ingests* today and the arrow has folded back on itself:
   existing this month. That five-repo composition now runs *bit-identical on three
   real chips* (Cortex-M4, Cortex-M3, and RISC-V). It works only when all five repos
   line up.
+- **The attestation sink that's meant to span everything.**
+  [sigil](https://github.com/pulseengine/sigil) is *designed* to be where the graph's
+  evidence converges — ingesting a transformation attestation from every stage (loom's
+  optimization record, synth's transcode, witness's MC/DC, scry's invariants) and
+  handing signed evidence back to rivet. Today most of those edges are *drawn but not
+  wired*, and one repo's parser gap (it can't yet sign wasip2 components,
+  [sigil#164](https://github.com/pulseengine/sigil/issues/164)) is what keeps agora's
+  signatures a stub and blocks the org-wide signing rollout. That's the cross-repo
+  architecture in miniature: an edge can be specified org-wide and stalled by a single
+  repo's TODO — and no per-repo CI tells you the *composition* is the thing waiting.
 
 None of these edges live inside a single repository. Each repo's CI is green — and
 the interesting behaviour is in the wiring *between* them.
@@ -113,6 +123,13 @@ Two things make this more than a trick:
   discipline we apply to requirements, applied to how the agents talk. Today it's a
   spike; the direction is that "how the fleet coordinated" becomes traceable
   evidence, not folklore.
+
+And the graph keeps growing edges. This week [kiln](https://github.com/pulseengine/kiln)
+opened a direction to give its interpreter a `no_std` mode so it can run *on-board* —
+a second runtime path beside synth's compile-to-native, chosen partly because a
+compiler sitting in the embedded certification base is exactly what DO-178C's design
+guidance warns against. A new cross-repo seam, about to be wired; the checks will have
+to follow it there.
 
 And the positive proof that the graph is *right*, not just large: `gust` running
 bit-identical on three real chips is a cross-repo composition verified end to end —
