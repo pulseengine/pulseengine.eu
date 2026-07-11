@@ -1,8 +1,9 @@
 +++
 title = "Where the seams still show"
 description = "\"Works together\" is not a yes-or-no. A toolchain is a set of connections, each at some level of maturity, and the honest thing is to map them — wired-in-CI, demonstrated-once, still-manual — rather than let the clean diagram imply they're all the same. Here is that map for PulseEngine, seams included."
-date = 2026-07-16
+date = 2026-07-12
 draft = true
+ready = true
 [taxonomies]
 tags = ["verification", "process", "traceability", "how-it-works"]
 authors = ["Ralf Anton Beier"]
