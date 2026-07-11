@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+
+{% block title %}{{ page.title }} — {{ config.title }}{% endblock %}
+{% block description %}{{ page.description }}{% endblock %}
+
+{% block content %}
+{% set months = load_data(path="data/timeline.json", required=false) | default(value=[]) %}
+{% set month_names = ["", "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"] %}
+{% set last = months | last %}
+
+<div class="container tl-wrap">
+  <header class="blog-post__header">
+    <h1 class="blog-post__title">{{ page.title }}</h1>
+    {% if page.description %}<p class="blog-post__lede">{{ page.description }}</p>{% endif %}
+    {% if last %}
+    <p class="tl-jump"><a href="#now">jump to now ↓</a></p>
+    {% endif %}
+  </header>
+
+  {% if page.content %}<div class="blog-post__content tl-intro">{{ page.content | safe }}</div>{% endif %}
+
+  {% if months %}
+  <div class="tl">
+    {% for mo in months %}
+    {% set parts = mo.month | split(pat="-") %}
+    {% set mnum = parts[1] | int %}
+    <section class="tl-month" id="m-{{ mo.month }}"{% if mo.month == last.month %} data-now="true"{% endif %}>
+      <div class="tl-dot"></div>
+      <div class="tl-card">
+        <h2 class="tl-date">{{ month_names[mnum] }} {{ parts[0] }}</h2>
+
+        {% if mo.born %}
+        <div class="tl-row"><span class="tl-tag tl-tag--born">born</span>
+          {% for r in mo.born %}
+          <a class="tl-chip{% if r.fork %} tl-chip--fork{% endif %}"
+             href="https://github.com/pulseengine/{{ r.name }}" rel="noopener"
+             {% if r.desc %}title="{{ r.desc }}"{% endif %}>{{ r.name }}{% if r.fork %} ⑂{% endif %}</a>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if mo.released.count %}
+        <div class="tl-row"><span class="tl-tag tl-tag--ship">shipped {{ mo.released.count }}</span>
+          {% for rel in mo.released.repos %}
+          <a class="tl-chip tl-chip--ship" href="https://github.com/pulseengine/{{ rel.repo }}/releases" rel="noopener">{{ rel.repo }}{% if rel.n > 1 %} ×{{ rel.n }}{% endif %}</a>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if mo.retired %}
+        <div class="tl-row"><span class="tl-tag tl-tag--retire">retired</span>
+          {% for r in mo.retired %}
+          <a class="tl-chip tl-chip--arch" href="https://github.com/pulseengine/{{ r.name }}" rel="noopener">{{ r.name }}</a>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if mo.milestones %}
+        {% for ms in mo.milestones %}
+        <div class="tl-row"><span class="tl-tag tl-tag--ms">milestone</span>
+          {% if ms.url %}<a class="tl-chip tl-chip--ms" href="{{ ms.url }}" rel="noopener">{{ ms.label }}</a>
+          {% else %}<span class="tl-chip tl-chip--ms">{{ ms.label }}</span>{% endif %}
+          {% if ms.detail %}<span class="tl-ms-detail">{{ ms.detail }}</span>{% endif %}
+        </div>
+        {% endfor %}
+        {% endif %}
+
+        {% set a = mo.activity %}
+        {% if a and (a.commits or a.prs_opened or a.issues_opened) %}
+        <div class="tl-activity">
+          <span title="commits">◇ {{ a.commits }} commits</span>
+          <span title="pull requests opened">⇄ {{ a.prs_opened }} PRs</span>
+          <span title="issues opened">◉ {{ a.issues_opened }} issues</span>
+          {% if a.busiest %}
+          <span class="tl-busiest">busiest:
+            {%- for b in a.busiest %} {{ b.repo }} ({{ b.commits }}){% if not loop.last %} ·{% endif %}{% endfor %}
+          </span>
+          {% endif %}
+        </div>
+        {% endif %}
+
+        {% if mo.trend %}
+        <p class="tl-trend">{{ mo.trend | markdown(inline=true) | safe }}</p>
+        {% else %}
+        <p class="tl-trend tl-trend--todo">Development trend not written yet.</p>
+        {% endif %}
+      </div>
+    </section>
+    {% endfor %}
+    <div id="now"></div>
+    <p class="tl-top"><a href="#">↑ back to the beginning</a></p>
+  </div>
+  {% else %}
+  <p class="tl-empty">The timeline data hasn't been collected yet — run
+    <code>scripts/collect-timeline.py</code>.</p>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block head_extra %}
+<style>
+  .blog-post__lede { color: var(--text-dim); font-size: 1.05rem; line-height: 1.6; margin-top: .75rem; max-width: 46rem; }
+  .tl-jump { margin-top: .5rem; font-size: .85rem; }
+  .tl-jump a, .tl-top a { color: var(--accent); text-decoration: none; }
+  .tl-jump a:hover, .tl-top a:hover { text-decoration: underline; }
+
+  .tl { position: relative; margin: 2.5rem 0 1rem; padding-left: 1.75rem; }
+  /* the spine */
+  .tl::before { content: ""; position: absolute; left: 6px; top: .4rem; bottom: 2.2rem;
+    width: 2px; background: linear-gradient(var(--accent), var(--border-subtle)); }
+
+  .tl-month { position: relative; margin-bottom: 1.6rem; scroll-margin-top: 5rem; }
+  .tl-dot { position: absolute; left: -1.75rem; top: .55rem; width: 13px; height: 13px;
+    border-radius: 50%; background: var(--surface); border: 2px solid var(--accent);
+    box-shadow: 0 0 0 4px var(--bg, #0f1117); }
+  .tl-card { background: var(--surface); border: 1px solid var(--border-subtle);
+    border-radius: 12px; padding: 1rem 1.15rem; }
+  .tl-date { font-size: 1.05rem; font-weight: 700; margin: 0 0 .6rem; color: var(--text); }
+
+  .tl-row { display: flex; flex-wrap: wrap; align-items: baseline; gap: .35rem; margin: .3rem 0; }
+  .tl-tag { font-size: .6rem; text-transform: uppercase; letter-spacing: .08em; font-weight: 700;
+    padding: .1rem .4rem; border-radius: 4px; margin-right: .25rem; flex-shrink: 0; }
+  .tl-tag--born   { color: #6c8cff; background: rgba(108,140,255,.1); }
+  .tl-tag--ship   { color: #4ade80; background: rgba(74,222,128,.1); }
+  .tl-tag--retire { color: #8b90a0; background: rgba(139,144,160,.12); }
+  .tl-tag--ms     { color: #c084fc; background: rgba(192,132,252,.12); }
+  .tl-chip--ms    { color: #c084fc; background: rgba(192,132,252,.06); }
+  .tl-ms-detail   { font-size: .7rem; color: var(--text-faint); align-self: center; }
+
+  .tl-chip { font-size: .78rem; text-decoration: none; color: var(--text);
+    background: rgba(108,140,255,.06); border: 1px solid var(--border-subtle);
+    border-radius: 5px; padding: .12rem .45rem; transition: border-color .15s; }
+  .tl-chip:hover { border-color: var(--accent); }
+  .tl-chip--fork { color: var(--text-dim); background: transparent; border-style: dashed; }
+  .tl-chip--arch { color: var(--text-faint); text-decoration: line-through; }
+  .tl-chip--ship { color: #4ade80; background: rgba(74,222,128,.06); }
+
+  .tl-activity { display: flex; flex-wrap: wrap; gap: .8rem; margin: .55rem 0 .2rem;
+    font-size: .72rem; color: var(--text-dim); }
+  .tl-busiest { color: var(--text-faint); }
+  .tl-trend { font-size: .9rem; line-height: 1.6; color: var(--text-dim); margin: .55rem 0 0;
+    border-top: 1px solid var(--border-subtle); padding-top: .55rem; }
+  .tl-trend--todo { color: var(--text-faint); font-style: italic; }
+  .tl-top { margin: 1rem 0 0; padding-left: 0; font-size: .8rem; }
+  .tl-empty { color: var(--text-faint); margin: 2rem 0; }
+
+  @media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+</style>
+{% endblock %}

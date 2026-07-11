@@ -153,7 +153,7 @@
             </a>
             <a href="https://github.com/pulseengine/gale" class="face-tool" rel="noopener">
               <span class="face-tool__name">gale</span>
-              <span class="face-tool__desc">ASIL-D Zephyr primitives</span>
+              <span class="face-tool__desc">verified primitives → gust OS</span>
             </a>
           </div>
           <div class="face-divider"></div>
@@ -223,7 +223,7 @@
 
       <div class="cube-detail__panel" data-detail="build" style="display:none">
         <h3 style="color:#22d3ee">Build — the pipeline</h3>
-        <p><strong>meld</strong> fuses multiple WebAssembly components into a single module. <strong>loom</strong> runs multi-pass optimization via Cranelift ISLE. <strong>synth</strong> transcodes to native ARM and RISC-V through program synthesis. <strong>sigil</strong> signs and attests every transformation with Sigstore or Ed25519.</p>
+        <p><strong>meld</strong> fuses multiple WebAssembly components into a single module. <strong>loom</strong> runs multi-pass optimization via Cranelift ISLE. <strong>synth</strong> transcodes to native ARM (Cortex-M, Cortex-R5, AArch64/ARMv8) and RISC-V. <strong>sigil</strong> signs and attests transformations with Sigstore or Ed25519; it began as a takeover of Frank Denis's <a href="https://github.com/jedisct1/wasmsign2" rel="noopener">wasmsign2</a> (MIT), since heavily diverged.</p>
         <p>Four separate tools, one flow. Every stage is independently verifiable.</p>
         <div class="cube-detail__links">
           <a href="https://github.com/pulseengine/meld" rel="noopener">meld</a>
@@ -261,7 +261,7 @@
 
       <div class="cube-detail__panel" data-detail="run" style="display:none">
         <h3 style="color:#f87171">Run — platforms &amp; applications</h3>
-        <p><strong>kiln</strong> is a WebAssembly Component Model runtime with a WASI 0.2 and no_std architecture for embedded targets — in active early development. <strong>gale</strong> provides formally verified Zephyr RTOS kernel primitives in Rust — ASIL-D targeted, with triple-track verification (Verus SMT/Z3 + Rocq theorem proving + Lean scheduler proofs). The same verified components <a href="https://pulseengine.github.io/gale/" rel="noopener">run live in your browser</a> and dissolve to a bare-metal Cortex-M3.</p>
+        <p><strong>kiln</strong> is a WebAssembly Component Model runtime with a WASI 0.2 and no_std architecture for embedded targets — in active early development. <strong>gale</strong>'s North Star is <strong>gust</strong> — a general, multi-tenant verified OS composed from verified parts, MPU-isolated over a tiny Rust trusted base. It began as a Rust replacement for Zephyr RTOS kernel primitives (39 modules) and still provides those — machine-checked across Verus, Rocq, and Lean, ASIL-D targeted, with an honest claims ledger (some proofs are over abstract models; parts of the scheduler are still admitted stubs). The same components <a href="https://pulseengine.github.io/gale/" rel="noopener">run live in your browser</a> and dissolve to a bare-metal (emulated) Cortex-M3.</p>
         <p>Built on top: <strong>relay</strong> — formally verified flight software inspired by NASA's cFS, reimagined as generic WebAssembly components. <strong>wohl</strong> — safety-critical home supervision. Real applications proving the ecosystem works end-to-end.</p>
         <div class="cube-detail__links">
           <a href="https://github.com/pulseengine/kiln" rel="noopener">kiln</a>
