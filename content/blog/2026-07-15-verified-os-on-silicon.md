@@ -67,17 +67,16 @@ Each piece is built and verified on its own, with real sizes and real proofs:
 
 ## Drivers over a two-function seam
 
-The design idea is the driver row. Each driver is *verified wasm* that imports
-**only** `gust:hal/mmio` — two functions, `read32` and `write32`. A GPIO driver is
-490 bytes of Kani-proven logic sitting over **two** trusted primitives, not 490 bytes
-you have to trust. Adding a driver adds **zero new trusted atoms**: it rides the same
-two-function seam.
+The design idea is the driver row. Each driver is *verified wasm* that imports **only**
+`gust:hal/mmio` — two functions, `read32` and `write32`. A GPIO driver is 490 bytes of
+Kani-proven logic over **two** trusted primitives, not 490 bytes you trust; adding a
+driver adds **zero new trusted atoms**.
 
-So the whole trusted native base is small and fixed. It's a **~77-line Rust shim** —
-the vector table and reset handler, a one-line SysTick tick, and **five MMIO "atoms"**:
-`mmio_read32`, `mmio_write32`, `irq_poll`, and `dma_program` / `dma_barrier` for DMA.
-That is the entire thing you extend trust to. Everything else — scheduler, IPC, every
-driver — is verified wasm above the line.
+So the trusted native base stays small and fixed — a **~77-line Rust shim**: the vector
+table and reset, a one-line SysTick, and **five MMIO atoms** (`mmio_read32`,
+`mmio_write32`, `irq_poll`, plus `dma_program` / `dma_barrier`). That's the whole thing
+you trust. Everything else — scheduler, IPC, every driver — is verified wasm above the
+line.
 
 ## How it composes
 
@@ -97,12 +96,11 @@ link  fused.o + ~77-line native TCB shim       →  3.5 KB image, 8 B bss   # fi
 ```
 
 Upstream of `meld` it's separate components with typed WIT worlds. The instant `meld`
-resolves the app's `import gale:kernel` against gale-kiln's `export`, the component
-boundaries are gone — [loom](https://github.com/pulseengine/loom) and
-[synth](https://github.com/pulseengine/synth) see one flat core module, and the
-shipped artifact has **no runtime underneath it at all**. The kernel dissolves to a
-668-byte `.text`; the whole image, TCB included, is about 3.5 KB and fits the 8 KB of
-SRAM on an STM32F100.
+resolves the app's `import gale:kernel` against gale-kiln's `export`, the boundaries are
+gone — [loom](https://github.com/pulseengine/loom) and
+[synth](https://github.com/pulseengine/synth) see one flat core module, and the shipped
+artifact has **no runtime underneath it at all**: a 668-byte kernel in a ~3.5 KB image,
+on the metal.
 
 ## Does the native code still do what the wasm did?
 
@@ -113,12 +111,11 @@ component composition, interpreted), on **qemu Cortex-M3**, and on a **real STM3
 read out with the hardware cycle counter. The kill-criterion is blunt: *either side
 ≠ 53 falsifies the dissolve.*
 
-Two honest notes on that. First, this is a **differential equivalence check against a
-reference semantics — not a proof of translation.** The component *logic* is verified
-(Verus/Rocq/Kani); that the dissolved native code matches the wasm is *tested*, bit for
-bit, not yet proven. Second, it's measured on real hardware and it's fast: bit-identical
-against native LLVM, the dissolved code runs at **1.73×** on the Cortex-M3 (STM32F100),
-**1.45×** on the Cortex-M4 (Nucleo G474RE), and **1.84×** on RISC-V (ESP32-C3).
+Two honest notes. This is a **differential equivalence check against a reference
+semantics — not a proof of translation**: the component *logic* is verified
+(Verus/Rocq/Kani), but that the native code matches the wasm is *tested* bit-for-bit,
+not proven. And it's fast — bit-identical against native LLVM at **1.73×** (Cortex-M3,
+STM32F100), **1.45×** (Cortex-M4, Nucleo G474RE), **1.84×** (RISC-V, ESP32-C3).
 
 ## What it buys
 
@@ -131,10 +128,36 @@ nothing at runtime for the abstraction: one small image, on the metal.
 ## The architecture, and where it's headed
 
 v0.2 is a deliberate rung, not the destination. The **North Star is a general
-multi-tenant verified OS**: several mutually-distrusting components on one chip, each
-isolated by its own MPU region, each holding only the capabilities it's granted — all
-over that same thin TCB. The path there is a ladder, and it's honest about where each
-rung stands:
+multi-tenant verified OS**: mutually-distrusting components on one chip, each in its own
+MPU region, each holding only the capabilities it's granted — all over the same thin
+TCB. Here is that v1.0 target, and how far it is today:
+
+{% mermaid() %}
+flowchart TB
+  t["tenants · mutually-distrusting, MPU-isolated"]
+  seam["gust:os · one typed syscall seam<br/>time · log · spawn · channel · io"]
+  os["kiln scheduler + gale primitives<br/>semaphore closed · rest in progress"]
+  drv["drivers over gust:hal/mmio<br/>uart · dma today · + gpio timer spi i2c adc"]
+  tcb["~77-line native TCB · 5 atoms<br/>+ MPU regions"]
+  hw["Cortex-M3 / M4 silicon"]
+  t -.-> seam
+  seam -.-> os
+  os ==> drv
+  drv ==>|"read32 · write32"| tcb
+  tcb ==> hw
+
+  classDef shipped fill:#242836,stroke:#4ade80,color:#e1e4ed;
+  classDef planned fill:#161922,stroke:#8b90a0,stroke-dasharray:5 3,color:#b6bac8;
+  class os,drv,tcb,hw shipped
+  class t,seam planned
+{% end %}
+
+*Green runs today (v0.2 — the composition, uart + dma, the semaphore, on silicon).
+Dashed is planned: the `gust:os` syscall seam (v0.4) and mutually-distrusting tenants
+under MPU (v0.5). The trusted base and its two-function seam never change as the stack
+grows.*
+
+The path there is a ladder, honest about where each rung stands:
 
 - **v0.1 — a primitive, fully closed** *(shipped).* The semaphore, proven end-to-end
   (Verus + Rocq + Kani) and tested on hardware.
@@ -168,12 +191,10 @@ host-side, [sigil](https://github.com/pulseengine/sigil) signs them into the mod
 and kiln checks that signature before it believes the bounds — reject-at-load, on a
 device that can't recompute them itself.
 
-None of v0.3–v1.0 is built yet; the roadmap is tracked as typed requirements in rivet,
-where readiness is a query over closed verification, not a calendar. The wasm→native
-dissolve is still differentially tested, not proven-equivalent — the honest bound. But
-the shape is fixed and v0.2 already runs: a verified OS that dissolves to 3.5 KB of
-native code on three real chips, with a roadmap to a multi-tenant one that never grows
-what you have to trust.
+None of v0.3–v1.0 is built; the roadmap is typed requirements in rivet, where readiness
+is a query over closed verification, not a calendar. But the shape is fixed and v0.2
+runs — a verified OS that dissolves to 3.5 KB on three real chips, with a path to a
+multi-tenant one that never grows what you trust.
 
 ---
 
