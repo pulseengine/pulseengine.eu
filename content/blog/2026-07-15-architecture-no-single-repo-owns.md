@@ -66,7 +66,33 @@ this post zooms into two of these edges.*
 `gust` is gale's verified-OS target, and it does not live in any single repository.
 It's a **Component-Model composition**: a set of components with typed WIT interfaces,
 each built and verified in its own repo, that `meld` resolves and flattens into one
-core module. Here is what actually composes, with real sizes and what each part is
+core module. Stacked, it looks like this — everything above the line is verified wasm,
+composed into one module; below it is a tiny trusted native base:
+
+{% mermaid() %}
+flowchart TB
+  subgraph verified["verified wasm — meld-composed into one core module"]
+    direction TB
+    app["app component<br/>imports gale:kernel"]
+    os["gale-kiln · the OS<br/>exports gale:kernel — scheduler + sem·msgq·mutex·event"]
+    drv["7 thin-seam drivers<br/>uart · dma · gpio · timer · spi · i2c · adc"]
+    app --- os --- drv
+  end
+  drv ==>|"gust:hal/mmio — read32 · write32"| tcb
+  subgraph trusted["trusted native base"]
+    direction TB
+    tcb["~77-line TCB shim · 5 atoms<br/>vector table · SysTick · mmio / irq / dma"]
+    hw["Cortex-M · RISC-V silicon"]
+    tcb ==> hw
+  end
+
+  classDef ours fill:#242836,stroke:#6c8cff,color:#e1e4ed;
+  classDef trust fill:#161922,stroke:#4ade80,color:#e1e4ed;
+  class app,os,drv ours
+  class tcb,hw trust
+{% end %}
+
+Here is what actually composes, with real sizes and what each part is
 proven for:
 
 | component | flash | imports / exports | proven (Kani unless noted) |
@@ -137,11 +163,11 @@ flowchart TB
   lean["Lean-verified<br/>LRAT checker"]
   arm["native ARM / RISC-V"]
 
-  loom ==>|optimized wasm| synth ==> arm
-  loom -.->|wsc.facts: v∈[lo,hi], divisor≠0, shift<32| synth
-  synth -.->|"per-rule: WASM ≡ ARM ?"| ordeal
-  ordeal -.->|UNSAT + LRAT certificate| lean
-  lean -.->|accept ⇒ UNSAT| synth
+  loom ==>|"optimized wasm"| synth ==> arm
+  loom -.->|"wsc.facts — value-range, divisor≠0, shift-bound"| synth
+  synth -.->|"per-rule: WASM ≡ ARM?"| ordeal
+  ordeal -.->|"UNSAT + LRAT certificate"| lean
+  lean -.->|"accept ⇒ UNSAT"| synth
 
   classDef ours fill:#242836,stroke:#6c8cff,color:#e1e4ed;
   classDef trust fill:#161922,stroke:#4ade80,color:#e1e4ed;
@@ -191,51 +217,35 @@ synth, synth's queries land in ordeal, ordeal's certificates land in a checker w
 soundness is proven in a fourth. The verification isn't *in* a repo; it's *between*
 them.
 
-## No single repo's CI owns the seams
+## Status quo, and where it's heading
 
-Which is the whole problem. Every one of those repos can be internally green — tests
-pass, proofs close — and the property that spans them can still be wrong, because
-nothing between two repos is anyone's build gate.
+Both edges above are live today; the graph is still growing others. Where each part
+stands right now:
 
-We keep finding exactly this. These look like housekeeping; they are not — each is a
-claim one repo makes that only *another* repo, or the shipped artifact, can falsify.
-In one sweep this week:
+- **Composition → silicon** *(live).* The gust stack composes and runs bit-identical
+  on three chips (Cortex-M3, Cortex-M4, RISC-V). The wasm→native dissolve is
+  *differentially tested* against a reference semantics, not yet proven-equivalent —
+  the honest bound.
+- **Proof-carrying build** *(live, deepening).* loom→synth fact ingestion ships; the
+  guard-elision that dips below native LLVM's floor is flag-gated pending a silicon
+  re-measure. ordeal is synth's default solver, its checker Lean-verified; loom is
+  slated to move off Z3 onto ordeal next, making it *one* shared solver under the
+  whole build layer.
+- **A second runtime** *(next).* The shipped embedded path is synth's compile-to-native.
+  kiln is growing a `no_std` on-target interpreter beside it — partly to keep a
+  compiler out of the embedded certification base, partly for live migration a
+  compiled image can't do. Same component, a second way to run it.
+- **Attestation + coordination** *(being wired).* sigil is designed as the sink every
+  transformation signs into and rivet records; most of those edges are specified, not
+  yet live. agora already mirrors the agents' coordination into rivet as typed facts.
 
-- **[ordeal](https://github.com/pulseengine/ordeal)** — the shipped soundness proof is
-  complete and CI-gated, but its `lean/README.md` still says it's open. The repo
-  disagrees with itself.
-- **[scry](https://github.com/pulseengine/scry)** — the opposite: the engine is real
-  and its Rocq proofs admit-free, but the README still reads "v0.1.0, no real logic
-  yet." A repo *underselling* its code makes everything that cites it look inflated.
-- **[sigil](https://github.com/pulseengine/sigil)** — began as a hard fork of Frank
-  Denis's MIT-licensed `wasmsign2`, diverged ~18×, and carried no license or
-  attribution. A cross-repo *lineage* fact no per-repo check would flag.
-
-"Does this README match the shipped proof," "does synth's `ordeal = 0.4` match ordeal's
-actual API," "is this fork's license retained" — none are statements a single build can
-evaluate. They're architecture properties, and the architecture is the thing no single
-repo owns.
-
-## Checking it takes a fleet
-
-You cannot verify a graph one node at a time. So the check spans repos too: a fleet of
-agents sweeps *every* repo at once, reads each one's real source, and cross-references
-the claims — the README against the shipped proof, the website against each repo's
-honesty ledger, one repo's "we depend on X" against X's actual API.
-
-That's not hypothetical — it's how this post was built. A fleet mapped what each
-component ingests *today* (the sizes, the fact schema, the certificate flow above) and
-surfaced the drift as filed issues, the three above among them. And the coordination is
-becoming auditable: [agora](https://github.com/pulseengine/agora) mirrors the agents'
-own negotiation into rivet as typed facts — so "how the fleet coordinated" is a record,
-not folklore. (agora's still a spike; the direction is the point.)
-
-The pipeline was easy to verify because a line has no surprising interactions. A graph
-does — a proof handed across a repo boundary, a solver shared by three tools, an OS
-that only exists when five repos line up on a chip. Every one of those lives in the
-space *between* repositories. So that's where we've pointed the agents. The
-architecture is the thing no single repo owns; increasingly, it's the thing the fleet
-is there to check.
+The pattern under all of it: the interesting behaviour has moved into the edges
+*between* repositories — a proof handed across a boundary, a solver shared by three
+tools, an OS that only exists when five repos line up on a chip. A line has no
+surprising interactions; a graph does, and every one of them lives in the space
+between repos. That is the architecture now — not a stack of independent tools but a
+graph whose most load-bearing parts belong to no single repository, which is exactly
+why the whole is worth documenting as one thing.
 
 ---
 
