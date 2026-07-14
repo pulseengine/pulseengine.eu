@@ -2,7 +2,7 @@
 title = "From a browser tab to a real drone"
 description = "The same component set runs four ways: live in a browser tab, fused as one WebAssembly module, transcoded toward native ARM, and — the arc we're on now — onto a drone's flight controller. Portability isn't the headline. The honest one is what each boundary between them does, and doesn't yet, verify."
 date = 2026-07-13
-draft = true
+draft = false
 ready = true
 [taxonomies]
 tags = ["wasm", "embedded", "verification", "how-it-works"]
