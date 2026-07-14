@@ -207,22 +207,23 @@ lowering multiple linear memories to distinct native bases. So: the region math 
 proven; the on-silicon enforcement is designed and unbuilt, with the kill-criterion
 already written down — *a crafted tenant writes outside its region without a fault.*
 
-### Two ways to run it: dissolve, or interpret
+### Two ways to run it: dissolve, or host an interpreter
 
-Today there's one path, and it's the one this whole post described: **synth dissolves the
-composition to native** and it boots on the metal — no compiler, no interpreter, nothing
-dynamic on the device. That's the certified hot path.
+There's really **one compiler and one pipeline**:
+[synth](https://github.com/pulseengine/synth) dissolves wasm components to native at
+build time. That's how the OS reaches silicon today — the certified hot path, a static
+native image with nothing dynamic on the device.
 
-A second is planned, and — this is worth getting right — it is **not** "keep the compiler
-out of the certification base." The dissolve already keeps *both* the compiler and the
-interpreter off the device; synth runs at build time and ships a pure native image. The
-second path is about **tenants that move.** A dissolved native image can't checkpoint and
-migrate a *running* instance; an interpreter can. So
-[kiln](https://github.com/pulseengine/kiln) is set to grow a **`no_std` on-target
-interpreter** ([kiln#415](https://github.com/pulseengine/kiln/issues/415)) that runs the
-*same* verified components on the device — for the dynamically-loaded, migratable tenants
-the multi-tenant North Star needs, while the hot path stays dissolved. Two poles of one
-artifact, behind one WIT contract.
+The second path doesn't bypass that pipeline; it **runs through it.**
+[kiln](https://github.com/pulseengine/kiln), the interpreter, is *itself* a **`no_std`
+wasm component** ([kiln#415](https://github.com/pulseengine/kiln/issues/415)) — dissolve
+*it* to native the same way every other component is dissolved, and now the device
+carries an interpreter. That on-device kiln is what **loads and interprets further wasm
+components at runtime**: the dynamically-loaded, migratable tenants the multi-tenant
+North Star needs. (A dissolved native image can't checkpoint and migrate a *running*
+instance; an interpreter can.) wasm stays the universal IR and synth stays the single
+build-time compiler in the TCB — the only difference is whether a component is dissolved
+*ahead of time* or **loaded and interpreted on the device.**
 
 Interpreting on-device is exactly what makes **load-time trust** matter — and it's where
 [sigil](https://github.com/pulseengine/sigil) comes in.
@@ -239,21 +240,23 @@ failure on the bench, not a trap mid-mission.**
 
 {% mermaid() %}
 flowchart TB
-  wasm["one verified-wasm OS<br/>meld-fused · loom-optimized"]
-  synth["synth dissolves → native<br/>boots on the metal · today"]
+  os["OS component"]
+  kilnw["kiln interpreter<br/>no_std wasm component · planned"]
+  synth["synth dissolves → native<br/>one compiler, at build time"]
+  boot["native OS boots on the metal · today"]
+  onk["kiln, now native, on the device · planned"]
+  tenant["tenant wasm components<br/>migratable, loaded at runtime · planned"]
   bounds["scry bounds, sigil-signed<br/>in kiln.resource_limits · planned"]
-  gate["kiln loader verifies<br/>reject-at-load · planned"]
-  kiln["kiln interprets on-target<br/>migratable tenants · planned"]
 
-  wasm ==>|dissolve| synth
-  wasm -.->|load| gate
-  bounds -.-> gate
-  gate -.->|admit| kiln
+  os ==>|dissolve| synth ==> boot
+  kilnw -.->|same pipeline| synth -.-> onk
+  tenant -.->|"load → verify → reject-at-load"| onk
+  bounds -.-> onk
 
   classDef shipped fill:#242836,stroke:#4ade80,color:#e1e4ed;
   classDef planned fill:#161922,stroke:#8b90a0,stroke-dasharray:5 3,color:#b6bac8;
-  class wasm,synth shipped
-  class bounds,gate,kiln planned
+  class os,synth,boot shipped
+  class kilnw,onk,tenant,bounds planned
 {% end %}
 
 v0.2 runs and v0.3's drivers are proven; v0.4 and up are typed requirements in
