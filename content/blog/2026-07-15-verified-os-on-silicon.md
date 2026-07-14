@@ -51,11 +51,11 @@ The design idea is the driver row. Each driver is *verified wasm* that imports *
 Kani-proven logic over **two** trusted primitives, not 490 bytes you trust; adding a
 driver adds **zero new trusted atoms**.
 
-So the trusted native base stays small and fixed — a **~77-line Rust shim**: the vector
-table and reset, a one-line SysTick, and **five MMIO atoms** (`mmio_read32`,
-`mmio_write32`, `irq_poll`, plus `dma_program` / `dma_barrier`). That's the whole thing
-you trust. Everything else — scheduler, IPC, every driver — is verified wasm above the
-line.
+So the trusted native base stays small and fixed — a **~77-line Rust shim** with a
+**four-atom trusted base**: MMIO read, MMIO write, IRQ poll, and DMA transfer
+(`dma_program` + `dma_barrier`, the one atom that hands off a buffer). That's the whole
+thing you trust; the uart-only breadth node needs only three. Everything else —
+scheduler, IPC, every driver — is verified wasm above the line.
 
 ## How it composes
 
@@ -126,8 +126,8 @@ flowchart TB
   t["tenants · mutually-distrusting, MPU-isolated"]
   seam["gust:os · one typed syscall seam<br/>time · log · spawn · channel · io"]
   os["kiln scheduler + gale primitives<br/>semaphore closed · rest in progress"]
-  drv["drivers over gust:hal/mmio<br/>uart · dma today · + gpio timer spi i2c adc"]
-  tcb["~77-line native TCB · 5 atoms<br/>+ MPU regions"]
+  drv["drivers over gust:hal/mmio<br/>uart · dma today · gpio timer spi proven"]
+  tcb["~77-line native TCB · 4 atoms<br/>+ MPU regions (v0.5)"]
   hw["Cortex-M3 / M4 silicon"]
   t -.-> seam
   seam -.-> os
@@ -152,9 +152,10 @@ The path there is a ladder, honest about where each rung stands:
   (Verus + Rocq + Kani) and tested on hardware.
 - **v0.2 — the composition, on silicon** *(shipped — everything above).* App +
   scheduler + primitives + drivers, dissolved to one native image on three chips.
-- **v0.3 — driver breadth** *(next).* Prove the thin-seam model generalizes — GPIO,
-  timer, SPI as verified-wasm drivers over the same two-function seam, **zero new
-  trusted atoms**, fused into one node that still fits the F100's 8 KB.
+- **v0.3 — driver breadth** *(drivers proven; fusing).* GPIO, timer, SPI as
+  verified-wasm drivers over the same seam (Kani 4/4, 3/3, 6/6); four of them fuse into
+  one ~2.4 KB node at **three** trusted atoms and 0 SRAM — the thin-seam model
+  generalizing past uart + dma.
 - **v0.4 — the `gust:os` seam.** Replace ad-hoc imports with one typed syscall world:
   `time`, `log`, `spawn`, `channel`, `io`. The I/O is an **io_uring-shaped
   submit/completion queue** — *composed, not invented*, from parts already proven
@@ -164,8 +165,10 @@ The path there is a ladder, honest about where each rung stands:
   buffer lifecycle enforced by the Component-Model type system instead of tracked at
   runtime.
 - **v0.5 — isolation.** Two mutually-distrusting components in one image, each in its
-  own MPU region; a faulting tenant can't corrupt a sibling or the TCB — hardware
-  enforcement, not a trusted check. (Blocked on synth growing multi-memory lowering.)
+  own MPU region; a faulting tenant faults instead of corrupting a sibling — hardware
+  enforcement, not a trusted check. The region *arithmetic* is already proven (below);
+  the on-silicon programming is blocked on [synth carrying multiple memories to distinct
+  native bases](https://github.com/pulseengine/synth/issues/404).
 - **v1.0 — the OS, cut.** The whole composition, signed, booting the *same* components
   on Cortex-M3 and Cortex-M4.
 
@@ -175,43 +178,89 @@ the same two-function seam; MPU isolation is hardware, not new trusted code. The
 kill-criterion is literally an `nm` atom-count check — the day a *new* native bridge
 atom appears, the milestone fails.
 
-### Two ways to run it, both signed
+### Isolation, honestly
 
-The image reaches silicon by being **compiled to native** by synth — today's path. A
-second is planned: [kiln](https://github.com/pulseengine/kiln) growing a **`no_std`
-on-target interpreter**, so the same components can be *interpreted on the device*.
-Why two? A compiler sitting in the embedded certification base is exactly what
-DO-178C's design guidance warns against, and an interpreter can also do live migration
-a compiled image can't. Either way the artifact is **signed by
-[sigil](https://github.com/pulseengine/sigil)**, and the device **will check that
-signature before it runs anything** — *reject-at-load* (planned): the image carries
-memory and stack bounds that [scry](https://github.com/pulseengine/scry) computes and
-sigil signs in, so hardware that can't recompute them itself can still refuse an image
-that doesn't match.
+The v0.5 rung is where "verified OS" has to be most careful about proven versus planned.
+Today gale ships a **formally verified ARMv7-M MPU region model** (`src/mpu.rs`, proven
+in Verus *and* Lean): power-of-two sizing, a 32-byte minimum, base-alignment, and — the
+subtle one, from a hazard analysis finding — that `base + size` can't wrap the address
+space and silently defeat isolation:
+
+```rust
+pub fn validate_region(base: u32, size: u32) -> (result: bool)
+    ensures result ==> base as int + size as int <= u32::MAX as int,
+{
+    if size == 0 { return false; }
+    let power_of_two = (size & (size - 1)) == 0;
+    let min_size     = size >= MIN_REGION_SIZE;          // 32 bytes on ARMv7-M
+    let aligned      = (base & (size - 1)) == 0;
+    let no_overflow  = base.checked_add(size).is_some(); // UCA U-6: base+size must not wrap
+    power_of_two && min_size && aligned && no_overflow
+}
+```
+
+That mirrors Zephyr's `mpu_partition_is_valid()` line for line — but read it honestly:
+it's a proven model of the region *arithmetic*. It does not yet *program* an MPU
+register or *trap* a faulting tenant on silicon. That step — one MPU region per component
+memory, reprogrammed on context switch — is the v0.5 TCB work, and it's blocked on synth
+lowering multiple linear memories to distinct native bases. So: the region math is
+proven; the on-silicon enforcement is designed and unbuilt, with the kill-criterion
+already written down — *a crafted tenant writes outside its region without a fault.*
+
+### Two ways to run it: dissolve, or interpret
+
+Today there's one path, and it's the one this whole post described: **synth dissolves the
+composition to native** and it boots on the metal — no compiler, no interpreter, nothing
+dynamic on the device. That's the certified hot path.
+
+A second is planned, and — this is worth getting right — it is **not** "keep the compiler
+out of the certification base." The dissolve already keeps *both* the compiler and the
+interpreter off the device; synth runs at build time and ships a pure native image. The
+second path is about **tenants that move.** A dissolved native image can't checkpoint and
+migrate a *running* instance; an interpreter can. So
+[kiln](https://github.com/pulseengine/kiln) is set to grow a **`no_std` on-target
+interpreter** ([kiln#415](https://github.com/pulseengine/kiln/issues/415)) that runs the
+*same* verified components on the device — for the dynamically-loaded, migratable tenants
+the multi-tenant North Star needs, while the hot path stays dissolved. Two poles of one
+artifact, behind one WIT contract.
+
+Interpreting on-device is exactly what makes **load-time trust** matter — and it's where
+[sigil](https://github.com/pulseengine/sigil) comes in.
+[scry](https://github.com/pulseengine/scry) computes the hard bounds — shadow-stack
+depth, longest execution path — **host-side**, because the target can't recompute them.
+Those bounds ride in kiln's `kiln.resource_limits` section; sigil signs the whole module
+so the bounds are *covered* by the signature; and kiln's loader runs a **`no_std`,
+offline, key-based verify as one inseparable admission step** —
+[**reject-at-load**](https://github.com/pulseengine/kiln/issues/421) if the signature is
+invalid, the bounds section is missing, or the signed bounds exceed the device's
+RAM/stack budget ([sigil#187](https://github.com/pulseengine/sigil/issues/187)). The
+payoff is unglamorous and exactly right: a fixed-RAM overrun becomes an **integration
+failure on the bench, not a trap mid-mission.**
 
 {% mermaid() %}
 flowchart TB
-  wasm["the composed OS<br/>(fused + optimized wasm)"]
-  synth["synth → native<br/>compile · today"]
-  kiln["kiln interpreter<br/>on-target, no_std · planned"]
-  sigil["sigil signs<br/>image + scry's bounds"]
-  dev["device: verify signature<br/>reject-at-load · planned"]
-  run["runs on Cortex-M / RISC-V"]
+  wasm["one verified-wasm OS<br/>meld-fused · loom-optimized"]
+  synth["synth dissolves → native<br/>boots on the metal · today"]
+  bounds["scry bounds, sigil-signed<br/>in kiln.resource_limits · planned"]
+  gate["kiln loader verifies<br/>reject-at-load · planned"]
+  kiln["kiln interprets on-target<br/>migratable tenants · planned"]
 
-  wasm ==>|compile| synth ==> sigil
-  wasm -.->|interpret| kiln -.-> sigil
-  sigil ==> dev ==> run
+  wasm ==>|dissolve| synth
+  wasm -.->|load| gate
+  bounds -.-> gate
+  gate -.->|admit| kiln
 
   classDef shipped fill:#242836,stroke:#4ade80,color:#e1e4ed;
   classDef planned fill:#161922,stroke:#8b90a0,stroke-dasharray:5 3,color:#b6bac8;
-  class wasm,synth,sigil shipped
-  class kiln,dev planned
+  class wasm,synth shipped
+  class bounds,gate,kiln planned
 {% end %}
 
-None of v0.3–v1.0 is built; the roadmap is typed requirements in rivet, where readiness
-is a query over closed verification, not a calendar. But the shape is fixed and v0.2
-runs — a verified OS that dissolves to 3.5 KB on three real chips, with a path to a
-multi-tenant one that never grows what you trust.
+v0.2 runs and v0.3's drivers are proven; v0.4 and up are typed requirements in
+[rivet](https://github.com/pulseengine/rivet), where readiness is a query over closed
+verification (`rivet release status` goes non-zero until each V closes), not a calendar.
+The shape is fixed and v0.2 runs — a verified OS that dissolves to 3.5 KB on three real
+chips, with a path to a multi-tenant one that never grows what you trust.
 
 ---
 
