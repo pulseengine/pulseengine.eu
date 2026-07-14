@@ -20,39 +20,9 @@ fits together.
 
 ## The stack
 
-Everything above the line is verified wasm, composed by [meld](https://github.com/pulseengine/meld)
-into one core module; below it is the trusted native base — a thin capability seam and
-a tiny shim, and nothing else.
-
-{% mermaid() %}
-flowchart TB
-  subgraph verified["verified wasm — meld-composed into one core module"]
-    direction TB
-    app["app component · imports gale:kernel interfaces"]
-    subgraph galekiln["gale-kiln · one component · exports gale:kernel"]
-      direction TB
-      sched["kiln · cooperative scheduler"]
-      prims["gale primitives<br/>sem · msgq · mutex · event"]
-    end
-    drvbus["drivers · serial buses<br/>uart · spi · i2c"]
-    drvio["drivers · digital & timing<br/>gpio · timer · dma · adc"]
-    app --- galekiln
-    galekiln --- drvbus
-    drvbus --- drvio
-  end
-  drvio ==>|"gust:hal/mmio — read32 · write32"| tcb
-  subgraph trusted["trusted native base"]
-    direction TB
-    tcb["~77-line TCB shim · 5 atoms<br/>vector table · SysTick · mmio / irq / dma"]
-    hw["Cortex-M · RISC-V silicon"]
-    tcb ==> hw
-  end
-
-  classDef ours fill:#242836,stroke:#6c8cff,color:#e1e4ed;
-  classDef trust fill:#161922,stroke:#4ade80,color:#e1e4ed;
-  class app,sched,prims,drvbus,drvio ours
-  class tcb,hw trust
-{% end %}
+Every part of `gust` is a verified wasm component, composed by
+[meld](https://github.com/pulseengine/meld) and lowered to a single native image over
+one trusted native base — a thin capability seam and a ~77-line shim, and nothing else.
 
 An **app** component imports the `gale:kernel` interfaces (`sem`, `msgq`, `mutex`,
 `event`). A **gale-kiln** component *exports* them — that's the OS itself:
