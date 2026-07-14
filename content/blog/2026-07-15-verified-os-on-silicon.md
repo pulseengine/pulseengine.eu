@@ -28,14 +28,16 @@ a tiny shim, and nothing else.
 flowchart TB
   subgraph verified["verified wasm — meld-composed into one core module"]
     direction TB
-    app["app component · imports gale:kernel"]
-    sched["kiln · cooperative scheduler"]
-    prims["gale primitives → gale:kernel<br/>sem · msgq · mutex · event"]
+    app["app component · imports gale:kernel interfaces"]
+    subgraph galekiln["gale-kiln · one component · exports gale:kernel"]
+      direction TB
+      sched["kiln · cooperative scheduler"]
+      prims["gale primitives<br/>sem · msgq · mutex · event"]
+    end
     drvbus["drivers · serial buses<br/>uart · spi · i2c"]
     drvio["drivers · digital & timing<br/>gpio · timer · dma · adc"]
-    app --- sched
-    sched --- prims
-    prims --- drvbus
+    app --- galekiln
+    galekiln --- drvbus
     drvbus --- drvio
   end
   drvio ==>|"gust:hal/mmio — read32 · write32"| tcb
@@ -52,16 +54,18 @@ flowchart TB
   class tcb,hw trust
 {% end %}
 
-An **app** component imports the `gale:kernel` interface. A **gale-kiln** component
-*exports* it — that's the OS itself: [kiln](https://github.com/pulseengine/kiln)'s
-cooperative scheduler over [gale](https://github.com/pulseengine/gale)'s verified
-kernel primitives. The **drivers** import only the thin `gust:hal/mmio` capability.
-Each piece is built and verified on its own, with real sizes and real proofs:
+An **app** component imports the `gale:kernel` interfaces (`sem`, `msgq`, `mutex`,
+`event`). A **gale-kiln** component *exports* them — that's the OS itself:
+[kiln](https://github.com/pulseengine/kiln)'s cooperative scheduler over
+[gale](https://github.com/pulseengine/gale)'s verified kernel primitives. The
+**drivers** import only the thin `gust:hal/mmio` capability — the hardware-abstraction
+seam, two functions wide. Each piece is built and verified on its own, with real sizes
+and real proofs (Kani is a bounded model checker for Rust; Verus/Rocq where noted):
 
 | component | flash | imports / exports | proven (Kani unless noted) |
 |---|---|---|---|
-| `gale-app-demo` | ~0.6 KB | imports `gale:kernel` | the app's own logic |
-| `gale-kiln` (scheduler + primitives) | ~1.2 KB | **exports** `gale:kernel` | semaphore shipped (Verus + Rocq); rest in progress |
+| `gale-app-demo` | ~0.6 KB | imports `gale:kernel/*` | the app's own logic |
+| `gale-kiln` (scheduler + primitives) | ~1.2 KB | **exports** `gale:kernel/*` | semaphore shipped (Verus + Rocq); rest in progress |
 | `uart-thin` | 254 B | `gust:hal/mmio` + `irq` | RX-decision FSM over all 2³² status words |
 | `dma-own` | 218 B | + `dma` resource | ownership FSM, 6/6 (access-iff-owned, barrier-pairing, …) |
 | `gpio-thin` | 490 B | `gust:hal/mmio` | 4/4 (bounded, injective, mode-safe) |
@@ -89,10 +93,10 @@ Composition happens at build time — two typed components in, one native image 
 
 {% mermaid() %}
 flowchart TB
-  app["gale-app-demo · ~0.6 KB<br/>imports gale:kernel"]
-  kiln["gale-kiln · ~1.2 KB<br/>exports gale:kernel"]
-  fused["meld fuse → one core module<br/>shared memory · 0 memory.grow"]
-  opt["loom · inline + strip<br/>→ 240 B wasm"]
+  app["gale-app-demo · ~0.6 KB<br/>imports gale:kernel/*"]
+  kiln["gale-kiln · ~1.2 KB<br/>exports gale:kernel/*"]
+  fused["meld fuse → one component<br/>single shared memory"]
+  opt["loom · inline across seam + strip<br/>→ 240 B core module"]
   obj["synth compile → cortex-m3<br/>→ 668 B .text"]
   img["link + ~77-line native TCB<br/>~3.5 KB image · fits F100's 8 KB SRAM"]
 
@@ -106,12 +110,16 @@ flowchart TB
   class obj,img base
 {% end %}
 
-Upstream of `meld` it's separate components with typed WIT worlds. The instant `meld`
-resolves the app's `import gale:kernel` against gale-kiln's `export`, the boundaries are
-gone — [loom](https://github.com/pulseengine/loom) and
-[synth](https://github.com/pulseengine/synth) see one flat core module, and the shipped
-artifact has **no runtime underneath it at all**: a 668-byte kernel in a ~3.5 KB image,
-on the metal.
+Upstream of `meld` it's separate components with typed WIT worlds. `meld` resolves the
+app's imports of the `gale:kernel` interfaces against gale-kiln's exports into **one
+self-contained component** with a single shared linear memory;
+[loom](https://github.com/pulseengine/loom) then inlines across that now-internal seam,
+so [synth](https://github.com/pulseengine/synth) compiles what is effectively **one flat
+core module**. That last step is where the Component Model earns its keep: once the seam
+is internal, the canonical-ABI adapters and now-unreachable code strip away — the
+interface boundary costs *nothing* in the shipped image (it's how ~1.8 KB of input
+components fall to a 240-byte core). The result has **no runtime underneath it at all**:
+a 668-byte kernel in a ~3.5 KB image, on the metal.
 
 ## Does the native code still do what the wasm did?
 
@@ -130,18 +138,18 @@ STM32F100), **1.45×** (Cortex-M4, Nucleo G474RE), **1.84×** (RISC-V, ESP32-C3)
 
 ## What it buys
 
-The point of composing an OS this way is the shape of the trust: **verified logic all
-the way up, a tiny fixed native base at the bottom, and no runtime in between.** A new
-peripheral is a new verified-wasm driver over the same two-function seam — it doesn't
-grow the thing you trust. And because the components dissolve to native, you pay
-nothing at runtime for the abstraction: one small image, on the metal.
+The shape of the trust: **verified logic all the way up, a tiny fixed native base at the
+bottom, no runtime in between.** A new peripheral is a new verified-wasm driver over the
+same two-function seam — it doesn't grow what you trust, and because the components
+dissolve to native, it costs nothing at runtime.
 
 ## The architecture, and where it's headed
 
 v0.2 is a deliberate rung, not the destination. The **North Star is a general
-multi-tenant verified OS**: mutually-distrusting components on one chip, each in its own
-MPU region, each holding only the capabilities it's granted — all over the same thin
-TCB. Here is that v1.0 target, and how far it is today:
+multi-tenant verified OS**: mutually-distrusting components on one chip, each fenced into
+its own MPU region (Memory Protection Unit — the hardware that traps out-of-bounds
+access), each holding only the capabilities it's granted — all over the same thin TCB.
+Here is that v1.0 target, and how far it is today:
 
 {% mermaid() %}
 flowchart TB
@@ -180,8 +188,9 @@ The path there is a ladder, honest about where each rung stands:
 - **v0.4 — the `gust:os` seam.** Replace ad-hoc imports with one typed syscall world:
   `time`, `log`, `spawn`, `channel`, `io`. The I/O is an **io_uring-shaped
   submit/completion queue** — *composed, not invented*, from parts already proven
-  (`gale::msgq` for the rings, kiln for the executor, the driver seam for the device,
-  `dma-own`'s `own<buffer>` for registered buffers), with the "valid until complete"
+  (`gale:kernel/msgq` for the rings, kiln for the executor, the driver seam for the
+  device, `dma-own`'s `own<buffer>` — an ownership-typed buffer handle — for registered
+  buffers), with the "valid until complete"
   buffer lifecycle enforced by the Component-Model type system instead of tracked at
   runtime.
 - **v0.5 — isolation.** Two mutually-distrusting components in one image, each in its
@@ -193,7 +202,7 @@ The path there is a ladder, honest about where each rung stands:
 The invariant that makes the ladder tractable is the one from the driver row: **it
 grows without growing the trusted base.** Every new capability is verified wasm over
 the same two-function seam; MPU isolation is hardware, not new trusted code. The
-kill-criterion is literally an `nm` atom-count check — the day a fourth native bridge
+kill-criterion is literally an `nm` atom-count check — the day a *new* native bridge
 atom appears, the milestone fails.
 
 ### Two ways to run it, both signed
@@ -204,10 +213,11 @@ on-target interpreter**, so the same components can be *interpreted on the devic
 Why two? A compiler sitting in the embedded certification base is exactly what
 DO-178C's design guidance warns against, and an interpreter can also do live migration
 a compiled image can't. Either way the artifact is **signed by
-[sigil](https://github.com/pulseengine/sigil)**, and the device **verifies that
-signature before it runs** — *reject-at-load*, keyed to memory and stack bounds that
-[scry](https://github.com/pulseengine/scry) computed and sigil signed into the image,
-on hardware that can't recompute them itself.
+[sigil](https://github.com/pulseengine/sigil)**, and the device **will check that
+signature before it runs anything** — *reject-at-load* (planned): the image carries
+memory and stack bounds that [scry](https://github.com/pulseengine/scry) computes and
+sigil signs in, so hardware that can't recompute them itself can still refuse an image
+that doesn't match.
 
 {% mermaid() %}
 flowchart TB
