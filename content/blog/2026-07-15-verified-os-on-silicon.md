@@ -28,12 +28,17 @@ a tiny shim, and nothing else.
 flowchart TB
   subgraph verified["verified wasm — meld-composed into one core module"]
     direction TB
-    app["app component<br/>imports gale:kernel"]
-    os["gale-kiln · the OS<br/>exports gale:kernel — scheduler + sem·msgq·mutex·event"]
-    drv["7 thin-seam drivers<br/>uart · dma · gpio · timer · spi · i2c · adc"]
-    app --- os --- drv
+    app["app component · imports gale:kernel"]
+    sched["kiln · cooperative scheduler"]
+    prims["gale primitives → gale:kernel<br/>sem · msgq · mutex · event"]
+    drvbus["drivers · serial buses<br/>uart · spi · i2c"]
+    drvio["drivers · digital & timing<br/>gpio · timer · dma · adc"]
+    app --- sched
+    sched --- prims
+    prims --- drvbus
+    drvbus --- drvio
   end
-  drv ==>|"gust:hal/mmio — read32 · write32"| tcb
+  drvio ==>|"gust:hal/mmio — read32 · write32"| tcb
   subgraph trusted["trusted native base"]
     direction TB
     tcb["~77-line TCB shim · 5 atoms<br/>vector table · SysTick · mmio / irq / dma"]
@@ -43,7 +48,7 @@ flowchart TB
 
   classDef ours fill:#242836,stroke:#6c8cff,color:#e1e4ed;
   classDef trust fill:#161922,stroke:#4ade80,color:#e1e4ed;
-  class app,os,drv ours
+  class app,sched,prims,drvbus,drvio ours
   class tcb,hw trust
 {% end %}
 
@@ -191,11 +196,37 @@ the same two-function seam; MPU isolation is hardware, not new trusted code. The
 kill-criterion is literally an `nm` atom-count check — the day a fourth native bridge
 atom appears, the milestone fails.
 
-Even *loading* an image is meant to be verified rather than trusted:
-[scry](https://github.com/pulseengine/scry) computes the memory and stack bounds
-host-side, [sigil](https://github.com/pulseengine/sigil) signs them into the module,
-and kiln checks that signature before it believes the bounds — reject-at-load, on a
-device that can't recompute them itself.
+### Two ways to run it, both signed
+
+The image reaches silicon by being **compiled to native** by synth — today's path. A
+second is planned: [kiln](https://github.com/pulseengine/kiln) growing a **`no_std`
+on-target interpreter**, so the same components can be *interpreted on the device*.
+Why two? A compiler sitting in the embedded certification base is exactly what
+DO-178C's design guidance warns against, and an interpreter can also do live migration
+a compiled image can't. Either way the artifact is **signed by
+[sigil](https://github.com/pulseengine/sigil)**, and the device **verifies that
+signature before it runs** — *reject-at-load*, keyed to memory and stack bounds that
+[scry](https://github.com/pulseengine/scry) computed and sigil signed into the image,
+on hardware that can't recompute them itself.
+
+{% mermaid() %}
+flowchart TB
+  wasm["the composed OS<br/>(fused + optimized wasm)"]
+  synth["synth → native<br/>compile · today"]
+  kiln["kiln interpreter<br/>on-target, no_std · planned"]
+  sigil["sigil signs<br/>image + scry's bounds"]
+  dev["device: verify signature<br/>reject-at-load · planned"]
+  run["runs on Cortex-M / RISC-V"]
+
+  wasm ==>|compile| synth ==> sigil
+  wasm -.->|interpret| kiln -.-> sigil
+  sigil ==> dev ==> run
+
+  classDef shipped fill:#242836,stroke:#4ade80,color:#e1e4ed;
+  classDef planned fill:#161922,stroke:#8b90a0,stroke-dasharray:5 3,color:#b6bac8;
+  class wasm,synth,sigil shipped
+  class kiln,dev planned
+{% end %}
 
 None of v0.3–v1.0 is built; the roadmap is typed requirements in rivet, where readiness
 is a query over closed verification, not a calendar. But the shape is fixed and v0.2
