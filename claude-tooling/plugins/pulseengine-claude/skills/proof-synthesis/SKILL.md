@@ -3,7 +3,7 @@ name: proof-synthesis
 description: This skill should be used when writing, repairing, or strengthening a machine-checked proof, spec, contract, or invariant in ANY PulseEngine verification backend — Verus (SMT/Z3), Rocq/Coq, Lean 4, Dafny, Kani (bounded model checking), or scry (sound abstract interpretation) — and whenever a proof obligation, assertion, or verification job is failing and needs an iterative generate→verify→refine loop. Backend-agnostic by design: the verifier's own output is the oracle, never an LLM's opinion. Fires across gale, scry, the rules_* proof toolchains, and any repo that carries proofs. Use it for the production of proofs; pair it with oracle-gate-a-change (the verifier is the gate) and stpa-audit/feature-loop (which say *what* must be proven).
 metadata:
   author: pulseengine.eu
-  version: "0.4.0"
+  version: "0.4.1"
 ---
 
 # Proof synthesis
@@ -30,8 +30,9 @@ subagents ([`clean-room-verification`]), rather than trusting your own running t
 
 1. **Specify first.** Write the property/contract/invariant *before* the proof.
    This is the hard part and the usual failure point: on CLEVER (161 Lean
-   problems) no SOTA agent end-to-end-verifies more than **1**, with
-   *spec-equivalence* the dominant wall ([arXiv 2505.13938](https://arxiv.org/pdf/2505.13938)).
+   problems, each demanding a proven-equivalent spec *and* a verified impl) SOTA
+   agents "struggle to achieve full verification," with getting the **spec** right
+   — not the proof — a first-class hard task ([arXiv 2505.13938](https://arxiv.org/pdf/2505.13938)).
    A proof of the wrong spec is worse than no proof. Have the spec itself
    reviewed cold ([`clean-room-verification`]) — "is this the property we
    actually need?" — before sinking effort into proving it.
@@ -60,7 +61,7 @@ It is the concrete instantiation of [`oracle-gate-a-change`] for proofs.
 |---|---|---|---|
 | **Verus** | `cargo verus verify` / `verus` | SMT failure, failing `ensures`/`requires`, timeout | watch quantifier triggers; split lemmas when Z3 times out |
 | **Rocq / Coq** | `rocq`/`coqc`, `dune build` | remaining proof goal / tactic failure | decide *when to query the prover vs. predict a tactic*, keep a proof-tree (AutoRocq, [arXiv 2511.17330](https://arxiv.org/pdf/2511.17330)) |
-| **Lean 4** | `lake build` / `lean` | unsolved goals, `sorry` left | autoformalize NL→spec as a *biconditional* and prove equivalence ([arXiv 2511.11829](https://arxiv.org/pdf/2511.11829)) |
+| **Lean 4** | `lake build` / `lean` | unsolved goals, `sorry` left | autoformalize NL→spec, then *prove it equivalent* to the intended spec — not just plausible (CLEVER's spec-match task, [arXiv 2505.13938](https://arxiv.org/pdf/2505.13938)) |
 | **Dafny** | `dafny verify` | failing assertion / postcondition | strong source for cross-language bootstrap (below) |
 | **Kani** | `cargo kani` | counterexample trace | bounded — record the bound; absence of CEX ≠ unbounded proof |
 | **scry** | the abstract-interpretation run | unproven invariant / lost precision | soundness is the property; widening/narrowing tuning is the "refine" step |
