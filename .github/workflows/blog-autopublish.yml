@@ -129,6 +129,7 @@ jobs:
         run: |
           set -euo pipefail
           published='[]'
+          stuck='[]'
           today=$(date -u +%Y-%m-%d)
 
           # Iterate each ready post, one PR per post.
@@ -153,17 +154,42 @@ jobs:
               --label autopublish)
             pr_num=$(echo "$pr_url" | grep -oE '[0-9]+$')
 
-            # Squash-merge directly. If branch protections require checks,
-            # fall back to --auto so the merge happens once CI passes.
-            gh pr merge "$pr_num" --squash --delete-branch || \
-              gh pr merge "$pr_num" --auto --squash --delete-branch
+            # Merge, then VERIFY the outcome — do NOT trust the merge
+            # command's exit code. Arming --auto returns 0 even when the PR
+            # stays BLOCKED, which previously reported a stuck PR as success
+            # and left the post unpublished while the run went green.
+            #
+            # With the pulseengine-actions-helper ruleset bypass in place the
+            # direct squash merge succeeds outright; --auto stays a genuine
+            # fallback for a future repo that adds required status checks.
+            gh pr merge "$pr_num" --squash --delete-branch \
+              || gh pr merge "$pr_num" --auto --squash --delete-branch \
+              || true
 
-            published=$(echo "$published" | jq --arg s "$slug" --arg p "$pr_num" '. + [{slug: $s, pr: $p}]')
+            state=$(gh pr view "$pr_num" --json state --jq '.state')
+            auto=$(gh pr view "$pr_num" --json autoMergeRequest --jq '.autoMergeRequest != null')
+            if [ "$state" = "MERGED" ]; then
+              published=$(echo "$published" | jq --arg s "$slug" --arg p "$pr_num" '. + [{slug: $s, pr: $p}]')
+            elif [ "$auto" = "true" ]; then
+              echo "::warning::PR #${pr_num} (${slug}) not merged yet — auto-merge is armed; it will land once required checks pass."
+            else
+              echo "::error::PR #${pr_num} (${slug}) did not merge (state=${state}, auto-merge not armed). Branch protection is likely blocking the pulseengine-actions-helper app — check the repo ruleset bypass."
+              stuck=$(echo "$stuck" | jq --arg s "$slug" --arg p "$pr_num" '. + [{slug: $s, pr: $p}]')
+            fi
+
             git checkout main
             git pull --ff-only origin main
           done < <(jq -r '.ready[] | [.path, .slug] | @tsv' /tmp/inventory.json)
 
           echo "$published" > /tmp/published.json
+
+          # Fail the run if any ready post opened a PR but did not actually
+          # merge, so the failure issue opens instead of the run going green
+          # with posts left stuck as open PRs.
+          if [ "$(echo "$stuck" | jq 'length')" -gt 0 ]; then
+            echo "::error::Stuck (opened but not merged): $(echo "$stuck" | jq -c '[.[].slug]')"
+            exit 1
+          fi
 
       - name: Render status report
         if: always()
