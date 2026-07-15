@@ -96,6 +96,7 @@ notes publish until the asset upload lands — pick one and keep it consistent.
 
 ### 8. Release tail cleanup
 - Doc updates, version bumps in dependent repos, milestone close-out, follow-up issues opened for known-deferred items.
+- **Sweep the residue this release left** with [`repo-hygiene`] — stale worktrees, squash-merged branches git can't see as merged, orphaned per-agent build caches, and the issue board (close what shipped on this tag). A release tick is exactly when the worktree/branch set is unambiguous; run the sweep here so residue doesn't compound into the next campaign.
 - This is where most teams quit too early. Don't.
 
 ## Forks where you stop and ask
