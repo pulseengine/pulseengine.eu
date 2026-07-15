@@ -21,57 +21,62 @@ stage is early, we say so.
 
 ## The pipeline at a glance
 
+Read the **thick arrows** as the component flowing through the pipeline, and the
+**dashed arrows** as proofs, evidence, and coordination flowing *between* stages —
+the edges that turned the line into a graph.
+
 {% mermaid() %}
 flowchart TB
-  spar["spar<br/>design"]
-  code["component code<br/>Rust → wasm"]
-  meld["meld · fuse"]
-  loom["loom · optimize"]
-  kiln["kiln<br/>interpret &amp; run wasm"]
-  synth["synth<br/>transcode → native ARM / RISC-V"]
-  gale["gale<br/>verified primitives → gust"]
+  spar["spar<br/>architecture"]
+  code["components<br/>Rust → wasm"]
+  meld["meld<br/>fuse"]
+  loom["loom<br/>optimize"]
+  synth["synth<br/>compile → native"]
+  kiln["kiln<br/>interpret (host)"]
+  gale["gale → gust<br/>verified OS · on real silicon"]
+  apps["relay · wohl · jess"]
+  verify{{"Verify gate<br/>Verus · Rocq · Lean<br/>scry · witness · ordeal"}}
   sigil["sigil<br/>sign · attest"]
-  apps["relay · wohl · jess<br/>applications"]
+  agora["agora<br/>agent coordination"]
   rivet[("rivet<br/>traceability spine")]
-  vext{{"Verus · Rocq · Lean<br/>external proof engines"}}
-  vours{{"scry · witness · ordeal<br/>our verifiers"}}
 
-  spar -->|WIT · skeletons| code
-  code --> meld --> loom
-  loom -->|run as wasm| kiln
-  loom -->|transcode| synth --> gale
-  kiln --> apps
-  gale --> apps
-  loom --> sigil --> apps
-  vext -. gates .-> loom
-  vours -. gates .-> loom
-  spar -. artifacts .-> rivet
-  vours -. evidence .-> rivet
-  apps -. evidence .-> rivet
+  spar ==>|WIT + skeletons| code ==> meld ==> loom
+  loom ==>|compile| synth ==> gale
+  loom -.->|interpret · on-target planned| kiln
+  gale ==> apps
+
+  loom -.->|proofs · wsc.facts| synth
+  verify -.->|gates every stage| loom
+  loom -.-> sigil
+  synth -.-> sigil
+  sigil -.->|signed evidence| rivet
+  verify -.->|evidence| rivet
+  agora -.->|coordination facts| rivet
+  spar -.->|typed artifacts| rivet
 
   classDef ours fill:#242836,stroke:#6c8cff,color:#e1e4ed;
-  classDef ext fill:#161922,stroke:#8b90a0,stroke-dasharray:4 3,color:#b6bac8;
+  classDef gate fill:#161922,stroke:#4ade80,color:#e1e4ed;
   classDef spine fill:#242836,stroke:#fbbf24,color:#e1e4ed;
-  class spar,code,meld,loom,kiln,synth,gale,sigil,apps,vours ours
-  class vext ext
+  classDef agent fill:#242836,stroke:#c084fc,color:#e1e4ed;
+  class spar,code,meld,loom,synth,kiln,gale,apps,sigil ours
+  class verify gate
   class rivet spine
+  class agora agent
 {% end %}
 
-A few reading notes:
+Reading it:
 
-- **Blue nodes are PulseEngine's own tools; dashed grey are external engines we
-  build on** — Verus (and Z3), Rocq, Lean, plus Sigstore, Aeneas, and the forked
-  upstreams. We own the composition and the checkers around them, not the engines
-  themselves.
-- **Two ways to run the wasm:** kiln *interprets* it directly, or synth
-  *transcodes* it to native for bare-metal targets — the same component, two
-  runtimes.
-- **rivet** is the traceability spine (amber): every stage's evidence is a typed
-  artifact it links into a V-model and re-checks each commit — *traceability
-  integrity*, not that a test actually exercises its requirement.
-- **Verify is a gate, not a stage:** the external proof engines and our own
-  verifiers (scry, witness, ordeal) run in CI and turn the build red when the
-  evidence isn't there.
+- **The component pipeline (thick):** components fuse (meld), optimize (loom), then
+  reach real silicon by being *compiled to native* by synth — that's gale's `gust`,
+  bit-identical on three chips today. kiln *interprets* the same component (on the
+  host now; an on-target `no_std` interpreter is the dashed, in-progress path).
+- **The graph edges (dashed) are the news.** loom now hands synth the invariants it
+  *proved* (`wsc.facts`); the **Verify gate** (green) blocks the build when the
+  evidence isn't there; and every stage's evidence — plus the agents' own
+  **coordination** (purple, via agora) — lands in **rivet** (amber), the traceability
+  spine. These edges span *repositories*; no single repo's CI owns them.
+- **Blue is ours; the external engines we build on** — Verus, Z3, Rocq, Lean,
+  Sigstore, Aeneas — live inside the Verify and Attest steps, not as separate nodes.
 
 ## Following the flow
 
