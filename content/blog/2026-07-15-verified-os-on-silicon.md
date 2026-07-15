@@ -3,6 +3,7 @@ title = "A verified OS, composed to 3.5 KB on real silicon"
 description = "gust is a small RTOS — a cooperative scheduler, the classic primitives (semaphore, mutex, message queue, event), and device drivers — built entirely from verified WebAssembly components. They don't run on a runtime; they compose at build time into one native image of about 3.5 KB, bit-identical on three real chips, over a trusted base of ~77 lines. Here's how it fits together."
 date = 2026-07-15
 draft = true
+ready = false
 [taxonomies]
 tags = ["wasm", "embedded", "verification", "how-it-works"]
 authors = ["Ralf Anton Beier"]
