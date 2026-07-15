@@ -120,6 +120,11 @@ does not block forever. For unattended loops, follow the autonomous-run rules in
 promise), ground claims in tool results, and don't pause to ask permission
 mid-loop for reversible, in-scope actions.
 
+On an **idle tick** — a pass where nothing is new since the watermark — fire
+[`repo-hygiene`] instead of spinning: the issue board is the same surface this
+loop watermarks, so hygiene closes what shipped (and sweeps worktree/branch/cache
+residue the loop accreted) while the next pass triages what's new.
+
 ## Disposition (hybrid)
 
 The **digest / triage** half is explorer work — judgment about what an issue
