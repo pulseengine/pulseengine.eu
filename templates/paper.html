@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}{{ page.title }} — {{ config.title }}{% endblock %}
+{% block description %}{{ page.description }}{% endblock %}
+
+{% block head_extra %}
+<style>
+  /* Preprint sheet — a light "paper" on the dark site, arXiv-flavoured. */
+  .paper {
+    background: #faf9f6;
+    color: #1b1b1b;
+    max-width: 45rem;
+    margin: 2.5rem auto 4rem;
+    padding: 3.2rem 3.4rem;
+    border-radius: 4px;
+    box-shadow: 0 3px 30px rgba(0, 0, 0, .45);
+    font-family: Georgia, "Times New Roman", Times, serif;
+    font-size: 1.02rem;
+    line-height: 1.55;
+    text-align: justify;
+    hyphens: auto;
+  }
+  .paper__head { text-align: center; margin-bottom: 2rem; }
+  .paper__title {
+    font-size: 1.55rem; line-height: 1.25; font-weight: 700;
+    color: #111; margin: 0 0 .8rem; letter-spacing: -0.01em;
+  }
+  .paper__authors { font-size: 1.05rem; color: #1b1b1b; }
+  .paper__affil { font-size: .92rem; color: #555; margin-top: .15rem; }
+  .paper__meta { font-size: .8rem; color: #777; margin-top: .5rem; font-style: italic; }
+  .paper__content h2 {
+    font-family: Georgia, serif; font-size: 1.18rem; font-weight: 700;
+    color: #111; margin: 2.1rem 0 .6rem; border: 0;
+  }
+  .paper__content h3 { font-size: 1.02rem; font-weight: 700; color: #111; margin: 1.3rem 0 .4rem; }
+  .paper__content a { color: #0b4f9e; text-decoration: none; border-bottom: 1px solid rgba(11,79,158,.3); }
+  .paper__content a:hover { border-bottom-color: #0b4f9e; }
+  .paper__content code {
+    background: #ecebe4; color: #333; padding: .05em .32em; border-radius: 3px;
+    font-family: "Atkinson Hyperlegible Mono", ui-monospace, monospace; font-size: .82em;
+  }
+  .paper__content pre {
+    background: #f1efe8; border: 1px solid #e2e0d6; border-radius: 4px;
+    padding: 1rem 1.1rem; overflow-x: auto; text-align: left;
+  }
+  .paper__content pre code { background: none; padding: 0; }
+  .paper__content blockquote {
+    margin: 1rem 0; padding: .5rem 1rem; border-left: 3px solid #c9c6ba;
+    color: #444; font-style: italic;
+  }
+  .paper__content ol, .paper__content ul { padding-left: 1.6rem; }
+  .paper__content li { margin: .25rem 0; }
+  .paper__content hr { border: 0; border-top: 1px solid #ddd; margin: 2rem 0; }
+  /* References: hanging-indent numbered list feel */
+  .paper__content h2#references + ol { font-size: .9rem; line-height: 1.45; }
+  @media (max-width: 640px) { .paper { padding: 2rem 1.3rem; } }
+</style>
+{% endblock %}
+
+{% block content %}
+<article class="paper">
+  <header class="paper__head">
+    <h1 class="paper__title">{{ page.title }}</h1>
+    {% if page.taxonomies.authors %}
+    <div class="paper__authors">{{ page.taxonomies.authors | join(sep=", ") }}</div>
+    {% endif %}
+    <div class="paper__affil">PulseEngine — pulseengine.eu</div>
+    <div class="paper__meta">Preprint · open for review · {{ page.date | date(format="%B %Y") }}</div>
+  </header>
+  <div class="paper__content">
+    {{ page.content | safe }}
+  </div>
+</article>
+{% endblock %}
