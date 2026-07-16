@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %}{{ section.title }} — {{ config.title }}{% endblock %}
+{% block description %}{{ section.description }}{% endblock %}
+
+{% block content %}
+<div class="container">
+  <header class="section-head">
+    <h1>{{ section.title }}</h1>
+    <p class="section-head__desc">{{ section.description }}</p>
+  </header>
+
+  {% if section.pages %}
+  <div class="grid">
+    {% for page in section.pages %}
+    <a href="{{ page.permalink }}" class="glass-card glass-card--link">
+      <div class="blog-card__date">
+        {{ page.date | date(format="%B %d, %Y") }}{% if page.draft %} · draft{% endif %}
+      </div>
+      <div class="glass-card__title">{{ page.title }}</div>
+      <div class="glass-card__desc">{{ page.description }}</div>
+    </a>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p>No preprints published yet.</p>
+  {% endif %}
+</div>
+{% endblock %}
