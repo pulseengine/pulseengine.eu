@@ -86,6 +86,19 @@ def check_claim(c, root):
                     f'trusted base grew: {n} > recorded max {ev["max"]}  '
                     f'[/{ev["pattern"]}/]  — update the claim, not the number'
                 )
+        elif kind == "count-min":
+            # PRESENCE claim: the pattern MUST appear >= min times. The dual of
+            # count-max (which greens a 0-match, since 0 > max is false). Catches
+            # DRIFT-TO-ABSENT — a string the doc asserts that the source no longer
+            # carries (e.g. a version bumped in Cargo.toml the README still names).
+            n, matched = _count(ev["pattern"], ev["glob"], root)
+            if not matched:
+                fails.append(f'predicate matched NO files (measures nothing): glob {ev["glob"]}')
+            elif n < ev["min"]:
+                fails.append(
+                    f'claim evidence absent: {n} < required min {ev["min"]}  '
+                    f'[/{ev["pattern"]}/]  — the doc asserts it; the source no longer carries it'
+                )
         elif kind == "no-new":
             n, matched = _count(ev["pattern"], ev["glob"], root)
             if not matched:

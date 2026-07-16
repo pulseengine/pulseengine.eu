@@ -43,3 +43,17 @@ claims:
     evidence:
       - kind: file-exists
         path: crates/falcon-esc-dshot/src/kani_proofs.rs
+
+  # A PRESENCE claim: the README's version string must really be the shipped one.
+  # The obvious binding — count-max over Cargo.toml — SILENTLY GREENS a drift: when
+  # the version bumps, the pattern matches 0 times and `0 > max` is false. Presence
+  # / must-exist claims use count-min (fail when n < min), which bites the moment
+  # the source stops carrying the string the doc asserts.
+  - id: STATUS-VERSION
+    doc: README.md
+    text: "v3.2.4 shipped"
+    evidence:
+      - kind: count-min                        # Cargo.toml MUST still carry this exact version
+        pattern: 'version = "3\.2\.4"'
+        glob: ['Cargo.toml']
+        min: 1                                 # bump the version → 0 matches → RED (drift caught)

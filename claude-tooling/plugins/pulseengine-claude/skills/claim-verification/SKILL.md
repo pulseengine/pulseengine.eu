@@ -3,7 +3,7 @@ name: claim-verification
 description: This skill should be used whenever writing or editing a README, a badge, a project description, a blog claim, an honesty ledger, a dossier, or ANY document that asserts what the system does, is, or proves — especially verification claims ("formally verified", "proven", "sound", "verified N/N", trusted-base counts). It treats a document's load-bearing claims as requirements that must stay true over time: mark the assertion, bind it to checkable evidence, and gate it so drift fails the build. Use it to author an honest claim, to audit a doc whose claims may have drifted from reality, or to stand up the claim-check gate in a repo. Composes with traceability-audit (requirements↔tests), oracle-gate-a-change (the gate), and clean-room-verification (review the claim cold).
 metadata:
   author: pulseengine.eu
-  version: "0.1.0"
+  version: "0.2.0"
 ---
 
 # Claim verification
@@ -35,8 +35,13 @@ commit.*
 2. **Bind each claim to evidence a machine can re-derive** — never a number typed in
    prose (it goes stale the day the code changes). Evidence is a predicate:
    - `file-exists` — the proof/harness the claim rests on is present.
-   - `count-max` — re-count `external_body` / `admit` / `sorry` / `assume` from the
-     *actual source*; fail if it exceeds the recorded trusted-base size.
+   - `count-max` — an *upper bound*: re-count `external_body` / `admit` / `sorry` /
+     `assume` from the *actual source*; fail if it exceeds the recorded trusted-base
+     size. Use it only for growth claims — it greens a 0-match (`0 > max` is false),
+     so it must **not** gate a presence claim.
+   - `count-min` — the *presence* dual: fail when the pattern appears *fewer* than
+     `min` times. Use for must-exist claims (a version string, a required proof
+     marker) — it catches drift-to-absent, which `count-max` silently passes.
    - `no-new` — no new `sorry`/`admit` since the ledger's recorded count.
    - `badge` / `verbatim` — the README badge/tagline matches the ledger's honest
      wording exactly (a badge can't say "Formally Verified" while the ledger says
