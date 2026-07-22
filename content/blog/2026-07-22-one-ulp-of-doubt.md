@@ -2,8 +2,8 @@
 title = "One ulp of doubt"
 description = "A colleague asked whether our flight-control code should carry 32-bit floats or 64. Answering it honestly took a CI gate, 2.2 billion test cases, and a machine-checked proof — and each one caught something the last had missed. A small story about the three different things 'we verified it' can mean."
 date = 2026-07-22
-draft = true
-ready = false
+draft = false
+ready = true
 [taxonomies]
 tags = ["verification", "floating-point", "embedded", "how-it-works"]
 authors = ["Ralf Anton Beier"]
