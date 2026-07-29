@@ -1,8 +1,8 @@
 +++
 title = "Closing the other half"
 description = "Last time we published a proof and an honest paragraph about what it did not cover. This is the follow-up: the missing half is proven — but first the tool didn't work, then the compiler refused a fix, and the cosine turned out ten times better than the sine."
-date = 2026-07-30
-draft = true
+date = 2026-07-29
+draft = false
 ready = true
 [taxonomies]
 tags = ["verification", "floating-point", "embedded", "how-it-works"]
@@ -167,7 +167,11 @@ running as required checks:
 | | rounding (Gappa) | approximation (Coq-Interval) |
 |---|---|---|
 | **sine** | ≤ 2⁻²⁴ | ≤ 1e-8 |
-| **cosine** | ≤ 2⁻²³ | ≤ 1e-9 |
+| **cosine** | ≤ 2⁻²³ | ≤ 1e-9 * |
+
+<small>\* The cosine approximation bound is proven and checked by CI, but at the
+time of writing it is still in review rather than merged — so treat that one cell
+as "landing", not "landed". We would rather say that than round it up.</small>
 
 And the boundary, stated as carefully as before:
 
