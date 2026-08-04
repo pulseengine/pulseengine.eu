@@ -362,27 +362,45 @@ export function read32(addr) {
 <section class="slide">
   <p class="slide__act">Act IV &middot; the factory</p>
   <h2>No stage trusts the one above it</h2>
-  <p>When <code>loom</code> proves a value range, it does not just use it and
-  discard it. It writes it into a custom section — <code>wsc.facts</code> — keyed
-  to <em>values</em>, not positions, so renumbering cannot silently re-point a fact.</p>
-  <p><code>synth</code> never re-derives that fact and never takes it on faith. It
-  proves its own specialization correct <em>given</em> the fact, per site, and
-  emits a certificate.</p>
+  <p>When <code>loom</code> proves a value range it does not discard it. It writes
+  it into a custom section — and the whole channel is nine bytes:</p>
+  <pre class="evidence"><span class="dim">custom section "wsc.facts"</span>
+01              <span class="dim">schema v1</span>
+01              <span class="dim">one fact</span>
+  01            <span class="dim">kind = value-range</span>
+  03            <span class="dim">func_index  3</span>
+  07            <span class="dim">value_id    7  &larr; a VALUE, not a position</span>
+  03 00 ff 0f   <span class="dim">body: 0 &le; v &le; 2047   (sleb128)</span></pre>
+  <p>Keyed to values because an optimizer <em>renumbers everything</em>. Key a fact
+  to an instruction index and the next pass deletes three above it &mdash; the fact
+  is still true of something, and now asserted about something else. A fact whose
+  value did not survive is <span class="hi">dropped, never re-pointed</span>.</p>
   <div class="ledger">
-    <div class="ledger__row"><span class="ledger__tag hi">measured</span><span>A bounds-guard sequence, with the fact forwarded</span><span class="ledger__val">232 &rarr; 104 B</span></div>
+    <div class="ledger__row"><span class="ledger__tag hi">measured</span><span>a bounds-guard sequence, with the fact forwarded</span><span class="ledger__val">232 &rarr; 104 B</span></div>
   </div>
+  <p class="slide__cite">Honest scope: the emitter, schema and wire format are done
+  and byte-verified against the consumer. The <em>source</em> that would populate
+  this at volume is not wired &mdash; 232&rarr;104 is what the channel does when it
+  carries a fact, not evidence that we produce many yet.</p>
 </section>
 
 <section class="slide">
   <p class="slide__act">Act IV &middot; the factory</p>
   <h2>Faster <em>because</em> it is proven</h2>
+  <pre class="evidence">gust_mix(ch) = clamp(1500 + (ch - 1024), 1000, 2000)</pre>
+  <p>LLVM must emit the clamp: it cannot know what <code>ch</code> is. But the OS
+  primitives above carry a proven bound &mdash; <code>ch &isin; [524, 1524]</code>
+  &mdash; so <code>ch + 476</code> is <em>provably</em> inside [1000, 2000] and
+  <span class="hi">both clamp branches are dead code</span>:</p>
+  <pre class="evidence">add r0, #476
+bx  lr          <span class="dim">— the whole function</span></pre>
   <div class="ledger">
-    <div class="ledger__row"><span class="ledger__tag dim">native LLVM</span><span>full clamp</span><span class="ledger__val">0.50 cyc · 1.00&times;</span></div>
-    <div class="ledger__row"><span class="ledger__tag dim">dissolved</span><span>as shipped today</span><span class="ledger__val">0.83 cyc · 1.65&times;</span></div>
-    <div class="ledger__row"><span class="ledger__tag hi">proof-carrying</span><span>clamp elided because a proof allows it</span><span class="ledger__val">0.23 cyc · <span class="ok">0.45&times;</span></span></div>
+    <div class="ledger__row"><span class="ledger__tag dim">native LLVM</span><span>full clamp — what LLVM ships</span><span class="ledger__val">0.50 ticks/call</span></div>
+    <div class="ledger__row"><span class="ledger__tag dim">dissolved today</span><span>clamp still emitted</span><span class="ledger__val">0.70 &mdash; <span class="warn">1.4&times; slower</span></span></div>
+    <div class="ledger__row"><span class="ledger__tag hi">with the proof</span><span>clamp elided, correct only under the bound</span><span class="ledger__val">0.23 &mdash; <span class="ok">2.2&times; faster</span></span></div>
   </div>
-  <p>Legal only because something upstream proved the bound.
-  <span class="hi">A compiler with no verifier cannot reach it.</span></p>
+  <p class="slide__cite">Soundness-gated: the bench asserts the elided form equals
+  the native one across the proven range. LLVM never had the bound.</p>
 </section>
 
 <section class="slide">
