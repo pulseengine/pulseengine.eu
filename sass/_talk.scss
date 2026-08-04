@@ -95,7 +95,9 @@
 .slide li {
   font-size: clamp(1.45rem, min(calc(4.2vmin * var(--fs)), calc(3.32vh * var(--fs))), 2.9rem);
   line-height: 1.55;
-  max-width: 46ch;
+  // Wide enough to sit against a full-width evidence block without reading as
+  // a narrow column pinned to the left edge.
+  max-width: min(100%, 62ch);
   margin: 0;
 }
 
@@ -116,7 +118,7 @@
 .slide__lead {
   font-size: clamp(1.7rem, min(calc(5.0vmin * var(--fs)), calc(3.95vh * var(--fs))), 3.4rem) !important;
   color: $text-dim;
-  max-width: 40ch;
+  max-width: min(100%, 44ch);
 }
 
 // A pull-quote slide: the project's own words, attributed.
@@ -132,6 +134,7 @@
 
 .slide p.slide__cite,
 .slide__cite {
+  max-width: min(100%, 92ch);   // mono runs ~0.6em/char — needs more ch to match
   font-family: $font-mono;
   font-size: clamp(1.05rem, min(calc(2.5vmin * var(--fs)), calc(1.98vh * var(--fs))), 1.6rem);
   color: $text-faint;
@@ -533,6 +536,92 @@
 @media (max-height: 620px) { .deck { --fs: .9; } }
 
 // ─── Architecture diagram ─────────────────────────────────────────────
+// Stages read top-to-bottom with the stage name in a left gutter. The source
+// diagrams are left-to-right columns, but six columns on a slide put the block
+// labels at 11px and the reading order stopped being obvious once they wrapped.
+// A vertical sequence has one unambiguous order and gives every block real width.
+
+.archtabs { display: flex; gap: .4rem; }
+
+.archtab {
+  font-family: $font-mono;
+  font-size: clamp(.85rem, min(2vmin, 1.7vh), 1.15rem);
+  padding: .3rem .8rem;
+  min-height: 38px;
+  color: $text-dim;
+  background: transparent;
+  border: 1px solid $border-subtle;
+  border-radius: 7px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+
+  &.is-on { color: $bg; background: $accent; border-color: $accent; font-weight: 600; }
+  &:focus-visible { outline: 2px solid $accent; outline-offset: 2px; }
+}
+
+.archset { display: grid; width: 100%; }
+.archr { grid-area: 1 / 1; display: none; flex-direction: column; gap: .3rem; }
+.archr.is-on { display: flex; }
+
+.archr__row {
+  display: grid;
+  grid-template-columns: 10ch 1fr;
+  gap: .6rem;
+  align-items: start;
+}
+
+.archr__st {
+  font-family: $font-mono;
+  font-size: clamp(.8rem, min(2.3vmin, 1.9vh), 1.15rem);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: $accent;
+  padding-top: .35rem;
+  text-align: right;
+}
+
+.archr__bs { display: flex; flex-wrap: wrap; gap: .3rem; }
+
+.ab {
+  flex: 1 1 auto;
+  background: $surface;
+  border: 1px solid $border-subtle;
+  border-radius: 6px;
+  padding: .3rem .5rem;
+  font-size: clamp(.9rem, min(2.9vmin, 2.35vh), 1.4rem);
+  font-weight: 600;
+  line-height: 1.25;
+
+  small {
+    display: block;
+    font-family: $font-mono;
+    font-size: .84em;
+    font-weight: 400;
+    color: $text-dim;
+    margin-top: .05rem;
+  }
+
+  // Produces or checks evidence.
+  &.ev { border-color: rgba(34,211,238,.5); background: rgba(34,211,238,.08); color: $cyan; }
+  // The hazard class specific to this translation.
+  &.hz { border-color: rgba(251,191,36,.6); background: rgba(251,191,36,.09); color: $amber; }
+  &.ev small, &.hz small { color: $text-dim; }
+}
+
+// On a narrow screen (a tablet held in portrait) a long code line has nowhere
+// to go: it stays inside the block's own scroll, but the reader has to swipe a
+// <pre> to finish a sentence. Wrap instead — landscape keeps `pre`.
+@media (max-width: 900px) {
+  .evidence { white-space: pre-wrap; word-break: break-word; }
+}
+
+// ─── Very short viewports ────────────────────────────────────────────
+// The vh cap above handles aspect; this is only a floor for laptop screens
+// short enough that even a height-proportional scale crowds the dense slides.
+@media (max-height: 620px) { .deck { --fs: .9; } }
+
+// ─── Architecture diagram ─────────────────────────────────────────────
 // A diagram is read, not spoken word-by-word, so it gets its own smaller
 // scale rather than the prose one. Evidence-producing blocks are tinted;
 // the hazard block is the one thing on the slide that is not reassuring.
@@ -602,7 +691,7 @@
 
 // A diagram slide is read, not declaimed: it can carry a smaller heading and
 // tighter stacking than a prose slide, which buys the blocks their legibility.
-.slide:has(.arch) {
+.slide:has(.archset) {
   gap: .55rem;
   h2 { font-size: clamp(1.5rem, min(4vmin, 3.2vh), 2.5rem); }
 }

@@ -262,6 +262,24 @@
     });
   });
 
+  // ── Architecture tabs ───────────────────────────────────────────────
+  // Three tools, one diagram slot. Only one is shown; the others stay in the
+  // DOM so switching is instant and works with no network.
+  document.querySelectorAll('.archtabs').forEach(function (tabs) {
+    var slide = tabs.closest('.slide');
+    tabs.addEventListener('click', function (e) {
+      var btn = e.target.closest('.archtab');
+      if (!btn) return;
+      var want = btn.dataset.arch;
+      tabs.querySelectorAll('.archtab').forEach(function (b) {
+        b.classList.toggle('is-on', b === btn);
+      });
+      slide.querySelectorAll('.archr').forEach(function (d) {
+        d.classList.toggle('is-on', d.dataset.arch === want);
+      });
+    });
+  });
+
   var start = parseInt((location.hash || '').slice(1), 10);
   go(isNaN(start) ? 0 : start - 1);
 }());

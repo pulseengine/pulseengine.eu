@@ -263,49 +263,100 @@ export function read32(addr) {
 <section class="slide">
   <p class="slide__act">Act IV &middot; the factory</p>
   <h2>Where the evidence enters</h2>
-  <div class="arch">
-    <div class="arch__col">
-      <span class="arch__stage">upstream · untrusted</span>
-      <div class="arch__b is-ev">loom<small>Z3 validator &rarr; wsc.facts</small></div>
-      <div class="arch__b is-ev">scry<small>intervals · stack-depth</small></div>
-      <div class="arch__b is-ev">meld<small>component &rarr; core wasm</small></div>
+  <div class="archtabs">
+    <button type="button" class="archtab is-on" data-arch="meld">meld</button>
+    <button type="button" class="archtab" data-arch="loom">loom</button>
+    <button type="button" class="archtab" data-arch="synth">synth</button>
+  </div>
+  <div class="archset">
+    <div class="archr is-on" data-arch="meld">
+      <div class="archr__row"><span class="archr__st">parse</span><div class="archr__bs">
+        <span class="ab">Component decoder<small>core + CM, nested</small></span>
+        <span class="ab">Core-instance topology<small>shared memories · tables</small></span>
+        <span class="ab">Canonical options<small>encoding · realloc</small></span>
+      </div></div>
+      <div class="archr__row"><span class="archr__st">resolve</span><div class="archr__bs">
+        <span class="ab ev">Import resolution<small>proved sound + complete</small></span>
+        <span class="ab ev">Topological order<small>cycle detection terminates</small></span>
+        <span class="ab ev">Adapter-site ID<small>sites found at every crossing</small></span>
+      </div></div>
+      <div class="archr__row"><span class="archr__st">merge</span><div class="archr__bs">
+        <span class="ab ev">Index-space remap<small>injective · complete · 6 spaces</small></span>
+        <span class="ab ev">Layout disjointness<small>sequential, non-overlapping</small></span>
+        <span class="ab">Per-boundary seams<small>address · call-lowering · PIC</small></span>
+      </div></div>
+      <div class="archr__row"><span class="archr__st">adapt</span><div class="archr__bs">
+        <span class="ab ev">Fused trampolines<small>lift/lower roundtrip</small></span>
+        <span class="ab">Transcode · copy · realloc<small>UTF-8/16 · memory.copy</small></span>
+        <span class="ab hz">Validates &ne; correct<small>tool lenient · engine strict · run exact</small></span>
+      </div></div>
+      <div class="archr__row"><span class="archr__st">out</span><div class="archr__bs">
+        <span class="ab">One core module<small>no runtime linking, no host</small></span>
+        <span class="ab">DWARF + provenance<small>remapped · fusion attestation</small></span>
+      </div></div>
     </div>
-    <div class="arch__col">
-      <span class="arch__stage">front</span>
-      <div class="arch__b">Wasm decoder<small>core + component</small></div>
-      <div class="arch__b is-ev">wsc.facts ingest<small>bad section &rArr; no facts, never error</small></div>
-      <div class="arch__b">WIT / ABI<small>lift · lower</small></div>
-      <div class="arch__b">cabi arena bind<small>dangling realloc &rarr; defined fn</small></div>
+    <div class="archr" data-arch="loom">
+      <div class="archr__row"><span class="archr__st">in</span><div class="archr__bs">
+        <span class="ab">Core module / component<small>wasmparser · no execution</small></span>
+        <span class="ab ev">wsc.* namespace strip<small>input facts never re-emitted</small></span>
+      </div></div>
+      <div class="archr__row"><span class="archr__st">ir</span><div class="archr__bs">
+        <span class="ab">Instructions &rarr; ISLE terms<small>typed term rewriting</small></span>
+        <span class="ab">E-graph<small>equality saturation</small></span>
+        <span class="ab">Value-attached facts<small>keyed by value, not index</small></span>
+      </div></div>
+      <div class="archr__row"><span class="archr__st">passes</span><div class="archr__bs">
+        <span class="ab">inline · const-fold<small>algebraic mid-end</small></span>
+        <span class="ab">dce · dead-stores<small>code removal — the risky class</small></span>
+        <span class="ab">forward-carrier · SROA<small>seam dissolution</small></span>
+      </div></div>
+      <div class="archr__row"><span class="archr__st">per&nbsp;compilation</span><div class="archr__bs">
+        <span class="ab ev">Translation validation<small>value equivalence · QF_BV</small></span>
+        <span class="ab ev">Trap-equivalence gate<small>certificate re-checked</small></span>
+        <span class="ab hz">Total-operation model<small>the verifier does not see traps</small></span>
+      </div></div>
+      <div class="archr__row"><span class="archr__st">gate</span><div class="archr__bs">
+        <span class="ab ev">Behavioral differential<small>executed vs baseline</small></span>
+        <span class="ab">Revert-on-doubt<small>skip the function, keep the original</small></span>
+      </div></div>
+      <div class="archr__row"><span class="archr__st">out</span><div class="archr__bs">
+        <span class="ab">Optimized Wasm<small>byte-identical when nothing proven</small></span>
+        <span class="ab ev">wsc.facts<small>value-range invariants, schema v1</small></span>
+      </div></div>
     </div>
-    <div class="arch__col">
-      <span class="arch__stage">middle</span>
-      <div class="arch__b">CFG + SSA<small>liveness · reaching defs</small></div>
-      <div class="arch__b is-ev">Verified selector DSL<small>50 rules · 50 Rocq Qed</small></div>
-      <div class="arch__b is-ev">Fact specialization<small>per-site SMT + LRAT</small></div>
-      <div class="arch__b">Register allocation<small>Belady spill</small></div>
-    </div>
-    <div class="arch__col">
-      <span class="arch__stage">back</span>
-      <div class="arch__b">Thumb-2<small>Cortex-M3/M4/M7</small></div>
-      <div class="arch__b">A32 · A64<small>Cortex-R5 · cortex-a53</small></div>
-      <div class="arch__b">RV32IMAC<small>qemu · ESP32-C3</small></div>
-      <div class="arch__b is-hz">Trap re-introduction<small>hardware is more total</small></div>
-    </div>
-    <div class="arch__col">
-      <span class="arch__stage">per compilation</span>
-      <div class="arch__b is-ev">Translation validation<small>QF_BV · pure Rust</small></div>
-      <div class="arch__b is-ev">Trap-preservation VC<small>div · OOB · trunc</small></div>
-      <div class="arch__b is-ev">Static-data addressing VC<small>byte equality</small></div>
-      <div class="arch__b is-ev">Allocation validators<small>whole-function · CFG</small></div>
-    </div>
-    <div class="arch__col">
-      <span class="arch__stage">out</span>
-      <div class="arch__b">Freestanding ELF<small>vectors · linker · MPU</small></div>
-      <div class="arch__b is-ev">WCET sidecar<small>sound per-function</small></div>
-      <div class="arch__b">DWARF<small>relocatable</small></div>
+    <div class="archr" data-arch="synth">
+      <div class="archr__row"><span class="archr__st">upstream</span><div class="archr__bs">
+        <span class="ab ev">loom<small>Z3 validator &rarr; wsc.facts</small></span>
+        <span class="ab ev">scry<small>intervals · stack-depth</small></span>
+        <span class="ab ev">meld<small>component &rarr; core wasm</small></span>
+      </div></div>
+      <div class="archr__row"><span class="archr__st">front</span><div class="archr__bs">
+        <span class="ab ev">wsc.facts ingest<small>bad section &rArr; no facts, never error</small></span>
+        <span class="ab">WIT / ABI<small>lift · lower</small></span>
+        <span class="ab">cabi arena bind<small>dangling realloc &rarr; defined fn</small></span>
+      </div></div>
+      <div class="archr__row"><span class="archr__st">middle</span><div class="archr__bs">
+        <span class="ab ev">Verified selector DSL<small>50 rules · 50 Rocq Qed</small></span>
+        <span class="ab ev">Fact specialization<small>per-site SMT + LRAT</small></span>
+        <span class="ab">Register allocation<small>Belady spill</small></span>
+      </div></div>
+      <div class="archr__row"><span class="archr__st">back</span><div class="archr__bs">
+        <span class="ab">Thumb-2 · A32 · A64 · RV32IMAC<small>M3/M4/M7 · R5 · a53 · ESP32-C3</small></span>
+        <span class="ab hz">Trap re-introduction<small>hardware is more total than Wasm</small></span>
+      </div></div>
+      <div class="archr__row"><span class="archr__st">per&nbsp;compilation</span><div class="archr__bs">
+        <span class="ab ev">Translation validation<small>QF_BV · pure Rust</small></span>
+        <span class="ab ev">Trap-preservation VC<small>div · OOB · trunc</small></span>
+        <span class="ab ev">Allocation validators<small>whole-function · CFG</small></span>
+      </div></div>
+      <div class="archr__row"><span class="archr__st">out</span><div class="archr__bs">
+        <span class="ab">Freestanding ELF<small>vectors · linker · MPU</small></span>
+        <span class="ab ev">WCET sidecar<small>sound per-function</small></span>
+        <span class="ab">DWARF<small>relocatable</small></span>
+      </div></div>
     </div>
   </div>
-  <p class="slide__cite">Tinted = produces or checks evidence · amber = this translation's hazard</p>
+  <p class="slide__cite">Tinted = produces or checks evidence · amber = this stage's hazard</p>
 </section>
 
 <section class="slide">
