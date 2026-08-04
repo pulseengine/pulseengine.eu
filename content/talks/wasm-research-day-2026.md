@@ -509,6 +509,20 @@ pop  {r7, pc}   <span class="dim">— the whole function, 12 B</span></pre>
 
 <section class="slide">
   <p class="slide__act">Act IV &middot; the factory</p>
+  <h2>&hellip; and no, LLVM is not the problem</h2>
+  <p class="evidence__label">tell it the same thing and it folds it too</p>
+  <pre class="evidence">assert_<span class="bad">unchecked</span>(524 &lt;= ch &amp;&amp; ch &lt;= 1524);
+  &rarr; add.w r0, r0, #476     <span class="dim">stock LLVM, 30 B &rarr; 12 B</span></pre>
+  <p>So the codegen is not the result. <span class="hi">Both emit the same
+  instruction &mdash; only one of them checked.</span></p>
+  <p class="slide__cite">You can tell a compiler anything and it will believe you.
+  Get that range wrong and it is undefined behaviour, silently, with no
+  diagnostic. The question was never <em>can the compiler fold it</em> &mdash; it
+  is <em>how would you know the premise is true</em>.</p>
+</section>
+
+<section class="slide">
+  <p class="slide__act">Act IV &middot; the factory</p>
   <h2>Qualify the checker, not the prover</h2>
   <p>Certification asks why you believe the solver. "Qualify Z3" is not a
   tractable answer.</p>
