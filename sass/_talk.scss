@@ -561,6 +561,21 @@
   &:focus-visible { outline: 2px solid $accent; outline-offset: 2px; }
 }
 
+// One plain-language line per tool, swapped with the tab. The tab labels are
+// tool names this room has no reason to know; the rows below are structure, not
+// purpose. Without this the slide says how, and never what.
+.archwhat {
+  display: none;
+  font-size: clamp(.95rem, min(calc(2.5vmin * var(--fs)), calc(1.98vh * var(--fs))), 1.5rem);
+  line-height: 1.4;
+  color: $text-dim;
+  max-width: min(100%, 78ch);
+  margin: 0;
+
+  &.is-on { display: block; }
+  b { color: $text; font-weight: 600; }
+}
+
 .archset { display: grid; width: 100%; }
 .archr { grid-area: 1 / 1; display: none; flex-direction: column; gap: .3rem; }
 .archr.is-on { display: flex; }

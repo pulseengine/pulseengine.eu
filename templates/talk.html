@@ -281,7 +281,7 @@
       tabs.querySelectorAll('.archtab').forEach(function (b) {
         b.classList.toggle('is-on', b === btn);
       });
-      slide.querySelectorAll('.archr').forEach(function (d) {
+      slide.querySelectorAll('.archr, .archwhat').forEach(function (d) {
         d.classList.toggle('is-on', d.dataset.arch === want);
       });
     });
