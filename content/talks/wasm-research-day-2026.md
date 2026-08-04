@@ -261,6 +261,20 @@ export function read32(addr) {
 
 <section class="slide">
   <p class="slide__act">Act IV &middot; the factory</p>
+  <h2>Why any of this machinery exists</h2>
+  <p class="slide__lead">Most of this code was written by AI, under review. That is
+  the premise, not a footnote.</p>
+  <p>An assistant will write a plausible driver, a plausible proof, and a plausible
+  green test, faster than anyone can read them. So the question stopped being
+  <em>can it write the code</em> and became <span class="hi">what would have to be
+  true for me to believe it</span>.</p>
+  <p class="slide__cite">Every gate in this talk is an answer to that. It is also
+  why the failures later in this act are the interesting part &mdash; they are what
+  a plausible-looking green check costs when nobody can read everything.</p>
+</section>
+
+<section class="slide">
+  <p class="slide__act">Act IV &middot; the factory</p>
   <blockquote class="slide__quote">Qualify the pipeline once, and the argument
   amortizes across every product built on it.</blockquote>
   <p class="slide__cite">— our own words, from a post two years before this talk</p>
@@ -510,7 +524,8 @@ timer  204 &rarr;  828 B     wdg  638 &rarr; 1726 B
   <p class="slide__act">Act V &middot; what is missing</p>
   <h2>So we patched the generator</h2>
   <p class="evidence__label">measured for this talk</p>
-  <pre class="evidence"><span class="dim">same wit-bindgen build, feature off vs on</span>
+  <pre class="evidence"><span class="dim">wdg, one wit-bindgen build, feature off vs on
+(1746 not 1726 — a newer bindgen; the bump alone costs +20 B)</span>
 canonical glue on a growing allocator   1746 B
 backed by a bounded arena instead       <span class="ok">1428 B</span>   <span class="hi">&minus;318</span></pre>
   <p><code>cabi_realloc</code> now delegates to an embedder arena that traps rather
