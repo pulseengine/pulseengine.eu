@@ -1,20 +1,34 @@
 +++
-title = "The OS as components — and the factory that lowers it"
+title = "Change the Tires, Not the Car"
 description = "Wasm Research Day 2026. The Component Model as the integration step for an operating system, the same components lowered ahead of time onto three architectures, and an honest account of what is still missing."
 date = 2026-08-06
 template = "talk.html"
 
 [extra]
 event = "Wasm Research Day 2026"
-slot = "30 minutes, remote"
+slot = "25 + 5, remote"
 +++
 
 <section class="slide">
-  <p class="slide__act">Wasm Research Day 2026 &middot; 30 minutes</p>
-  <h1>The OS as components<span class="dim">,</span><br>and the factory that lowers it</h1>
-  <p class="slide__lead">Most embedded stacks make the operating system platform-specific
-  and hope the application is portable. We are inverting that.</p>
+  <p class="slide__act">Wasm Research Day 2026 &middot; 25 + 5</p>
+  <h1>Change the Tires,<br>Not the Car</h1>
+  <p class="slide__lead">The Component Model as the integration step for an OS
+  written in WebAssembly.</p>
   <p class="slide__cite">pulseengine.eu &middot; every number on these slides says where it came from</p>
+</section>
+
+<section class="slide">
+  <p class="slide__act">Act I &middot; the inversion</p>
+  <h2>What this room has already established</h2>
+  <div class="ledger">
+    <div class="ledger__row"><span class="ledger__tag dim">2022</span><span><em>Fixpoint: Computation-Centric Networking</em> — wasm lowered ahead of time to native, invoked without an engine</span><span class="ledger__val">server, x86-64</span></div>
+    <div class="ledger__row"><span class="ledger__tag dim">2023</span><span><em>Bringing orchestration to the edge with the WebAssembly Component Model</em> — pluggable HALs via the Component Model</span><span class="ledger__val">preliminary</span></div>
+    <div class="ledger__row"><span class="ledger__tag dim">2025</span><span><em>WASI performance on IoT and embedded</em> — the overhead of a runtime on a constrained device</span><span class="ledger__val">runtime present</span></div>
+    <div class="ledger__row"><span class="ledger__tag hi">today</span><span><em>WasmBounds</em> — eliminating bounds checks by abstract interpretation</span><span class="ledger__val">two hours ago</span></div>
+  </div>
+  <p>Each of these is one ingredient. <span class="hi">This talk is what happens
+  when you need all four at once</span> — on a chip where the runtime the third
+  one measures does not fit at all.</p>
 </section>
 
 <section class="slide">
@@ -33,17 +47,9 @@ slot = "30 minutes, remote"
       and between the OS and the tenants above it.</p>
     </div>
   </div>
-</section>
-
-<section class="slide">
-  <p class="slide__act">Act I &middot; the inversion</p>
-  <h2>The car and the tires</h2>
-  <p class="slide__lead">Think of the OS and everything above it as the car, and the
-  handful of native functions that actually touch the hardware as the tires.</p>
-  <p>For new terrain — another chip, another board — <span class="hi">you change the
-  tires, not the car.</span></p>
-  <p class="slide__cite">This talk spends most of its time on the factory that
-  builds the car, because that is the part that has to be qualified once.</p>
+  <p>The OS and everything above it is the car. The handful of native functions
+  that actually touch the hardware are the tires. For new terrain — another chip,
+  another board — <span class="hi">you change the tires, not the car.</span></p>
 </section>
 
 <section class="slide">
@@ -70,15 +76,86 @@ spi · timer · uart · dma</pre>
 <section class="slide">
   <p class="slide__act">Act II &middot; the car</p>
   <h2>Integration step, not a build step</h2>
-  <div class="chain">
-    <div class="chain__stage"><span class="chain__name">wac</span><span class="chain__what">compose the components into one</span></div>
-    <div class="chain__stage"><span class="chain__name">meld</span><span class="chain__what">fuse — one shared memory</span></div>
-    <div class="chain__stage"><span class="chain__name">loom</span><span class="chain__what">optimize, and emit what it proved</span></div>
-    <div class="chain__stage"><span class="chain__name">synth</span><span class="chain__what">lower to ARM / RISC-V</span></div>
-    <div class="chain__stage"><span class="chain__name">.o</span><span class="chain__what">one relocatable object · no runtime on the device</span></div>
+  <div class="flow">
+    <div class="flow__row">
+      <span class="flow__stage">wac compose</span>
+      <span class="flow__in">5 components</span>
+      <span class="flow__arrow">&rarr;</span>
+      <span class="flow__out">1 component<br><span class="dim">exports gust:os · imports gust:hal</span></span>
+    </div>
+    <div class="flow__row">
+      <span class="flow__stage">meld fuse</span>
+      <span class="flow__in">1 component<br><span class="dim">5 linear memories</span></span>
+      <span class="flow__arrow">&rarr;</span>
+      <span class="flow__out">1 core module<br><span class="dim">one shared memory</span></span>
+    </div>
+    <div class="flow__row">
+      <span class="flow__stage">loom optimize</span>
+      <span class="flow__in">core module</span>
+      <span class="flow__arrow">&rarr;</span>
+      <span class="flow__out">core module <span class="hi">+ wsc.facts</span><br><span class="dim">what it proved, forwarded</span></span>
+    </div>
+    <div class="flow__row">
+      <span class="flow__stage">synth compile</span>
+      <span class="flow__in">module + facts</span>
+      <span class="flow__arrow">&rarr;</span>
+      <span class="flow__out">one relocatable .o <span class="hi">+ certificates</span></span>
+    </div>
+    <div class="flow__row">
+      <span class="flow__stage">ld</span>
+      <span class="flow__in">.o + 3 native functions</span>
+      <span class="flow__arrow">&rarr;</span>
+      <span class="flow__out">firmware<br><span class="dim">no engine, no interpreter, no JIT</span></span>
+    </div>
   </div>
-  <p>Wasm is where the pieces are joined and checked. It is not present at run
-  time — there is no interpreter, no JIT, and no engine resident on the chip.</p>
+</section>
+
+<section class="slide">
+  <p class="slide__act">Act II &middot; the car</p>
+  <h2>The seam, as it is actually written</h2>
+  <div class="split">
+    <div class="split__col">
+      <h3>wit/gust-hal.wit</h3>
+      <pre class="evidence">interface mmio {
+    read32:  func(addr: u32) -> u32;
+    write32: func(addr: u32, val: u32);
+    read8:   func(addr: u32) -> u8;
+    write8:  func(addr: u32, val: u8);
+}
+<span class="hi">world wdg-driver { import mmio; export wdg; }</span></pre>
+    </div>
+    <div class="split__col">
+      <h3>and the composition</h3>
+      <pre class="evidence">wac compose fused-gustos.wac -o fused.wasm
+meld fuse --memory shared
+loom optimize --passes inline
+synth compile --target cortex-m3 \
+      --all-exports --relocatable</pre>
+    </div>
+  </div>
+  <p>A driver's capability is checked against a typed contract at composition
+  time. Before this it was an untyped <code>env</code> extern that only had to
+  match <em>by name</em> at native link.</p>
+</section>
+
+<section class="slide">
+  <p class="slide__act">Act II &middot; the car</p>
+  <h2>A contract that cannot express the bug</h2>
+  <p>A watchdog you can accidentally switch off is worthless. So the interface
+  offers no way to switch it off:</p>
+  <pre class="evidence">interface wdg {
+    unlock · configure · lock · start · refresh · is-running
+    <span class="dim">— there is no stop, and no disable</span>
+}</pre>
+  <p class="evidence__label">and the FSM proves the absence, rather than relying on it</p>
+  <pre class="evidence">fn p2_cannot_un_start() {
+    let w = Iwdg { phase: Running, .. };
+    if let Ok(n) = refresh(w) { assert_eq!(n.phase, <span class="ok">Running</span>); }
+    assert!(unlock(w).is_err());        <span class="dim">// no escape from Running</span>
+}</pre>
+  <p><span class="hi">The contract itself cannot express the one transition the
+  proof forbids.</span> That is the argument for putting the seam in a type
+  system rather than in a comment.</p>
 </section>
 
 <section class="slide">
@@ -101,19 +178,6 @@ ratio_x1000        1839   (mismatch=<span class="ok">0</span>)</pre>
   <p class="slide__cite">The watchdog legs are one happy path on two dies. They do
   not evidence the cannot-un-start property — the firmware never attempts an
   un-start. That stays a source-level proof.</p>
-</section>
-
-<section class="slide">
-  <p class="slide__act">Act II &middot; the car</p>
-  <h2>The tires are smaller than you would guess</h2>
-  <div class="ledger">
-    <div class="ledger__row"><span class="ledger__tag hi">seam</span><span>A whole STM32 USART driver, dissolved</span><span class="ledger__val">326 B flash · 0 SRAM</span></div>
-    <div class="ledger__row"><span class="ledger__tag hi">seam</span><span>Its entire trusted surface</span><span class="ledger__val">3 relocations</span></div>
-    <div class="ledger__row"><span class="ledger__tag hi">seam</span><span>DMA modelled as an ownership round-trip</span><span class="ledger__val">218 B · 6 Kani proofs</span></div>
-  </div>
-  <p>The three relocations are <code>mmio_read32</code>, <code>mmio_write32</code>,
-  <code>irq_poll</code>. Everything above them — the protocol, the state machine,
-  the error handling — is wasm that got lowered.</p>
 </section>
 
 <section class="slide">
@@ -140,6 +204,28 @@ ratio_x1000        1839   (mismatch=<span class="ok">0</span>)</pre>
   <p class="slide__cite">The published artifact is the same one in all three:
   <code>ghcr.io/pulseengine/gale-nano:0.6.0</code>, signed, pulled — not rebuilt
   per target.</p>
+</section>
+
+<section class="slide">
+  <p class="slide__act">Act III &middot; the tires</p>
+  <h2>The whole of a tire</h2>
+  <p class="evidence__label">web/shim-mmio.js — what a browser tab supplies</p>
+  <pre class="evidence">const REGS = new Uint32Array(64);
+const TIM2_CNT = 0x40000024;   <span class="dim">// the one clock register the OS reads</span>
+export function read32(addr) {
+  const a = addr &gt;&gt;&gt; 0;
+  return a === TIM2_CNT ? clock : REGS[(a &gt;&gt;&gt; 2) &amp; 63];
+}</pre>
+  <p class="evidence__label">on silicon — same import, answered by the bus</p>
+  <pre class="evidence">#[no_mangle] extern "C" fn read32(addr: u32) -&gt; u32 {
+    unsafe { core::ptr::read_volatile(addr as *const u32) }
+}</pre>
+  <p>Nothing else about the component changes. <span class="hi">That substitution
+  is the entire thesis</span> — and it is small enough to read on one slide.</p>
+  <div class="ledger">
+    <div class="ledger__row"><span class="ledger__tag hi">seam</span><span>A whole STM32 USART driver, dissolved &mdash; trusted surface: <code>read32</code>, <code>write32</code>, <code>irq_poll</code></span><span class="ledger__val">326 B · 0 SRAM · 3 relocs</span></div>
+    <div class="ledger__row"><span class="ledger__tag hi">seam</span><span>DMA, modelled as an ownership round-trip</span><span class="ledger__val">218 B · 6 Kani proofs</span></div>
+  </div>
 </section>
 
 <section class="slide">
@@ -220,6 +306,20 @@ ratio_x1000        1839   (mismatch=<span class="ok">0</span>)</pre>
 
 <section class="slide">
   <p class="slide__act">Act IV &middot; the factory</p>
+  <h2>Exactly how far this goes — and no further</h2>
+  <div class="ledger">
+    <div class="ledger__row"><span class="ledger__tag ok">shipping</span><span>Theorem proving · SMT contracts · bounded model checking · translation validation</span><span class="ledger__val">&nbsp;</span></div>
+    <div class="ledger__row"><span class="ledger__tag warn">partial</span><span>Refinement to Lean · mutation testing · abstract interpretation</span><span class="ledger__val">&nbsp;</span></div>
+    <div class="ledger__row"><span class="ledger__tag bad">not yet</span><span>An authority audit. We have not been audited.</span><span class="ledger__val">&nbsp;</span></div>
+  </div>
+  <p>Bounded model checking is bounded. Proofs run on a verification schedule,
+  not on every commit. Our own docs say it out loud: closer to <em>"well-specified
+  and comprehensively tested with local formal verification"</em> than
+  <em>"continuously formally verified."</em></p>
+</section>
+
+<section class="slide">
+  <p class="slide__act">Act IV &middot; the factory</p>
   <h2>Every one of these gates was green for the wrong reason</h2>
   <div class="ledger">
     <div class="ledger__row"><span class="ledger__tag bad">scry</span><span>a proof that never ran — the theorem was false when it did</span><span class="ledger__val">&nbsp;</span></div>
@@ -244,19 +344,6 @@ timer   204 &rarr;  828 B      wdg    638 &rarr; 1718 B
   <p>Roughly <span class="hi">+700 B fixed per driver</span> for canonical-ABI glue
   — a constant, not a proportion. On a chip with 8 KB of SRAM that is a real
   number, and it is filed upstream rather than absorbed quietly.</p>
-</section>
-
-<section class="slide">
-  <p class="slide__act">Act V &middot; what is missing</p>
-  <h2>Where the verification story actually stands</h2>
-  <div class="ledger">
-    <div class="ledger__row"><span class="ledger__tag ok">shipping</span><span>Theorem proving · SMT contracts · bounded model checking · translation validation</span><span class="ledger__val">&nbsp;</span></div>
-    <div class="ledger__row"><span class="ledger__tag warn">partial</span><span>Refinement to Lean · mutation testing · abstract interpretation</span><span class="ledger__val">&nbsp;</span></div>
-    <div class="ledger__row"><span class="ledger__tag bad">not yet</span><span>An authority audit. We have not been audited.</span><span class="ledger__val">&nbsp;</span></div>
-  </div>
-  <p>Proofs run on a verification schedule, not on every commit. Our own docs say
-  this out loud: closer to <em>"well-specified and comprehensively tested with
-  local formal verification"</em> than <em>"continuously formally verified."</em></p>
 </section>
 
 <section class="slide">
