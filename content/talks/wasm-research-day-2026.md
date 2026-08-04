@@ -599,6 +599,11 @@ backed by a bounded arena instead       <span class="ok">1428 B</span>   <span c
   <p class="slide__act">Act V &middot; what is missing</p>
   <h2>Before the rest of the vision holds</h2>
   <ul>
+    <li><span class="hi">A proven stack bound.</span> An OS node reserves 2 048 of
+    those 8 192 bytes for its shadow stack &mdash; and the compiler's own contract
+    says that budget is <em>asserted</em>, not proven. scry computes the depth;
+    wiring it to the reservation is the named next step, and until it lands the
+    number is our word.</li>
     <li>Multi-tenant isolation on real MPU regions — modelled, not yet enforced on silicon.</li>
     <li>Drivers beyond the ones that port cleanly. Register maps differ; a verified
     state machine for one bus does not transfer to the next revision of that bus —
