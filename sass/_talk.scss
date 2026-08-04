@@ -1,0 +1,406 @@
+// Slide deck — a presentation surface built on the site's own tokens.
+// Deliberately NOT a generic deck theme: it inherits --bg / --accent / the
+// Atkinson pair from _variables.scss, so a slide looks like the site rather
+// than like a template. Self-hosted fonts (see _fonts.scss) mean it presents
+// with no network at all.
+
+.deck {
+  --slide-pad: clamp(1.25rem, 5vw, 5rem);
+  // Chrome sits above the home indicator / rounded corners on an iPad.
+  --safe-b: max(env(safe-area-inset-bottom), .55rem);
+  --safe-l: max(env(safe-area-inset-left),  1.1rem);
+  --safe-r: max(env(safe-area-inset-right), 1.1rem);
+
+  position: fixed;
+  inset: 0;
+  // iOS Safari's `100vh` counts the area behind the toolbars, so the last line
+  // of a slide hides under them. `dvh` tracks the live viewport; the `inset`
+  // above is the fallback where dvh is unsupported.
+  height: 100dvh;
+  background: $bg;
+  color: $text;
+  font-family: $font-sans;
+  overflow: hidden;
+  z-index: 200;
+
+  // Stop iOS from inflating text in the landscape orientation it will be
+  // presented in, which would otherwise break the fitted type scale.
+  -webkit-text-size-adjust: 100%;
+  // No rubber-band bounce dragging the whole deck around.
+  overscroll-behavior: none;
+}
+
+.deck__stage {
+  position: absolute;
+  inset: 0;
+  display: grid;
+}
+
+// Every slide occupies the same grid cell; only the current one is visible.
+.slide {
+  grid-area: 1 / 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1.1rem;
+  padding: var(--slide-pad);
+  // Clear the on-screen controls and the home indicator.
+  padding-bottom: calc(var(--slide-pad) + 3.6rem + var(--safe-b));
+  overflow-y: auto;
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity .28s ease;
+
+  &.is-current { visibility: visible; opacity: 1; }
+
+  // A slide's own scroll must never move the page behind it.
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  // Let the browser own vertical panning and leave horizontal gestures to the
+  // swipe handler — without this iOS may claim the swipe as a back-navigation.
+  touch-action: pan-y;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .slide { transition: none; }
+}
+
+// ─── Type scale ───────────────────────────────────────────────────────
+// Sized in vmin so a slide reads the same projected, shared, or in a tab.
+
+.slide h1 {
+  font-size: clamp(2.2rem, 5.6vmin, 4rem);
+  line-height: 1.1;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+  margin: 0;
+}
+
+.slide h2 {
+  font-size: clamp(1.6rem, 3.9vmin, 2.6rem);
+  line-height: 1.15;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  text-wrap: balance;
+  margin: 0;
+}
+
+.slide p,
+.slide li {
+  font-size: clamp(1rem, 2.05vmin, 1.4rem);
+  line-height: 1.55;
+  max-width: 46ch;
+  margin: 0;
+}
+
+.slide ul { display: flex; flex-direction: column; gap: .6rem; padding-left: 1.1rem; margin: 0; }
+
+// The eyebrow says which act we are in — it is structural, not decorative:
+// the deck has five acts and the label is how the audience keeps its place.
+.slide__act {
+  font-family: $font-mono;
+  font-size: clamp(.7rem, 1.35vmin, .88rem);
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: $text-faint;
+  margin: 0;
+}
+
+.slide__lead {
+  font-size: clamp(1.15rem, 2.5vmin, 1.65rem) !important;
+  color: $text-dim;
+  max-width: 40ch;
+}
+
+// A pull-quote slide: the project's own words, attributed.
+.slide__quote {
+  font-size: clamp(1.5rem, 3.6vmin, 2.5rem);
+  line-height: 1.3;
+  font-weight: 500;
+  max-width: 26ch;
+  text-wrap: balance;
+  border-left: 3px solid $accent;
+  padding-left: 1.2rem;
+}
+
+.slide__cite {
+  font-family: $font-mono;
+  font-size: clamp(.72rem, 1.5vmin, .95rem);
+  color: $text-faint;
+}
+
+// ─── Evidence blocks ──────────────────────────────────────────────────
+// Real captured output. Monospace, bordered, and horizontally scrollable in
+// its own container so a long line never scrolls the slide sideways.
+
+.evidence {
+  font-family: $font-mono;
+  font-size: clamp(.62rem, 1.42vmin, .95rem);
+  line-height: 1.5;
+  background: $bg-subtle;
+  border: 1px solid $border-subtle;
+  border-radius: 10px;
+  padding: .9rem 1.1rem;
+  overflow-x: auto;
+  white-space: pre;
+  margin: 0;
+  max-width: 100%;
+}
+
+// Several evidence blocks read as one exhibit. Separate <pre> elements rather
+// than one with blank lines in it: a blank line inside a raw-HTML block ends
+// the block, and the markdown parser resumes *inside* the evidence.
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+  width: 100%;
+}
+
+.evidence__label {
+  font-family: $font-mono;
+  font-size: clamp(.66rem, 1.32vmin, .84rem);
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: $text-faint;
+  margin: 0 0 -.5rem;
+}
+
+.ok   { color: $green; }
+.bad  { color: $red; }
+.warn { color: $amber; }
+.dim  { color: $text-faint; }
+.hi   { color: $accent; }
+
+// ─── Claim ledger ─────────────────────────────────────────────────────
+// The provenance marker is the point of this deck: every number says whether
+// it was measured for this talk or is a standing project claim.
+
+.ledger {
+  display: grid;
+  gap: .5rem;
+  width: 100%;
+  max-width: 60ch;
+}
+
+.ledger__row {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: baseline;
+  gap: .9rem;
+  padding: .55rem .8rem;
+  background: $surface;
+  border: 1px solid $border-subtle;
+  border-radius: 8px;
+  font-size: clamp(.8rem, 1.75vmin, 1.05rem);
+}
+
+.ledger__tag {
+  font-family: $font-mono;
+  font-size: .78em;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.ledger__val {
+  font-family: $font-mono;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  color: $text;
+}
+
+// ─── Stage chain (the pipeline, as a row of stages) ───────────────────
+
+.chain {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: .5rem;
+  width: 100%;
+}
+
+.chain__stage {
+  flex: 1 1 8rem;
+  min-width: 7rem;
+  background: $surface;
+  border: 1px solid $border-subtle;
+  border-radius: 10px;
+  padding: .75rem .85rem;
+  display: flex;
+  flex-direction: column;
+  gap: .3rem;
+}
+
+.chain__name {
+  font-family: $font-mono;
+  font-size: clamp(.85rem, 1.9vmin, 1.15rem);
+  font-weight: 600;
+  color: $accent;
+}
+
+.chain__what {
+  font-size: clamp(.7rem, 1.45vmin, .92rem);
+  color: $text-dim;
+  line-height: 1.35;
+}
+
+// ─── Two-column split ─────────────────────────────────────────────────
+
+.split {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: 1.2rem;
+  width: 100%;
+}
+
+.split__col h3 {
+  font-family: $font-mono;
+  font-size: clamp(.72rem, 1.45vmin, .9rem);
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: $text-faint;
+  margin: 0 0 .55rem;
+  font-weight: 500;
+}
+
+// ─── Chrome: progress, counter, help ──────────────────────────────────
+
+.deck__progress {
+  position: absolute;
+  left: 0; bottom: 0;
+  height: 2px;
+  background: $accent;
+  transition: width .28s ease;
+  z-index: 2;
+}
+
+.deck__counter {
+  position: absolute;
+  right: var(--safe-r);
+  bottom: calc(var(--safe-b) + 3.1rem);
+  font-family: $font-mono;
+  font-variant-numeric: tabular-nums;
+  font-size: .8rem;
+  color: $text-faint;
+  z-index: 2;
+}
+
+.deck__hint {
+  position: absolute;
+  left: var(--safe-l);
+  bottom: calc(var(--safe-b) + .9rem);
+  font-family: $font-mono;
+  font-size: .8rem;
+  color: $text-faint;
+  z-index: 2;
+}
+
+// ─── On-screen controls ───────────────────────────────────────────────
+// The only way to drive the deck on a tablet.
+
+.deck__nav {
+  position: absolute;
+  right: var(--safe-r);
+  bottom: var(--safe-b);
+  display: flex;
+  gap: .4rem;
+  z-index: 3;
+}
+
+.deck__btn {
+  // 44px is Apple's minimum comfortable touch target.
+  min-width: 44px;
+  min-height: 44px;
+  display: grid;
+  place-items: center;
+  font-family: $font-mono;
+  font-size: 1.05rem;
+  line-height: 1;
+  color: $text-dim;
+  background: $surface;
+  border: 1px solid $border-subtle;
+  border-radius: 10px;
+  cursor: pointer;
+  // Suppress the iOS tap flash and the double-tap-to-zoom delay.
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  transition: color .15s ease, border-color .15s ease;
+
+  &:hover { color: $text; border-color: $border; }
+  &:active { background: $surface-raised; }
+
+  &:focus-visible {
+    outline: 2px solid $accent;
+    outline-offset: 2px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .deck__btn { transition: none; }
+}
+
+// On a pointer device the deck is driven from the keyboard; keep the buttons
+// available but quiet until approached.
+@media (hover: hover) {
+  .deck__nav { opacity: .35; transition: opacity .2s ease; }
+  .deck:hover .deck__nav,
+  .deck__nav:focus-within { opacity: 1; }
+}
+
+// ─── Overview (press o) ───────────────────────────────────────────────
+
+.deck.is-overview {
+  .deck__stage {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr));
+    gap: .8rem;
+    padding: 1.2rem;
+    padding-bottom: calc(3.6rem + var(--safe-b));
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    align-content: start;
+  }
+
+  .slide {
+    grid-area: auto;
+    visibility: visible;
+    opacity: .55;
+    aspect-ratio: 16 / 10;
+    padding: .8rem;
+    border: 1px solid $border-subtle;
+    border-radius: 8px;
+    background: $bg-subtle;
+    cursor: pointer;
+    overflow: hidden;
+    gap: .35rem;
+    transition: opacity .15s ease, border-color .15s ease;
+
+    &.is-current { opacity: 1; border-color: $accent; }
+    &:hover { opacity: .9; }
+
+    // Shrink everything so a whole slide fits the thumbnail.
+    h1 { font-size: 1.05rem; }
+    h2 { font-size: .88rem; }
+    p, li { font-size: .62rem; max-width: none; }
+    .slide__quote { font-size: .8rem; padding-left: .5rem; max-width: none; }
+    .slide__lead { font-size: .68rem !important; }
+    .evidence { font-size: .5rem; padding: .35rem .45rem; }
+    .ledger__row { padding: .2rem .35rem; font-size: .55rem; gap: .35rem; }
+    .chain__stage { padding: .3rem .35rem; }
+    .chain__name { font-size: .6rem; }
+    .chain__what { font-size: .48rem; }
+  }
+}
+
+// Presenter notes never render on the slide; they are for the speaker's
+// source file only.
+.notes { display: none; }
+
+@media print {
+  .deck { position: static; }
+  .deck__stage { display: block; }
+  .slide { visibility: visible; opacity: 1; page-break-after: always; min-height: 100vh; }
+  .deck__progress, .deck__counter, .deck__hint { display: none; }
+}

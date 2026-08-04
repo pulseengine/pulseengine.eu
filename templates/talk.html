@@ -1,0 +1,145 @@
+{# Slide deck. Deliberately does NOT extend base.html: a deck wants the whole
+   viewport with no nav, no footer, no background canvas. It reuses main.css
+   so the tokens, fonts and colours are the site's. #}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  {# viewport-fit=cover so the deck reaches under an iPad's rounded corners;
+     the safe-area insets in _talk.scss keep the chrome clear of them. #}
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>{{ page.title }}</title>
+  <meta name="description" content="{{ page.description | default(value=config.description) }}">
+  <link rel="icon" href="{{ get_url(path='favicon.svg') }}" type="image/svg+xml">
+  <link rel="stylesheet" href="{{ get_url(path='main.css') }}">
+</head>
+<body>
+  <div class="deck" id="deck">
+    <div class="deck__stage" id="stage">
+      {{ page.content | safe }}
+    </div>
+    <div class="deck__progress" id="progress"></div>
+    <div class="deck__hint" id="hint">&larr; &rarr; move &middot; o overview &middot; f full screen</div>
+    <div class="deck__counter" id="counter"></div>
+
+    {# On-screen controls. Present for everyone, but they are the only way to
+       drive the deck from a tablet — a keyboard hint is useless there. Sized to
+       Apple's 44pt minimum touch target. #}
+    <nav class="deck__nav" aria-label="Slide navigation">
+      <button type="button" class="deck__btn" id="btn-prev" aria-label="Previous slide">&larr;</button>
+      <button type="button" class="deck__btn" id="btn-grid" aria-label="Toggle slide overview">&#9638;</button>
+      <button type="button" class="deck__btn" id="btn-full" aria-label="Toggle full screen">&#9974;</button>
+      <button type="button" class="deck__btn" id="btn-next" aria-label="Next slide">&rarr;</button>
+    </nav>
+  </div>
+
+<script>
+(function () {
+  'use strict';
+  var deck    = document.getElementById('deck');
+  var stage   = document.getElementById('stage');
+  var slides  = Array.prototype.slice.call(stage.querySelectorAll('.slide'));
+  var counter = document.getElementById('counter');
+  var bar     = document.getElementById('progress');
+  if (!slides.length) return;
+
+  var i = 0;
+
+  function render() {
+    slides.forEach(function (s, n) { s.classList.toggle('is-current', n === i); });
+    counter.textContent = (i + 1) + ' / ' + slides.length;
+    bar.style.width = ((i + 1) / slides.length * 100) + '%';
+    // Keep the deep link in sync so a reload — or a dropped call — resumes
+    // on the slide you were on rather than back at the title.
+    if (history.replaceState) history.replaceState(null, '', '#' + (i + 1));
+    if (deck.classList.contains('is-overview')) {
+      slides[i].scrollIntoView({ block: 'nearest' });
+    } else {
+      slides[i].scrollTop = 0;
+    }
+  }
+
+  function go(n) { i = Math.max(0, Math.min(slides.length - 1, n)); render(); }
+
+  document.addEventListener('keydown', function (e) {
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    switch (e.key) {
+      case 'ArrowRight': case 'PageDown': case ' ': go(i + 1); e.preventDefault(); break;
+      case 'ArrowLeft':  case 'PageUp':          go(i - 1); e.preventDefault(); break;
+      case 'Home': go(0); e.preventDefault(); break;
+      case 'End':  go(slides.length - 1); e.preventDefault(); break;
+      case 'o': case 'O':
+        deck.classList.toggle('is-overview'); render(); e.preventDefault(); break;
+      case 'f': case 'F':
+        if (document.fullscreenElement) document.exitFullscreen();
+        else if (deck.requestFullscreen) deck.requestFullscreen();
+        e.preventDefault(); break;
+      case 'Escape':
+        if (deck.classList.contains('is-overview')) { deck.classList.remove('is-overview'); render(); }
+        break;
+    }
+  });
+
+  // In overview, clicking a thumbnail selects it and returns to the slide.
+  slides.forEach(function (s, n) {
+    s.addEventListener('click', function () {
+      if (!deck.classList.contains('is-overview')) return;
+      deck.classList.remove('is-overview');
+      go(n);
+    });
+  });
+
+  function overview() { deck.classList.toggle('is-overview'); render(); }
+
+  // iPad Safari exposes the webkit-prefixed form, and only on an element.
+  function fullscreen() {
+    var d = document, el = deck;
+    if (d.fullscreenElement || d.webkitFullscreenElement) {
+      (d.exitFullscreen || d.webkitExitFullscreen || function () {}).call(d);
+    } else {
+      (el.requestFullscreen || el.webkitRequestFullscreen || function () {}).call(el);
+    }
+  }
+
+  document.getElementById('btn-prev').addEventListener('click', function () { go(i - 1); });
+  document.getElementById('btn-next').addEventListener('click', function () { go(i + 1); });
+  document.getElementById('btn-grid').addEventListener('click', overview);
+  document.getElementById('btn-full').addEventListener('click', fullscreen);
+
+  // ── Touch ───────────────────────────────────────────────────────────
+  // A slide can scroll vertically, so a gesture only counts as a swipe when
+  // it is decisively horizontal. Otherwise a reader scrolling an evidence
+  // block would skip slides. Overview is a scrolling grid — no swiping there.
+  var tx = 0, ty = 0, tracking = false;
+  var SWIPE_MIN = 45;   // px of horizontal travel before it counts
+  var SWIPE_BIAS = 1.4; // and it must be this much more horizontal than vertical
+
+  stage.addEventListener('touchstart', function (e) {
+    if (e.touches.length !== 1) { tracking = false; return; }
+    tx = e.touches[0].clientX;
+    ty = e.touches[0].clientY;
+    tracking = true;
+  }, { passive: true });
+
+  stage.addEventListener('touchend', function (e) {
+    if (!tracking || deck.classList.contains('is-overview')) return;
+    tracking = false;
+    var t = e.changedTouches[0];
+    var dx = t.clientX - tx, dy = t.clientY - ty;
+    if (Math.abs(dx) < SWIPE_MIN) return;
+    if (Math.abs(dx) < Math.abs(dy) * SWIPE_BIAS) return;
+    go(dx < 0 ? i + 1 : i - 1);
+  }, { passive: true });
+
+  // Say which controls actually exist on this device.
+  if (window.matchMedia && window.matchMedia('(hover: none)').matches) {
+    document.getElementById('hint').innerHTML = 'swipe to move';
+  }
+
+  var start = parseInt((location.hash || '').slice(1), 10);
+  go(isNaN(start) ? 0 : start - 1);
+}());
+</script>
+</body>
+</html>
