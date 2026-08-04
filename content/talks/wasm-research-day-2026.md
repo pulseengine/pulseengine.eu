@@ -34,19 +34,26 @@ slot = "25 + 5, remote"
 
 <section class="slide">
   <p class="slide__act">Act I &middot; the inversion</p>
-  <h2>Portability is usually asked of the wrong layer</h2>
+  <h2>How embedded actually builds software</h2>
   <div class="split">
     <div class="split__col">
-      <h3>the usual arrangement</h3>
-      <p>OS written for the chip. Application <em>hoped</em> to be portable.
-      Every new board re-opens the OS.</p>
+      <h3>what you do today</h3>
+      <p>Take the vendor's HAL and board-support package for that part. Take an
+      RTOS with a port layer per architecture and a board file per board. Take
+      register headers generated from the chip's own description file. Select
+      variants with <code>#ifdef</code>. Statically link one image.</p>
     </div>
     <div class="split__col">
-      <h3>what we are trying</h3>
-      <p>The OS <em>is</em> components. The Component Model is the integration
-      step — OS to OS, OS to drivers, OS to tenants.</p>
+      <h3>and it is the right answer</h3>
+      <p>No MMU. Kilobytes of RAM. Hard deadlines. Cents per unit. Every
+      abstraction costs bytes and cycles that are not there, and the vendor knows
+      the silicon better than you do. This ships in billions of units, and it
+      works.</p>
     </div>
   </div>
+  <p>The consequence is the part worth arguing about: <span class="hi">the OS is
+  the layer that gets rewritten per target</span>, and the application's
+  portability is a convention, not a contract.</p>
 </section>
 
 <section class="slide">
