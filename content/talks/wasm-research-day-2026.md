@@ -154,7 +154,8 @@ synth compile --target cortex-m3 \
   <pre class="evidence">fn p2_cannot_un_start() {
     let w = Iwdg { phase: Running, .. };
     if let Ok(n) = refresh(w) { assert_eq!(n.phase, <span class="ok">Running</span>); }
-    assert!(unlock(w).is_err());        <span class="dim">// no escape from Running</span>
+    <span class="dim">// no escape from Running:</span>
+    assert!(unlock(w).is_err());
 }</pre>
   <p><span class="hi">The contract itself cannot express the one transition the
   proof forbids.</span> That is the argument for putting the seam in a type
@@ -209,7 +210,8 @@ correctness <span class="ok">IDENTICAL</span> over [0,2047]   mismatch=<span cla
   <h2>The whole of a tire</h2>
   <p class="evidence__label">web/shim-mmio.js — what a browser tab supplies</p>
   <pre class="evidence">const REGS = new Uint32Array(64);
-const TIM2_CNT = 0x40000024;   <span class="dim">// the one clock register the OS reads</span>
+<span class="dim">// the one clock register the OS reads</span>
+const TIM2_CNT = 0x40000024;
 export function read32(addr) {
   const a = addr &gt;&gt;&gt; 0;
   return a === TIM2_CNT ? clock : REGS[(a &gt;&gt;&gt; 2) &amp; 63];
@@ -323,8 +325,6 @@ export function read32(addr) {
   </div>
   <blockquote class="slide__quote">The failure produced the same observable as
   success.</blockquote>
-  <p class="slide__cite">The remedy is not more gates — every check must be able
-  to go red for a reason you can state in advance.</p>
 </section>
 
 <section class="slide">
