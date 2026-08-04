@@ -81,33 +81,35 @@ irq  <span class="dim">— poll(line) -&gt; bool, deliberately</span></pre>
 <section class="slide">
   <p class="slide__act">Act II &middot; the car</p>
   <h2>Integration step, not a build step</h2>
+  <p class="slide__lead">Five components in, one native object out &mdash; and every
+  arrow happens on a build machine, not on the device.</p>
   <div class="flow">
     <div class="flow__row">
-      <span class="flow__stage">wac compose</span>
+      <span class="flow__stage">compose<small>wac</small></span>
       <span class="flow__in">5 components</span>
       <span class="flow__arrow">&rarr;</span>
       <span class="flow__out">1 component · 20 741 B<br><span class="dim">exports 5 gust:os · imports mmio + taskdisp</span></span>
     </div>
     <div class="flow__row">
-      <span class="flow__stage">meld fuse</span>
+      <span class="flow__stage">fuse<small>meld</small></span>
       <span class="flow__in">1 component<br><span class="dim">5 linear memories</span></span>
       <span class="flow__arrow">&rarr;</span>
       <span class="flow__out">1 core module · 9 874 B<br><span class="dim">shared memory &mdash; 52% smaller</span></span>
     </div>
     <div class="flow__row">
-      <span class="flow__stage">loom optimize</span>
+      <span class="flow__stage">optimize<small>loom</small></span>
       <span class="flow__in">core module</span>
       <span class="flow__arrow">&rarr;</span>
       <span class="flow__out">core module <span class="hi">+ wsc.facts</span><br><span class="dim">channel byte-verified; producer not yet wired</span></span>
     </div>
     <div class="flow__row">
-      <span class="flow__stage">synth compile</span>
+      <span class="flow__stage">lower to ARM<small>synth</small></span>
       <span class="flow__in">module + facts</span>
       <span class="flow__arrow">&rarr;</span>
       <span class="flow__out">gustos.o <span class="dim">· 4 812 B text · .bss 0</span></span>
     </div>
     <div class="flow__row">
-      <span class="flow__stage">ld</span>
+      <span class="flow__stage">link<small>ld</small></span>
       <span class="flow__in">.o + <span class="hi">3</span> native functions</span>
       <span class="flow__arrow">&rarr;</span>
       <span class="flow__out">firmware<br><span class="dim">no engine, no interpreter, no JIT</span></span>
