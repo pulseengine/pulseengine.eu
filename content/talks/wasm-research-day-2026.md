@@ -142,6 +142,10 @@ RAM   : <span class="hi">8K</span></pre>
   when a rotor fails and the controller asymmetrically zeros motors, re-mixing
   would reintroduce the parasitic moment that caused a real failure. So the
   failsafe must <em>not</em> be clever.</p>
+  <p class="slide__cite">And that is not a sentence on a slide. It is a typed
+  requirement, its WIT is generated from the architecture model, and an oracle
+  gates it &mdash; 46 rows &times; 4 motors, byte-exact, with a negative control
+  that must fail. <span class="warn">Status: draft.</span></p>
 </section>
 
 <section class="slide">
