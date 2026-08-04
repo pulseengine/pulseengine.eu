@@ -315,6 +315,17 @@
   font-size: clamp(1.2rem, min(calc(3.0vmin * var(--fs)), calc(2.37vh * var(--fs))), 1.9rem);
   font-weight: 600;
   color: $accent;
+
+  // The action is what the audience needs to follow; the tool name goes on its
+  // own line underneath, for whoever wants to look it up afterwards. Without
+  // `display: block` these run together as "composewac".
+  small {
+    display: block;
+    font-size: .72em;
+    font-weight: 400;
+    color: $text-faint;
+    margin-top: .1rem;
+  }
 }
 
 .flow__in,
