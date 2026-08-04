@@ -208,13 +208,20 @@
     var btn    = box.querySelector('.cast__play');
     var evs = null, timers = [], playing = false;
 
-    fetch(box.dataset.cast)
-      .then(function (r) { return r.ok ? r.text() : Promise.reject(r.status); })
-      .then(function (t) { evs = parseCast(t); })
-      .catch(function () {
-        btn.textContent = 'recording unavailable';
-        btn.disabled = true;
-      });
+    // A single-file export inlines the recordings on window.__CASTS, so the
+    // deck works from file:// with no server and no network at all — where a
+    // fetch would be blocked by CORS.
+    if (window.__CASTS && window.__CASTS[box.dataset.cast]) {
+      evs = parseCast(window.__CASTS[box.dataset.cast]);
+    } else {
+      fetch(box.dataset.cast)
+        .then(function (r) { return r.ok ? r.text() : Promise.reject(r.status); })
+        .then(function (t) { evs = parseCast(t); })
+        .catch(function () {
+          btn.textContent = 'recording unavailable';
+          btn.disabled = true;
+        });
+    }
 
     function stop() { timers.forEach(clearTimeout); timers = []; playing = false; }
 

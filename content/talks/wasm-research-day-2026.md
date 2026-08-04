@@ -46,7 +46,24 @@ slot = "25 + 5, remote"
     </div>
   </div>
   <p class="slide__cite">The bias, declared: I work in automotive, so to me
-  everything is a car.</p>
+  everything is a car. The substrate is not &mdash; next slide.</p>
+</section>
+
+<section class="slide">
+  <p class="slide__act">Act I &middot; the inversion</p>
+  <h2>A drone is a car with four rotors</h2>
+  <p>Same substrate, a different vehicle. The flight stack and a building-supervision
+  system are built from <em>the same</em> <code>no_std</code> stream-transformer
+  crates, the same WIT interface packages, the same component rules, the same
+  traceability gate.</p>
+  <div class="ledger">
+    <div class="ledger__row"><span class="ledger__tag hi">flight</span><span>cFS-derived stream components, SITL + emulation</span><span class="ledger__val">10 shared crates</span></div>
+    <div class="ledger__row"><span class="ledger__tag hi">building</span><span>sensor streams, monitors, alerting</span><span class="ledger__val">same crates</span></div>
+  </div>
+  <p class="slide__cite">Stated at the same resolution as the claim: <span class="warn">neither
+  has flown, and neither has shipped to a home.</span> The flight dossier says so in
+  its own words &mdash; <em>"no claim of flight is made anywhere."</em> This is the
+  outlook the substrate is aimed at, not a result.</p>
 </section>
 
 <section class="slide">
