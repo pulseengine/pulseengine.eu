@@ -531,3 +531,78 @@
 // The vh cap above handles aspect; this is only a floor for laptop screens
 // short enough that even a height-proportional scale crowds the dense slides.
 @media (max-height: 620px) { .deck { --fs: .9; } }
+
+// ─── Architecture diagram ─────────────────────────────────────────────
+// A diagram is read, not spoken word-by-word, so it gets its own smaller
+// scale rather than the prose one. Evidence-producing blocks are tinted;
+// the hazard block is the one thing on the slide that is not reassuring.
+
+.arch {
+  display: grid;
+  // Six columns across 1180px left the block labels at 11px. Three columns
+  // flowing into two rows triples the width per column and lets the diagram
+  // carry readable type.
+  grid-template-columns: repeat(3, 1fr);
+  gap: .4rem .7rem;
+  width: 100%;
+  align-items: start;
+}
+
+.arch__col { display: flex; flex-direction: column; gap: .28rem; min-width: 0; }
+
+.arch__stage {
+  font-family: $font-mono;
+  font-size: clamp(.72rem, min(2vmin, 1.6vh), 1.1rem);
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: $text-faint;
+  white-space: nowrap;
+}
+
+.arch__b {
+  background: $surface;
+  border: 1px solid $border-subtle;
+  border-radius: 6px;
+  padding: .28rem .42rem;
+  font-size: clamp(.85rem, min(2.7vmin, 2.2vh), 1.35rem);
+  font-weight: 600;
+  line-height: 1.25;
+  min-width: 0;
+
+  small {
+    display: block;
+    font-family: $font-mono;
+    font-size: .82em;
+    font-weight: 400;
+    color: $text-dim;
+    margin-top: .1rem;
+    overflow-wrap: anywhere;
+  }
+}
+
+// Teal: this block produces or checks evidence.
+.arch__b.is-ev {
+  border-color: rgba(34, 211, 238, .5);
+  background: rgba(34, 211, 238, .07);
+  color: $cyan;
+  small { color: $text-dim; }
+}
+
+// Amber: the hazard class specific to this translation.
+.arch__b.is-hz {
+  border-color: rgba(251, 191, 36, .55);
+  background: rgba(251, 191, 36, .08);
+  color: $amber;
+  small { color: $text-dim; }
+}
+
+@media (max-width: 900px) {
+  .arch { grid-template-columns: repeat(2, 1fr); }
+}
+
+// A diagram slide is read, not declaimed: it can carry a smaller heading and
+// tighter stacking than a prose slide, which buys the blocks their legibility.
+.slide:has(.arch) {
+  gap: .55rem;
+  h2 { font-size: clamp(1.5rem, min(4vmin, 3.2vh), 2.5rem); }
+}

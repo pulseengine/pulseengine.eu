@@ -262,6 +262,54 @@ export function read32(addr) {
 
 <section class="slide">
   <p class="slide__act">Act IV &middot; the factory</p>
+  <h2>Where the evidence enters</h2>
+  <div class="arch">
+    <div class="arch__col">
+      <span class="arch__stage">upstream · untrusted</span>
+      <div class="arch__b is-ev">loom<small>Z3 validator &rarr; wsc.facts</small></div>
+      <div class="arch__b is-ev">scry<small>intervals · stack-depth</small></div>
+      <div class="arch__b is-ev">meld<small>component &rarr; core wasm</small></div>
+    </div>
+    <div class="arch__col">
+      <span class="arch__stage">front</span>
+      <div class="arch__b">Wasm decoder<small>core + component</small></div>
+      <div class="arch__b is-ev">wsc.facts ingest<small>bad section &rArr; no facts, never error</small></div>
+      <div class="arch__b">WIT / ABI<small>lift · lower</small></div>
+      <div class="arch__b">cabi arena bind<small>dangling realloc &rarr; defined fn</small></div>
+    </div>
+    <div class="arch__col">
+      <span class="arch__stage">middle</span>
+      <div class="arch__b">CFG + SSA<small>liveness · reaching defs</small></div>
+      <div class="arch__b is-ev">Verified selector DSL<small>50 rules · 50 Rocq Qed</small></div>
+      <div class="arch__b is-ev">Fact specialization<small>per-site SMT + LRAT</small></div>
+      <div class="arch__b">Register allocation<small>Belady spill</small></div>
+    </div>
+    <div class="arch__col">
+      <span class="arch__stage">back</span>
+      <div class="arch__b">Thumb-2<small>Cortex-M3/M4/M7</small></div>
+      <div class="arch__b">A32 · A64<small>Cortex-R5 · cortex-a53</small></div>
+      <div class="arch__b">RV32IMAC<small>qemu · ESP32-C3</small></div>
+      <div class="arch__b is-hz">Trap re-introduction<small>hardware is more total</small></div>
+    </div>
+    <div class="arch__col">
+      <span class="arch__stage">per compilation</span>
+      <div class="arch__b is-ev">Translation validation<small>QF_BV · pure Rust</small></div>
+      <div class="arch__b is-ev">Trap-preservation VC<small>div · OOB · trunc</small></div>
+      <div class="arch__b is-ev">Static-data addressing VC<small>byte equality</small></div>
+      <div class="arch__b is-ev">Allocation validators<small>whole-function · CFG</small></div>
+    </div>
+    <div class="arch__col">
+      <span class="arch__stage">out</span>
+      <div class="arch__b">Freestanding ELF<small>vectors · linker · MPU</small></div>
+      <div class="arch__b is-ev">WCET sidecar<small>sound per-function</small></div>
+      <div class="arch__b">DWARF<small>relocatable</small></div>
+    </div>
+  </div>
+  <p class="slide__cite">Tinted = produces or checks evidence · amber = this translation's hazard</p>
+</section>
+
+<section class="slide">
+  <p class="slide__act">Act IV &middot; the factory</p>
   <h2>No stage trusts the one above it</h2>
   <p>When <code>loom</code> proves a value range, it does not just use it and
   discard it. It writes it into a custom section — <code>wsc.facts</code> — keyed
