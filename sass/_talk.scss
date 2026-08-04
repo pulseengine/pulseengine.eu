@@ -441,13 +441,14 @@
   .deck__btn { transition: none; }
 }
 
-// On a pointer device the deck is driven from the keyboard; keep the buttons
-// available but quiet until approached.
-@media (hover: hover) {
-  .deck__nav { opacity: .35; transition: opacity .2s ease; }
-  .deck:hover .deck__nav,
-  .deck__nav:focus-within { opacity: 1; }
-}
+// Previously these were dimmed to .35 under `(hover: hover)` and restored on
+// hover. An iPad with a keyboard or trackpad attached MATCHES that query while
+// the person is still touching the screen — so the controls went nearly
+// invisible with no way to bring them back. A presenter always needs the
+// controls; they stay visible.
+.deck__nav { opacity: .8; transition: opacity .2s ease; }
+.deck:hover .deck__nav,
+.deck__nav:focus-within { opacity: 1; }
 
 // ─── Overview (press o) ───────────────────────────────────────────────
 

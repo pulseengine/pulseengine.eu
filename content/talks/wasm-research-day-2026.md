@@ -105,6 +105,11 @@ spi · timer · uart · dma</pre>
       <span class="flow__out">firmware<br><span class="dim">no engine, no interpreter, no JIT</span></span>
     </div>
   </div>
+</section>
+
+<section class="slide">
+  <p class="slide__act">Act II &middot; the car</p>
+  <h2>The same chain, actually run</h2>
   <div class="cast" data-cast="/casts/dissolve.cast">
     <button type="button" class="cast__play">run it</button>
     <pre class="cast__screen" aria-label="terminal recording of the dissolve"></pre>
@@ -150,16 +155,20 @@ synth compile --target cortex-m3 \
   start · refresh · is-running
   <span class="dim">— no stop. no disable.</span>
 }</pre>
-  <p class="evidence__label">and the FSM proves the absence, rather than relying on it</p>
+</section>
+
+<section class="slide">
+  <p class="slide__act">Act II &middot; the car</p>
+  <h2>&hellip; and the FSM proves the absence</h2>
   <pre class="evidence">fn p2_cannot_un_start() {
     let w = Iwdg { phase: Running, .. };
     if let Ok(n) = refresh(w) { assert_eq!(n.phase, <span class="ok">Running</span>); }
     <span class="dim">// no escape from Running:</span>
     assert!(unlock(w).is_err());
 }</pre>
-  <p><span class="hi">The contract itself cannot express the one transition the
-  proof forbids.</span> That is the argument for putting the seam in a type
-  system rather than in a comment.</p>
+  <p><span class="hi">The contract cannot express the one transition the proof
+  forbids.</span> That is the argument for putting a seam in a type system rather
+  than in a comment.</p>
 </section>
 
 <section class="slide">
@@ -216,13 +225,19 @@ export function read32(addr) {
   const a = addr &gt;&gt;&gt; 0;
   return a === TIM2_CNT ? clock : REGS[(a &gt;&gt;&gt; 2) &amp; 63];
 }</pre>
-  <p class="evidence__label">on silicon — same import, answered by the bus</p>
+</section>
+
+<section class="slide">
+  <p class="slide__act">Act III &middot; the tires</p>
+  <h2>&hellip; and on silicon</h2>
+  <p class="evidence__label">same import, answered by the bus</p>
   <pre class="evidence">#[no_mangle] extern "C" fn read32(addr: u32) -&gt; u32 {
     unsafe { core::ptr::read_volatile(addr as *const u32) }
 }</pre>
-  <p><span class="hi">That substitution is the entire thesis.</span></p>
+  <p>Nothing else about the component changes.
+  <span class="hi">That substitution is the entire thesis.</span></p>
   <div class="ledger">
-    <div class="ledger__row"><span class="ledger__tag hi">seam</span><span>A whole STM32 USART driver, dissolved</span><span class="ledger__val">326 B · 0 SRAM · 3 relocs</span></div>
+    <div class="ledger__row"><span class="ledger__tag hi">seam</span><span>a whole STM32 USART driver, dissolved</span><span class="ledger__val">326 B · 0 SRAM · 3 relocs</span></div>
   </div>
 </section>
 
@@ -371,17 +386,31 @@ export function read32(addr) {
   03            <span class="dim">func_index  3</span>
   07            <span class="dim">value_id    7  &larr; a VALUE, not a position</span>
   03 00 ff 0f   <span class="dim">body: 0 &le; v &le; 2047   (sleb128)</span></pre>
-  <p>Keyed to values because an optimizer <em>renumbers everything</em>. Key a fact
-  to an instruction index and the next pass deletes three above it &mdash; the fact
-  is still true of something, and now asserted about something else. A fact whose
-  value did not survive is <span class="hi">dropped, never re-pointed</span>.</p>
+</section>
+
+<section class="slide">
+  <p class="slide__act">Act IV &middot; the factory</p>
+  <h2>Why a <em>value</em>, not a position</h2>
+  <p>An optimizer <em>renumbers everything</em>. Key a fact to an instruction index,
+  and the next pass deletes three instructions above it.</p>
+  <p>The fact is still true of something &mdash; and is now asserted about something
+  else. A downstream consumer then reasons about the wrong operand, with a valid
+  module and a machine-checked implication.</p>
+  <p>So a fact whose value did not survive the pipeline is
+  <span class="hi">dropped, never re-pointed</span>. An absent fact costs
+  performance; a mis-keyed one costs correctness.</p>
+</section>
+
+<section class="slide">
+  <p class="slide__act">Act IV &middot; the factory</p>
+  <h2>What the channel is worth</h2>
   <div class="ledger">
     <div class="ledger__row"><span class="ledger__tag hi">measured</span><span>a bounds-guard sequence, with the fact forwarded</span><span class="ledger__val">232 &rarr; 104 B</span></div>
   </div>
-  <p class="slide__cite">Honest scope: the emitter, schema and wire format are done
-  and byte-verified against the consumer. The <em>source</em> that would populate
-  this at volume is not wired &mdash; 232&rarr;104 is what the channel does when it
-  carries a fact, not evidence that we produce many yet.</p>
+  <p class="slide__cite">Honest scope: emitter, schema and wire format are done and
+  byte-verified against the consumer. The <em>source</em> that would populate this
+  at volume is not wired &mdash; so that is what the channel does when it carries a
+  fact, not evidence that we produce many yet.</p>
 </section>
 
 <section class="slide">
@@ -394,10 +423,15 @@ export function read32(addr) {
   <span class="hi">both clamp branches are dead code</span>:</p>
   <pre class="evidence">add r0, #476
 bx  lr          <span class="dim">— the whole function</span></pre>
+</section>
+
+<section class="slide">
+  <p class="slide__act">Act IV &middot; the factory</p>
+  <h2>What that is worth, measured</h2>
   <div class="ledger">
     <div class="ledger__row"><span class="ledger__tag dim">native LLVM</span><span>full clamp — what LLVM ships</span><span class="ledger__val">0.50 ticks/call</span></div>
     <div class="ledger__row"><span class="ledger__tag dim">dissolved today</span><span>clamp still emitted</span><span class="ledger__val">0.70 &mdash; <span class="warn">1.4&times; slower</span></span></div>
-    <div class="ledger__row"><span class="ledger__tag hi">with the proof</span><span>clamp elided, correct only under the bound</span><span class="ledger__val">0.23 &mdash; <span class="ok">2.2&times; faster</span></span></div>
+    <div class="ledger__row"><span class="ledger__tag hi">with the proof</span><span>clamp elided</span><span class="ledger__val">0.23 &mdash; <span class="ok">2.2&times; faster</span></span></div>
   </div>
   <p class="slide__cite">Soundness-gated: the bench asserts the elided form equals
   the native one across the proven range. LLVM never had the bound.</p>
@@ -451,13 +485,17 @@ bx  lr          <span class="dim">— the whole function</span></pre>
   <pre class="evidence">gpio   502 &rarr; 1196 B     spi  454 &rarr; 1244 B
 timer  204 &rarr;  828 B     wdg  638 &rarr; 1726 B
 .data / .bss, all of them   <span class="ok">0 &rarr; 0</span></pre>
-  <p class="evidence__label">and the response, measured for this talk</p>
+</section>
+
+<section class="slide">
+  <p class="slide__act">Act V &middot; what is missing</p>
+  <h2>So we patched the generator</h2>
+  <p class="evidence__label">measured for this talk</p>
   <pre class="evidence">wdg, canonical glue on a growing allocator   1746 B
      backed by a bounded arena instead        <span class="ok">1428 B</span>   <span class="hi">&minus;318</span></pre>
-  <p>So we patched the bindings generator rather than absorbing the cost:
-  <code>cabi_realloc</code> delegates to an embedder arena that traps instead of
-  growing. <span class="hi">29% of the overhead back</span> — and the drivers do
-  not use it yet.</p>
+  <p><code>cabi_realloc</code> now delegates to an embedder arena that traps rather
+  than growing. <span class="hi">29% of the overhead back</span> &mdash; and the
+  drivers do not use it yet.</p>
 </section>
 
 <section class="slide">
