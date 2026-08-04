@@ -332,11 +332,15 @@ export function read32(addr) {
   <h2>What componentizing actually costs</h2>
   <p class="evidence__label">driver object .text, core module &rarr; component</p>
   <pre class="evidence">gpio   502 &rarr; 1196 B     spi  454 &rarr; 1244 B
-timer  204 &rarr;  828 B     wdg  638 &rarr; 1718 B
+timer  204 &rarr;  828 B     wdg  638 &rarr; 1726 B
 .data / .bss, all of them   <span class="ok">0 &rarr; 0</span></pre>
-  <p>Roughly <span class="hi">+700 B fixed per driver</span> for canonical-ABI glue
-  — a constant, not a proportion. On a chip with 8 KB of SRAM that is a real
-  number, and it is filed upstream rather than absorbed quietly.</p>
+  <p class="evidence__label">and the response, measured for this talk</p>
+  <pre class="evidence">wdg, canonical glue on a growing allocator   1746 B
+     backed by a bounded arena instead        <span class="ok">1428 B</span>   <span class="hi">&minus;318</span></pre>
+  <p>So we patched the bindings generator rather than absorbing the cost:
+  <code>cabi_realloc</code> delegates to an embedder arena that traps instead of
+  growing. <span class="hi">29% of the overhead back</span> — and the drivers do
+  not use it yet.</p>
 </section>
 
 <section class="slide">
