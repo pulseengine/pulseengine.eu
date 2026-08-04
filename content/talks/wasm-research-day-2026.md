@@ -21,19 +21,6 @@ slot = "25 + 5, remote"
 
 <section class="slide">
   <p class="slide__act">Act I &middot; the inversion</p>
-  <h2>What this room has already established</h2>
-  <div class="ledger">
-    <div class="ledger__row"><span class="ledger__tag dim">2022</span><span>lowered ahead of time, no engine</span><span class="ledger__val">x86-64</span></div>
-    <div class="ledger__row"><span class="ledger__tag dim">2023</span><span>pluggable HALs via the Component Model</span><span class="ledger__val">preliminary</span></div>
-    <div class="ledger__row"><span class="ledger__tag dim">2025</span><span>a runtime's overhead on a small device</span><span class="ledger__val">runtime present</span></div>
-    <div class="ledger__row"><span class="ledger__tag hi">today</span><span>eliding bounds checks, soundly</span><span class="ledger__val">two hours ago</span></div>
-  </div>
-  <p>Four ingredients. <span class="hi">This talk needs all four at once</span> —
-  where the runtime does not fit.</p>
-</section>
-
-<section class="slide">
-  <p class="slide__act">Act I &middot; the inversion</p>
   <h2>How embedded actually builds software</h2>
   <div class="split">
     <div class="split__col">
