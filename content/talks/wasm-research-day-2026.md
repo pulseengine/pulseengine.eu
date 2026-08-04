@@ -78,8 +78,9 @@ channel · io</pre>
     </div>
     <div class="split__col">
       <h3>gust:hal &mdash; what touches metal</h3>
-      <pre class="evidence">mmio · irq · gpio
-spi · timer · uart · dma</pre>
+      <pre class="evidence">mmio · gpio · spi
+timer · uart · dma
+irq  <span class="dim">— poll(line) -&gt; bool, deliberately</span></pre>
     </div>
   </div>
   <p>A driver sits <em>below</em> the OS: it may import <code>gust:hal</code> and
@@ -107,13 +108,13 @@ spi · timer · uart · dma</pre>
       <span class="flow__stage">loom optimize</span>
       <span class="flow__in">core module</span>
       <span class="flow__arrow">&rarr;</span>
-      <span class="flow__out">core module <span class="hi">+ wsc.facts</span><br><span class="dim">what it proved, forwarded</span></span>
+      <span class="flow__out">core module <span class="hi">+ wsc.facts</span><br><span class="dim">channel byte-verified; producer not yet wired</span></span>
     </div>
     <div class="flow__row">
       <span class="flow__stage">synth compile</span>
       <span class="flow__in">module + facts</span>
       <span class="flow__arrow">&rarr;</span>
-      <span class="flow__out">gustos.o <span class="dim">· 4 812 B text · 0 SRAM</span></span>
+      <span class="flow__out">gustos.o <span class="dim">· 4 812 B text · .bss 0</span></span>
     </div>
     <div class="flow__row">
       <span class="flow__stage">ld</span>
@@ -197,7 +198,7 @@ IWDG reset CONFIRMED   IWDGRSTF=<span class="ok">1</span></pre>
     <pre class="evidence"><span class="dim">Cortex-M3 · STM32F100 — the same .o</span>
 IWDG reset CONFIRMED   IWDGRSTF=<span class="ok">1</span></pre>
     <pre class="evidence"><span class="dim">RISC-V · ESP32-C3 rev v0.4</span>
-native 271   dissolved 499 milliticks/call   ratio <span class="ok">1.839&times;</span>
+native 271   dissolved 499 milliticks/call   ratio <span class="warn">1.839&times; slower</span>
 correctness <span class="ok">IDENTICAL</span> over [0,2047]   mismatch=<span class="ok">0</span></pre>
   </div>
   <p class="slide__cite">Captured 2026-08-04, all three probes attached at once.
@@ -260,8 +261,8 @@ export function read32(addr) {
 
 <section class="slide">
   <p class="slide__act">Act IV &middot; the factory</p>
-  <blockquote class="slide__quote">The pipeline is qualified once; every product
-  that uses it inherits that qualification.</blockquote>
+  <blockquote class="slide__quote">Qualify the pipeline once, and the argument
+  amortizes across every product built on it.</blockquote>
   <p class="slide__cite">— our own words, from a post two years before this talk</p>
   <p>This is why the factory matters more than the car. A car you qualify once is
   one car. A <em>factory</em> you qualify once is every car it will ever build.</p>
@@ -383,7 +384,7 @@ export function read32(addr) {
       </div></div>
       <div class="archr__row"><span class="archr__st">out</span><div class="archr__bs">
         <span class="ab">Freestanding ELF<small>vectors · linker · MPU</small></span>
-        <span class="ab ev">WCET sidecar<small>sound per-function</small></span>
+        <span class="ab ev">WCET sidecar<small>leaf functions only · declines on call</small></span>
         <span class="ab">DWARF<small>relocatable</small></span>
       </div></div>
     </div>
@@ -501,15 +502,17 @@ bx  lr          <span class="dim">— the whole function</span></pre>
   <p class="evidence__label">driver object .text, core module &rarr; component</p>
   <pre class="evidence">gpio   502 &rarr; 1196 B     spi  454 &rarr; 1244 B
 timer  204 &rarr;  828 B     wdg  638 &rarr; 1726 B
-.data / .bss, all of them   <span class="ok">0 &rarr; 0</span></pre>
+.data / .bss, all of them   <span class="ok">0 &rarr; 0</span>
+<span class="dim">flash is cheap here; SRAM is the binding constraint</span></pre>
 </section>
 
 <section class="slide">
   <p class="slide__act">Act V &middot; what is missing</p>
   <h2>So we patched the generator</h2>
   <p class="evidence__label">measured for this talk</p>
-  <pre class="evidence">wdg, canonical glue on a growing allocator   1746 B
-     backed by a bounded arena instead        <span class="ok">1428 B</span>   <span class="hi">&minus;318</span></pre>
+  <pre class="evidence"><span class="dim">same wit-bindgen build, feature off vs on</span>
+canonical glue on a growing allocator   1746 B
+backed by a bounded arena instead       <span class="ok">1428 B</span>   <span class="hi">&minus;318</span></pre>
   <p><code>cabi_realloc</code> now delegates to an embedder arena that traps rather
   than growing. <span class="hi">29% of the overhead back</span> &mdash; and the
   drivers do not use it yet.</p>
