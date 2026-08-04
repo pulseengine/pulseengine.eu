@@ -131,6 +131,23 @@ irq  <span class="dim">— poll(line) -&gt; bool, deliberately</span></pre>
 
 <section class="slide">
   <p class="slide__act">Act II &middot; the car</p>
+  <h2>The part sets the rules</h2>
+  <p class="slide__lead">Every decision in this talk answers to one number.</p>
+  <pre class="evidence"><span class="dim">generated from the AADL model, not hand-written</span>
+FLASH : ORIGIN = 0x08000000, LENGTH = 128K
+RAM   : ORIGIN = 0x20000000, LENGTH = <span class="hi">8K</span></pre>
+  <p class="evidence__label">a whole flashed image on that part &mdash; the watchdog silicon test</p>
+  <pre class="evidence">   text    data    bss
+   6028       0       8
+flash  <span class="ok">6 028 B of 131 072</span>   4.6%
+SRAM   <span class="ok">    8 B of   8 192</span>   0.1%   &mdash; 8 184 free</pre>
+  <p>No MMU. No engine. <span class="hi">Eight bytes of RAM.</span> That is why the
+  drivers are 0 SRAM, why the interfaces are scalar, and why the allocator traps
+  instead of growing &mdash; none of those are taste.</p>
+</section>
+
+<section class="slide">
+  <p class="slide__act">Act II &middot; the car</p>
   <h2>The seam, as it is actually written</h2>
   <div class="split">
     <div class="split__col">
