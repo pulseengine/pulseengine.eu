@@ -131,19 +131,32 @@ irq  <span class="dim">— poll(line) -&gt; bool, deliberately</span></pre>
 
 <section class="slide">
   <p class="slide__act">Act II &middot; the car</p>
-  <h2>The part sets the rules</h2>
-  <p class="slide__lead">Every decision in this talk answers to one number.</p>
-  <pre class="evidence"><span class="dim">generated from the AADL model, not hand-written</span>
-FLASH : ORIGIN = 0x08000000, LENGTH = 128K
-RAM   : ORIGIN = 0x20000000, LENGTH = <span class="hi">8K</span></pre>
-  <p class="evidence__label">a whole flashed image on that part &mdash; the watchdog silicon test</p>
+  <h2>The part that sets the rules is a failsafe</h2>
+  <p class="slide__lead">Not the smallest board we could find &mdash; the emergency
+  motor controller. It sits beside the main flight computer and forwards per-motor
+  commands. If that computer stops, this is what is still driving the motors.</p>
+  <pre class="evidence"><span class="dim">its linker geometry, generated from the AADL model</span>
+FLASH : 128K
+RAM   : <span class="hi">8K</span></pre>
+  <p>Its one safety property is <span class="hi">byte-exact pass-through</span>:
+  when a rotor fails and the controller asymmetrically zeros motors, re-mixing
+  would reintroduce the parasitic moment that caused a real failure. So the
+  failsafe must <em>not</em> be clever.</p>
+</section>
+
+<section class="slide">
+  <p class="slide__act">Act II &middot; the car</p>
+  <h2>What it costs on that part</h2>
+  <p class="evidence__label">a whole flashed image — the watchdog silicon test</p>
   <pre class="evidence">   text    data    bss
    6028       0       8
 flash  <span class="ok">6 028 B of 131 072</span>   4.6%
 SRAM   <span class="ok">    8 B of   8 192</span>   0.1%   &mdash; 8 184 free</pre>
   <p>No MMU. No engine. <span class="hi">Eight bytes of RAM.</span> That is why the
-  drivers are 0 SRAM, why the interfaces are scalar, and why the allocator traps
-  instead of growing &mdash; none of those are taste.</p>
+  drivers are 0 SRAM, the interfaces are scalar, and the allocator traps instead of
+  growing &mdash; none of those are taste.</p>
+  <p class="slide__cite">Scope: one dissolved driver plus the minimum to boot and
+  report. A floor, not a system footprint &mdash; no scheduler, no tenants.</p>
 </section>
 
 <section class="slide">
