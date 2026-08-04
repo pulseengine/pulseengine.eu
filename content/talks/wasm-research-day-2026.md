@@ -78,13 +78,13 @@ spi · timer · uart · dma</pre>
       <span class="flow__stage">wac compose</span>
       <span class="flow__in">5 components</span>
       <span class="flow__arrow">&rarr;</span>
-      <span class="flow__out">1 component<br><span class="dim">exports gust:os · imports gust:hal</span></span>
+      <span class="flow__out">1 component · 20 741 B<br><span class="dim">exports 5 gust:os · imports mmio + taskdisp</span></span>
     </div>
     <div class="flow__row">
       <span class="flow__stage">meld fuse</span>
-      <span class="flow__in">1 component<br><span class="dim">5 linear memories</span></span>
+      <span class="flow__in">1 component<br><span class="dim">11 linear memories</span></span>
       <span class="flow__arrow">&rarr;</span>
-      <span class="flow__out">1 core module<br><span class="dim">one shared memory</span></span>
+      <span class="flow__out">1 core module · 9 874 B<br><span class="dim">shared memory &mdash; 52% smaller</span></span>
     </div>
     <div class="flow__row">
       <span class="flow__stage">loom optimize</span>
@@ -96,11 +96,11 @@ spi · timer · uart · dma</pre>
       <span class="flow__stage">synth compile</span>
       <span class="flow__in">module + facts</span>
       <span class="flow__arrow">&rarr;</span>
-      <span class="flow__out">one relocatable .o <span class="hi">+ certificates</span></span>
+      <span class="flow__out">gustos.o <span class="dim">· 4 812 B text · 0 SRAM</span></span>
     </div>
     <div class="flow__row">
       <span class="flow__stage">ld</span>
-      <span class="flow__in">.o + the native functions</span>
+      <span class="flow__in">.o + <span class="hi">3</span> native functions</span>
       <span class="flow__arrow">&rarr;</span>
       <span class="flow__out">firmware<br><span class="dim">no engine, no interpreter, no JIT</span></span>
     </div>
