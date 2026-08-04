@@ -14,7 +14,9 @@ slot = "25 + 5, remote"
   <h1>Change the Tires,<br>Not the Car</h1>
   <p class="slide__lead">The Component Model as the integration step for an OS
   written in WebAssembly.</p>
-  <p class="slide__cite">pulseengine.eu &middot; every number on these slides says where it came from</p>
+  <p class="slide__cite">I work in automotive, so to me everything is a car &mdash;
+  declaring the bias up front.<br>
+  pulseengine.eu &middot; every number on these slides says where it came from</p>
 </section>
 
 <section class="slide">
@@ -45,8 +47,6 @@ slot = "25 + 5, remote"
       step — OS to OS, OS to drivers, OS to tenants.</p>
     </div>
   </div>
-  <p class="slide__cite">The bias, declared: I work in automotive, so to me
-  everything is a car.</p>
 </section>
 
 <section class="slide">
