@@ -21,14 +21,13 @@ slot = "25 + 5, remote"
   <p class="slide__act">Act I &middot; the inversion</p>
   <h2>What this room has already established</h2>
   <div class="ledger">
-    <div class="ledger__row"><span class="ledger__tag dim">2022</span><span><em>Fixpoint: Computation-Centric Networking</em> — wasm lowered ahead of time to native, invoked without an engine</span><span class="ledger__val">server, x86-64</span></div>
-    <div class="ledger__row"><span class="ledger__tag dim">2023</span><span><em>Bringing orchestration to the edge with the WebAssembly Component Model</em> — pluggable HALs via the Component Model</span><span class="ledger__val">preliminary</span></div>
-    <div class="ledger__row"><span class="ledger__tag dim">2025</span><span><em>WASI performance on IoT and embedded</em> — the overhead of a runtime on a constrained device</span><span class="ledger__val">runtime present</span></div>
-    <div class="ledger__row"><span class="ledger__tag hi">today</span><span><em>WasmBounds</em> — eliminating bounds checks by abstract interpretation</span><span class="ledger__val">two hours ago</span></div>
+    <div class="ledger__row"><span class="ledger__tag dim">2022</span><span><em>Fixpoint</em> — wasm lowered ahead of time, invoked with no engine</span><span class="ledger__val">server, x86-64</span></div>
+    <div class="ledger__row"><span class="ledger__tag dim">2023</span><span><em>Orchestration at the edge</em> — pluggable HALs via the Component Model</span><span class="ledger__val">preliminary</span></div>
+    <div class="ledger__row"><span class="ledger__tag dim">2025</span><span><em>WASI performance on IoT and embedded</em> — a runtime's overhead on a small device</span><span class="ledger__val">runtime present</span></div>
+    <div class="ledger__row"><span class="ledger__tag hi">today</span><span><em>WasmBounds</em> — eliding bounds checks by abstract interpretation</span><span class="ledger__val">two hours ago</span></div>
   </div>
-  <p>Each of these is one ingredient. <span class="hi">This talk is what happens
-  when you need all four at once</span> — on a chip where the runtime the third
-  one measures does not fit at all.</p>
+  <p>Each is one ingredient. <span class="hi">This talk needs all four at
+  once</span> — on a chip where the runtime the third one measures does not fit.</p>
 </section>
 
 <section class="slide">
@@ -50,6 +49,8 @@ slot = "25 + 5, remote"
   <p>The OS and everything above it is the car. The handful of native functions
   that actually touch the hardware are the tires. For new terrain — another chip,
   another board — <span class="hi">you change the tires, not the car.</span></p>
+  <p class="slide__cite">Declaring the bias: I work in automotive, so to me
+  everything is a car. The substrate is not — which is the next slide.</p>
 </section>
 
 <section class="slide">
@@ -161,23 +162,20 @@ synth compile --target cortex-m3 \
 <section class="slide">
   <p class="slide__act">Act II &middot; the car</p>
   <h2>Three dies, one session</h2>
-  <p class="evidence__label">captured 2026-08-04, all three probes attached at once</p>
   <div class="stack">
     <pre class="evidence"><span class="dim">Cortex-M4 · NUCLEO-G474RE</span>
-gust-wdg-silicon OK: IWDG watchdog reset CONFIRMED on real STM32G474
-silicon (RCC_CSR=0x34000000, IWDGRSTF=<span class="ok">1</span>)</pre>
-    <pre class="evidence"><span class="dim">Cortex-M3 · STM32F100 VLDISCOVERY — the same .o, a second die</span>
-gust-wdg-silicon OK: IWDG watchdog reset CONFIRMED on real STM32F100
-silicon (RCC_CSR=0x34000000, IWDGRSTF=<span class="ok">1</span>)</pre>
+IWDG reset CONFIRMED on real STM32G474
+RCC_CSR 0x14000000 &rarr; 0x34000000   IWDGRSTF=<span class="ok">1</span></pre>
+    <pre class="evidence"><span class="dim">Cortex-M3 · STM32F100 — the same .o, a second die</span>
+IWDG reset CONFIRMED on real STM32F100
+RCC_CSR 0x14000000 &rarr; 0x34000000   IWDGRSTF=<span class="ok">1</span></pre>
     <pre class="evidence"><span class="dim">RISC-V · ESP32-C3 rev v0.4</span>
-correctness: <span class="ok">IDENTICAL</span> ok over [0,2047]
-gust_mix_native     271 milliticks/call
-gust_mix_dissolved  499 milliticks/call
-ratio_x1000        1839   (mismatch=<span class="ok">0</span>)</pre>
+native 271   dissolved 499 milliticks/call   ratio <span class="ok">1.839&times;</span>
+correctness <span class="ok">IDENTICAL</span> over [0,2047]   mismatch=<span class="ok">0</span></pre>
   </div>
-  <p class="slide__cite">The watchdog legs are one happy path on two dies. They do
-  not evidence the cannot-un-start property — the firmware never attempts an
-  un-start. That stays a source-level proof.</p>
+  <p class="slide__cite">Captured 2026-08-04, all three probes attached at once.
+  The watchdog legs are one happy path on two dies — they do not evidence
+  cannot-un-start; the firmware never attempts one.</p>
 </section>
 
 <section class="slide">
@@ -221,10 +219,9 @@ export function read32(addr) {
     unsafe { core::ptr::read_volatile(addr as *const u32) }
 }</pre>
   <p>Nothing else about the component changes. <span class="hi">That substitution
-  is the entire thesis</span> — and it is small enough to read on one slide.</p>
+  is the entire thesis.</span></p>
   <div class="ledger">
-    <div class="ledger__row"><span class="ledger__tag hi">seam</span><span>A whole STM32 USART driver, dissolved &mdash; trusted surface: <code>read32</code>, <code>write32</code>, <code>irq_poll</code></span><span class="ledger__val">326 B · 0 SRAM · 3 relocs</span></div>
-    <div class="ledger__row"><span class="ledger__tag hi">seam</span><span>DMA, modelled as an ownership round-trip</span><span class="ledger__val">218 B · 6 Kani proofs</span></div>
+    <div class="ledger__row"><span class="ledger__tag hi">seam</span><span>A whole STM32 USART driver, dissolved</span><span class="ledger__val">326 B · 0 SRAM · 3 relocs</span></div>
   </div>
 </section>
 

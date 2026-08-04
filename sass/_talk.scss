@@ -69,7 +69,7 @@
 // Sized in vmin so a slide reads the same projected, shared, or in a tab.
 
 .slide h1 {
-  font-size: clamp(2.2rem, 5.6vmin, 4rem);
+  font-size: clamp(2.5rem, 6.4vmin, 4.8rem);
   line-height: 1.1;
   font-weight: 700;
   letter-spacing: -0.02em;
@@ -78,7 +78,7 @@
 }
 
 .slide h2 {
-  font-size: clamp(1.6rem, 3.9vmin, 2.6rem);
+  font-size: clamp(1.85rem, 4.5vmin, 3.2rem);
   line-height: 1.15;
   font-weight: 600;
   letter-spacing: -0.015em;
@@ -88,7 +88,7 @@
 
 .slide p,
 .slide li {
-  font-size: clamp(1rem, 2.05vmin, 1.4rem);
+  font-size: clamp(1.2rem, 3vmin, 2.1rem);
   line-height: 1.55;
   max-width: 46ch;
   margin: 0;
@@ -98,9 +98,10 @@
 
 // The eyebrow says which act we are in — it is structural, not decorative:
 // the deck has five acts and the label is how the audience keeps its place.
+.slide p.slide__act,
 .slide__act {
   font-family: $font-mono;
-  font-size: clamp(.7rem, 1.35vmin, .88rem);
+  font-size: clamp(.85rem, 1.8vmin, 1.15rem);
   letter-spacing: .14em;
   text-transform: uppercase;
   color: $text-faint;
@@ -108,14 +109,14 @@
 }
 
 .slide__lead {
-  font-size: clamp(1.15rem, 2.5vmin, 1.65rem) !important;
+  font-size: clamp(1.4rem, 3.5vmin, 2.5rem) !important;
   color: $text-dim;
   max-width: 40ch;
 }
 
 // A pull-quote slide: the project's own words, attributed.
 .slide__quote {
-  font-size: clamp(1.5rem, 3.6vmin, 2.5rem);
+  font-size: clamp(1.8rem, 4.3vmin, 3.1rem);
   line-height: 1.3;
   font-weight: 500;
   max-width: 26ch;
@@ -124,9 +125,10 @@
   padding-left: 1.2rem;
 }
 
+.slide p.slide__cite,
 .slide__cite {
   font-family: $font-mono;
-  font-size: clamp(.72rem, 1.5vmin, .95rem);
+  font-size: clamp(.9rem, 1.95vmin, 1.25rem);
   color: $text-faint;
 }
 
@@ -136,7 +138,7 @@
 
 .evidence {
   font-family: $font-mono;
-  font-size: clamp(.62rem, 1.42vmin, .95rem);
+  font-size: clamp(.95rem, 2.25vmin, 1.5rem);
   line-height: 1.5;
   background: $bg-subtle;
   border: 1px solid $border-subtle;
@@ -158,9 +160,10 @@
   width: 100%;
 }
 
+.slide p.evidence__label,
 .evidence__label {
   font-family: $font-mono;
-  font-size: clamp(.66rem, 1.32vmin, .84rem);
+  font-size: clamp(.8rem, 1.7vmin, 1.05rem);
   letter-spacing: .06em;
   text-transform: uppercase;
   color: $text-faint;
@@ -193,7 +196,7 @@
   background: $surface;
   border: 1px solid $border-subtle;
   border-radius: 8px;
-  font-size: clamp(.8rem, 1.75vmin, 1.05rem);
+  font-size: clamp(.98rem, 2.25vmin, 1.45rem);
 }
 
 .ledger__tag {
@@ -234,7 +237,7 @@
 
 .flow__stage {
   font-family: $font-mono;
-  font-size: clamp(.75rem, 1.6vmin, 1rem);
+  font-size: clamp(1rem, 2.2vmin, 1.4rem);
   font-weight: 600;
   color: $accent;
 }
@@ -242,7 +245,7 @@
 .flow__in,
 .flow__out {
   font-family: $font-mono;
-  font-size: clamp(.66rem, 1.42vmin, .9rem);
+  font-size: clamp(.88rem, 2vmin, 1.25rem);
   line-height: 1.35;
 }
 
@@ -252,7 +255,7 @@
 .flow__arrow {
   font-family: $font-mono;
   color: $text-faint;
-  font-size: clamp(.8rem, 1.6vmin, 1rem);
+  font-size: clamp(1rem, 2.1vmin, 1.3rem);
 }
 
 // Stack the row on a narrow screen rather than crushing four columns.
@@ -262,6 +265,11 @@
   .flow__in::before  { content: 'in  '; color: var(--text-faint); }
   .flow__out::before { content: 'out '; color: var(--text-faint); }
 }
+
+// Code inside a two-column split has roughly half the width, so it takes one
+// step down — still well above the 11.6px it used to be, and it stops the
+// WIT block scrolling sideways inside its column.
+.split .evidence { font-size: clamp(.85rem, 1.95vmin, 1.25rem); padding: .7rem .85rem; }
 
 // ─── Two-column split ─────────────────────────────────────────────────
 
@@ -274,7 +282,7 @@
 
 .split__col h3 {
   font-family: $font-mono;
-  font-size: clamp(.72rem, 1.45vmin, .9rem);
+  font-size: clamp(.88rem, 1.85vmin, 1.15rem);
   letter-spacing: .1em;
   text-transform: uppercase;
   color: $text-faint;
