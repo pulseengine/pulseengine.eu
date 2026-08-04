@@ -83,7 +83,7 @@ irq  <span class="dim">— poll(line) -&gt; bool, deliberately</span></pre>
     </div>
     <div class="flow__row">
       <span class="flow__stage">meld fuse</span>
-      <span class="flow__in">1 component<br><span class="dim">11 linear memories</span></span>
+      <span class="flow__in">1 component<br><span class="dim">5 linear memories</span></span>
       <span class="flow__arrow">&rarr;</span>
       <span class="flow__out">1 core module · 9 874 B<br><span class="dim">shared memory &mdash; 52% smaller</span></span>
     </div>
@@ -238,7 +238,7 @@ export function read32(addr) {
   <p>Nothing else about the component changes.
   <span class="hi">That substitution is the entire thesis.</span></p>
   <div class="ledger">
-    <div class="ledger__row"><span class="ledger__tag hi">seam</span><span>a whole STM32 USART driver, dissolved</span><span class="ledger__val">326 B · 0 SRAM · 3 relocs</span></div>
+    <div class="ledger__row"><span class="ledger__tag hi">seam</span><span>a whole STM32 USART driver, dissolved</span><span class="ledger__val">254 B · 0 SRAM · 3 relocs</span></div>
   </div>
 </section>
 
@@ -418,8 +418,10 @@ export function read32(addr) {
   <code>ch &isin; [524, 1524]</code> &mdash; so <code>ch + 476</code> is
   <em>provably</em> inside [1000, 2000] and
   <span class="hi">both clamp branches are dead code</span>:</p>
-  <pre class="evidence">add r0, #476
-bx  lr          <span class="dim">— the whole function</span></pre>
+  <pre class="evidence">push {r7, lr}
+add.w r0, r0, #476
+uxth  r0, r0
+pop  {r7, pc}   <span class="dim">— the whole function, 12 B</span></pre>
 </section>
 
 <section class="slide">
@@ -456,9 +458,9 @@ bx  lr          <span class="dim">— the whole function</span></pre>
     <div class="ledger__row"><span class="ledger__tag warn">partial</span><span>refinement to Lean · mutation · abstract interpretation</span><span class="ledger__val">&nbsp;</span></div>
     <div class="ledger__row"><span class="ledger__tag bad">not yet</span><span>An authority audit. We have not been audited.</span><span class="ledger__val">&nbsp;</span></div>
   </div>
-  <p>Bounded model checking is bounded. Proofs run on a schedule, not every
-  commit. Our own docs say <em>"comprehensively tested"</em>, not
-  <em>"continuously formally verified."</em></p>
+  <p>Bounded model checking is bounded. Verus, Rocq and Kani <em>are</em> gated on
+  pull requests &mdash; but path-filtered, so a commit outside those paths triggers
+  nothing. <span class="hi">Lean runs in no workflow at all.</span></p>
 </section>
 
 <section class="slide">
@@ -479,8 +481,8 @@ bx  lr          <span class="dim">— the whole function</span></pre>
   <p class="slide__act">Act V &middot; what is missing</p>
   <h2>What componentizing actually costs</h2>
   <p class="evidence__label">driver object .text, core module &rarr; component</p>
-  <pre class="evidence">gpio   502 &rarr; 1196 B     spi  454 &rarr; 1244 B
-timer  204 &rarr;  828 B     wdg  638 &rarr; 1726 B
+  <pre class="evidence">gpio   502 &rarr; 1196 B     spi  454 &rarr; 1450 B
+timer  204 &rarr;  828 B     wdg  638 &rarr; 1718 B
 .data / .bss, all of them   <span class="ok">0 &rarr; 0</span>
 <span class="dim">flash is cheap here; SRAM is the binding constraint</span></pre>
 </section>
@@ -489,8 +491,8 @@ timer  204 &rarr;  828 B     wdg  638 &rarr; 1726 B
   <p class="slide__act">Act V &middot; what is missing</p>
   <h2>So we patched the generator</h2>
   <p class="evidence__label">measured for this talk</p>
-  <pre class="evidence"><span class="dim">wdg, one wit-bindgen build, feature off vs on
-(1746 not 1726 — a newer bindgen; the bump alone costs +20 B)</span>
+  <pre class="evidence"><span class="dim">wdg, rebuilt both ways — feature off is the control
+(not the 1718 B shipped object; this is a newer bindgen)</span>
 canonical glue on a growing allocator   1746 B
 backed by a bounded arena instead       <span class="ok">1428 B</span>   <span class="hi">&minus;318</span></pre>
   <p><code>cabi_realloc</code> now delegates to an embedder arena that traps rather
