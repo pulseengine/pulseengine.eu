@@ -21,13 +21,13 @@ slot = "25 + 5, remote"
   <p class="slide__act">Act I &middot; the inversion</p>
   <h2>What this room has already established</h2>
   <div class="ledger">
-    <div class="ledger__row"><span class="ledger__tag dim">2022</span><span><em>Fixpoint</em> — wasm lowered ahead of time, invoked with no engine</span><span class="ledger__val">server, x86-64</span></div>
-    <div class="ledger__row"><span class="ledger__tag dim">2023</span><span><em>Orchestration at the edge</em> — pluggable HALs via the Component Model</span><span class="ledger__val">preliminary</span></div>
-    <div class="ledger__row"><span class="ledger__tag dim">2025</span><span><em>WASI performance on IoT and embedded</em> — a runtime's overhead on a small device</span><span class="ledger__val">runtime present</span></div>
-    <div class="ledger__row"><span class="ledger__tag hi">today</span><span><em>WasmBounds</em> — eliding bounds checks by abstract interpretation</span><span class="ledger__val">two hours ago</span></div>
+    <div class="ledger__row"><span class="ledger__tag dim">2022</span><span>lowered ahead of time, no engine</span><span class="ledger__val">x86-64</span></div>
+    <div class="ledger__row"><span class="ledger__tag dim">2023</span><span>pluggable HALs via the Component Model</span><span class="ledger__val">preliminary</span></div>
+    <div class="ledger__row"><span class="ledger__tag dim">2025</span><span>a runtime's overhead on a small device</span><span class="ledger__val">runtime present</span></div>
+    <div class="ledger__row"><span class="ledger__tag hi">today</span><span>eliding bounds checks, soundly</span><span class="ledger__val">two hours ago</span></div>
   </div>
-  <p>Each is one ingredient. <span class="hi">This talk needs all four at
-  once</span> — on a chip where the runtime the third one measures does not fit.</p>
+  <p>Four ingredients. <span class="hi">This talk needs all four at once</span> —
+  where the runtime does not fit.</p>
 </section>
 
 <section class="slide">
@@ -36,21 +36,17 @@ slot = "25 + 5, remote"
   <div class="split">
     <div class="split__col">
       <h3>the usual arrangement</h3>
-      <p>The OS is written for the chip. The application is written against the OS
-      and <em>hoped</em> to be portable. Every new board re-opens the OS.</p>
+      <p>OS written for the chip. Application <em>hoped</em> to be portable.
+      Every new board re-opens the OS.</p>
     </div>
     <div class="split__col">
       <h3>what we are trying</h3>
-      <p>The OS itself is WebAssembly components. The Component Model is the
-      integration step — between OS components, between the OS and its drivers,
-      and between the OS and the tenants above it.</p>
+      <p>The OS <em>is</em> components. The Component Model is the integration
+      step — OS to OS, OS to drivers, OS to tenants.</p>
     </div>
   </div>
-  <p>The OS and everything above it is the car. The handful of native functions
-  that actually touch the hardware are the tires. For new terrain — another chip,
-  another board — <span class="hi">you change the tires, not the car.</span></p>
-  <p class="slide__cite">Declaring the bias: I work in automotive, so to me
-  everything is a car. The substrate is not — which is the next slide.</p>
+  <p class="slide__cite">The bias, declared: I work in automotive, so to me
+  everything is a car.</p>
 </section>
 
 <section class="slide">
@@ -104,10 +100,14 @@ spi · timer · uart · dma</pre>
     </div>
     <div class="flow__row">
       <span class="flow__stage">ld</span>
-      <span class="flow__in">.o + 3 native functions</span>
+      <span class="flow__in">.o + the native functions</span>
       <span class="flow__arrow">&rarr;</span>
       <span class="flow__out">firmware<br><span class="dim">no engine, no interpreter, no JIT</span></span>
     </div>
+  </div>
+  <div class="cast" data-cast="/casts/dissolve.cast">
+    <button type="button" class="cast__play">run it</button>
+    <pre class="cast__screen" aria-label="terminal recording of the dissolve"></pre>
   </div>
 </section>
 
@@ -118,20 +118,21 @@ spi · timer · uart · dma</pre>
     <div class="split__col">
       <h3>wit/gust-hal.wit</h3>
       <pre class="evidence">interface mmio {
-    read32:  func(addr: u32) -> u32;
-    write32: func(addr: u32, val: u32);
-    read8:   func(addr: u32) -> u8;
-    write8:  func(addr: u32, val: u8);
+  read32:  func(addr: u32) -&gt; u32;
+  write32: func(addr: u32, val: u32);
+  <span class="dim">read8 / write8 likewise</span>
 }
-<span class="hi">world wdg-driver { import mmio; export wdg; }</span></pre>
+<span class="hi">world wdg-driver {
+  import mmio; export wdg;
+}</span></pre>
     </div>
     <div class="split__col">
       <h3>and the composition</h3>
-      <pre class="evidence">wac compose fused-gustos.wac -o fused.wasm
+      <pre class="evidence">wac compose fused-gustos.wac
 meld fuse --memory shared
 loom optimize --passes inline
 synth compile --target cortex-m3 \
-      --all-exports --relocatable</pre>
+  --all-exports --relocatable</pre>
     </div>
   </div>
   <p>A driver's capability is checked against a typed contract at composition
@@ -145,8 +146,9 @@ synth compile --target cortex-m3 \
   <p>A watchdog you can accidentally switch off is worthless. So the interface
   offers no way to switch it off:</p>
   <pre class="evidence">interface wdg {
-    unlock · configure · lock · start · refresh · is-running
-    <span class="dim">— there is no stop, and no disable</span>
+  unlock · configure · lock
+  start · refresh · is-running
+  <span class="dim">— no stop. no disable.</span>
 }</pre>
   <p class="evidence__label">and the FSM proves the absence, rather than relying on it</p>
   <pre class="evidence">fn p2_cannot_un_start() {
@@ -164,11 +166,9 @@ synth compile --target cortex-m3 \
   <h2>Three dies, one session</h2>
   <div class="stack">
     <pre class="evidence"><span class="dim">Cortex-M4 · NUCLEO-G474RE</span>
-IWDG reset CONFIRMED on real STM32G474
-RCC_CSR 0x14000000 &rarr; 0x34000000   IWDGRSTF=<span class="ok">1</span></pre>
-    <pre class="evidence"><span class="dim">Cortex-M3 · STM32F100 — the same .o, a second die</span>
-IWDG reset CONFIRMED on real STM32F100
-RCC_CSR 0x14000000 &rarr; 0x34000000   IWDGRSTF=<span class="ok">1</span></pre>
+IWDG reset CONFIRMED   IWDGRSTF=<span class="ok">1</span></pre>
+    <pre class="evidence"><span class="dim">Cortex-M3 · STM32F100 — the same .o</span>
+IWDG reset CONFIRMED   IWDGRSTF=<span class="ok">1</span></pre>
     <pre class="evidence"><span class="dim">RISC-V · ESP32-C3 rev v0.4</span>
 native 271   dissolved 499 milliticks/call   ratio <span class="ok">1.839&times;</span>
 correctness <span class="ok">IDENTICAL</span> over [0,2047]   mismatch=<span class="ok">0</span></pre>
@@ -218,8 +218,7 @@ export function read32(addr) {
   <pre class="evidence">#[no_mangle] extern "C" fn read32(addr: u32) -&gt; u32 {
     unsafe { core::ptr::read_volatile(addr as *const u32) }
 }</pre>
-  <p>Nothing else about the component changes. <span class="hi">That substitution
-  is the entire thesis.</span></p>
+  <p><span class="hi">That substitution is the entire thesis.</span></p>
   <div class="ledger">
     <div class="ledger__row"><span class="ledger__tag hi">seam</span><span>A whole STM32 USART driver, dissolved</span><span class="ledger__val">326 B · 0 SRAM · 3 relocs</span></div>
   </div>
@@ -239,22 +238,22 @@ export function read32(addr) {
   <h2>Six faces, not four tools</h2>
   <div class="split">
     <div class="split__col">
-      <h3>architect</h3><p><code>spar</code> — AADL / SysML. The WIT is generated from the model, not hand-written.</p>
+      <h3>architect</h3><p><code>spar</code> — the WIT is generated from the model</p>
     </div>
     <div class="split__col">
-      <h3>build</h3><p><code>meld</code> fuse · <code>loom</code> optimize · <code>synth</code> lower · <code>sigil</code> attesting across all of it.</p>
+      <h3>build</h3><p><code>meld</code> · <code>loom</code> · <code>synth</code>, with <code>sigil</code> attesting across all of it</p>
     </div>
     <div class="split__col">
-      <h3>verify</h3><p><code>witness</code> MC/DC on the shipped wasm · <code>scry</code> abstract interpretation · Verus, Rocq, Lean, Kani as build rules.</p>
+      <h3>verify</h3><p><code>witness</code> MC/DC on the shipped wasm · Verus, Rocq, Lean, Kani</p>
     </div>
     <div class="split__col">
-      <h3>trace</h3><p><code>rivet</code> — typed requirements, decisions and tests. Broken links fail the build.</p>
+      <h3>trace</h3><p><code>rivet</code> — typed artifacts; broken links fail the build</p>
     </div>
     <div class="split__col">
-      <h3>run</h3><p><code>kiln</code> runtime · <code>gale</code> verified kernel primitives · the applications above them.</p>
+      <h3>run</h3><p><code>kiln</code> · <code>gale</code> verified primitives</p>
     </div>
     <div class="split__col">
-      <h3>agent</h3><p>The loop that files findings between repos — and the governance that keeps 30+ repos to the same rules.</p>
+      <h3>agent</h3><p>the loop that files findings between repos</p>
     </div>
   </div>
 </section>
@@ -277,41 +276,38 @@ export function read32(addr) {
   <p class="slide__act">Act IV &middot; the factory</p>
   <h2>Faster <em>because</em> it is proven</h2>
   <div class="ledger">
-    <div class="ledger__row"><span class="ledger__tag dim">baseline</span><span>native LLVM, full clamp</span><span class="ledger__val">0.50 cyc/call · 1.00&times;</span></div>
-    <div class="ledger__row"><span class="ledger__tag dim">today</span><span>dissolved, as shipped</span><span class="ledger__val">0.83 cyc/call · 1.65&times;</span></div>
-    <div class="ledger__row"><span class="ledger__tag hi">measured floor</span><span>clamp elided because a proof allows it</span><span class="ledger__val">0.23 cyc/call · <span class="ok">0.45&times;</span></span></div>
+    <div class="ledger__row"><span class="ledger__tag dim">native LLVM</span><span>full clamp</span><span class="ledger__val">0.50 cyc · 1.00&times;</span></div>
+    <div class="ledger__row"><span class="ledger__tag dim">dissolved</span><span>as shipped today</span><span class="ledger__val">0.83 cyc · 1.65&times;</span></div>
+    <div class="ledger__row"><span class="ledger__tag hi">proof-carrying</span><span>clamp elided because a proof allows it</span><span class="ledger__val">0.23 cyc · <span class="ok">0.45&times;</span></span></div>
   </div>
-  <p>Not a model — a measured floor, soundness-gated. The elision is only legal
-  because something upstream proved the bound. <span class="hi">A compiler with no
-  verifier in its pipeline structurally cannot reach it.</span></p>
+  <p>Legal only because something upstream proved the bound.
+  <span class="hi">A compiler with no verifier cannot reach it.</span></p>
 </section>
 
 <section class="slide">
   <p class="slide__act">Act IV &middot; the factory</p>
   <h2>Qualify the checker, not the prover</h2>
-  <p>Certification asks: why do you believe the solver? "Qualify Z3" is not a
+  <p>Certification asks why you believe the solver. "Qualify Z3" is not a
   tractable answer.</p>
-  <p>So the solver stays <em>untrusted</em> and emits a certificate. Only a small,
-  dependency-free checker is trusted — and that checker's soundness is
-  machine-checked in Lean 4, with no <code>sorry</code> anywhere in its kernel.</p>
+  <p>So the solver stays <em>untrusted</em> and emits a certificate. Only a small
+  checker is trusted — and its soundness is machine-checked in Lean 4, with no
+  <code>sorry</code> in its kernel.</p>
   <div class="ledger">
     <div class="ledger__row"><span class="ledger__tag hi">shipped</span><span>bit-vector obligations re-discharged with re-checkable certificates</span><span class="ledger__val">62 / 62</span></div>
   </div>
-  <p class="slide__cite">This turns unchecked-solver evidence into the argument
-  a verified compiler makes: don't trust the tool, check its output.</p>
+  <p class="slide__cite">Don't trust the tool — check its output.</p>
 </section>
 
 <section class="slide">
   <p class="slide__act">Act IV &middot; the factory</p>
   <h2>Exactly how far this goes — and no further</h2>
   <div class="ledger">
-    <div class="ledger__row"><span class="ledger__tag ok">shipping</span><span>Theorem proving · SMT contracts · bounded model checking · translation validation</span><span class="ledger__val">&nbsp;</span></div>
-    <div class="ledger__row"><span class="ledger__tag warn">partial</span><span>Refinement to Lean · mutation testing · abstract interpretation</span><span class="ledger__val">&nbsp;</span></div>
+    <div class="ledger__row"><span class="ledger__tag ok">shipping</span><span>theorem proving · SMT · bounded MC · translation validation</span><span class="ledger__val">&nbsp;</span></div>
+    <div class="ledger__row"><span class="ledger__tag warn">partial</span><span>refinement to Lean · mutation · abstract interpretation</span><span class="ledger__val">&nbsp;</span></div>
     <div class="ledger__row"><span class="ledger__tag bad">not yet</span><span>An authority audit. We have not been audited.</span><span class="ledger__val">&nbsp;</span></div>
   </div>
-  <p>Bounded model checking is bounded. Proofs run on a verification schedule,
-  not on every commit. Our own docs say it out loud: closer to <em>"well-specified
-  and comprehensively tested with local formal verification"</em> than
+  <p>Bounded model checking is bounded. Proofs run on a schedule, not every
+  commit. Our own docs say <em>"comprehensively tested"</em>, not
   <em>"continuously formally verified."</em></p>
 </section>
 
@@ -319,25 +315,25 @@ export function read32(addr) {
   <p class="slide__act">Act IV &middot; the factory</p>
   <h2>Every one of these gates was green for the wrong reason</h2>
   <div class="ledger">
-    <div class="ledger__row"><span class="ledger__tag bad">scry</span><span>a proof that never ran — the theorem was false when it did</span><span class="ledger__val">&nbsp;</span></div>
-    <div class="ledger__row"><span class="ledger__tag bad">synth</span><span>two validators, same direction, same blind spot</span><span class="ledger__val">&nbsp;</span></div>
-    <div class="ledger__row"><span class="ledger__tag bad">loom</span><span>a gate with passing tests and zero callers</span><span class="ledger__val">&nbsp;</span></div>
-    <div class="ledger__row"><span class="ledger__tag bad">meld</span><span>verified by a test on a path the shipped code didn't take</span><span class="ledger__val">&nbsp;</span></div>
-    <div class="ledger__row"><span class="ledger__tag bad">gale</span><span>a count over modules that cannot see instances</span><span class="ledger__val">&nbsp;</span></div>
+    <div class="ledger__row"><span class="ledger__tag bad">scry</span><span>a proof that never ran</span><span class="ledger__val">&nbsp;</span></div>
+    <div class="ledger__row"><span class="ledger__tag bad">synth</span><span>two validators, one blind spot</span><span class="ledger__val">&nbsp;</span></div>
+    <div class="ledger__row"><span class="ledger__tag bad">loom</span><span>a gate with zero callers</span><span class="ledger__val">&nbsp;</span></div>
+    <div class="ledger__row"><span class="ledger__tag bad">meld</span><span>a test on a path the shipped code skipped</span><span class="ledger__val">&nbsp;</span></div>
+    <div class="ledger__row"><span class="ledger__tag bad">gale</span><span>a count that cannot see instances</span><span class="ledger__val">&nbsp;</span></div>
   </div>
   <blockquote class="slide__quote">The failure produced the same observable as
   success.</blockquote>
-  <p>The remedy is not more gates. It is that every check must be able to go red
-  <em>for a reason you can state in advance</em>.</p>
+  <p class="slide__cite">The remedy is not more gates — every check must be able
+  to go red for a reason you can state in advance.</p>
 </section>
 
 <section class="slide">
   <p class="slide__act">Act V &middot; what is missing</p>
   <h2>What componentizing actually costs</h2>
   <p class="evidence__label">driver object .text, core module &rarr; component</p>
-  <pre class="evidence">gpio    502 &rarr; 1196 B      spi    454 &rarr; 1244 B
-timer   204 &rarr;  828 B      wdg    638 &rarr; 1718 B
-.data / .bss, every one of them       <span class="ok">0 &rarr; 0</span></pre>
+  <pre class="evidence">gpio   502 &rarr; 1196 B     spi  454 &rarr; 1244 B
+timer  204 &rarr;  828 B     wdg  638 &rarr; 1718 B
+.data / .bss, all of them   <span class="ok">0 &rarr; 0</span></pre>
   <p>Roughly <span class="hi">+700 B fixed per driver</span> for canonical-ABI glue
   — a constant, not a proportion. On a chip with 8 KB of SRAM that is a real
   number, and it is filed upstream rather than absorbed quietly.</p>
@@ -349,15 +345,13 @@ timer   204 &rarr;  828 B      wdg    638 &rarr; 1718 B
   <div class="split">
     <div class="split__col">
       <h3>the runner broke on success</h3>
-      <p>Plugging in the third board made the first one unreachable — two probes,
-      an interactive prompt, and a harness with no terminal. The all-three-at-once
-      case was exactly the case nothing had run.</p>
+      <p>Plugging in the third board made the first unreachable. The
+      all-three-at-once case was the one nothing had run.</p>
     </div>
     <div class="split__col">
       <h3>a reproducible number that isn't</h3>
-      <p>The RISC-V figure is recorded with a byte-reproducible command. The wasm
-      input to that command is not in the repository — it lived in a scratch
-      directory that no longer exists.</p>
+      <p>A byte-reproducible command whose wasm input is not in the repo — it
+      lived in a scratch directory that no longer exists.</p>
     </div>
   </div>
   <blockquote class="slide__quote">A bench whose input is not committed is not

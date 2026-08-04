@@ -46,7 +46,11 @@
 
   var i = 0;
 
+  var shown = -1;
   function render() {
+    // Tell the slide we are leaving, so anything playing on it can stop.
+    if (shown !== -1 && shown !== i) slides[shown].dispatchEvent(new CustomEvent('deck:leave'));
+    shown = i;
     slides.forEach(function (s, n) { s.classList.toggle('is-current', n === i); });
     counter.textContent = (i + 1) + ' / ' + slides.length;
     bar.style.width = ((i + 1) / slides.length * 100) + '%';
@@ -136,6 +140,127 @@
   if (window.matchMedia && window.matchMedia('(hover: none)').matches) {
     document.getElementById('hint').innerHTML = 'swipe to move';
   }
+
+  // ── Terminal recordings ─────────────────────────────────────────────
+  // A real asciinema capture, replayed inline. Not a GIF: the text stays
+  // selectable and crisp at any projection size, and the file is ~2 KB.
+  // Casts are fetched once at load and held in memory, so clicking play
+  // mid-talk never depends on the network.
+
+  // xterm-256 -> css colour, enough for SGR 38;5;N and the reset.
+  function xterm(n) {
+    if (n < 16) {
+      var base = ['#000','#a00','#0a0','#a50','#00a','#a0a','#0aa','#aaa',
+                  '#555','#f55','#5f5','#ff5','#55f','#f5f','#5ff','#fff'];
+      return base[n];
+    }
+    if (n < 232) {
+      var i = n - 16, s = [0,95,135,175,215,255];
+      return 'rgb(' + s[Math.floor(i/36)] + ',' + s[Math.floor(i/6)%6] + ',' + s[i%6] + ')';
+    }
+    return 'rgb(' + (8 + (n-232)*10) + ',' + (8 + (n-232)*10) + ',' + (8 + (n-232)*10) + ')';
+  }
+
+  function esc(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  // The recording contains only SGR colour escapes and newlines — verified,
+  // no cursor movement — so append-only rendering is faithful, not an
+  // approximation.
+  function ansi(text) {
+    var out = '', open = false;
+    var re = /\x1b\[([0-9;]*)m/g, last = 0, m;
+    while ((m = re.exec(text)) !== null) {
+      out += esc(text.slice(last, m.index));
+      last = re.lastIndex;
+      var p = m[1];
+      if (p === '' || p === '0') { if (open) { out += '</span>'; open = false; } }
+      else {
+        var c = /^38;5;(\d+)$/.exec(p);
+        if (c) { if (open) out += '</span>'; out += '<span style="color:' + xterm(+c[1]) + '">'; open = true; }
+      }
+    }
+    out += esc(text.slice(last));
+    if (open) out += '</span>';
+    return out;
+  }
+
+  function parseCast(txt) {
+    var lines = txt.split('\n').filter(function (l) { return l.trim(); });
+    if (!lines.length) return [];
+    var ver = 2;
+    try { ver = JSON.parse(lines[0]).version || 2; } catch (e) {}
+    var evs = [], t = 0;
+    for (var i = 1; i < lines.length; i++) {
+      var e;
+      try { e = JSON.parse(lines[i]); } catch (err) { continue; }
+      if (e[1] !== 'o') continue;
+      // v3 intervals are relative to the previous event; v2 are absolute.
+      t = (ver >= 3) ? t + e[0] : e[0];
+      evs.push([t, e[2]]);
+    }
+    return evs;
+  }
+
+  document.querySelectorAll('.cast').forEach(function (box) {
+    var screen = box.querySelector('.cast__screen');
+    var btn    = box.querySelector('.cast__play');
+    var evs = null, timers = [], playing = false;
+
+    fetch(box.dataset.cast)
+      .then(function (r) { return r.ok ? r.text() : Promise.reject(r.status); })
+      .then(function (t) { evs = parseCast(t); })
+      .catch(function () {
+        btn.textContent = 'recording unavailable';
+        btn.disabled = true;
+      });
+
+    function stop() { timers.forEach(clearTimeout); timers = []; playing = false; }
+
+    function paint(upto) {
+      var s = '';
+      for (var i = 0; i < evs.length && evs[i][0] <= upto; i++) s += evs[i][1];
+      screen.innerHTML = ansi(s.replace(/\r\n/g, '\n'));
+      screen.scrollTop = screen.scrollHeight;
+    }
+
+    btn.addEventListener('click', function () {
+      if (!evs) return;
+      if (playing) {                       // a second press skips to the end
+        stop();
+        paint(Infinity);
+        btn.textContent = 'replay';
+        return;
+      }
+      stop();
+      box.classList.add('is-open');
+      box.closest('.slide').classList.add('cast-open');
+      screen.innerHTML = '';
+      playing = true;
+      btn.textContent = 'skip';
+      var acc = '';
+      evs.forEach(function (ev) {
+        timers.push(setTimeout(function () {
+          acc += ev[1];
+          screen.innerHTML = ansi(acc.replace(/\r\n/g, '\n'));
+          screen.scrollTop = screen.scrollHeight;
+        }, ev[0] * 1000));
+      });
+      timers.push(setTimeout(function () {
+        playing = false; btn.textContent = 'replay';
+      }, (evs[evs.length - 1][0] + 0.2) * 1000));
+    });
+
+    // Leaving the slide stops playback so it never runs on unseen slides.
+    box.closest('.slide').addEventListener('deck:leave', function () {
+      stop();
+      box.classList.remove('is-open');
+      box.closest('.slide').classList.remove('cast-open');
+      btn.textContent = 'run it';
+      screen.innerHTML = '';
+    });
+  });
 
   var start = parseInt((location.hash || '').slice(1), 10);
   go(isNaN(start) ? 0 : start - 1);
