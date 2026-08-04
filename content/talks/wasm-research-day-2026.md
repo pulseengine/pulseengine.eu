@@ -251,43 +251,25 @@ export function read32(addr) {
   green test, faster than anyone can read them. So the question stopped being
   <em>can it write the code</em> and became <span class="hi">what would have to be
   true for me to believe it</span>.</p>
-  <p class="slide__cite">Every gate in this talk is an answer to that. It is also
-  why the failures later in this act are the interesting part &mdash; they are what
-  a plausible-looking green check costs when nobody can read everything.</p>
+  <p>Qualify the pipeline once and the <em>argument</em> amortizes across every
+  product built on it. That is why the factory matters more than the car.</p>
+  <p class="slide__cite">It is also why the failures later in this act are the
+  interesting part &mdash; they are what a plausible green check costs when nobody
+  can read everything.</p>
 </section>
 
 <section class="slide">
   <p class="slide__act">Act IV &middot; the factory</p>
-  <blockquote class="slide__quote">Qualify the pipeline once, and the argument
-  amortizes across every product built on it.</blockquote>
-  <p class="slide__cite">— our own words, from a post two years before this talk</p>
-  <p>This is why the factory matters more than the car. A car you qualify once is
-  one car. A <em>factory</em> you qualify once is every car it will ever build.</p>
-</section>
-
-<section class="slide">
-  <p class="slide__act">Act IV &middot; the factory</p>
-  <h2>Six faces, not four tools</h2>
-  <div class="split">
-    <div class="split__col">
-      <h3>architect</h3><p><code>spar</code> — the WIT is generated from the model</p>
-    </div>
-    <div class="split__col">
-      <h3>build</h3><p><code>meld</code> · <code>loom</code> · <code>synth</code>, with <code>sigil</code> attesting across all of it</p>
-    </div>
-    <div class="split__col">
-      <h3>verify</h3><p><code>witness</code> MC/DC on the shipped wasm · Verus, Rocq, Lean, Kani</p>
-    </div>
-    <div class="split__col">
-      <h3>trace</h3><p><code>rivet</code> — typed artifacts; broken links fail the build</p>
-    </div>
-    <div class="split__col">
-      <h3>run</h3><p><code>kiln</code> · <code>gale</code> verified primitives</p>
-    </div>
-    <div class="split__col">
-      <h3>agent</h3><p>the loop that files findings between repos</p>
-    </div>
+  <h2>What you still have to trust</h2>
+  <div class="ledger">
+    <div class="ledger__row"><span class="ledger__tag warn">before</span><span>rustc + the LLVM wasm backend &mdash; every component starts here</span><span class="ledger__val">&nbsp;</span></div>
+    <div class="ledger__row"><span class="ledger__tag warn">compose</span><span>wac · the WIT generator · wit-bindgen's canonical glue</span><span class="ledger__val">&nbsp;</span></div>
+    <div class="ledger__row"><span class="ledger__tag warn">models</span><span>our encodings of Wasm and of four ISAs</span><span class="ledger__val">&nbsp;</span></div>
+    <div class="ledger__row"><span class="ledger__tag warn">checkers</span><span>the LRAT checker's Lean proof, its kernel, the model&harr;code gap</span><span class="ledger__val">&nbsp;</span></div>
+    <div class="ledger__row"><span class="ledger__tag warn">below</span><span>ld · the linker script · the native functions · hand-written unsafe</span><span class="ledger__val">&nbsp;</span></div>
   </div>
+  <p><span class="hi">"Three native functions" is the seam, not the trusted base.</span>
+  The base is this list, and none of the gates in this talk cover the first row.</p>
 </section>
 
 <section class="slide">
@@ -432,9 +414,9 @@ export function read32(addr) {
   <p class="slide__act">Act IV &middot; the factory</p>
   <h2>Faster <em>because</em> it is proven</h2>
   <pre class="evidence">gust_mix(ch) = clamp(1500 + (ch - 1024), 1000, 2000)</pre>
-  <p>LLVM must emit the clamp: it cannot know what <code>ch</code> is. But the OS
-  primitives above carry a proven bound &mdash; <code>ch &isin; [524, 1524]</code>
-  &mdash; so <code>ch + 476</code> is <em>provably</em> inside [1000, 2000] and
+  <p>The OS primitives above carry a proven bound &mdash;
+  <code>ch &isin; [524, 1524]</code> &mdash; so <code>ch + 476</code> is
+  <em>provably</em> inside [1000, 2000] and
   <span class="hi">both clamp branches are dead code</span>:</p>
   <pre class="evidence">add r0, #476
 bx  lr          <span class="dim">— the whole function</span></pre>
@@ -448,8 +430,8 @@ bx  lr          <span class="dim">— the whole function</span></pre>
     <div class="ledger__row"><span class="ledger__tag dim">dissolved today</span><span>clamp still emitted</span><span class="ledger__val">0.70 &mdash; <span class="warn">1.4&times; slower</span></span></div>
     <div class="ledger__row"><span class="ledger__tag hi">with the proof</span><span>clamp elided</span><span class="ledger__val">0.23 &mdash; <span class="ok">2.2&times; faster</span></span></div>
   </div>
-  <p class="slide__cite">Soundness-gated: the bench asserts the elided form equals
-  the native one across the proven range. LLVM never had the bound.</p>
+  <p class="slide__cite">The output clamp stays; this is the intermediate range
+  check. The bound comes from a verified primitive, not off the wire.</p>
 </section>
 
 <section class="slide">
@@ -547,6 +529,27 @@ backed by a bounded arena instead       <span class="ok">1428 B</span>   <span c
     <li>Certificates on every obligation, not the subset that has them today.</li>
     <li>Someone outside this project auditing the dossier.</li>
   </ul>
+</section>
+
+<section class="slide">
+  <p class="slide__act">Act V &middot; what is missing</p>
+  <h2>When <em>not</em> to dissolve</h2>
+  <div class="split">
+    <div class="split__col">
+      <h3>dissolve</h3>
+      <p>One closed tenant graph · no MMU · a narrow, hardware-shaped interface ·
+      footprint and determinism dominate · re-qualification is per product anyway.</p>
+    </div>
+    <div class="split__col">
+      <h3>link a shared system-interface binary</h3>
+      <p>Several runtimes on one OS and ISA · a wide, dynamic, POSIX-shaped
+      interface · third parties ship binaries · the fleet needs a driver updated
+      without re-qualifying the image.</p>
+    </div>
+  </div>
+  <p>Both positions want the interface specified as WIT and typed. We differ only
+  in <span class="hi">when it binds</span> &mdash; and my side of that line is the
+  narrow one.</p>
 </section>
 
 <section class="slide">
