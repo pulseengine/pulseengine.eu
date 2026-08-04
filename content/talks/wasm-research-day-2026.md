@@ -44,6 +44,19 @@ slot = "25 + 5, remote"
 </section>
 
 <section class="slide">
+  <p class="slide__act">Act I &middot; the inversion</p>
+  <h2>So invert it</h2>
+  <p class="slide__lead">Write the OS itself as WebAssembly components, and make the
+  Component Model the integration step.</p>
+  <p>Between OS components. Between the OS and its drivers. Between the OS and the
+  tenants above it. Not a runtime on the device &mdash; a <em>build step</em> that
+  joins typed pieces and then gets compiled away.</p>
+  <p>The OS and everything above it is the car. The handful of native functions that
+  actually touch the hardware are the tires. New chip, new board &mdash;
+  <span class="hi">change the tires, not the car.</span></p>
+</section>
+
+<section class="slide">
   <p class="slide__act">Act II &middot; the car</p>
   <h2>Two seams, and everything hangs off them</h2>
   <div class="split">
