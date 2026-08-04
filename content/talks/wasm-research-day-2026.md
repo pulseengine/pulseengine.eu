@@ -118,6 +118,9 @@ irq  <span class="dim">— poll(line) -&gt; bool, deliberately</span></pre>
 <section class="slide">
   <p class="slide__act">Act II &middot; the car</p>
   <h2>The same chain, actually run</h2>
+  <p class="slide__lead">Five components in, one relocatable object out &mdash;
+  and at the end, the two questions that matter: what does it still need from the
+  world, and what does it cost?</p>
   <div class="cast" data-cast="/casts/dissolve.cast">
     <button type="button" class="cast__play">run it</button>
     <pre class="cast__screen" aria-label="terminal recording of the dissolve"></pre>
@@ -159,10 +162,13 @@ synth compile --target cortex-m3 \
   <p>A watchdog you can accidentally switch off is worthless. So the interface
   offers no way to switch it off:</p>
   <pre class="evidence">interface wdg {
-  unlock · configure · lock
-  start · refresh · is-running
-  <span class="dim">— no stop. no disable.</span>
-}</pre>
+  unlock:     func(base: u32, state: u32) -&gt; u32;
+  configure:  func(base: u32, state: u32, psc: u32, rld: u32) -&gt; u32;
+  lock:       func(state: u32) -&gt; u32;
+  start:      func(base: u32, state: u32) -&gt; u32;
+  refresh:    func(base: u32, state: u32) -&gt; u32;
+  is-running: func(state: u32) -&gt; u32;
+}   <span class="dim">— six functions. no stop. no disable.</span></pre>
 </section>
 
 <section class="slide">
@@ -225,7 +231,9 @@ correctness <span class="ok">IDENTICAL</span> over [0,2047]   mismatch=<span cla
 <section class="slide">
   <p class="slide__act">Act III &middot; the tires</p>
   <h2>The whole of a tire</h2>
-  <p class="evidence__label">web/shim-mmio.js — what a browser tab supplies</p>
+  <p>A component that imports <code>gust:hal/mmio</code> does not care who answers
+  it. In a browser tab, this is the answer &mdash; the whole of it:</p>
+  <p class="evidence__label">web/shim-mmio.js</p>
   <pre class="evidence">const REGS = new Uint32Array(64);
 <span class="dim">// the one clock register the OS reads</span>
 const TIM2_CNT = 0x40000024;
@@ -409,7 +417,7 @@ export function read32(addr) {
   <p class="slide__act">Act IV &middot; the factory</p>
   <h2>What the channel is worth</h2>
   <div class="ledger">
-    <div class="ledger__row"><span class="ledger__tag hi">measured</span><span>a bounds-guard sequence, with the fact forwarded</span><span class="ledger__val">232 &rarr; 104 B</span></div>
+    <div class="ledger__row"><span class="ledger__tag hi">measured</span><span>one guarded memory access, lowered with and without the fact</span><span class="ledger__val">232 &rarr; 104 B</span></div>
   </div>
   <p class="slide__cite">Honest scope: emitter, schema and wire format are done and
   byte-verified against the consumer. The <em>source</em> that would populate this
@@ -453,6 +461,7 @@ pop  {r7, pc}   <span class="dim">— the whole function, 12 B</span></pre>
   <code>sorry</code> in its kernel.</p>
   <div class="ledger">
     <div class="ledger__row"><span class="ledger__tag hi">shipped</span><span>bit-vector obligations re-discharged with re-checkable certificates</span><span class="ledger__val">62 / 62</span></div>
+    <div class="ledger__row"><span class="ledger__tag warn">scope</span><span>62 of the <em>bit-vector</em> obligations. The rest of each proof still rests on the solver.</span><span class="ledger__val">&nbsp;</span></div>
   </div>
   <p class="slide__cite">Don't trust the tool — check its output.</p>
 </section>
@@ -480,6 +489,10 @@ pop  {r7, pc}   <span class="dim">— the whole function, 12 B</span></pre>
     <div class="ledger__row"><span class="ledger__tag bad">meld</span><span>a test on a path the shipped code skipped</span><span class="ledger__val">&nbsp;</span></div>
     <div class="ledger__row"><span class="ledger__tag bad">gale</span><span>a count that cannot see instances</span><span class="ledger__val">&nbsp;</span></div>
   </div>
+  <p class="slide__cite">One of them, concretely: a requirement said the fuser
+  rejects a component that instantiates a module twice. The test called the reject
+  function directly and passed. The shipped path accepted those modules and
+  duplicated them.</p>
   <blockquote class="slide__quote">The failure produced the same observable as
   success.</blockquote>
 </section>
