@@ -46,7 +46,7 @@ slot = "25 + 5, remote"
     </div>
   </div>
   <p class="slide__cite">The bias, declared: I work in automotive, so to me
-  everything is a car. The substrate is not &mdash; I will come back to that.</p>
+  everything is a car.</p>
 </section>
 
 <section class="slide">
@@ -550,26 +550,6 @@ backed by a bounded arena instead       <span class="ok">1428 B</span>   <span c
   <p>Both positions want the interface specified as WIT and typed. We differ only
   in <span class="hi">when it binds</span> &mdash; and my side of that line is the
   narrow one.</p>
-</section>
-
-<section class="slide">
-  <p class="slide__act">Act V &middot; what is missing</p>
-  <h2>Where all of this is aimed</h2>
-  <p class="slide__lead">A drone is a car with four rotors instead of four tires.
-  Same substrate, a vehicle that cannot stop.</p>
-  <p>The flight stack and a building-supervision system already share
-  <em>the same</em> <code>no_std</code> stream-transformer crates, the same WIT
-  packages, the same component rules, the same traceability gate. The integration
-  hub that takes the flight stack down this pipeline onto real hardware exists,
-  pins its input by hash, and runs the whole chain per upstream release.</p>
-  <div class="ledger">
-    <div class="ledger__row"><span class="ledger__tag warn">not yet</span><span>it has not flown</span><span class="ledger__val">&nbsp;</span></div>
-    <div class="ledger__row"><span class="ledger__tag warn">not yet</span><span>it has not shipped to a home</span><span class="ledger__val">&nbsp;</span></div>
-    <div class="ledger__row"><span class="ledger__tag warn">not yet</span><span>the board is on the bench, not in the air</span><span class="ledger__val">&nbsp;</span></div>
-  </div>
-  <p class="slide__cite">Its own dossier: <em>"no claim of flight is made anywhere."</em>
-  That is the north star &mdash; everything earlier in this talk is work toward it,
-  and none of it is that yet.</p>
 </section>
 
 <section class="slide">
