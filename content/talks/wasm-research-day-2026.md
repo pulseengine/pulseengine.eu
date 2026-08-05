@@ -25,7 +25,7 @@ slot = "25 + 5, remote"
   <h2>In twenty-five minutes</h2>
   <p class="slide__lead">By the end of this, you will be able to:</p>
   <ul>
-    <li>say <span class="hi">which parts of the Component Model survive being
+    <li>explain <span class="hi">which parts of the Component Model survive being
     compiled away entirely</span> &mdash; and which do not</li>
     <li>describe how one tool hands a <span class="hi">machine-checked fact</span>
     to the next, and why it is keyed to a value rather than a position</li>
