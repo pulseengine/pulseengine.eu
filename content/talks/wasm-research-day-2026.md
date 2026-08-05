@@ -149,20 +149,20 @@ irq  <span class="dim">— poll(line) -&gt; bool, deliberately</span></pre>
 <section class="slide">
   <p class="slide__act">Act II &middot; the car<span class="slide__scope is-one">gust on the F100</span></p>
   <h2>The part that sets the rules is a failsafe</h2>
-  <p class="slide__lead">Not the smallest board we could find &mdash; the emergency
-  motor controller. It sits beside the main flight computer and forwards per-motor
-  commands. If that computer stops, this is what is still driving the motors.</p>
-  <pre class="evidence"><span class="dim">its linker geometry, generated from the AADL model</span>
-FLASH : 128K
-RAM   : <span class="hi">8K</span></pre>
-  <p>Its one safety property is <span class="hi">byte-exact pass-through</span>:
-  when a rotor fails and the controller asymmetrically zeros motors, re-mixing
-  would reintroduce the parasitic moment that caused a real failure. So the
-  failsafe must <em>not</em> be clever.</p>
-  <p class="slide__cite">And that is not a sentence on a slide. It is a typed
-  requirement, its WIT is generated from the architecture model, and an oracle
-  gates it &mdash; 46 rows &times; 4 motors, byte-exact, with a negative control
-  that must fail. <span class="warn">Status: draft.</span></p>
+  <p class="slide__lead">We build flight software for a drone &mdash; a car in the
+  air, four rotors instead of four tires. This is its emergency motor controller:
+  it forwards the per-motor commands, and if the main flight computer stops,
+  <span class="hi">it is what is still driving the motors</span>.</p>
+  <div class="ledger">
+    <div class="ledger__row"><span class="ledger__tag dim">the part</span><span>geometry generated from the architecture model</span><span class="ledger__val">128 KB flash &middot; <span class="hi">8 KB RAM</span></span></div>
+  </div>
+  <p>Its one safety property is <span class="hi">byte-exact pass-through</span>.
+  When a rotor fails and the controller asymmetrically zeros motors, re-mixing
+  reintroduces the parasitic moment that caused a real failure. The failsafe must
+  <em>not</em> be clever.</p>
+  <p class="slide__cite">A typed requirement, WIT generated from the model, and an
+  oracle &mdash; 46 rows &times; 4 motors, byte-exact, negative control must fail.
+  <span class="warn">Status: draft.</span></p>
 </section>
 
 <section class="slide">
@@ -644,12 +644,13 @@ backed by a bounded arena instead       <span class="ok">1428 B</span>   <span c
   <p class="slide__act">Act V &middot; what is missing<span class="slide__scope is-many">the takeaway</span></p>
   <h2>Three things to take with you</h2>
   <div class="ledger">
-    <div class="ledger__row"><span class="ledger__tag hi">one</span><span>The Component Model can be a <em>build step</em>. It does not have to be present at run time &mdash; 43 of 45 canonical-ABI fixtures survive complete erasure.</span><span class="ledger__val">&nbsp;</span></div>
+    <div class="ledger__row"><span class="ledger__tag hi">one</span><span>The Component Model can be a <em>build step</em>. Fuse the graph into one core module and the boundary is gone &mdash; <em>43 of 45</em> canonical-ABI fixtures then behave identically.</span><span class="ledger__val">&nbsp;</span></div>
     <div class="ledger__row"><span class="ledger__tag hi">two</span><span>A proof can cross a tool boundary in <em>nine bytes</em> &mdash; keyed to a value, dropped rather than re-pointed when the value dies.</span><span class="ledger__val">&nbsp;</span></div>
     <div class="ledger__row"><span class="ledger__tag hi">three</span><span>On a part with 8 KB of RAM the seam costs nothing at run time, because by then it is <em>not there</em>.</span><span class="ledger__val">&nbsp;</span></div>
   </div>
-  <p class="slide__cite">The schema is open, and the erasure ledger is a claim, not
-  a result &mdash; if it is wrong I would rather hear it than not.</p>
+  <p class="slide__cite">The two that do not are resource chains through a
+  re-exporting middle component. The schema is open, and that ledger is a claim
+  rather than a result &mdash; if it is wrong I would rather hear it than not.</p>
 </section>
 
 <section class="slide">
