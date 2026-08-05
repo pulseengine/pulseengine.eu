@@ -624,16 +624,15 @@ backed by a bounded arena instead       <span class="ok">1428 B</span>   <span c
 </section>
 
 <section class="slide">
-  <p class="slide__act">Act V &middot; what is missing<span class="slide__scope is-many">the ask</span></p>
-  <h2>Two things I want from this room</h2>
-  <p class="slide__lead">The channel is nine bytes, and the schema is yours.</p>
-  <p>If your analysis produces value ranges, it already produces the facts it
-  carries. Mine has an emitter, a wire format and a consumer &mdash; and no source
-  at volume. <span class="hi">That is a gap one of you can close this month.</span></p>
-  <p>And a question I would like answered rather than admired: <span class="hi">which
-  fragment of the Component Model survives complete ahead-of-time erasure?</span>
-  My ledger is 43 of 45, minus async, minus multiple instantiation. Tell me where
-  it is wrong.</p>
+  <p class="slide__act">Act V &middot; what is missing<span class="slide__scope is-many">the takeaway</span></p>
+  <h2>Three things to take with you</h2>
+  <div class="ledger">
+    <div class="ledger__row"><span class="ledger__tag hi">one</span><span>The Component Model can be a <em>build step</em>. It does not have to be present at run time &mdash; 43 of 45 canonical-ABI fixtures survive complete erasure.</span><span class="ledger__val">&nbsp;</span></div>
+    <div class="ledger__row"><span class="ledger__tag hi">two</span><span>A proof can cross a tool boundary in <em>nine bytes</em> &mdash; keyed to a value, dropped rather than re-pointed when the value dies.</span><span class="ledger__val">&nbsp;</span></div>
+    <div class="ledger__row"><span class="ledger__tag hi">three</span><span>On a part with 8 KB of RAM the seam costs nothing at run time, because by then it is <em>not there</em>.</span><span class="ledger__val">&nbsp;</span></div>
+  </div>
+  <p class="slide__cite">The schema is open, and the erasure ledger is a claim, not
+  a result &mdash; if it is wrong I would rather hear it than not.</p>
 </section>
 
 <section class="slide">
