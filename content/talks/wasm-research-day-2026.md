@@ -463,8 +463,13 @@ export function read32(addr) {
 <section class="slide">
   <p class="slide__act">Act IV &middot; the factory</p>
   <h2>No stage trusts the one above it</h2>
-  <p>When <code>loom</code> proves a value range it does not discard it. It writes
-  it into a custom section — and the whole channel is nine bytes:</p>
+  <p>It is not running a separate pass to hunt for facts. <span class="hi">To
+  delete a bounds check it must already have established the index is in
+  range</span> &mdash; every optimizer does that. What is unusual is what happens
+  next: normally the code is emitted and the reasoning that justified it
+  evaporates.</p>
+  <p>Here it is written into a custom section instead &mdash; and the whole
+  channel is nine bytes:</p>
   <pre class="evidence"><span class="dim">custom section "wsc.facts"</span>
 01              <span class="dim">schema v1</span>
 01              <span class="dim">one fact</span>
