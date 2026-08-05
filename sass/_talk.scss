@@ -722,3 +722,14 @@
   gap: .55rem;
   h2 { font-size: clamp(1.5rem, min(4vmin, 3.2vh), 2.5rem); }
 }
+
+// ─── Syntax highlighting ──────────────────────────────────────────────
+// Only source blocks carry `data-lang`; captured output, hexdumps and
+// measurement tables stay plain, because colouring evidence like code
+// misrepresents what it is.
+.tok-kw   { color: $purple; }
+.tok-ty   { color: $cyan; }
+.tok-str  { color: $green; }
+.tok-num  { color: $amber; }
+.tok-fn   { color: $accent; }
+.tok-com  { color: $text-faint; font-style: italic; }

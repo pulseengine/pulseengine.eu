@@ -287,6 +287,53 @@
     });
   });
 
+
+  // ── Syntax highlighting ─────────────────────────────────────────────
+  // Rewrites ONLY the direct text-node children of a [data-lang] block, so the
+  // hand-authored spans that mark results (.ok / .dim / .hi) are never touched.
+  // Single pass with one tokenizer: an earlier version ran the rules in
+  // sequence over a string that was accumulating markup, so `str` inside
+  // `class="tok-str"` matched the type list and corrupted the output.
+  var W = function (s) { return new Set(s.split(' ')); };
+  var LANGS = {
+    wit:  { kw: W('interface world record enum resource func import export own borrow future stream flags variant type use package'),
+            ty: W('u8 u16 u32 u64 s8 s16 s32 s64 f32 f64 bool char string list option result tuple') },
+    rust: { kw: W('fn let mut unsafe extern pub const static struct enum impl trait if else match return use mod as move for in while loop'),
+            ty: W('u8 u16 u32 u64 usize i8 i16 i32 i64 isize f32 f64 bool str String Ok Err Some None Self') },
+    js:   { kw: W('const let var function return export import new if else for while class typeof'),
+            ty: W('Uint32Array Uint8Array Number String Array Object') },
+    sh:   { kw: W('wac meld loom synth ld cargo compose fuse optimize compile'), ty: W('') }
+  };
+
+  function esc(x) { return x.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  function highlight(pre) {
+    var spec = LANGS[pre.dataset.lang];
+    if (!spec) return;
+    var TOK = /(\/\/[^\n]*)|("(?:[^"\\]|\\.)*")|(0x[0-9a-fA-F]+|\b\d+\b)|([A-Za-z_][A-Za-z0-9_]*)/g;
+    Array.prototype.slice.call(pre.childNodes).forEach(function (node) {
+      if (node.nodeType !== 3) return;          // leave existing spans alone
+      var out = node.nodeValue.replace(TOK, function (m, com, str, num, word) {
+        if (com)  return '<span class="tok-com">' + esc(com) + '</span>';
+        if (str)  return '<span class="tok-str">' + esc(str) + '</span>';
+        if (num)  return '<span class="tok-num">' + num + '</span>';
+        if (word) {
+          if (spec.kw.has(word)) return '<span class="tok-kw">' + word + '</span>';
+          if (spec.ty.has(word)) return '<span class="tok-ty">' + word + '</span>';
+          return word;
+        }
+        return esc(m);
+      });
+      // escape whatever the tokenizer did not claim
+      out = out.replace(/&(?!amp;|lt;|gt;)/g, '&amp;');
+      var frag = document.createElement('span');
+      frag.innerHTML = out;
+      pre.replaceChild(frag, node);
+    });
+  }
+
+  document.querySelectorAll('pre[data-lang]').forEach(highlight);
+
   var start = parseInt((location.hash || '').slice(1), 10);
   go(isNaN(start) ? 0 : start - 1);
 }());

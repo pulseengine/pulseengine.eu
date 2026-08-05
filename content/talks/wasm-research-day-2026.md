@@ -169,7 +169,7 @@ SRAM   <span class="ok">    8 B of   8 192</span>   0.1%   &mdash; 8 184 free</p
   <div class="split">
     <div class="split__col">
       <h3>wit/gust-hal.wit</h3>
-      <pre class="evidence">interface mmio {
+      <pre class="evidence" data-lang="wit">interface mmio {
   read32:  func(addr: u32) -&gt; u32;
   write32: func(addr: u32, val: u32);
   <span class="dim">read8 / write8 likewise</span>
@@ -180,7 +180,7 @@ SRAM   <span class="ok">    8 B of   8 192</span>   0.1%   &mdash; 8 184 free</p
     </div>
     <div class="split__col">
       <h3>and the composition</h3>
-      <pre class="evidence">wac compose fused-gustos.wac
+      <pre class="evidence" data-lang="sh">wac compose fused-gustos.wac
 meld fuse --memory shared
 loom optimize --passes inline
 synth compile --target cortex-m3 \
@@ -197,7 +197,7 @@ synth compile --target cortex-m3 \
   <h2>A contract that cannot express the bug</h2>
   <p>A watchdog you can accidentally switch off is worthless. So the interface
   offers no way to switch it off:</p>
-  <pre class="evidence">interface wdg {
+  <pre class="evidence" data-lang="wit">interface wdg {
   unlock:     func(base: u32, state: u32) -&gt; u32;
   configure:  func(base: u32, state: u32, psc: u32, rld: u32) -&gt; u32;
   lock:       func(state: u32) -&gt; u32;
@@ -210,7 +210,7 @@ synth compile --target cortex-m3 \
 <section class="slide">
   <p class="slide__act">Act II &middot; the car</p>
   <h2>&hellip; and the FSM proves the absence</h2>
-  <pre class="evidence">fn p2_cannot_un_start() {
+  <pre class="evidence" data-lang="rust">fn p2_cannot_un_start() {
     let w = Iwdg { phase: Running, .. };
     if let Ok(n) = refresh(w) { assert_eq!(n.phase, <span class="ok">Running</span>); }
     <span class="dim">// no escape from Running:</span>
@@ -219,6 +219,24 @@ synth compile --target cortex-m3 \
   <p><span class="hi">The contract cannot express the one transition the proof
   forbids.</span> That is the argument for putting a seam in a type system rather
   than in a comment.</p>
+</section>
+
+<section class="slide">
+  <p class="slide__act">Act II &middot; the car</p>
+  <h2>The seam is not only scalars</h2>
+  <p>Everything so far has been <code>u32</code> in, <code>u32</code> out. DMA is
+  where that stops &mdash; and the Component Model already has the vocabulary:</p>
+  <pre class="evidence" data-lang="wit">resource dma-buffer { len: func() -&gt; u32; }
+
+read: func(channel: u32, buf: dma-buffer)
+        -&gt; future&lt;dma-buffer&gt;</pre>
+  <p>It consumes <code>own&lt;dma-buffer&gt;</code>. While the engine has it, the
+  buffer is <span class="hi">statically inaccessible to wasm</span> until the
+  future resolves with the re-owned handle. Circular DMA is a stream of per-chunk
+  ownership &mdash; each chunk owned by exactly one side at a time.</p>
+  <div class="ledger">
+    <div class="ledger__row"><span class="ledger__tag hi">seam</span><span>the ownership state machine, dissolved</span><span class="ledger__val">220 B · 0 SRAM · 6 Kani proofs</span></div>
+  </div>
 </section>
 
 <section class="slide">
@@ -270,7 +288,7 @@ correctness <span class="ok">IDENTICAL</span> over [0,2047]   mismatch=<span cla
   <p>A component that imports <code>gust:hal/mmio</code> does not care who answers
   it. In a browser tab, this is the answer &mdash; the whole of it:</p>
   <p class="evidence__label">web/shim-mmio.js</p>
-  <pre class="evidence">const REGS = new Uint32Array(64);
+  <pre class="evidence" data-lang="js">const REGS = new Uint32Array(64);
 <span class="dim">// the one clock register the OS reads</span>
 const TIM2_CNT = 0x40000024;
 export function read32(addr) {
@@ -283,7 +301,7 @@ export function read32(addr) {
   <p class="slide__act">Act III &middot; the tires</p>
   <h2>&hellip; and on silicon</h2>
   <p class="evidence__label">same import, answered by the bus</p>
-  <pre class="evidence">#[no_mangle] extern "C" fn read32(addr: u32) -&gt; u32 {
+  <pre class="evidence" data-lang="rust">#[no_mangle] extern "C" fn read32(addr: u32) -&gt; u32 {
     unsafe { core::ptr::read_volatile(addr as *const u32) }
 }</pre>
   <p>Nothing else about the component changes.
@@ -511,7 +529,7 @@ pop  {r7, pc}   <span class="dim">— the whole function, 12 B</span></pre>
   <p class="slide__act">Act IV &middot; the factory</p>
   <h2>&hellip; and no, LLVM is not the problem</h2>
   <p class="evidence__label">tell it the same thing and it folds it too</p>
-  <pre class="evidence">assert_<span class="bad">unchecked</span>(524 &lt;= ch &amp;&amp; ch &lt;= 1524);
+  <pre class="evidence" data-lang="rust">assert_<span class="bad">unchecked</span>(524 &lt;= ch &amp;&amp; ch &lt;= 1524);
   &rarr; add.w r0, r0, #476     <span class="dim">stock LLVM, 30 B &rarr; 12 B</span></pre>
   <p>So the codegen is not the result. <span class="hi">Both emit the same
   instruction &mdash; only one of them checked.</span></p>
