@@ -329,6 +329,22 @@ export function read32(addr) {
 
 <section class="slide">
   <p class="slide__act">Act IV &middot; the factory</p>
+  <h2>Is this the Component Model, or our dialect?</h2>
+  <p>The fuser does essentially what <span class="hi">RFC 46</span> proposes &mdash;
+  for the sync subset. Same architecture: parse the components, flatten the
+  composition DAG, merge the index spaces, generate FACT-style adapter
+  trampolines, re-wrap as a component for host compatibility.</p>
+  <div class="ledger">
+    <div class="ledger__row"><span class="ledger__tag ok">runtime</span><span>canonical-ABI fixtures &mdash; strings, lists, records, variants, options, results, resources, flags, enums, both directions</span><span class="ledger__val">43 / 45</span></div>
+    <div class="ledger__row"><span class="ledger__tag warn">declined</span><span>async / fibers &mdash; no stack switching on these parts, and compiling the runtime in is a TCB problem</span><span class="ledger__val">&nbsp;</span></div>
+    <div class="ledger__row"><span class="ledger__tag bad">rejected</span><span>multiply-instantiated modules &mdash; we refuse them rather than ship an unproved transform</span><span class="ledger__val">&nbsp;</span></div>
+  </div>
+  <p class="slide__cite">The two failures are three-component resource chains where
+  an intermediate re-exports a resource it does not define.</p>
+</section>
+
+<section class="slide">
+  <p class="slide__act">Act IV &middot; the factory</p>
   <h2>What you still have to trust</h2>
   <div class="ledger">
     <div class="ledger__row"><span class="ledger__tag warn">before</span><span>rustc + the LLVM wasm backend &mdash; every component starts here</span><span class="ledger__val">&nbsp;</span></div>
