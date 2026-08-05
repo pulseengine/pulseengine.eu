@@ -752,3 +752,16 @@
   &.is-one  { color: $accent; }   // a single tool or component
   &.is-many { color: $cyan; }     // a set, or the whole chain
 }
+
+// ─── Backup section ───────────────────────────────────────────────────
+// Slides after the close: not in the talk, reachable from the overview when a
+// question needs them. Marked so the speaker never wonders whether they have
+// run past the ending.
+.slide.is-backup {
+  border-top: 2px solid $amber;
+}
+
+.slide__act .is-backup-tag {
+  color: $amber;
+  border-color: $amber;
+}
