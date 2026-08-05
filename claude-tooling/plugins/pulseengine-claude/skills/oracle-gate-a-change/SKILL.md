@@ -3,7 +3,7 @@ name: oracle-gate-a-change
 description: This skill should be used whenever proposing, designing, landing, or evaluating a consequential change on a PulseEngine project (rivet, spar, witness, sigil, meld, loom, synth, wohl) — including "propose a change", "add a feature", "fix a bug", "is this safe to land", "what verifies this", "what's the gate", "how do we know this is correct", "before merging this", or whenever a code change needs a mechanical check to back it. ALWAYS use this skill before claiming a property holds and before recommending a change be merged.
 metadata:
   author: pulseengine.eu
-  version: "0.1.0"
+  version: "0.2.0"
 ---
 
 # Oracle-gate a change
@@ -42,6 +42,19 @@ This is the most-skipped step and the highest leverage one. If the change claims
 
 If you cannot write the oracle (the property isn't checkable with current tooling), **surface the gap clearly** in the PR description. Do not paper over it with prose review. Either the property is checkable or the change can't claim it.
 
+### 2b. Wire it — an oracle CI does not run is not a gate
+
+Writing a correct oracle and landing it is **not** gating. An oracle that nothing executes satisfies every other step in this skill and gates nothing. Landing an oracle means landing **its invocation** in the same change.
+
+This is the one step where doing it wrong feels identical to doing it right: you run the oracle locally, it works, red→green happens on your machine, and it feels finished. The failure surfaces months later as a green board over a dead gate.
+
+- **Wire it into a job that runs on PRs**, and **prove it fails there** — not merely locally. *"It passes locally"* and *"the gate passed"* are different claims.
+- **Prove the wiring by mutation at the point of wiring.** Break the property, watch the *wired* job go red, restore. Anything less proves the oracle exists, not that it is enforced.
+- **Prefer an already-required context.** A brand-new job is not a required check and can sit red for weeks — the same failure mode one level up. Putting the new check inside a job that is already required makes it bite on day one.
+- **Declared ⇒ invoked.** If the repo keeps a registry of checks/repro scripts, adding an entry is not wiring; something must run it. Track undeclared/unwired scripts as a countable number that can only shrink.
+
+Field cases this rule comes from: an oracle behind two headline size claims existed for two releases and was never CI-wired; the next release shipped its central differential oracle referenced by nothing, with a fully green PR board; a later audit found ~70 of ~150 repro scripts undeclared or unwired.
+
 ### 3. Attach a kill-criterion to the claim
 
 Per PulseEngine methodology, every claim should carry a falsifiable kill-criterion: "this claim would be wrong if X is observed." This is required for the philosophy to compose — without kill-criteria the falsification stance is empty.
@@ -68,7 +81,16 @@ Apply [`clean-room-verification`] to the claim "this change passed its oracle." 
 - **Soft oracles (LLM reading the spec back) don't count.** They cannot find what the spec didn't anticipate. From the `mythos-slop-hunt` and `spec-driven-development-is-half-the-loop` blog posts.
 - **Write the oracle first if it's missing.** If the property is worth claiming it's worth checking.
 - **Specification completeness is the bottleneck.** Per `formal-verification-ai-agents`, agent-written proofs are cheap now — the limiting factor is whether the spec covers what the change is actually doing.
-- **Kill-criteria are mandatory.** A claim without a falsifier is not a claim, it's a hope.
+- **Kill-criteria are mandatory.** A claim without a falsifier is not a claim, it's a hope. And necessary is not sufficient: **a kill-criterion nobody evaluates is not a gate** — see step 2b.
+- **The instruments rot last, and invisibly.** Once the artifact under test is well covered, residual defects migrate into the *checkers*, where they are structurally hard to see because the instrument's whole job is to report "fine". Two sibling repos sharing no code independently grew the same four instrument bugs. Common footguns, all field-observed:
+  - a gate parsing a results path the tool never writes (4 months of vacuous green; 210 survivors reported as 0),
+  - a formatter/linter scoped to 1 of N workspaces,
+  - a checker built in the tool and wired into no workflow,
+  - a self-exemption escape hatch that every violation happens to use (all 12 `sorry`s carried the exempting comment),
+  - `cargo test -- <filter matching nothing>` exiting 0,
+  - a crashed tool run scored as a clean one,
+  - a paths-filter whose error path fails **open**, skipping required contexts — on GitHub a *skipped* required context satisfies the merge button, so a filter is a gate-disabler.
+- **Missing evidence is red, never green.** An absent results file must fail the gate, not default to a clean count.
 - **A documented gap with an "unreachable" judgment is a standing obligation, not a closed item.** Re-verify the reachability claim whenever a new code path lands near the gap. Field case: an independently-mechanized model bridge documented a semantics divergence as "unreachable via input masking" — a later code path made it reachable, and the divergence let a vacuous proof certify hardware-wrong code for weeks.
 - **Byte-changing fixes re-pin goldens only AFTER the full differential suite passes on the new bytes.** They move together; a re-pin before the differentials is a frozen lie. Keep a printable re-pin aid inside the gate itself (an env-gated branch that emits the new golden tuples instead of asserting) so the ritual is mechanical, not hand-copied.
 
