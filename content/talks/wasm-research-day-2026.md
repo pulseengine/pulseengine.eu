@@ -347,17 +347,15 @@ export function read32(addr) {
 <section class="slide">
   <p class="slide__act">Act IV &middot; the factory<span class="slide__scope is-one">meld</span></p>
   <h2>Is this the Component Model, or our dialect?</h2>
-  <p>The fuser does essentially what <span class="hi">RFC 46</span> proposes &mdash;
-  for the sync subset. Same architecture: parse the components, flatten the
-  composition DAG, merge the index spaces, generate FACT-style adapter
-  trampolines, re-wrap as a component for host compatibility.</p>
-  <div class="ledger">
+  <p>The fuser does essentially what <span class="hi">RFC 46</span> proposes, for
+  the sync subset &mdash; flatten the composition DAG, merge the index spaces,
+  generate adapter trampolines, re-wrap as a component.</p>
+  <div class="ledger is-wide">
     <div class="ledger__row"><span class="ledger__tag ok">runtime</span><span>canonical-ABI fixtures &mdash; strings, lists, records, variants, options, results, resources, flags, enums, both directions</span><span class="ledger__val">43 / 45</span></div>
     <div class="ledger__row"><span class="ledger__tag warn">declined</span><span>async / fibers &mdash; no stack switching on these parts, and compiling the runtime in is a TCB problem</span><span class="ledger__val">&nbsp;</span></div>
     <div class="ledger__row"><span class="ledger__tag bad">rejected</span><span>multiply-instantiated modules &mdash; we refuse them rather than ship an unproved transform</span><span class="ledger__val">&nbsp;</span></div>
+    <div class="ledger__row"><span class="ledger__tag warn">the two</span><span>both are the same shape &mdash; a middle component that <em>forwards</em> a resource it does not <em>define</em>, and the adapter cannot tell the two apart</span><span class="ledger__val ledger__fig"><span class="fig__line">A &rarr; <b>B</b> &rarr; C</span><small>C defines it &middot; B only passes it on</small></span></div>
   </div>
-  <p class="slide__cite">The two failures are three-component resource chains where
-  an intermediate re-exports a resource it does not define.</p>
 </section>
 
 <section class="slide">
@@ -439,8 +437,8 @@ export function read32(addr) {
     </div>
     <div class="archr" data-arch="synth">
       <div class="archr__row"><span class="archr__st">in</span><div class="archr__bs">
+        <span class="ab">One core module<small>.wasm or .wat — already fused</small></span>
         <span class="ab ev">wsc.facts ingest<small>bad section &rArr; no facts</small></span>
-        <span class="ab">WIT / ABI<small>lift · lower</small></span>
         <span class="ab">cabi arena bind<small>dangling realloc &rarr; defined fn</small></span>
       </div></div>
       <div class="archr__row"><span class="archr__st">model</span><div class="archr__bs">
@@ -489,8 +487,9 @@ export function read32(addr) {
       </div></div>
     </div>
   </div>
-  <p class="slide__cite">Same five rows every time &mdash; and every tool's hazard is
-  the same defect: its model is more total than Wasm.</p>
+  <p class="slide__cite archfoot"><span class="archkey"><span class="ab ev">cyan</span> a machine checks it
+  <span class="ab hz">amber</span> the hazard still open</span><span>Same five rows &mdash; and every tool's hazard
+  is one defect: its model is more total than Wasm.</span></p>
 </section>
 
 <section class="slide">

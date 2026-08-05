@@ -101,7 +101,7 @@
   margin: 0;
 }
 
-.slide ul { display: flex; flex-direction: column; gap: .6rem; padding-left: 1.1rem; margin: 0; }
+.slide ul { display: flex; flex-direction: column; gap: .38rem; padding-left: 1.1rem; margin: 0; }
 
 // The eyebrow says which act we are in — it is structural, not decorative:
 // the deck has five acts and the label is how the audience keeps its place.
@@ -259,7 +259,7 @@
   display: grid;
   gap: .5rem;
   width: 100%;
-  max-width: 60ch;
+  max-width: min(100%, 64ch);
 }
 
 .ledger__row {
@@ -289,13 +289,30 @@
   color: $text;
 }
 
+// A worked example in the value column: the shape of the failure, not a number.
+.ledger.is-wide { max-width: min(100%, 92ch); }
+.ledger__fig {
+  text-align: right;
+  white-space: normal;      // the sub-label must be allowed to wrap; nowrap
+  max-width: 26ch;          // is inherited from .ledger__val and clips it at
+  b { color: $amber; }      // narrow widths instead of shrinking.
+  .fig__line { white-space: nowrap; }
+  small {
+    display: block;
+    font-size: .68em;
+    line-height: 1.25;
+    color: $text-dim;
+    letter-spacing: .01em;
+  }
+}
+
 // ─── Flow: what each stage eats and what it emits ─────────────────────
 // The tool sites answer "what goes in, what comes out" for every stage; a
 // pipeline drawn as bare arrows does not. Each row names both sides.
 
 .flow {
   display: grid;
-  gap: .4rem;
+  gap: .24rem;
   width: 100%;
 }
 
@@ -304,7 +321,7 @@
   grid-template-columns: minmax(6rem, auto) 1fr auto 1fr;
   align-items: center;
   gap: .5rem .9rem;
-  padding: .5rem .8rem;
+  padding: .38rem .8rem;
   background: $surface;
   border: 1px solid $border-subtle;
   border-radius: 8px;
@@ -588,13 +605,13 @@
 }
 
 .archset { display: grid; width: 100%; }
-.archr { grid-area: 1 / 1; display: none; flex-direction: column; gap: .3rem; }
+.archr { grid-area: 1 / 1; display: none; flex-direction: column; gap: .1rem; }
 .archr.is-on { display: flex; }
 
 .archr__row {
   display: grid;
   grid-template-columns: 10ch 1fr;
-  gap: .6rem;
+  gap: .45rem;
   align-items: start;
 }
 
@@ -610,15 +627,34 @@
 
 .archr__bs { display: flex; flex-wrap: wrap; gap: .3rem; }
 
+// The colour coding is only information if the room is told what it codes.
+// The key rides on the same line as the closing note — a colour code needs a
+// legend, but not a line of its own.
+.archfoot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: .3rem 1.4rem;
+  margin-top: .45rem;
+}
+.archkey {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: .2rem .55rem;
+  white-space: nowrap;
+  .ab { font-size: .92em; padding: .02rem .38rem; border-radius: 4px; }
+}
+
 .ab {
   flex: 1 1 auto;
   background: $surface;
   border: 1px solid $border-subtle;
   border-radius: 6px;
-  padding: .3rem .5rem;
+  padding: .24rem .5rem;
   font-size: clamp(.9rem, min(2.9vmin, 2.35vh), 1.4rem);
   font-weight: 600;
-  line-height: 1.25;
+  line-height: 1.2;
 
   small {
     display: block;
@@ -626,13 +662,13 @@
     font-size: .84em;
     font-weight: 400;
     color: $text-dim;
-    margin-top: .05rem;
+    margin-top: 0;
   }
 
   // Produces or checks evidence.
-  &.ev { border-color: rgba(34,211,238,.5); background: rgba(34,211,238,.08); color: $cyan; }
+  &.ev { border-color: rgba(14,116,144,.55); background: rgba(34,211,238,.20); color: $cyan; }
   // The hazard class specific to this translation.
-  &.hz { border-color: rgba(251,191,36,.6); background: rgba(251,191,36,.09); color: $amber; }
+  &.hz { border-color: rgba(161,98,7,.6); background: rgba(251,191,36,.30); color: $amber; }
   &.ev small, &.hz small { color: $text-dim; }
 }
 

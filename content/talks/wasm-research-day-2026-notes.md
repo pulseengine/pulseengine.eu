@@ -185,6 +185,24 @@ recorded figure is 1450.
 
 ---
 
+## What synth actually eats — slide 21 (synth tab)
+
+**Correction on the record.** The synth tab's `in` row used to read *WIT / ABI —
+lift · lower*, and did not name the actual input at all. On gale's path synth is
+handed **one core module** — `loom.wasm`, `fused.stripped.wasm`, or a `.wat`; every
+`build-*.sh` in `benches/gust/` calls `synth compile <core-module>`. It is never
+handed a WIT file or a component, and its CLI has no `--wit` flag.
+
+synth *does* carry a WIT parser (`synth-wit`) and a canonical-ABI lift/lower
+implementation (`synth-abi`) — but on this pipeline they are not on the path,
+because **meld already did the lifting and lowering upstream and erased the
+boundary**. Claiming them as synth inputs credited synth with meld's work.
+
+If asked "so what does synth do with WIT?" — on this pipeline, nothing. It is a
+core-module compiler here. The Component Model work happens one stage earlier.
+
+---
+
 ## 50 rules · 50 Rocq Qed — slide 20 (synth tab)
 
 Say the denominator if asked: 50 *selection* rules proved, against synth's own ISA
