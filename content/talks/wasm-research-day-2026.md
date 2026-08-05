@@ -575,52 +575,6 @@ pop  {r7, pc}   <span class="dim">— the whole function, 12 B</span></pre>
 </section>
 
 <section class="slide">
-  <p class="slide__act">Act IV &middot; the factory<span class="slide__scope is-one">the checker</span></p>
-  <h2>Qualify the checker, not the prover</h2>
-  <p>Certification asks why you believe the solver. "Qualify Z3" is not a
-  tractable answer.</p>
-  <p>So the solver stays <em>untrusted</em> and emits a certificate. Only a small
-  checker is trusted — and its soundness is machine-checked in Lean 4, with no
-  <code>sorry</code> in its kernel.</p>
-  <div class="ledger">
-    <div class="ledger__row"><span class="ledger__tag hi">shipped</span><span>bit-vector obligations re-discharged with re-checkable certificates</span><span class="ledger__val">62 / 62</span></div>
-    <div class="ledger__row"><span class="ledger__tag warn">scope</span><span>62 of the <em>bit-vector</em> obligations. The rest of each proof still rests on the solver.</span><span class="ledger__val">&nbsp;</span></div>
-  </div>
-  <p class="slide__cite">Don't trust the tool — check its output.</p>
-</section>
-
-<section class="slide">
-  <p class="slide__act">Act IV &middot; the factory<span class="slide__scope is-many">all of it</span></p>
-  <h2>Exactly how far this goes — and no further</h2>
-  <div class="ledger">
-    <div class="ledger__row"><span class="ledger__tag ok">shipping</span><span>theorem proving · SMT · bounded MC · translation validation</span><span class="ledger__val">&nbsp;</span></div>
-    <div class="ledger__row"><span class="ledger__tag warn">partial</span><span>refinement to Lean · mutation · abstract interpretation</span><span class="ledger__val">&nbsp;</span></div>
-    <div class="ledger__row"><span class="ledger__tag bad">not yet</span><span>An authority audit. We have not been audited.</span><span class="ledger__val">&nbsp;</span></div>
-  </div>
-  <p>Bounded model checking is bounded. Verus, Rocq and Kani <em>are</em> gated on
-  pull requests &mdash; but path-filtered, so a commit outside those paths triggers
-  nothing. <span class="hi">Lean runs in no workflow at all.</span></p>
-</section>
-
-<section class="slide">
-  <p class="slide__act">Act IV &middot; the factory<span class="slide__scope is-many">five tools</span></p>
-  <h2>Every one of these gates was green for the wrong reason</h2>
-  <div class="ledger">
-    <div class="ledger__row"><span class="ledger__tag bad">scry</span><span>a proof that never ran</span><span class="ledger__val">&nbsp;</span></div>
-    <div class="ledger__row"><span class="ledger__tag bad">synth</span><span>two validators, one blind spot</span><span class="ledger__val">&nbsp;</span></div>
-    <div class="ledger__row"><span class="ledger__tag bad">loom</span><span>a gate with zero callers</span><span class="ledger__val">&nbsp;</span></div>
-    <div class="ledger__row"><span class="ledger__tag bad">meld</span><span>a test on a path the shipped code skipped</span><span class="ledger__val">&nbsp;</span></div>
-    <div class="ledger__row"><span class="ledger__tag bad">gale</span><span>a count that cannot see instances</span><span class="ledger__val">&nbsp;</span></div>
-  </div>
-  <p class="slide__cite">One of them, concretely: a requirement said the fuser
-  rejects a component that instantiates a module twice. The test called the reject
-  function directly and passed. The shipped path accepted those modules and
-  duplicated them.</p>
-  <blockquote class="slide__quote">The failure produced the same observable as
-  success.</blockquote>
-</section>
-
-<section class="slide">
   <p class="slide__act">Act V &middot; what is missing<span class="slide__scope is-one">gust drivers</span></p>
   <h2>What componentizing actually costs</h2>
   <p class="evidence__label">driver object .text, core module &rarr; component</p>
@@ -641,25 +595,6 @@ backed by a bounded arena instead       <span class="ok">1428 B</span>   <span c
   <p><code>cabi_realloc</code> now delegates to an embedder arena that traps rather
   than growing. <span class="hi">29% of the overhead back</span> &mdash; and the
   drivers do not use it yet.</p>
-</section>
-
-<section class="slide">
-  <p class="slide__act">Act V &middot; what is missing</p>
-  <h2>Two things building this talk taught us</h2>
-  <div class="split">
-    <div class="split__col">
-      <h3>the runner broke on success</h3>
-      <p>Plugging in the third board made the first unreachable. The
-      all-three-at-once case was the one nothing had run.</p>
-    </div>
-    <div class="split__col">
-      <h3>a reproducible number that isn't</h3>
-      <p>A byte-reproducible command whose wasm input is not in the repo — it
-      lived in a scratch directory that no longer exists.</p>
-    </div>
-  </div>
-  <blockquote class="slide__quote">A bench whose input is not committed is not
-  reproducible, however precisely its output is recorded.</blockquote>
 </section>
 
 <section class="slide">
