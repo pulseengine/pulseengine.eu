@@ -733,3 +733,22 @@
 .tok-num  { color: $amber; }
 .tok-fn   { color: $accent; }
 .tok-com  { color: $text-faint; font-style: italic; }
+
+// ─── Scope chip ───────────────────────────────────────────────────────
+// Says what a slide is ABOUT — one tool, or the whole chain. With tool names
+// running through the deck, "is this meld specifically or everything?" is a
+// question the audience should never have to hold.
+.slide__scope {
+  display: inline-block;
+  margin-left: .7rem;
+  padding: .05em .5em;
+  border: 1px solid currentColor;
+  border-radius: 99px;
+  font-size: .82em;
+  letter-spacing: .05em;
+  text-transform: none;
+  vertical-align: baseline;
+
+  &.is-one  { color: $accent; }   // a single tool or component
+  &.is-many { color: $cyan; }     // a set, or the whole chain
+}

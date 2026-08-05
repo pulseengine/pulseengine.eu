@@ -57,7 +57,7 @@ slot = "25 + 5, remote"
 </section>
 
 <section class="slide">
-  <p class="slide__act">Act II &middot; the car</p>
+  <p class="slide__act">Act II &middot; the car<span class="slide__scope is-one">gust:os · gust:hal</span></p>
   <h2>Two seams, and everything hangs off them</h2>
   <div class="split">
     <div class="split__col">
@@ -79,7 +79,7 @@ irq  <span class="dim">— poll(line) -&gt; bool, deliberately</span></pre>
 </section>
 
 <section class="slide">
-  <p class="slide__act">Act II &middot; the car</p>
+  <p class="slide__act">Act II &middot; the car<span class="slide__scope is-many">the whole chain</span></p>
   <h2>Integration step, not a build step</h2>
   <p class="slide__lead">Five components in, one native object out &mdash; and every
   arrow happens on a build machine, not on the device.</p>
@@ -118,7 +118,7 @@ irq  <span class="dim">— poll(line) -&gt; bool, deliberately</span></pre>
 </section>
 
 <section class="slide">
-  <p class="slide__act">Act II &middot; the car</p>
+  <p class="slide__act">Act II &middot; the car<span class="slide__scope is-many">the whole chain</span></p>
   <h2>The same chain, actually run</h2>
   <p class="slide__lead">Five components in, one relocatable object out &mdash;
   and at the end, the two questions that matter: what does it still need from the
@@ -130,7 +130,7 @@ irq  <span class="dim">— poll(line) -&gt; bool, deliberately</span></pre>
 </section>
 
 <section class="slide">
-  <p class="slide__act">Act II &middot; the car</p>
+  <p class="slide__act">Act II &middot; the car<span class="slide__scope is-one">gust on the F100</span></p>
   <h2>The part that sets the rules is a failsafe</h2>
   <p class="slide__lead">Not the smallest board we could find &mdash; the emergency
   motor controller. It sits beside the main flight computer and forwards per-motor
@@ -149,7 +149,7 @@ RAM   : <span class="hi">8K</span></pre>
 </section>
 
 <section class="slide">
-  <p class="slide__act">Act II &middot; the car</p>
+  <p class="slide__act">Act II &middot; the car<span class="slide__scope is-one">gust on the F100</span></p>
   <h2>What it costs on that part</h2>
   <p class="evidence__label">a whole flashed image — the watchdog silicon test</p>
   <pre class="evidence">   text    data    bss
@@ -164,7 +164,7 @@ SRAM   <span class="ok">    8 B of   8 192</span>   0.1%   &mdash; 8 184 free</p
 </section>
 
 <section class="slide">
-  <p class="slide__act">Act II &middot; the car</p>
+  <p class="slide__act">Act II &middot; the car<span class="slide__scope is-many">the whole chain</span></p>
   <h2>The seam, as it is actually written</h2>
   <div class="split">
     <div class="split__col">
@@ -193,7 +193,7 @@ synth compile --target cortex-m3 \
 </section>
 
 <section class="slide">
-  <p class="slide__act">Act II &middot; the car</p>
+  <p class="slide__act">Act II &middot; the car<span class="slide__scope is-one">one driver</span></p>
   <h2>A contract that cannot express the bug</h2>
   <p>A watchdog you can accidentally switch off is worthless. So the interface
   offers no way to switch it off:</p>
@@ -208,7 +208,7 @@ synth compile --target cortex-m3 \
 </section>
 
 <section class="slide">
-  <p class="slide__act">Act II &middot; the car</p>
+  <p class="slide__act">Act II &middot; the car<span class="slide__scope is-one">one driver</span></p>
   <h2>&hellip; and the FSM proves the absence</h2>
   <pre class="evidence" data-lang="rust">fn p2_cannot_un_start() {
     let w = Iwdg { phase: Running, .. };
@@ -222,7 +222,7 @@ synth compile --target cortex-m3 \
 </section>
 
 <section class="slide">
-  <p class="slide__act">Act II &middot; the car</p>
+  <p class="slide__act">Act II &middot; the car<span class="slide__scope is-one">gust:hal · dma</span></p>
   <h2>The seam is not only scalars</h2>
   <p>Everything so far has been <code>u32</code> in, <code>u32</code> out. DMA is
   where that stops &mdash; and the Component Model already has the vocabulary:</p>
@@ -240,7 +240,7 @@ read: func(channel: u32, buf: dma-buffer)
 </section>
 
 <section class="slide">
-  <p class="slide__act">Act II &middot; the car</p>
+  <p class="slide__act">Act II &middot; the car<span class="slide__scope is-many">gust, three parts</span></p>
   <h2>Three dies, one session</h2>
   <div class="stack">
     <pre class="evidence"><span class="dim">Cortex-M4 · NUCLEO-G474RE</span>
@@ -257,7 +257,7 @@ correctness <span class="ok">IDENTICAL</span> over [0,2047]   mismatch=<span cla
 </section>
 
 <section class="slide">
-  <p class="slide__act">Act III &middot; the tires</p>
+  <p class="slide__act">Act III &middot; the tires<span class="slide__scope is-many">gust, three hosts</span></p>
   <h2>Same bytes. Three different answerers.</h2>
   <div class="split">
     <div class="split__col">
@@ -283,7 +283,7 @@ correctness <span class="ok">IDENTICAL</span> over [0,2047]   mismatch=<span cla
 </section>
 
 <section class="slide">
-  <p class="slide__act">Act III &middot; the tires</p>
+  <p class="slide__act">Act III &middot; the tires<span class="slide__scope is-one">one driver</span></p>
   <h2>The whole of a tire</h2>
   <p>A component that imports <code>gust:hal/mmio</code> does not care who answers
   it. In a browser tab, this is the answer &mdash; the whole of it:</p>
@@ -298,7 +298,7 @@ export function read32(addr) {
 </section>
 
 <section class="slide">
-  <p class="slide__act">Act III &middot; the tires</p>
+  <p class="slide__act">Act III &middot; the tires<span class="slide__scope is-one">one driver</span></p>
   <h2>&hellip; and on silicon</h2>
   <p class="evidence__label">same import, answered by the bus</p>
   <pre class="evidence" data-lang="rust">#[no_mangle] extern "C" fn read32(addr: u32) -&gt; u32 {
@@ -328,7 +328,7 @@ export function read32(addr) {
 </section>
 
 <section class="slide">
-  <p class="slide__act">Act IV &middot; the factory</p>
+  <p class="slide__act">Act IV &middot; the factory<span class="slide__scope is-one">meld</span></p>
   <h2>Is this the Component Model, or our dialect?</h2>
   <p>The fuser does essentially what <span class="hi">RFC 46</span> proposes &mdash;
   for the sync subset. Same architecture: parse the components, flatten the
@@ -344,7 +344,7 @@ export function read32(addr) {
 </section>
 
 <section class="slide">
-  <p class="slide__act">Act IV &middot; the factory</p>
+  <p class="slide__act">Act IV &middot; the factory<span class="slide__scope is-many">everything below the seam</span></p>
   <h2>What you still have to trust</h2>
   <div class="ledger">
     <div class="ledger__row"><span class="ledger__tag warn">before</span><span>rustc + the LLVM wasm backend &mdash; every component starts here</span><span class="ledger__val">&nbsp;</span></div>
@@ -358,7 +358,7 @@ export function read32(addr) {
 </section>
 
 <section class="slide">
-  <p class="slide__act">Act IV &middot; the factory</p>
+  <p class="slide__act">Act IV &middot; the factory<span class="slide__scope is-many">four tools</span></p>
   <h2>Four tools, one spine</h2>
   <div class="archtabs">
     <button type="button" class="archtab is-on" data-arch="meld">meld</button>
@@ -477,7 +477,7 @@ export function read32(addr) {
 </section>
 
 <section class="slide">
-  <p class="slide__act">Act IV &middot; the factory</p>
+  <p class="slide__act">Act IV &middot; the factory<span class="slide__scope is-many">loom &rarr; synth</span></p>
   <h2>No stage trusts the one above it</h2>
   <p>It is not running a separate pass to hunt for facts. <span class="hi">To
   delete a bounds check it must already have established the index is in
@@ -496,7 +496,7 @@ export function read32(addr) {
 </section>
 
 <section class="slide">
-  <p class="slide__act">Act IV &middot; the factory</p>
+  <p class="slide__act">Act IV &middot; the factory<span class="slide__scope is-many">loom &rarr; synth</span></p>
   <h2>Why a <em>value</em>, not a position</h2>
   <p>An optimizer <em>renumbers everything</em>. Key a fact to an instruction index,
   and the next pass deletes three instructions above it.</p>
@@ -509,7 +509,7 @@ export function read32(addr) {
 </section>
 
 <section class="slide">
-  <p class="slide__act">Act IV &middot; the factory</p>
+  <p class="slide__act">Act IV &middot; the factory<span class="slide__scope is-many">loom &rarr; synth</span></p>
   <h2>What the channel is worth</h2>
   <div class="ledger">
     <div class="ledger__row"><span class="ledger__tag hi">measured</span><span>one guarded memory access, lowered with and without the fact</span><span class="ledger__val">232 &rarr; 104 B</span></div>
@@ -521,7 +521,7 @@ export function read32(addr) {
 </section>
 
 <section class="slide">
-  <p class="slide__act">Act IV &middot; the factory</p>
+  <p class="slide__act">Act IV &middot; the factory<span class="slide__scope is-one">scry</span></p>
   <h2>The missing source was in this room this morning</h2>
   <p>Our upstream analyser is a sound abstract interpreter &mdash; the same family
   as the bounds-check work presented earlier today, on the same problem.</p>
@@ -535,7 +535,7 @@ export function read32(addr) {
 </section>
 
 <section class="slide">
-  <p class="slide__act">Act IV &middot; the factory</p>
+  <p class="slide__act">Act IV &middot; the factory<span class="slide__scope is-one">synth</span></p>
   <h2>Faster <em>because</em> it is proven</h2>
   <pre class="evidence">gust_mix(ch) = clamp(1500 + (ch - 1024), 1000, 2000)</pre>
   <p>The OS primitives above carry a proven bound &mdash;
@@ -549,7 +549,7 @@ pop  {r7, pc}   <span class="dim">— the whole function, 12 B</span></pre>
 </section>
 
 <section class="slide">
-  <p class="slide__act">Act IV &middot; the factory</p>
+  <p class="slide__act">Act IV &middot; the factory<span class="slide__scope is-one">synth</span></p>
   <h2>What that is worth, measured</h2>
   <div class="ledger">
     <div class="ledger__row"><span class="ledger__tag dim">native LLVM</span><span>full clamp — what LLVM ships</span><span class="ledger__val">0.50 ticks/call</span></div>
@@ -561,7 +561,7 @@ pop  {r7, pc}   <span class="dim">— the whole function, 12 B</span></pre>
 </section>
 
 <section class="slide">
-  <p class="slide__act">Act IV &middot; the factory</p>
+  <p class="slide__act">Act IV &middot; the factory<span class="slide__scope is-many">synth vs LLVM</span></p>
   <h2>&hellip; and no, LLVM is not the problem</h2>
   <p class="evidence__label">tell it the same thing and it folds it too</p>
   <pre class="evidence" data-lang="rust">assert_<span class="bad">unchecked</span>(524 &lt;= ch &amp;&amp; ch &lt;= 1524);
@@ -575,7 +575,7 @@ pop  {r7, pc}   <span class="dim">— the whole function, 12 B</span></pre>
 </section>
 
 <section class="slide">
-  <p class="slide__act">Act IV &middot; the factory</p>
+  <p class="slide__act">Act IV &middot; the factory<span class="slide__scope is-one">the checker</span></p>
   <h2>Qualify the checker, not the prover</h2>
   <p>Certification asks why you believe the solver. "Qualify Z3" is not a
   tractable answer.</p>
@@ -590,7 +590,7 @@ pop  {r7, pc}   <span class="dim">— the whole function, 12 B</span></pre>
 </section>
 
 <section class="slide">
-  <p class="slide__act">Act IV &middot; the factory</p>
+  <p class="slide__act">Act IV &middot; the factory<span class="slide__scope is-many">all of it</span></p>
   <h2>Exactly how far this goes — and no further</h2>
   <div class="ledger">
     <div class="ledger__row"><span class="ledger__tag ok">shipping</span><span>theorem proving · SMT · bounded MC · translation validation</span><span class="ledger__val">&nbsp;</span></div>
@@ -603,7 +603,7 @@ pop  {r7, pc}   <span class="dim">— the whole function, 12 B</span></pre>
 </section>
 
 <section class="slide">
-  <p class="slide__act">Act IV &middot; the factory</p>
+  <p class="slide__act">Act IV &middot; the factory<span class="slide__scope is-many">five tools</span></p>
   <h2>Every one of these gates was green for the wrong reason</h2>
   <div class="ledger">
     <div class="ledger__row"><span class="ledger__tag bad">scry</span><span>a proof that never ran</span><span class="ledger__val">&nbsp;</span></div>
@@ -621,7 +621,7 @@ pop  {r7, pc}   <span class="dim">— the whole function, 12 B</span></pre>
 </section>
 
 <section class="slide">
-  <p class="slide__act">Act V &middot; what is missing</p>
+  <p class="slide__act">Act V &middot; what is missing<span class="slide__scope is-one">gust drivers</span></p>
   <h2>What componentizing actually costs</h2>
   <p class="evidence__label">driver object .text, core module &rarr; component</p>
   <pre class="evidence">gpio   502 &rarr; 1196 B     spi  454 &rarr; 1450 B
@@ -631,7 +631,7 @@ timer  204 &rarr;  828 B     wdg  638 &rarr; 1718 B
 </section>
 
 <section class="slide">
-  <p class="slide__act">Act V &middot; what is missing</p>
+  <p class="slide__act">Act V &middot; what is missing<span class="slide__scope is-one">wit-bindgen</span></p>
   <h2>So we patched the generator</h2>
   <p class="evidence__label">measured for this talk</p>
   <pre class="evidence"><span class="dim">wdg, rebuilt both ways — feature off is the control
@@ -663,7 +663,7 @@ backed by a bounded arena instead       <span class="ok">1428 B</span>   <span c
 </section>
 
 <section class="slide">
-  <p class="slide__act">Act V &middot; what is missing</p>
+  <p class="slide__act">Act V &middot; what is missing<span class="slide__scope is-many">all of it</span></p>
   <h2>Before the rest of the vision holds</h2>
   <ul>
     <li><span class="hi">A proven stack bound.</span> An OS node reserves 2 048 of
