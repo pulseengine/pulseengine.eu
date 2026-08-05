@@ -3,7 +3,7 @@ name: oracle-gate-a-change
 description: This skill should be used whenever proposing, designing, landing, or evaluating a consequential change on a PulseEngine project (rivet, spar, witness, sigil, meld, loom, synth, wohl) — including "propose a change", "add a feature", "fix a bug", "is this safe to land", "what verifies this", "what's the gate", "how do we know this is correct", "before merging this", or whenever a code change needs a mechanical check to back it. ALWAYS use this skill before claiming a property holds and before recommending a change be merged.
 metadata:
   author: pulseengine.eu
-  version: "0.2.0"
+  version: "0.3.0"
 ---
 
 # Oracle-gate a change
@@ -94,8 +94,32 @@ Apply [`clean-room-verification`] to the claim "this change passed its oracle." 
 - **A documented gap with an "unreachable" judgment is a standing obligation, not a closed item.** Re-verify the reachability claim whenever a new code path lands near the gap. Field case: an independently-mechanized model bridge documented a semantics divergence as "unreachable via input masking" — a later code path made it reachable, and the divergence let a vacuous proof certify hardware-wrong code for weeks.
 - **Byte-changing fixes re-pin goldens only AFTER the full differential suite passes on the new bytes.** They move together; a re-pin before the differentials is a frozen lie. Keep a printable re-pin aid inside the gate itself (an env-gated branch that emits the new golden tuples instead of asserting) so the ritual is mechanical, not hand-copied.
 
+## Exit-code discipline
+
+A gate's verdict is an **exit code**, so the ways a step silently exits 0 are the ways a gate goes
+inert. Each of these has cost real time in this org:
+
+- **`set -o pipefail` without `-e`** — the step's status is its *last* command's, so a failing
+  oracle followed by a passing `grep` is **green**. Use `set -euo pipefail`.
+- **`cmd | tail && echo OK`** — the `&&` binds to `tail`, which always succeeds.
+- **`cargo test -- <filter>` matching nothing** — prints `0 passed` and **exits 0**. Assert the test
+  count, or assert the filter matches.
+- **`cargo build` does not compile `#[cfg(test)]` code** — signature breaks in test helpers stay
+  invisible until `cargo test`.
+- **A mutation/patch that no longer applies** silently stops mutating, and the mutation test then
+  passes *for the wrong reason*. Make a non-applying patch **fatal**, never a skip.
+- **A gate reading a JSON summary must check the run completed** — a crashed or timed-out tool run
+  is not a pass. Check the exit code and a completion marker, not the summary line.
+- **Comment-demotion in YAML** — YAML strips `#` only in a *single-line plain scalar*; inside
+  `run: |` the `#` survives. So a grep-for-reference gate can be satisfied by a **commented-out**
+  step. Field case: a wiring gate was itself defeated this way.
+
 ## Anti-patterns
 
+- **"The oracle exists" as the deliverable.** The deliverable is the oracle **running in CI and
+  demonstrably able to fail there**.
+- **Asserting a gate is non-vacuous by *reading* it rather than by *mutating* it.** Vacuous gates
+  look correct in review — that is exactly why they survive. Break the property and watch for red.
 - "Review looks good" as the gate. Review is input; oracle is the gate.
 - "Tests pass" without saying *which* test exercises the new property. If you can't name it, it doesn't exist.
 - Skipping the oracle write because "we already have lots of tests." The relevant question is whether *this property* is checked, not whether *anything* is.
