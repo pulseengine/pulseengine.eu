@@ -506,6 +506,20 @@ export function read32(addr) {
 
 <section class="slide">
   <p class="slide__act">Act IV &middot; the factory</p>
+  <h2>The missing source was in this room this morning</h2>
+  <p>Our upstream analyser is a sound abstract interpreter &mdash; the same family
+  as the bounds-check work presented earlier today, on the same problem.</p>
+  <p>Theirs is better in ways worth saying out loud: a cleaner output contract &mdash;
+  a flat list of provably-safe offsets any runtime can consume &mdash; a branch
+  shape ours misses, and <span class="hi">an end-to-end speedup they measured and
+  we have not</span>.</p>
+  <p>Which makes the obvious ask the honest one: <span class="hi">that analysis
+  produces exactly the facts my channel says it cannot yet produce at volume.</span>
+  Both projects are about two months old.</p>
+</section>
+
+<section class="slide">
+  <p class="slide__act">Act IV &middot; the factory</p>
   <h2>Faster <em>because</em> it is proven</h2>
   <pre class="evidence">gust_mix(ch) = clamp(1500 + (ch - 1024), 1000, 2000)</pre>
   <p>The OS primitives above carry a proven bound &mdash;
