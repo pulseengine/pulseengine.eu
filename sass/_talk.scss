@@ -765,3 +765,13 @@
   color: $amber;
   border-color: $amber;
 }
+
+// The speaker. On the title slide it sits between the subtitle and the
+// declarations — larger than a citation, quieter than the lead.
+.slide p.slide__byline,
+.slide__byline {
+  font-family: $font-mono;
+  font-size: clamp(1.1rem, min(calc(2.8vmin * var(--fs)), calc(2.2vh * var(--fs))), 1.7rem);
+  color: $text-dim;
+  margin: 0;
+}

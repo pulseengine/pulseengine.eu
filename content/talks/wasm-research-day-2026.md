@@ -14,6 +14,7 @@ slot = "25 + 5, remote"
   <h1>Change the Tires,<br>Not the Car</h1>
   <p class="slide__lead">The Component Model as the integration step for an OS
   written in WebAssembly.</p>
+  <p class="slide__byline">Ralf Anton Beier &middot; <span class="hi">avrabe</span></p>
   <p class="slide__cite">I work in automotive, so to me everything is a car &mdash;
   declaring the bias up front.<br>
   pulseengine.eu &middot; every number on these slides says where it came from</p>
@@ -656,7 +657,8 @@ backed by a bounded arena instead       <span class="ok">1428 B</span>   <span c
   <p class="slide__lead">The OS as components is the demonstration. The factory
   that lowers it — and can say why each stage is believed — is the part that
   generalizes.</p>
-  <p class="slide__cite">pulseengine.eu &middot; every tool named here is open source</p>
+  <p class="slide__cite">Ralf Anton Beier &middot; github.com/<span class="hi">avrabe</span>
+  &middot; pulseengine.eu &middot; every tool named here is open source</p>
 </section>
 
 <section class="slide is-backup">
