@@ -369,7 +369,7 @@ export function read32(addr) {
   <p class="archwhat is-on" data-arch="meld"><b>meld</b> welds many components, joined at their interfaces, into a single module &mdash; so the boundaries stop existing at run time.</p>
   <p class="archwhat" data-arch="loom"><b>loom</b> rewrites the code to be smaller and faster, and reverts any rewrite it cannot prove keeps the same behaviour.</p>
   <p class="archwhat" data-arch="synth"><b>synth</b> turns the wasm into real machine instructions for a real chip, and re-proves the translation on every compilation.</p>
-  <p class="archwhat" data-arch="scry"><b>scry</b> reads the code without running it and works out what can and cannot happen &mdash; recording every place it had to give up.</p>
+  <p class="archwhat" data-arch="scry"><b>scry</b> is <span class="hi">sound abstract interpretation</span> &mdash; it reads the code without running it and over-approximates, so what it proves holds on every run. It records every place it had to give up as data.</p>
   <div class="archset">
     <div class="archr is-on" data-arch="meld">
       <div class="archr__row"><span class="archr__st">in</span><div class="archr__bs">
