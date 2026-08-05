@@ -20,6 +20,22 @@ slot = "25 + 5, remote"
 </section>
 
 <section class="slide">
+  <p class="slide__act">Wasm Research Day 2026<span class="slide__scope is-many">the promise</span></p>
+  <h2>In twenty-five minutes</h2>
+  <p class="slide__lead">By the end of this, you will be able to:</p>
+  <ul>
+    <li>say <span class="hi">which parts of the Component Model survive being
+    compiled away entirely</span> &mdash; and which do not</li>
+    <li>describe how one tool hands a <span class="hi">machine-checked fact</span>
+    to the next, and why it is keyed to a value rather than a position</li>
+    <li>quote what an operating system made of components <span class="hi">costs on
+    a part with 8 KB of RAM</span></li>
+  </ul>
+  <p class="slide__cite">If any of those is still unclear at the end, I have
+  failed &mdash; ask me.</p>
+</section>
+
+<section class="slide">
   <p class="slide__act">Act I &middot; the inversion</p>
   <h2>How embedded actually builds software</h2>
   <div class="split">
