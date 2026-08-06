@@ -244,13 +244,18 @@ synth compile --target cortex-m3 \
 
 read: func(channel: u32, buf: dma-buffer)
         -&gt; future&lt;dma-buffer&gt;</pre>
-  <p>It consumes <code>own&lt;dma-buffer&gt;</code>. While the engine has it, the
-  buffer is <span class="hi">statically inaccessible to wasm</span> until the
-  future resolves with the re-owned handle. Circular DMA is a stream of per-chunk
-  ownership &mdash; each chunk owned by exactly one side at a time.</p>
+  <p>It consumes <code>own&lt;dma-buffer&gt;</code>: while the engine has it the buffer
+  is <span class="hi">statically inaccessible to wasm</span>, until the future resolves
+  with the re-owned handle. Circular DMA is a stream of per-chunk ownership.</p>
   <div class="ledger">
     <div class="ledger__row"><span class="ledger__tag hi">seam</span><span>the ownership state machine, dissolved</span><span class="ledger__val">220 B · 0 SRAM · 6 Kani proofs</span></div>
   </div>
+  <p class="slide__cite"><b>Outlook.</b> This is the embedded, verified instance of a
+  general direction &mdash; shared-memory objects as a canonical-ABI option, where
+  attach and detach <em>are</em> the ownership transfer. The case where the host answers
+  zero and hands back a fixed address, MPU rather than MMU, is our reality rather than a
+  corner. Design reference: Christof Petig's <code>wasm-shm-test</code>. We would rather
+  generalise into that than ship a private seam.</p>
 </section>
 
 <section class="slide">
