@@ -14,7 +14,12 @@ import base64, pathlib, re, sys
 root = pathlib.Path(__file__).resolve().parent.parent
 slug = sys.argv[1] if len(sys.argv) > 1 else "talks/wasm-research-day-2026"
 html = (root / "public" / slug / "index.html").read_text()
-css  = (root / "public" / "main.css").read_text()
+# A BOM survives read_text() and, unlike a fetched stylesheet, is NOT stripped
+# inside an inline <style>: "<style>\ufeff:root{...}" makes that first selector
+# invalid and the browser DROPS the whole rule. That rule is the dark base
+# palette, so the bundle rendered black-on-transparent in dark mode while light
+# mode (whose overrides come later) looked fine.
+css  = (root / "public" / "main.css").read_text().lstrip("\ufeff")
 
 # Fonts -> data URIs, so there is nothing left to fetch.
 def embed_font(m):
