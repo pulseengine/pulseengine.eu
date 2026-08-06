@@ -6,3 +6,7 @@ target/
 node_modules/
 test-results/
 playwright-report/
+
+# Bundled single-file talk (632 KB of inlined fonts) — rebuild with tools/bundle-talk.py
+dist/
+static/talk.html

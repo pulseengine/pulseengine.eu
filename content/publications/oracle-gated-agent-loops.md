@@ -4,6 +4,7 @@ description = "Treat the AI agent as an untrusted producer whose every output is
 date = 2026-07-16
 draft = false
 template = "paper.html"
+aliases = ["/preprints/oracle-gated-agent-loops/"]
 [taxonomies]
 tags = ["verification", "ai-agents", "how-it-works"]
 authors = ["Ralf Anton Beier"]
