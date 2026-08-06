@@ -16,6 +16,10 @@
 </head>
 <body>
   <div class="deck" id="deck">
+    {# A deck owns the viewport, so it drops the site nav — which would strand
+       anyone who arrives here from a link with no route back. This is that
+       route. It fades once the deck is being driven; see _talk.scss. #}
+    <a class="deck__home" href="{{ config.base_url }}/" title="Back to {{ config.title }}">&larr; pulseengine.eu</a>
     <div class="deck__stage" id="stage">
       {{ page.content | safe }}
     </div>
@@ -54,6 +58,9 @@
     slides.forEach(function (s, n) { s.classList.toggle('is-current', n === i); });
     counter.textContent = (i + 1) + ' / ' + slides.length;
     bar.style.width = ((i + 1) / slides.length * 100) + '%';
+    // Past the title slide we are presenting, not browsing: dim the way-back
+    // link so it stays available without sitting in the room's eyeline.
+    deck.classList.toggle('is-presenting', i > 0);
     // Keep the deep link in sync so a reload — or a dropped call — resumes
     // on the slide you were on rather than back at the title.
     if (history.replaceState) history.replaceState(null, '', '#' + (i + 1));

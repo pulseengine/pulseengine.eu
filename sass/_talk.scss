@@ -8,6 +8,7 @@
   --slide-pad: clamp(1.25rem, 5vw, 5rem);
   // Chrome sits above the home indicator / rounded corners on an iPad.
   --safe-b: max(env(safe-area-inset-bottom), .55rem);
+  --safe-t: max(env(safe-area-inset-top),    .75rem);
   --safe-l: max(env(safe-area-inset-left),  1.1rem);
   --safe-r: max(env(safe-area-inset-right), 1.1rem);
 
@@ -430,6 +431,34 @@
   z-index: 2;
 }
 
+// The way back. A deck drops base.html to own the viewport, which leaves a
+// visitor who lands here with no route to the rest of the site — this is that
+// route. Faint enough to stay out of the way while presenting, and it dims
+// further once a deck is actually being driven (see .deck.is-presenting).
+.deck__home {
+  position: absolute;
+  top: var(--safe-t);
+  left: var(--safe-l);
+  font-family: $font-mono;
+  font-size: .8rem;
+  color: $text-faint;
+  text-decoration: none;
+  padding: .25rem .1rem;
+  transition: color .2s ease, opacity .2s ease;
+  z-index: 3;
+
+  &:hover,
+  &:focus-visible { color: $accent; }
+  // Never trap keyboard users: the link must be visible when tabbed to.
+  &:focus-visible { outline: 2px solid $accent; outline-offset: 3px; opacity: 1; }
+}
+
+// Once the presenter has moved past the title slide, fade it right down — it
+// is for arriving visitors, not for the room. Hover or focus brings it back.
+.deck.is-presenting .deck__home { opacity: .25; }
+.deck.is-presenting .deck__home:hover,
+.deck.is-presenting .deck__home:focus-visible { opacity: 1; }
+
 // ─── On-screen controls ───────────────────────────────────────────────
 // The only way to drive the deck on a tablet.
 
@@ -554,7 +583,7 @@
   .deck { position: static; }
   .deck__stage { display: block; }
   .slide { visibility: visible; opacity: 1; page-break-after: always; min-height: 100vh; }
-  .deck__progress, .deck__counter, .deck__hint { display: none; }
+  .deck__progress, .deck__counter, .deck__hint, .deck__home { display: none; }
 }
 
 // On a narrow screen (a tablet held in portrait) a long code line has nowhere
