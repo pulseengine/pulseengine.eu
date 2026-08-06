@@ -738,7 +738,7 @@ backed by a bounded arena instead       <span class="ok">1428 B</span>   <span c
 
 <section class="slide is-backup">
   <p class="slide__act">Act II &middot; the car<span class="slide__scope is-one">one driver</span></p>
-  <h2>&hellip; and the FSM proves the absence</h2>
+  <h2>The bounded proof behind that contract</h2>
   <pre class="evidence" data-lang="rust">fn p2_cannot_un_start() {
     let w = Iwdg { phase: Running, .. };
     if let Ok(n) = refresh(w) { assert_eq!(n.phase, <span class="ok">Running</span>); }
