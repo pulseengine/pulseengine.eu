@@ -63,11 +63,14 @@ slot = "25 + 5, remote"
 <section class="slide">
   <p class="slide__act">Act I &middot; the inversion</p>
   <h2>So invert it</h2>
-  <p class="slide__lead">Write the OS itself as WebAssembly components, and make the
-  Component Model the integration step.</p>
-  <p>Between OS components. Between the OS and its drivers. Between the OS and the
-  tenants above it. Not a runtime on the device &mdash; a <em>build step</em> that
-  joins typed pieces and then gets compiled away.</p>
+  <p class="slide__lead">In embedded the hardware defines the software: pick the part and
+  you have picked the OS, the drivers, the toolchain. <span class="hi">Reverse that
+  dependency</span> &mdash; the <em>software</em> becomes the durable artifact, the
+  silicon a parameter.</p>
+  <p>Write the OS itself as WebAssembly components and make the Component Model the
+  integration step. Between OS components. Between the OS and its drivers. Between the
+  OS and the tenants above it. Not a runtime on the device &mdash; a <em>build step</em>
+  that joins typed pieces and then gets compiled away.</p>
   <p>The OS and everything above it is the car. The handful of native functions that
   actually touch the hardware are the tires. New chip, new board &mdash;
   <span class="hi">change the tires, not the car.</span></p>
@@ -147,14 +150,13 @@ irq  <span class="dim">— poll(line) -&gt; bool, deliberately</span></pre>
 </section>
 
 <section class="slide">
-  <p class="slide__act">Act II &middot; the car<span class="slide__scope is-one">gust on the F100</span></p>
+  <p class="slide__act">Act II &middot; the car<span class="slide__scope is-one">gust on the STM32F100RB</span></p>
   <h2>The part that sets the rules is a failsafe</h2>
-  <p class="slide__lead">We build flight software for a drone &mdash; a car in the
-  air, four rotors instead of four tires. This is its emergency motor controller:
-  it forwards the per-motor commands, and if the main flight computer stops,
-  <span class="hi">it is what is still driving the motors</span>.</p>
+  <p class="slide__lead">We build flight software for a drone &mdash; a car in the air,
+  four rotors instead of four tires. This is its emergency motor controller: if the main
+  flight computer stops, <span class="hi">it is what is still driving the motors</span>.</p>
   <div class="ledger">
-    <div class="ledger__row"><span class="ledger__tag dim">the part</span><span>geometry generated from the architecture model</span><span class="ledger__val">128 KB flash &middot; <span class="hi">8 KB RAM</span></span></div>
+    <div class="ledger__row"><span class="ledger__tag dim">the part</span><span><b>STM32F100RB</b> &mdash; geometry generated from the architecture model</span><span class="ledger__val">128 KB flash &middot; <span class="hi">8 KB RAM</span></span></div>
   </div>
   <p>Its one safety property is <span class="hi">byte-exact pass-through</span>.
   When a rotor fails and the controller asymmetrically zeros motors, re-mixing
@@ -166,7 +168,7 @@ irq  <span class="dim">— poll(line) -&gt; bool, deliberately</span></pre>
 </section>
 
 <section class="slide">
-  <p class="slide__act">Act II &middot; the car<span class="slide__scope is-one">gust on the F100</span></p>
+  <p class="slide__act">Act II &middot; the car<span class="slide__scope is-one">gust on the STM32F100RB</span></p>
   <h2>What it costs on that part</h2>
   <p class="evidence__label">a whole flashed image — the watchdog silicon test</p>
   <pre class="evidence">   text    data    bss
@@ -260,9 +262,9 @@ read: func(channel: u32, buf: dma-buffer)
   <p class="slide__act">Act II &middot; the car<span class="slide__scope is-many">gust, three parts</span></p>
   <h2>Three dies, one session</h2>
   <div class="stack">
-    <pre class="evidence"><span class="dim">Cortex-M4 · NUCLEO-G474RE</span>
+    <pre class="evidence"><span class="dim">Cortex-M4 · STM32G474RE</span>
 IWDG reset CONFIRMED   IWDGRSTF=<span class="ok">1</span></pre>
-    <pre class="evidence"><span class="dim">Cortex-M3 · STM32F100 — the same .o</span>
+    <pre class="evidence"><span class="dim">Cortex-M3 · STM32F100RB — the same .o</span>
 IWDG reset CONFIRMED   IWDGRSTF=<span class="ok">1</span></pre>
     <pre class="evidence"><span class="dim">RISC-V · ESP32-C3 rev v0.4</span>
 native 271   dissolved 499 milliticks/call   ratio <span class="warn">1.839&times; slower</span>
@@ -600,43 +602,17 @@ backed by a bounded arena instead       <span class="ok">1428 B</span>   <span c
 </section>
 
 <section class="slide">
-  <p class="slide__act">Act V &middot; what is missing<span class="slide__scope is-many">all of it</span></p>
-  <h2>Before the rest of the vision holds</h2>
-  <ul>
-    <li><span class="hi">A proven stack bound.</span> An OS node reserves 2 048 of
-    those 8 192 bytes for its shadow stack &mdash; and the compiler's own contract
-    says that budget is <em>asserted</em>, not proven. scry computes the depth;
-    wiring it to the reservation is the named next step, and until it lands the
-    number is our word.</li>
-    <li>Multi-tenant isolation on real MPU regions — modelled, not yet enforced on silicon.</li>
-    <li>Drivers beyond the ones that port cleanly. Register maps differ; a verified
-    state machine for one bus does not transfer to the next revision of that bus —
-    it needs a fresh proof, not a port.</li>
-    <li>The canonical-ABI overhead above, reduced rather than accepted.</li>
-    <li>Certificates on every obligation, not the subset that has them today.</li>
-    <li>Someone outside this project auditing the dossier.</li>
-  </ul>
-</section>
-
-<section class="slide">
-  <p class="slide__act">Act V &middot; what is missing</p>
-  <h2>When <em>not</em> to dissolve</h2>
-  <div class="split">
-    <div class="split__col">
-      <h3>dissolve</h3>
-      <p>One closed tenant graph · no MMU · a narrow, hardware-shaped interface ·
-      footprint and determinism dominate · re-qualification is per product anyway.</p>
-    </div>
-    <div class="split__col">
-      <h3>link a shared system-interface binary</h3>
-      <p>Several runtimes on one OS and ISA · a wide, dynamic, POSIX-shaped
-      interface · third parties ship binaries · the fleet needs a driver updated
-      without re-qualifying the image.</p>
-    </div>
+  <p class="slide__act">Act V &middot; what is next<span class="slide__scope is-many">the outlook</span></p>
+  <h2>What we are building next, and what would change our minds</h2>
+  <div class="ledger is-wide">
+    <div class="ledger__row"><span class="ledger__tag ok">now</span><span><b>Dissolve the whole OS.</b> Its size today is a <em>wasm</em> number. Until a native object exists there is nothing to verify, and nothing to bound.</span><span class="ledger__val">next</span></div>
+    <div class="ledger__row"><span class="ledger__tag warn">then</span><span><b>A stack bound proven, not asserted.</b> The compiler's own contract calls this reservation trusted rather than proven.</span><span class="ledger__val">2048 / 8192</span></div>
+    <div class="ledger__row"><span class="ledger__tag warn">then</span><span><b>Isolation enforced, not modelled.</b> Partitions exist in the model, not yet as MPU regions on silicon &mdash; and fusing into one address space is where that gets sharp.</span><span class="ledger__val">&nbsp;</span></div>
+    <div class="ledger__row"><span class="ledger__tag bad">open</span><span><b>The dissolve is still a trusted step.</b> Source proofs do not cross the lowering. Translation validation is the shape of an answer, not one.</span><span class="ledger__val">&nbsp;</span></div>
   </div>
-  <p>Both positions want the interface specified as WIT and typed. We differ only
-  in <span class="hi">when it binds</span> &mdash; and my side of that line is the
-  narrow one.</p>
+  <p class="slide__cite">What would change our minds: a verified translation we could
+  adopt instead of ours; a part whose registers defeat the seam; an assessor who
+  disagrees.</p>
 </section>
 
 <section class="slide">
@@ -724,4 +700,43 @@ backed by a bounded arena instead       <span class="ok">1428 B</span>   <span c
   </div>
   <blockquote class="slide__quote">A bench whose input is not committed is not
   reproducible, however precisely its output is recorded.</blockquote>
+</section>
+
+<section class="slide is-backup">
+  <p class="slide__act">Act V &middot; what is missing<span class="slide__scope is-many">all of it</span></p>
+  <h2>Before the rest of the vision holds</h2>
+  <ul>
+    <li><span class="hi">A proven stack bound.</span> An OS node reserves 2 048 of
+    those 8 192 bytes for its shadow stack &mdash; and the compiler's own contract
+    says that budget is <em>asserted</em>, not proven. scry computes the depth;
+    wiring it to the reservation is the named next step, and until it lands the
+    number is our word.</li>
+    <li>Multi-tenant isolation on real MPU regions — modelled, not yet enforced on silicon.</li>
+    <li>Drivers beyond the ones that port cleanly. A verified state machine for one
+    bus does not transfer to the next revision of it — that needs a fresh proof.</li>
+    <li>The canonical-ABI overhead above, reduced rather than accepted.</li>
+    <li>Certificates on every obligation, not the subset that has them today.</li>
+    <li>Someone outside this project auditing the dossier.</li>
+  </ul>
+</section>
+
+<section class="slide is-backup">
+  <p class="slide__act">Act V &middot; what is missing</p>
+  <h2>When <em>not</em> to dissolve</h2>
+  <div class="split">
+    <div class="split__col">
+      <h3>dissolve</h3>
+      <p>One closed tenant graph · no MMU · a narrow, hardware-shaped interface ·
+      footprint and determinism dominate · re-qualification is per product anyway.</p>
+    </div>
+    <div class="split__col">
+      <h3>link a shared system-interface binary</h3>
+      <p>Several runtimes on one OS and ISA · a wide, dynamic, POSIX-shaped
+      interface · third parties ship binaries · the fleet needs a driver updated
+      without re-qualifying the image.</p>
+    </div>
+  </div>
+  <p>Both positions want the interface specified as WIT and typed. We differ only
+  in <span class="hi">when it binds</span> &mdash; and my side of that line is the
+  narrow one.</p>
 </section>

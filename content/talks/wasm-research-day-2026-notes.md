@@ -74,8 +74,7 @@ matched five `(export "memory")` lines and a `canon lift`; meld's own stdout say
 *A whole flashed image: 6 028 B flash of 131 072 (4.6%), 8 B SRAM of 8 192 (0.1%),
 8 184 free.*
 
-**What it measures.** `gust_wdg_silicon` — the firmware actually flashed for the
-Cortex-M3 leg — by `arm-zephyr-eabi-size`.
+**What it measures.** `gust_wdg_silicon` — the firmware flashed for the Cortex-M3 leg (STM32F100RB) — by `arm-zephyr-eabi-size`.
 
 **What it does not mean.** This is the **watchdog silicon test image**: one
 dissolved driver plus the minimum to boot and report. It is a **floor, not a
