@@ -63,17 +63,19 @@ slot = "25 + 5, remote"
 <section class="slide">
   <p class="slide__act">Act I &middot; the inversion</p>
   <h2>So invert it</h2>
-  <p class="slide__lead">In embedded the hardware defines the software: pick the part and
-  you have picked the OS, the drivers, the toolchain. <span class="hi">Reverse that
-  dependency</span> &mdash; the <em>software</em> becomes the durable artifact, the
-  silicon a parameter.</p>
+  <p class="slide__lead">In embedded the hardware defines the software: pick the part
+  and you have picked the OS, the drivers, the toolchain. <span class="hi">Reverse that
+  dependency</span> &mdash; <em>software</em> becomes the durable artifact, silicon a
+  parameter.</p>
   <p>Write the OS itself as WebAssembly components and make the Component Model the
-  integration step. Between OS components. Between the OS and its drivers. Between the
-  OS and the tenants above it. Not a runtime on the device &mdash; a <em>build step</em>
-  that joins typed pieces and then gets compiled away.</p>
-  <p>The OS and everything above it is the car. The handful of native functions that
-  actually touch the hardware are the tires. New chip, new board &mdash;
+  integration step. Not a runtime on the device &mdash; a <em>build step</em> that
+  joins typed pieces and then gets compiled away.</p>
+  <p>The OS and everything above it is the car. The few native functions that touch
+  hardware are the tires. New chip, new board &mdash;
   <span class="hi">change the tires, not the car.</span></p>
+  <p class="slide__cite">What <em>software-defined</em> means down here: not features
+  shipped over the air onto hardware chosen years ago, but software portable across
+  silicon that <em>stays verified across the move</em>.</p>
 </section>
 
 <section class="slide">
@@ -214,8 +216,8 @@ synth compile --target cortex-m3 \
 <section class="slide">
   <p class="slide__act">Act II &middot; the car<span class="slide__scope is-one">one driver</span></p>
   <h2>A contract that cannot express the bug</h2>
-  <p>A watchdog you can accidentally switch off is worthless. So the interface
-  offers no way to switch it off:</p>
+  <p>A watchdog you can accidentally switch off is worthless. So the interface offers
+  no way to switch it off:</p>
   <pre class="evidence" data-lang="wit">interface wdg {
   unlock:     func(base: u32, state: u32) -&gt; u32;
   configure:  func(base: u32, state: u32, psc: u32, rld: u32) -&gt; u32;
@@ -224,17 +226,10 @@ synth compile --target cortex-m3 \
   refresh:    func(base: u32, state: u32) -&gt; u32;
   is-running: func(state: u32) -&gt; u32;
 }   <span class="dim">— six functions. no stop. no disable.</span></pre>
-</section>
-
-<section class="slide">
-  <p class="slide__act">Act II &middot; the car<span class="slide__scope is-one">one driver</span></p>
-  <h2>&hellip; and the FSM proves the absence</h2>
-  <pre class="evidence" data-lang="rust">fn p2_cannot_un_start() {
-    let w = Iwdg { phase: Running, .. };
-    if let Ok(n) = refresh(w) { assert_eq!(n.phase, <span class="ok">Running</span>); }
-    <span class="dim">// no escape from Running:</span>
-    assert!(unlock(w).is_err());
-}</pre>
+  <p>Behind it the driver is a small state machine &mdash; <code>Idle</code> &rarr;
+  <code>Configured</code> &rarr; <code>Running</code> &mdash; and a bounded proof
+  shows <span class="hi">no edge leaves <code>Running</code></span>: refresh keeps
+  it there, unlock is rejected.</p>
   <p><span class="hi">The contract cannot express the one transition the proof
   forbids.</span> That is the argument for putting a seam in a type system rather
   than in a comment.</p>
@@ -739,4 +734,18 @@ backed by a bounded arena instead       <span class="ok">1428 B</span>   <span c
   <p>Both positions want the interface specified as WIT and typed. We differ only
   in <span class="hi">when it binds</span> &mdash; and my side of that line is the
   narrow one.</p>
+</section>
+
+<section class="slide is-backup">
+  <p class="slide__act">Act II &middot; the car<span class="slide__scope is-one">one driver</span></p>
+  <h2>&hellip; and the FSM proves the absence</h2>
+  <pre class="evidence" data-lang="rust">fn p2_cannot_un_start() {
+    let w = Iwdg { phase: Running, .. };
+    if let Ok(n) = refresh(w) { assert_eq!(n.phase, <span class="ok">Running</span>); }
+    <span class="dim">// no escape from Running:</span>
+    assert!(unlock(w).is_err());
+}</pre>
+  <p><span class="hi">The contract cannot express the one transition the proof
+  forbids.</span> That is the argument for putting a seam in a type system rather
+  than in a comment.</p>
 </section>
