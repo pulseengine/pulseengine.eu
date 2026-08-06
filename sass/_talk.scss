@@ -136,6 +136,11 @@
 .slide__cite {
   max-width: min(100%, 92ch);   // mono runs ~0.6em/char — needs more ch to match
   font-family: $font-mono;
+
+  // A long closing note reads better across the full slide than as a tall column
+  // in the left two-thirds — fewer lines, and it stops competing with the body
+  // block above it for the same measure.
+  &.is-wide { max-width: 100%; }
   font-size: clamp(1.05rem, min(calc(2.5vmin * var(--fs)), calc(1.98vh * var(--fs))), 1.6rem);
   color: $text-faint;
 }

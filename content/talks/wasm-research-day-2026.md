@@ -244,19 +244,17 @@ synth compile --target cortex-m3 \
 
 read: func(channel: u32, buf: dma-buffer)
         -&gt; future&lt;dma-buffer&gt;</pre>
-  <p>It consumes <code>own&lt;dma-buffer&gt;</code>: while the engine has it the buffer
-  is <span class="hi">statically inaccessible to wasm</span>, until the future resolves
-  with the re-owned handle &mdash; a transfer, <em>not a copy</em>.</p>
+  <p>It consumes <code>own&lt;dma-buffer&gt;</code>: while the engine holds it the buffer
+  is <span class="hi">statically inaccessible to wasm</span> &mdash; a transfer,
+  <em>not a copy</em>.</p>
   <div class="ledger">
     <div class="ledger__row"><span class="ledger__tag hi">seam</span><span>the ownership state machine, dissolved</span><span class="ledger__val">220 B · 0 SRAM · 6 Kani proofs</span></div>
   </div>
-  <p class="slide__cite"><b>Outlook.</b> &ldquo;Does the Component Model require extra
-  copying?&rdquo; (Luke Wagner) is not academic at 8 KB. Ours is the embedded, verified
-  instance of the answer: shared memory as a canonical-ABI option, attach and detach
-  <em>being</em> the transfer &mdash; and the awkward case there, a host that answers
-  zero and hands back a fixed address (MPU, not MMU), is our default. Design reference:
-  Christof Petig's <code>wasm-shm-test</code>. We would rather generalise into that than
-  ship a private seam.</p>
+  <p class="slide__cite is-wide"><b>Outlook.</b> &ldquo;Does the Component Model require
+  extra copying?&rdquo; (Luke Wagner) is not academic at 8 KB. Shared memory as a
+  canonical-ABI option is the general answer; this is the verified embedded instance of
+  it &mdash; and its awkward case, a host answering zero with a fixed address (MPU, not
+  MMU), is our default. Design reference: Christof Petig's <code>wasm-shm-test</code>.</p>
 </section>
 
 <section class="slide">
