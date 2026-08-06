@@ -2,6 +2,7 @@
 title = "Change the Tires, Not the Car"
 description = "Wasm Research Day 2026. The Component Model as the integration step for an operating system, the same components lowered ahead of time onto three architectures, and an honest account of what is still missing."
 date = 2026-08-06
+aliases = ["/talks/wasm-research-day-2026/"]
 template = "talk.html"
 
 [extra]

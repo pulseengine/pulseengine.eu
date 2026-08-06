@@ -7,13 +7,19 @@ screen. A presentation should not depend on any of that. This inlines the
 stylesheet, the fonts and the terminal recordings so the result opens from disk,
 offline, in any browser.
 
-    python3 tools/bundle-talk.py talks/wasm-research-day-2026
+    python3 tools/bundle-talk.py publications/wasm-research-day-2026
 """
 import base64, pathlib, re, sys
 
 root = pathlib.Path(__file__).resolve().parent.parent
-slug = sys.argv[1] if len(sys.argv) > 1 else "talks/wasm-research-day-2026"
+slug = sys.argv[1] if len(sys.argv) > 1 else "publications/wasm-research-day-2026"
 html = (root / "public" / slug / "index.html").read_text()
+# A stale slug points at an alias REDIRECT stub, not the deck -- the bundler then
+# writes a ~500 B file and reports success. Fail loudly instead.
+if "<section" not in html:
+    raise SystemExit(
+        f"ERROR: public/{slug}/index.html has no slides ({len(html)} B) -- "
+        "wrong slug, or it is an alias redirect stub. Nothing written.")
 # A BOM survives read_text() and, unlike a fetched stylesheet, is NOT stripped
 # inside an inline <style>: "<style>\ufeff:root{...}" makes that first selector
 # invalid and the browser DROPS the whole rule. That rule is the dark base

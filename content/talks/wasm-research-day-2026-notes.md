@@ -2,6 +2,7 @@
 title = "Speaker notes — every number in the deck"
 description = "What each figure in the Wasm Research Day 2026 talk measures, what it does not mean, and where it came from."
 date = 2026-08-06
+draft = true   # deck published, speaker notes deliberately not
 template = "page.html"
 +++
 
