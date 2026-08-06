@@ -7,7 +7,7 @@
         "fork": false,
         "archived": false,
         "lang": "Rust",
-        "desc": "Kiln \u2014 WebAssembly runtime for safety-critical systems. Full Component Model and WASI 0.2 support. Part of the PulseEngine toolchain."
+        "desc": "Kiln — WebAssembly runtime for safety-critical systems. Full Component Model and WASI 0.2 support. Part of the PulseEngine toolchain."
       }
     ],
     "released": {
@@ -31,7 +31,7 @@
         }
       ]
     },
-    "trend": "It begins \u2014 quietly. **kiln**, a WebAssembly Component Model runtime, is the only repo and the only thing moving: ~160 commits, one release, no issues yet. A single-project month, all runtime.",
+    "trend": "It begins — quietly. **kiln**, a WebAssembly Component Model runtime, is the only repo and the only thing moving: ~160 commits, one release, no issues yet. A single-project month, all runtime.",
     "milestones": []
   },
   {
@@ -58,7 +58,7 @@
         }
       ]
     },
-    "trend": "Heads-down on kiln \u2014 no new repos, ~100 commits all in the runtime, another release out. The calm before the tooling sprawl.",
+    "trend": "Heads-down on kiln — no new repos, ~100 commits all in the runtime, another release out. The calm before the tooling sprawl.",
     "milestones": []
   },
   {
@@ -92,7 +92,7 @@
         }
       ]
     },
-    "trend": "Still kiln-centric; the `.github` org repo appears (scaffolding). Activity holds in the low hundreds, and the very first issue is filed \u2014 a hint that others are starting to look.",
+    "trend": "Still kiln-centric; the `.github` org repo appears (scaffolding). Activity holds in the low hundreds, and the very first issue is filed — a hint that others are starting to look.",
     "milestones": []
   },
   {
@@ -158,7 +158,7 @@
         "fork": false,
         "archived": true,
         "lang": "Rust",
-        "desc": "\ud83d\udd27 WindRiver Studio MCP Server - A Model Context Protocol server providing AI assistants with access to WindRiver Studio CLI functionality, focusing on Pipeline Management (PLM) features"
+        "desc": "🔧 WindRiver Studio MCP Server - A Model Context Protocol server providing AI assistants with access to WindRiver Studio CLI functionality, focusing on Pipeline Management (PLM) features"
       }
     ],
     "released": {
@@ -206,7 +206,7 @@
         }
       ]
     },
-    "trend": "The MCP era opens with force \u2014 **mcp** (the Rust framework) and **rules_wasm_component** are born alongside two experiments that won't survive (wasi-mcp, studio-mcp). 26 releases and a jump to 76 issues: the project goes from one repo to a small fleet, and people start filing against it.",
+    "trend": "The MCP era opens with force — **mcp** (the Rust framework) and **rules_wasm_component** are born alongside two experiments that won't survive (wasi-mcp, studio-mcp). 26 releases and a jump to 76 issues: the project goes from one repo to a small fleet, and people start filing against it.",
     "milestones": []
   },
   {
@@ -217,7 +217,7 @@
         "fork": false,
         "archived": false,
         "lang": "Rust",
-        "desc": "TimeDate MCP Server \u2014 time and date operations with timezone support, built with PulseEngine MCP framework"
+        "desc": "TimeDate MCP Server — time and date operations with timezone support, built with PulseEngine MCP framework"
       },
       {
         "name": "template-mcp-server",
@@ -275,7 +275,7 @@
         }
       ]
     },
-    "trend": "MCP tooling hardens \u2014 timedate-mcp and a template server ship, and rules_wasm_component becomes the busiest repo (244 commits) as the Bazel/wasm build path takes shape. PRs and issues both climb; collaboration is ramping.",
+    "trend": "MCP tooling hardens — timedate-mcp and a template server ship, and rules_wasm_component becomes the busiest repo (244 commits) as the Bazel/wasm build path takes shape. PRs and issues both climb; collaboration is ramping.",
     "milestones": []
   },
   {
@@ -306,7 +306,7 @@
         }
       ]
     },
-    "trend": "A consolidation month: no new repos, but 94 PRs \u2014 almost all into rules_wasm_component as the build rules get serious. Low commits, high PR churn is the signature of refinement over expansion.",
+    "trend": "A consolidation month: no new repos, but 94 PRs — almost all into rules_wasm_component as the build rules get serious. Low commits, high PR churn is the signature of refinement over expansion.",
     "milestones": []
   },
   {
@@ -361,7 +361,7 @@
         }
       ]
     },
-    "trend": "First retirement \u2014 **studio-mcp** is archived. The build rules and kiln keep moving, with bazel-file-ops-component in the mix; ten releases mark a picking-up shipping cadence.",
+    "trend": "First retirement — **studio-mcp** is archived. The build rules and kiln keep moving, with bazel-file-ops-component in the mix; ten releases mark a picking-up shipping cadence.",
     "milestones": []
   },
   {
@@ -372,21 +372,21 @@
         "fork": false,
         "archived": false,
         "lang": "Rust",
-        "desc": "Sigil \u2014 Supply chain security for WebAssembly. Embedded signatures, Sigstore keyless signing, SLSA provenance. Part of the PulseEngine toolchain."
+        "desc": "Sigil — Supply chain security for WebAssembly. Embedded signatures, Sigstore keyless signing, SLSA provenance. Part of the PulseEngine toolchain."
       },
       {
         "name": "loom",
         "fork": false,
         "archived": false,
         "lang": "Rust",
-        "desc": "Loom \u2014 Formally verified WebAssembly optimizer. Part of the PulseEngine toolchain."
+        "desc": "Loom — Formally verified WebAssembly optimizer. Part of the PulseEngine toolchain."
       },
       {
         "name": "synth",
         "fork": false,
         "archived": false,
         "lang": "Rust",
-        "desc": "Synth \u2014 WebAssembly component synthesizer for ARM Cortex-M and RISC-V. Part of the PulseEngine toolchain."
+        "desc": "Synth — WebAssembly component synthesizer for ARM Cortex-M and RISC-V. Part of the PulseEngine toolchain."
       }
     ],
     "released": {
@@ -430,7 +430,7 @@
         }
       ]
     },
-    "trend": "The build/verify spine arrives: **sigil** (attestation), **loom** (optimizer), and **synth** (native transcode) are all born in one month, and loom/synth immediately dominate the commits (synth 144, loom 103). sigil is less *born* than *taken over* \u2014 it starts from Frank Denis's [wasmsign2](https://github.com/jedisct1/wasmsign2) (MIT) and diverges hard from here. **glsp-mcp** is retired \u2014 the graphical-protocol (GLSP) experiment became unnecessary once a standard for the graphical application layer was defined. The toolchain's real shape is now visible.",
+    "trend": "The build/verify spine arrives: **sigil** (attestation), **loom** (optimizer), and **synth** (native transcode) are all born in one month, and loom/synth immediately dominate the commits (synth 144, loom 103). sigil is less *born* than *taken over* — it starts from Frank Denis's [wasmsign2](https://github.com/jedisct1/wasmsign2) (MIT) and diverges hard from here. **glsp-mcp** is retired — the graphical-protocol (GLSP) experiment became unnecessary once a standard for the graphical application layer was defined. The toolchain's real shape is now visible.",
     "milestones": []
   },
   {
@@ -495,7 +495,7 @@
         }
       ]
     },
-    "trend": "SMT arrives by fork \u2014 **z3** and z3.rs absorbed as the proof backend \u2014 plus wasm-component-examples. Work stays spread across kiln, the build rules, mcp, and loom: a broad, steady month with no single focus.",
+    "trend": "SMT arrives by fork — **z3** and z3.rs absorbed as the proof backend — plus wasm-component-examples. Work stays spread across kiln, the build rules, mcp, and loom: a broad, steady month with no single focus.",
     "milestones": []
   },
   {
@@ -571,7 +571,7 @@
         }
       ]
     },
-    "trend": "Proof toolchains formalize \u2014 **rules_rocq_rust** and rules_moonbit are born and renode is absorbed for emulation. 88 PRs and 49 issues as the multi-prover Bazel story takes shape (rules_rocq_rust logs 41 commits in its first month).",
+    "trend": "Proof toolchains formalize — **rules_rocq_rust** and rules_moonbit are born and renode is absorbed for emulation. 88 PRs and 49 issues as the multi-prover Bazel story takes shape (rules_rocq_rust logs 41 commits in its first month).",
     "milestones": []
   },
   {
@@ -589,21 +589,21 @@
         "fork": false,
         "archived": false,
         "lang": "Rust",
-        "desc": "Meld \u2014 Static WebAssembly component fusion. Part of the PulseEngine toolchain."
+        "desc": "Meld — Static WebAssembly component fusion. Part of the PulseEngine toolchain."
       },
       {
         "name": "temper",
         "fork": false,
         "archived": false,
         "lang": "JavaScript",
-        "desc": "Temper \u2014 GitHub App that hardens repositories to organizational standards"
+        "desc": "Temper — GitHub App that hardens repositories to organizational standards"
       },
       {
         "name": "thrum",
         "fork": false,
         "archived": true,
         "lang": "Rust",
-        "desc": "Thrum \u2014 Gate-based pipeline orchestrator for autonomous AI-driven development"
+        "desc": "Thrum — Gate-based pipeline orchestrator for autonomous AI-driven development"
       },
       {
         "name": "rules_verus",
@@ -669,28 +669,28 @@
         "fork": false,
         "archived": false,
         "lang": "HTML",
-        "desc": "The formally verified WebAssembly Component Model engine for safety-critical systems \u2014 org website and blog"
+        "desc": "The formally verified WebAssembly Component Model engine for safety-critical systems — org website and blog"
       },
       {
         "name": "rivet",
         "fork": false,
         "archived": false,
         "lang": "Rust",
-        "desc": "Rivet \u2014 SDLC traceability for safety-critical systems. Schema-driven artifact management, validation, and lifecycle linking. Part of the PulseEngine toolchain."
+        "desc": "Rivet — SDLC traceability for safety-critical systems. Schema-driven artifact management, validation, and lifecycle linking. Part of the PulseEngine toolchain."
       },
       {
         "name": "spar",
         "fork": false,
         "archived": false,
         "lang": "Rust",
-        "desc": "A compiler for system-architecture models \u2014 ingests AADL v2.3, SysML v2 & CAN/DBC into one semantic model; emits safety analysis, TSN timing bounds, and verified WASM/Lean/Bazel artifacts. Rust, WASM-native."
+        "desc": "A compiler for system-architecture models — ingests AADL v2.3, SysML v2 & CAN/DBC into one semantic model; emits safety analysis, TSN timing bounds, and verified WASM/Lean/Bazel artifacts. Rust, WASM-native."
       },
       {
         "name": "gale",
         "fork": false,
         "archived": false,
         "lang": "Rust",
-        "desc": "Gale \u2014 Formally verified Rust port of Zephyr RTOS kernel primitives. ASIL-D targeted, dual-track verification: Verus (SMT/Z3) + Rocq (theorem proving). Part of the PulseEngine toolchain."
+        "desc": "Gale — Formally verified Rust port of Zephyr RTOS kernel primitives. ASIL-D targeted, dual-track verification: Verus (SMT/Z3) + Rocq (theorem proving). Part of the PulseEngine toolchain."
       },
       {
         "name": "zephyr",
@@ -774,7 +774,7 @@
         }
       ]
     },
-    "trend": "The big bang. In one month the backbone is born \u2014 **rivet** (traceability), **spar** (architecture), **gale** (verified RTOS), rules_lean, and this website \u2014 with zephyr and picolibc forked in underneath. PRs quadruple to 448; spar and gale lead. Two earlier directions retire: **thrum** \u2014 the dashboard, once Claude Code's own subagents and then skills came to run the gates we'd built it for \u2014 and **wasi-mcp**. The pivot to the safety-critical spine is decisive.",
+    "trend": "The big bang. In one month the backbone is born — **rivet** (traceability), **spar** (architecture), **gale** (verified RTOS), rules_lean, and this website — with zephyr and picolibc forked in underneath. PRs quadruple to 448; spar and gale lead. Two earlier directions retire: **thrum** — the dashboard, once Claude Code's own subagents and then skills came to run the gates we'd built it for — and **wasi-mcp**. The pivot to the safety-critical spine is decisive.",
     "milestones": []
   },
   {
@@ -876,7 +876,7 @@
         }
       ]
     },
-    "trend": "Applications land on the new spine \u2014 **relay** (flight software), **wohl** (home), and **witness** (MC/DC), with wasmtime and wit-bindgen absorbed. 65 releases, and rivet is now the busiest repo (210): traceability is being wired into everything. The toolchain starts being *used*, not just built.",
+    "trend": "Applications land on the new spine — **relay** (flight software), **wohl** (home), and **witness** (MC/DC), with wasmtime and wit-bindgen absorbed. 65 releases, and rivet is now the busiest repo (210): traceability is being wired into everything. The toolchain starts being *used*, not just built.",
     "milestones": []
   },
   {
@@ -887,28 +887,28 @@
         "fork": true,
         "archived": false,
         "lang": "Rust",
-        "desc": "Walrus is a WebAssembly transformation library \ud83c\udf0a\ud83d\udc18"
+        "desc": "Walrus is a WebAssembly transformation library 🌊🐘"
       },
       {
         "name": "playground-eclipse-score",
         "fork": false,
         "archived": false,
         "lang": "Python",
-        "desc": "Eclipse S-CORE typed-traceability playground \u2014 2985 sphinx-needs artifacts converted to rivet typed YAML, with falsification oracle and starter variant model. Not affiliated with the Eclipse Foundation."
+        "desc": "Eclipse S-CORE typed-traceability playground — 2985 sphinx-needs artifacts converted to rivet typed YAML, with falsification oracle and starter variant model. Not affiliated with the Eclipse Foundation."
       },
       {
         "name": "example-kvs",
         "fork": false,
         "archived": false,
         "lang": "Rust",
-        "desc": "Eclipse-score persistency::kvs through the full pulseengine stack \u2014 rivet typed artifacts + spar AADL + WIT contract + witness MC/DC harness + sigil release manifest + artifact-driven verification gate. Not affiliated with Eclipse Foundation."
+        "desc": "Eclipse-score persistency::kvs through the full pulseengine stack — rivet typed artifacts + spar AADL + WIT contract + witness MC/DC harness + sigil release manifest + artifact-driven verification gate. Not affiliated with Eclipse Foundation."
       },
       {
         "name": "scry",
         "fork": false,
         "archived": false,
         "lang": "Rust",
-        "desc": "sound abstract interpretation for WebAssembly \u2014 the third DO-333 leg of the PulseEngine verification chain"
+        "desc": "sound abstract interpretation for WebAssembly — the third DO-333 leg of the PulseEngine verification chain"
       }
     ],
     "released": {
@@ -980,11 +980,11 @@
         }
       ]
     },
-    "trend": "Verification depth \u2014 **scry** (abstract interpretation), **example-kvs**, and **playground-eclipse-score** arrive as the chain gets pointed at real, external specs. Shipping explodes to 164 releases; work spreads evenly across rivet, witness, relay, and synth. The month the pipeline began proving itself on inputs it didn't invent. It's also when the *methodology* becomes tooling: the **pulseengine-claude** skills are born in this repo \u2014 proof-synthesis, oracle-gating, clean-room verification, release-execution \u2014 so the way of working is installable, not tribal.",
+    "trend": "Verification depth — **scry** (abstract interpretation), **example-kvs**, and **playground-eclipse-score** arrive as the chain gets pointed at real, external specs. Shipping explodes to 164 releases; work spreads evenly across rivet, witness, relay, and synth. The month the pipeline began proving itself on inputs it didn't invent. It's also when the *methodology* becomes tooling: the **pulseengine-claude** skills are born in this repo — proof-synthesis, oracle-gating, clean-room verification, release-execution — so the way of working is installable, not tribal.",
     "milestones": [
       {
         "label": "the pulseengine-claude skills are born",
-        "detail": "the methodology itself, packaged as installable Claude Code tooling \u2014 inside this repo",
+        "detail": "the methodology itself, packaged as installable Claude Code tooling — inside this repo",
         "url": "https://github.com/pulseengine/pulseengine.eu/tree/main/claude-tooling/plugins/pulseengine-claude"
       }
     ]
@@ -997,7 +997,7 @@
         "fork": false,
         "archived": false,
         "lang": "Shell",
-        "desc": "jess \u2014 hardware-integration & release-watch hub: brings falcon drone software onto hardware (HIL vs relay sim \u2192 real drone \u2192 flight). Tracked with rivet."
+        "desc": "jess — hardware-integration & release-watch hub: brings falcon drone software onto hardware (HIL vs relay sim → real drone → flight). Tracked with rivet."
       },
       {
         "name": "wasm-tools",
@@ -1011,7 +1011,7 @@
         "fork": false,
         "archived": false,
         "lang": "Rust",
-        "desc": "Real-time agent-coordination substrate \u2014 named agents coordinate on channels, every message a typed/signed/traceable fact. Augments the issue loop. WCM + NATS."
+        "desc": "Real-time agent-coordination substrate — named agents coordinate on channels, every message a typed/signed/traceable fact. Augments the issue loop. WCM + NATS."
       }
     ],
     "released": {
@@ -1095,13 +1095,121 @@
         }
       ]
     },
-    "trend": "Peak so far \u2014 **jess** (hardware integration) and **agora** (agent coordination) are born, wasm-tools is absorbed, and the numbers crest: 235 releases, 1,300+ PRs, 300+ issues. synth, relay, and jess lead as the story turns toward getting verified components onto real hardware. The tether's on; the bird's almost ready. And a hardware first: gust's dissolved stack boots **bit-identical on real silicon** across three chips and two architectures \u2014 Cortex-M4, Cortex-M3, and RISC-V (ESP32-C3).",
+    "trend": "Peak so far — **jess** (hardware integration) and **agora** (agent coordination) are born, wasm-tools is absorbed, and the numbers crest: 235 releases, 1,300+ PRs, 300+ issues. synth, relay, and jess lead as the story turns toward getting verified components onto real hardware. The tether's on; the bird's almost ready. And a hardware first: gust's dissolved stack boots **bit-identical on real silicon** across three chips and two architectures — Cortex-M4, Cortex-M3, and RISC-V (ESP32-C3).",
     "milestones": [
       {
-        "label": "gust boots on real silicon \u2014 three chips, two architectures",
+        "label": "gust boots on real silicon — three chips, two architectures",
         "detail": "the dissolved composition runs bit-identical on Cortex-M4 (STM32 G474RE), Cortex-M3 (STM32F100), and RISC-V (ESP32-C3)",
         "url": "https://github.com/pulseengine/gale/tree/main/benches/gust/silicon"
       }
     ]
+  },
+  {
+    "month": "2026-07",
+    "born": [
+      {
+        "name": "ordeal",
+        "fork": false,
+        "archived": false,
+        "lang": "Rust",
+        "desc": "Ordeal — a pure-Rust, certificate-checked QF_BV SMT solver for the PulseEngine toolchain. Untrusted solver + formally-verified LRAT checker (CompCert pattern), wasm32-wasip2-native. Part of the PulseEngine toolchain."
+      },
+      {
+        "name": "rules_ordeal",
+        "fork": false,
+        "archived": false,
+        "lang": "Starlark",
+        "desc": "Bazel rules for ordeal — certificate-checked QF_BV verification as a hermetic build gate"
+      }
+    ],
+    "released": {
+      "count": 148,
+      "repos": [
+        {
+          "repo": "synth",
+          "n": 47
+        },
+        {
+          "repo": "relay",
+          "n": 24
+        },
+        {
+          "repo": "ordeal",
+          "n": 21
+        },
+        {
+          "repo": "spar",
+          "n": 13
+        },
+        {
+          "repo": "meld",
+          "n": 8
+        },
+        {
+          "repo": "rivet",
+          "n": 8
+        },
+        {
+          "repo": "kiln",
+          "n": 7
+        },
+        {
+          "repo": "scry",
+          "n": 7
+        },
+        {
+          "repo": "gale",
+          "n": 6
+        },
+        {
+          "repo": "loom",
+          "n": 3
+        },
+        {
+          "repo": "rules_ordeal",
+          "n": 2
+        },
+        {
+          "repo": "wohl",
+          "n": 1
+        },
+        {
+          "repo": "witness",
+          "n": 1
+        }
+      ]
+    },
+    "retired": [],
+    "activity": {
+      "commits": 1156,
+      "prs_opened": 1085,
+      "issues_opened": 308,
+      "busiest": [
+        {
+          "repo": "synth",
+          "commits": 321
+        },
+        {
+          "repo": "gale",
+          "commits": 116
+        },
+        {
+          "repo": "rivet",
+          "commits": 97
+        },
+        {
+          "repo": "ordeal",
+          "commits": 86
+        }
+      ]
+    },
+    "milestones": [
+      {
+        "label": "ordeal — the solver stops being trusted",
+        "detail": "a pure-Rust QF_BV SMT solver whose UNSAT results carry an LRAT certificate, re-checked by an independent formally-verified checker",
+        "url": "https://github.com/pulseengine/ordeal"
+      }
+    ],
+    "trend": "**ordeal** is born — and with it the toolchain stops trusting its own solver. An untrusted QF_BV search paired with a formally-verified LRAT checker (the CompCert pattern): a result is no longer believed because the solver said so, but because an independent checker re-derived it. 21 releases in its first month, with **rules_ordeal** landing alongside to make it a hermetic build gate. The volume settles back from June's crest — 148 releases and 1,156 commits against 235 and 1,485 — but the centre of gravity moves down a layer: **synth** still leads by a distance (321 commits, 47 releases) while **gale** and **ordeal** take second and fourth as the work turns from shipping features to making the instruments themselves checkable. Fewer releases, deeper foundations."
   }
 ]
