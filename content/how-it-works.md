@@ -37,7 +37,6 @@ flowchart TB
   apps["relay · wohl · jess"]
   verify{{"Verify gate<br/>Verus · Rocq · Lean<br/>scry · witness · ordeal"}}
   sigil["sigil<br/>sign · attest"]
-  agora["agora<br/>agent coordination"]
   rivet[("rivet<br/>traceability spine")]
 
   spar ==>|WIT + skeletons| code ==> meld ==> loom
@@ -51,7 +50,6 @@ flowchart TB
   synth -.-> sigil
   sigil -.->|signed evidence| rivet
   verify -.->|evidence| rivet
-  agora -.->|coordination facts| rivet
   spar -.->|typed artifacts| rivet
 
   classDef ours fill:#242836,stroke:#6c8cff,color:#e1e4ed;
@@ -61,7 +59,6 @@ flowchart TB
   class spar,code,meld,loom,synth,kiln,gale,apps,sigil ours
   class verify gate
   class rivet spine
-  class agora agent
 {% end %}
 
 Reading it:
@@ -190,9 +187,10 @@ the Phase-2 arc (its name is the falconry tether, on purpose).
 Today PulseEngine's agents coordinate the plain way — they synchronize through
 **GitHub issues and releases**, running in loops to hunt issues, implement features,
 and check whether a new release actually works.
-[agora](https://github.com/pulseengine/agora) is the early substrate meant to make
-that agent-to-agent chatter faster than round-tripping through GitHub (still a spike:
-signing stubbed, transport in-memory). Around that, [rivet](https://github.com/pulseengine/rivet)'s
+A dedicated coordination substrate ([agora](https://github.com/pulseengine/agora)) was
+spiked to make that chatter faster than round-tripping through GitHub, and **archived** —
+GitHub issues and releases turned out to be sufficient, and they are durable, signed and
+auditable without new infrastructure. Around that, [rivet](https://github.com/pulseengine/rivet)'s
 MCP tools expose validate / add / link / coverage to agents, and
 [temper](https://github.com/pulseengine/temper) (a GitHub App) holds every repo to
 the same standards. The [mcp](https://github.com/pulseengine/mcp) framework was our
