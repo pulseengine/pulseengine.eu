@@ -3,7 +3,7 @@ name: traceability-audit
 description: This skill should be used to ensure the rivet traceability graph is COMPLETE and bidirectional across the whole V — requirement → architecture → design → code, and back up through unit, integration, and system/requirements-qualification tests — for ANY safety standard the project targets (DO-178C aerospace, ISO 26262 automotive, EN 50128 rail, IEC 61508 functional-safety, IEC 62304 medical, ASPICE, SOTIF, EU AI Act), including components certified to several at once. Use it both while authoring (research/exploration phase — add findings and wire their linkages as you go) and as the blocking check before a release. Use it whenever the question is "are all the rivet artifacts in and properly linked", "is every requirement designed/implemented/tested at each level", "did we capture this finding into rivet", or before tagging when the V-model gate must hold. It defines the closure rules the release V-model gate enforces; pair with oracle-gate-a-change (rivet check is the oracle) and proof-synthesis (proofs are right-side evidence alongside tests).
 metadata:
   author: pulseengine.eu
-  version: "0.1.0"
+  version: "0.2.0"
 ---
 
 # Traceability audit
@@ -60,9 +60,50 @@ audit each, and reuse evidence across them where the artifact is the same. If a
 target standard isn't listed, the generic chain + closure rules still apply —
 map to that schema's type names.
 
+## Step 0 — can the loaded schema even express the right side of the V?
+
+**Do this before auditing anything.** An audit against a schema that has no
+verification type is itself vacuous: it runs, reports green, and gates nothing.
+
+```sh
+rivet schema list      # do the loaded schemas define a test / verification type?
+rivet stats            # which types actually carry artifacts?
+```
+
+If the answer is no, **that is the finding** — stop and drive the schema change;
+do not report a clean audit. Field cases, both discovered only by running the
+tool rather than reading YAML: one repo loaded `common + stpa + dev`, where `dev`
+is exactly `requirement, design-decision, feature` — **no test type to point at**,
+`verifies` recorded provenance but gated nothing, and the status lifecycle
+structurally capped at `implemented` (**zero** artifacts `verified`/`accepted`
+project-wide). Another reported `requirement-coverage 0/45 = 0.0%` with its
+`verification-method` fields **silently ignored** — "field not defined in schema
+for type 'requirement'".
+
+Symptoms that mean you are on this rock, not doing well:
+- `rivet validate` is **green with the entire right arm of the V empty**, or
+  emits the same warning on every requirement so the team learned to ignore it;
+- every requirement tops out at `implemented`;
+- verification fields exist in the YAML but no rule reads them.
+
 ## Closure rules — the audit (mechanical; `rivet check` is the oracle)
 
 Run `rivet validate && rivet check && rivet coverage` for each declared schema.
+Use the mechanisms rivet actually ships for the right side — **name them, don't
+re-derive them by eye**:
+
+- `rivet coverage` reports **combined V-closure**; `rivet coverage --tests` maps
+  tests to requirements.
+- `rivet verify <ID>` advances an artifact on a `verifies` link **or** a
+  `// rivet: verifies <ID>` source marker — the cheap path when hand-authoring
+  one artifact per test is the reason it never happens.
+- the `requirement-verification` rule surfaces requirements with **no incoming
+  `verifies`**. Treat its output as the burn-down list, not as noise.
+
+**Warnings are not a pass.** A release bar of "0 errors" tolerates exactly the
+debt this audit exists to find — one repo shipped on `FAIL (0 errors, 87
+warnings, 33 broken cross-refs)` where the warnings *were* the unmapped
+verification.
 Treat any open edge as a finding. For **every `approved`/`implemented`
 artifact**, both directions must close:
 
