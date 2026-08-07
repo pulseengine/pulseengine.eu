@@ -27,9 +27,14 @@ The sweep is written for multi-agent campaigns, and in one a background lane may
 own the working tree, a worktree, or a cache *right now*. Assert idle first, or
 the sweep races live work and corrupts it:
 
-- **No compiler running.** `ps aux | grep -E 'cargo|rustc|bazel'` is empty. A
-  step-6 `rm -rf` on a `target/` an active build is writing is corruption, not
-  reclaim.
+- **No compiler running.** `pgrep -x 'cargo|rustc|bazel'` is empty. A step-6
+  `rm -rf` on a `target/` an active build is writing is corruption, not reclaim.
+  **Match the command *name*, not the command line:** `ps aux | grep cargo` also
+  matches every tool installed under `~/.cargo/bin`, so on a normal developer
+  machine it is near-permanently non-empty and would abort every valid sweep.
+  (`ps -eo comm= | awk -F/ '{print $NF}' | grep -cxE 'cargo|rustc|bazel'` is the
+  portable equivalent.) The same name-vs-path care applies anywhere this skill
+  greps `ps`.
 - **No agent owns the tree.** No agent lock held (e.g.
   `.claude/scheduled_tasks.lock`), no background implementer mid-edit — `git
   status` in the root *and* every worktree shows only what you expect.
@@ -192,6 +197,11 @@ issue-hunt watermarks: hygiene closes what shipped; issue-hunt triages what's ne
 
 - **Sweeping under live work** — every step mutates; a running build or a
   mid-edit agent turns the sweep into corruption. Quiesce (step 0) first.
+- **A precondition that cries wolf** — a check that reports "busy" on a machine
+  that is idle gets routed around by habit, and then the once it fires for real
+  it is ignored. This is the human-factors twin of the vacuous gate: one check
+  can never fail, the other always "fails", and neither carries information.
+  A guard that misfires is a bug in the guard — fix it, don't learn to skip it.
 - **`git branch --merged` (or `git cherry`) as squash-merge detectors** — both
   miss squashes (verified); `--merged` sees the tip as unmerged and `git cherry`
   flags it `+` on a patch-id mismatch. Verify content shipped by merged PR, a
