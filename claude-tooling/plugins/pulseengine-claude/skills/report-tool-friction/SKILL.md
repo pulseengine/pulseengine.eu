@@ -3,7 +3,7 @@ name: report-tool-friction
 description: This skill should be used whenever a PulseEngine tool (rivet, spar, witness, sigil, meld, loom, synth, kiln, gale, scry, smithy, thrum, temper, mcp — the roster lives in the pulseengine-toolchain memory) produces friction during real work — it errors, crashes, produces wrong or surprising output, is missing a capability you needed, has confusing/undocumented behavior, or forced you into a workaround. ALWAYS use this skill the moment you notice yourself working *around* a tool instead of *with* it, or saying "this should just work but doesn't." The friction is the signal; capturing it as an issue in the tool's own repo is the action. Fires inside [`pulseengine-feature-loop`] and [`release-execution`] and any standalone tool use.
 metadata:
   author: pulseengine.eu
-  version: "0.1.0"
+  version: "0.2.0"
 ---
 
 # Report tool friction
@@ -29,6 +29,32 @@ File in the **tool's own repo** (`pulseengine/<tool>`), not in the consuming pro
 
 ### 2. Search for a duplicate first
 `gh issue list --repo pulseengine/<tool> --search "<key phrase>" --state all`. If an open issue already covers it, add a comment with your fresh repro instead of opening a new one. Label-search for the friction label too.
+
+### 2b. Check you are not reporting a gap that is already fixed
+
+**A missing *capability* is the one friction class that expires.** Before filing
+"tool X cannot do Y", confirm you are on a current version — record both numbers
+in the issue:
+
+```sh
+<tool> --version
+gh release list -R pulseengine/<tool> --limit 1
+```
+
+Embedded schemas and rule sets ship *inside* the binary, so a stale install
+reports a stale capability. Three measured instances of this exact waste:
+
+- a "the schema has no verification type" issue filed **13 days after** that type
+  shipped — the reporter's binary was one release behind, and the fix had
+  already landed;
+- an agent session pinned to the **oldest** installed plugin version, silently
+  hiding eight skills, so their absence looked like a capability gap;
+- a machine running rivet **0.28.0 against a v0.32.0 release** — four minor
+  versions of shipped fixes invisible to everything running there.
+
+A bug or a crash is worth filing immediately regardless. A *missing feature* is
+worth thirty seconds of version-checking first, because the cost of getting it
+wrong is a maintainer re-deriving a fix they already shipped.
 
 ### 3. File it automatically, then mention it
 Open the issue without pausing the work, then note it in your response to the user (link + one line). Don't batch, don't wait for permission — friction is cheap to capture and expensive to forget. The body, kept short:

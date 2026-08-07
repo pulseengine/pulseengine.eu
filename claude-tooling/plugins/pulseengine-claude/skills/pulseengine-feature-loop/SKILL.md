@@ -3,7 +3,7 @@ name: pulseengine-feature-loop
 description: This skill should be used when doing a feature end-to-end on a PulseEngine project (rivet, spar, witness, sigil, meld, loom, synth, wohl, kiln) — including "implement a feature", "add a new requirement", "extend the architecture", "write a new pass", "ship a feature end-to-end", "do this properly with traceability", "model-driven implementation", or any feature work that should pass through the full AADL → WIT → typed traceability → oracle-gated code → MC/DC → attestation → verify loop. ALWAYS use this skill when the user authorizes feature work on a PulseEngine project and the work touches more than a single file.
 metadata:
   author: pulseengine.eu
-  version: "0.1.0"
+  version: "0.2.0"
 ---
 
 # PulseEngine feature loop
@@ -49,6 +49,32 @@ For each new property the feature claims:
 - Link via rivet's typed predicates: `verifies`, `implements`, `traced-by`.
 - Run `rivet validate` and `rivet check` — both must be green.
 - **Artifact:** new YAML in `requirements/`, `decisions/`, `tests/`. `rivet coverage` should show the trace topology now covering the new property.
+
+**Close the right side of the V when the test lands — don't defer it.** The
+left side grows fast because authoring it is natural; the right side gets
+skipped silently, every feature, until the debt is measured in the hundreds
+(one repo: **257 of 269 sw-reqs with no verification**; another: 20 artifacts
+and *one* `verifies` link). The cheap path is a **source marker**, not a
+hand-authored YAML artifact per test:
+
+```rust
+// rivet: verifies REQ-001          // also: #[rivet::verifies("REQ-001")]
+#[test]                             // Python: # rivet: verifies REQ-001
+fn add_does_not_overflow() { ... }  //         @rivet_verifies("REQ-001")
+```
+
+Then, the moment the oracle is green:
+
+```sh
+rivet coverage --tests    # marker → requirement map; the burn-down list
+rivet verify REQ-001      # advances implemented → verified, opt-in and auditable
+```
+
+`rivet verify` **refuses without evidence** — *"no verifying evidence. Add an
+incoming `verifies` link … or a `// rivet: verifies REQ-001` marker"* — so this
+is a mechanical check, not a prose step. Use `partially-verifies` when the test
+discharges only part of the requirement. If the loaded schema has no
+verification type at all, that is the finding: see [`traceability-audit`] step 0.
 
 ### 4. Write the code, oracle-gated per change
 
