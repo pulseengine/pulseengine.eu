@@ -3,7 +3,7 @@ name: pulseengine-feature-loop
 description: This skill should be used when doing a feature end-to-end on a PulseEngine project (rivet, spar, witness, sigil, meld, loom, synth, wohl, kiln) — including "implement a feature", "add a new requirement", "extend the architecture", "write a new pass", "ship a feature end-to-end", "do this properly with traceability", "model-driven implementation", or any feature work that should pass through the full AADL → WIT → typed traceability → oracle-gated code → MC/DC → attestation → verify loop. ALWAYS use this skill when the user authorizes feature work on a PulseEngine project and the work touches more than a single file.
 metadata:
   author: pulseengine.eu
-  version: "0.2.0"
+  version: "0.3.0"
 ---
 
 # PulseEngine feature loop
@@ -21,6 +21,57 @@ Friction is data. At any step below, if a tool errors, produces wrong output, la
 This is a long-running explorer (see [`pulseengine-operating-contract`]): self-verify at a **concrete interval — before every tag, and at least every ~2 features/releases in a round** (not "at some point") — with fresh-context subagents ([`clean-room-verification`]) — re-checking **both** the work (against requirements/architecture) **and** the campaign machinery (is the merge gate actually non-empty? is everything claimed "released" really tagged with a `success` CI run, not `cancelled`? — the campaign invariants in the operating contract). Across a multi-feature round the machinery failures are the ones per-feature review misses.
 
 ## The compose loop (ordered steps, each producing a concrete artifact)
+
+### 0. Resolve the loop's tools through varve — pin before you build
+
+Every step below invokes a tool, and by default gets *whatever is on PATH*. That is the
+mixed-toolchain hazard: half the pipeline running on one tool version and half on another, producing
+an artifact no single toolchain ever built. Pinning a **varve** layer closes it by construction and
+makes the outputs traceable to an exact toolchain.
+
+Two committed files — the realm supplies the registry and the trust root, so **no environment
+variable is needed**. Take the realm definitions from the published asset rather than pasting a
+key; the rolling root is provisional and will rotate at the v1.0 ceremony:
+
+```sh
+# the canonical realm definitions ship with every varve release
+gh release download --repo pulseengine/varve -p varve-realms.toml
+```
+
+```toml
+# varve.toml — this project's pin
+manifest-version = 1
+
+[toolchain]
+realm   = "pulseengine"
+channel = "rolling"
+layer   = "2026.08.2"
+```
+
+```sh
+varve install          # fetch + verify + lay down the layer
+varve shim install     # shims on PATH; switching projects is `cd`
+varve which rivet      # which binary runs here — and which layer it came from
+```
+
+- **State the layer when you report results.** `varve which <tool>` prints the layer and manifest
+  digest; that identity is what makes "which toolchain produced this?" answerable later. A result
+  reported without it is not reproducible evidence.
+- **A refusal is the feature.** Outside a pinned project a shim exits 1 rather than falling back to
+  an ambient binary. Do not "fix" that by bypassing varve — fix the pin.
+- **Prefer the realm over `VARVE_TRUST_ROOT`.** The realm is authoritative and cannot be overridden
+  by the ambient environment; the env var can. See the roster entry in
+  [`pulseengine-toolchain`] for the negative control establishing this.
+- If a repo has no pin yet, say so plainly rather than implying the loop ran pinned. Adding
+  `varve.toml` is a reviewable change like any other — and per **varve**'s design, the *only* way a
+  project ever changes layers.
+
+**Artifact:** a committed pin, and a layer identity attached to whatever the loop produces.
+
+> The **rolling** channel is provisional and makes no qualification promise; its root rotates at the
+> v1.0 ceremony. That is precisely why the realms file is *downloaded*, not pasted. Verified
+> empty-handed on varve v0.14.0: published assets only, fresh store, no `VARVE_TRUST_ROOT` —
+> `installed layer 2026.08.2 … verified: signature OK, 9 tool(s) match their signed digests`.
 
 ### 1. Start in spar — model the architecture
 

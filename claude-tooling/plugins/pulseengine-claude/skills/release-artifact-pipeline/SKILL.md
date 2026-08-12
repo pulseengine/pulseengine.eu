@@ -3,7 +3,7 @@ name: release-artifact-pipeline
 description: This skill should be used when setting up, standardizing, auditing, or modifying a release artifact pipeline on a PulseEngine project — including "standardize release artifacts", "set up release workflow", "fix the release pipeline", "add cosign signing", "add SLSA attestation", "add SBOM", "switch to signed SHA256SUMS", "sign the wasm with sigil", "add a witness/scry gate to the release", "publish to crates.io / npm", "add a Pages verification dashboard", "audit release artifacts", "migrate off per-file .sha256 sidecars", or any GitHub Actions release.yml setup/refactor. ALWAYS use this skill when proposing or reviewing changes to a release.yml workflow, when adopting the PulseEngine release-artifact standard for a new repo, or before claiming a release pipeline is "compliant" or "signed". Covers all five tracks — native binaries, distribution channels (crates.io + npm), wasm signing (sigil + cosign) and wasm verification gates (witness MC/DC + scry), the Pages verification dashboard, and rivet verification extraction.
 metadata:
   author: pulseengine.eu
-  version: "0.2.0"
+  version: "0.3.0"
 ---
 
 # Release artifact pipeline
@@ -22,7 +22,8 @@ gets the full supply chain everywhere, while the *wasm* it ships gets weaker sig
 and no verification gate. Hold wasm to the **same bar** as the binary.
 
 - **Track A — native binaries** → the cosign+SBOM+SLSA bundle (canonical: synth).
-- **Track B — distribution channels** → crates.io for everything Rust; npm for CLIs/tools.
+- **Track B — distribution channels** → crates.io for everything Rust; npm for CLIs/tools;
+  **varve layers** for the toolchain as a pinned, signed set.
 - **Track C — wasm artifacts** → sigil + cosign signature, **and** a witness MC/DC
   gate **and** a scry abstract-interpretation gate. No wasm ships unverified.
 - **Track D — Pages verification dashboard** → witness-viz / scry-viz (canonical:
@@ -88,11 +89,32 @@ mcp a stale unsigned manual script). The rule:
   wired to a root launcher via `optionalDependencies`), triggered `workflow_run`
   after the GitHub Release so the binaries exist. This is **not** rivet-only —
   every user-facing CLI (rivet, spar, …) should ship it.
-- **More channels (OCI, editor marketplaces) are in scope later** — sigil's GHCR
-  `oras push` and rivet/spar's VS Code Marketplace are precedents; not required now.
+- **varve layers — the canonical org-internal channel, and now shipping.** A tool's
+  signed release becomes an entry in a dated OCI layer via `varve deposit`
+  (`ghcr.io/pulseengine/varve/layers`); consumers pin *one layer* rather than N
+  independently-drifting tool versions. crates.io and npm remain the public channels —
+  the layer is how the toolchain is consumed as a set. `varve export-bazel` compiles a
+  Bazel checksum registry from the verified layer, so every hash Bazel enforces is a
+  transcription from the signed manifest **instead of TOFU**.
+- **Editor marketplaces are in scope later** — rivet/spar's VS Code Marketplace is the
+  precedent; not required now.
 
 A Rust tool is compliant on Track B only when it is on crates.io **and** (if it's a
 CLI) on npm. crates.io-but-no-npm and npm-but-no-crates.io are both drift.
+
+### The deposit workflow is an org release-standard enforcer
+
+This is the part worth internalising: `deposit-layer.yml` verifies each tool's release
+against **that tool's own repo cosign identity**, and a tool whose release lacks
+cosign-signed `SHA256SUMS.txt` is **excluded from the layer** with a notice rather than
+deposited unverified. Exclusion is visible and dated — the workflow's own comments record
+`ordeal is EXCLUDED until its releases carry cosign-signed sums`, then
+`ordeal rejoined at v0.18.0 — its first cosign-signed release`.
+
+So Track A compliance stopped being advisory the day layers shipped: an unsigned release
+no longer merely *fails an audit*, it **drops the tool out of the toolchain everyone
+installs**. Treat a tool's absence from the current layer as a release-pipeline defect in
+that tool's repo, and file it there per [`report-tool-friction`].
 
 ## Track C — wasm artifacts (same bar as the binary)
 

@@ -3,7 +3,7 @@ name: oracle-gate-a-change
 description: This skill should be used whenever proposing, designing, landing, or evaluating a consequential change on a PulseEngine project (rivet, spar, witness, sigil, meld, loom, synth, wohl) — including "propose a change", "add a feature", "fix a bug", "is this safe to land", "what verifies this", "what's the gate", "how do we know this is correct", "before merging this", or whenever a code change needs a mechanical check to back it. ALWAYS use this skill before claiming a property holds and before recommending a change be merged.
 metadata:
   author: pulseengine.eu
-  version: "0.3.0"
+  version: "0.4.0"
 ---
 
 # Oracle-gate a change
@@ -54,6 +54,34 @@ This is the one step where doing it wrong feels identical to doing it right: you
 - **Declared ⇒ invoked.** If the repo keeps a registry of checks/repro scripts, adding an entry is not wiring; something must run it. Track undeclared/unwired scripts as a countable number that can only shrink.
 
 Field cases this rule comes from: an oracle behind two headline size claims existed for two releases and was never CI-wired; the next release shipped its central differential oracle referenced by nothing, with a fully green PR board; a later audit found ~70 of ~150 repro scripts undeclared or unwired.
+
+### 2c. Confirm the oracle is RED — before implementing
+
+Writing the oracle and wiring it still leaves the question the whole method rests on unanswered:
+**does it fail when the property is false?** Run it *before* the implementing change and read the
+result. **An oracle that passes before the change is not an oracle** — it is measuring something
+other than the property, and it will ship as evidence.
+
+The two commonest causes, both of which look correct in review:
+
+- **The predicate is satisfied by the initial or default state.** Zero-initialised values, empty
+  collections, absent files, a fresh entry point. The assertion is true before the feature exists.
+  Fix by making it position- or state-specific, not merely existential.
+- **It is an upper bound where a presence check was needed.** Field case, in this plugin's own gate:
+  `claim-check`'s `count-max` fails only when `n > max`, so a pattern matching **0** times stays
+  green — the code's own comment now reads *"greens a 0-match, since 0 > max is false"*. A claim
+  binding a doc's version string to `count-max` therefore went green precisely when the version
+  drifted and the string vanished. The `count-min` predicate exists to catch that drift-to-absent
+  case; pick the polarity that matches what you are asserting.
+
+**A fixture chosen after the property is written is suspect.** If you picked the input *because* the
+test passed, you may have selected around the failing case. Ask what the property claims in general
+and whether your fixture is the easy instance.
+
+This applies to **gates as much as tests**. A CI check whose predicate can silently match nothing is
+the same failure with a longer blast radius, because a green check is read as evidence by everyone
+downstream. Step 2b proves the gate *runs*; this step proves it can *fail*. Both are required —
+see [`gate-potency`] for auditing checks that are already live.
 
 ### 3. Attach a kill-criterion to the claim
 
@@ -120,6 +148,9 @@ inert. Each of these has cost real time in this org:
   demonstrably able to fail there**.
 - **Asserting a gate is non-vacuous by *reading* it rather than by *mutating* it.** Vacuous gates
   look correct in review — that is exactly why they survive. Break the property and watch for red.
+- **Running the oracle for the first time *after* the implementation.** A green result then is
+  ambiguous — it cannot distinguish "the change works" from "this never measured anything." The
+  red observation is not a formality; it is the only evidence the oracle discriminates at all.
 - "Review looks good" as the gate. Review is input; oracle is the gate.
 - "Tests pass" without saying *which* test exercises the new property. If you can't name it, it doesn't exist.
 - Skipping the oracle write because "we already have lots of tests." The relevant question is whether *this property* is checked, not whether *anything* is.
