@@ -52,7 +52,7 @@ reports a stale capability. Three measured instances of this exact waste:
 - a machine running rivet **0.28.0 against a v0.32.0 release** — four minor
   versions of shipped fixes invisible to everything running there.
 
-**Under a [`varve`] pin, name the layer as well as the version.** `varve which <tool>`
+**Under a varve pin, name the layer as well as the version.** `varve which <tool>`
 prints the binary, the layer and the manifest digest — so a capability gap filed from a
 pinned project is reported against a *specific, reproducible* toolchain rather than
 whatever happened to be on PATH:

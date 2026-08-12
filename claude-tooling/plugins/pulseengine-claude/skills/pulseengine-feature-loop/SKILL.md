@@ -26,7 +26,7 @@ This is a long-running explorer (see [`pulseengine-operating-contract`]): self-v
 
 Every step below invokes a tool, and by default gets *whatever is on PATH*. That is the
 mixed-toolchain hazard: half the pipeline running on one tool version and half on another, producing
-an artifact no single toolchain ever built. Pinning a [`varve`] layer closes it by construction and
+an artifact no single toolchain ever built. Pinning a **varve** layer closes it by construction and
 makes the outputs traceable to an exact toolchain.
 
 Two committed files — the realm supplies the registry and the trust root, so **no environment
@@ -64,7 +64,7 @@ varve which rivet      # which binary runs here — and which layer it came from
   by the ambient environment; the env var can. See the roster entry in
   [`pulseengine-toolchain`] for the negative control establishing this.
 - If a repo has no pin yet, say so plainly rather than implying the loop ran pinned. Adding
-  `varve.toml` is a reviewable change like any other — and per [`varve`]'s design, the *only* way a
+  `varve.toml` is a reviewable change like any other — and per **varve**'s design, the *only* way a
   project ever changes layers.
 
 **Artifact:** a committed pin, and a layer identity attached to whatever the loop produces.
