@@ -45,7 +45,8 @@ Map of the PulseEngine tools. Each lives in `/Users/r/git/pulseengine/<name>` on
 
 **varve** — toolchain **layer manager**, and the reason "which toolchain produced this artifact?" is answerable. Distributes the whole tool set as one signed, dated, digest-pinned OCI layer (`YYYY.MM.P`) on `ghcr.io/pulseengine/varve/layers`; per-project `varve.toml` pin discovered by walking up from cwd; offline verification against a trust root; anti-rollback counters; content-addressed core so layers coexist and switching is `cd`; PATH shims; `self-update` (old-verifies-new); `deposit` / `export-bazel` for CI. Sits **outside** the layer it installs — it must exist before any layer does. Native Rust CLI, so witness MC/DC and scry are N/A to varve itself (they target the Wasm the layers carry).
 
-Two properties of varve are load-bearing for the other skills, both verified by execution (2026-08-08, v0.13.0):
+Two properties of varve are load-bearing for the other skills, both verified by execution and
+re-verified against v0.14.0 on 2026-08-12 (tamper still detected, realm still authoritative):
 
 - **No silent fallback.** Outside a pinned project a shim *refuses* — `error: no varve.toml found …`, exit 1 — rather than running whatever is on PATH. Inside one it dispatches and exits 0.
 - **Realms beat the ambient environment.** When the pin names a `realm`, a committed `varve-realms.toml` supplies the registry *and* the trust root, and a hostile `VARVE_TRUST_ROOT` cannot substitute a different root. Negative control: the same bogus root makes `varve verify` exit 1 with no realm, and is ignored with one. Prefer the realm path — it needs no environment variable and is the stronger of the two.

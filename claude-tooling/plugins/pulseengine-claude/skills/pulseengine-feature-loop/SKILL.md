@@ -30,13 +30,12 @@ an artifact no single toolchain ever built. Pinning a **varve** layer closes it 
 makes the outputs traceable to an exact toolchain.
 
 Two committed files — the realm supplies the registry and the trust root, so **no environment
-variable is needed**:
+variable is needed**. Take the realm definitions from the published asset rather than pasting a
+key; the rolling root is provisional and will rotate at the v1.0 ceremony:
 
-```toml
-# varve-realms.toml — the trust universe; travels with the code
-[realm.pulseengine]
-registry   = "oci://ghcr.io/pulseengine/varve/layers"
-trust-root = "4e771dc62a08be89e3450f8cd807da58ff70af4a4e124ebf2d2b71684cfd9973"
+```sh
+# the canonical realm definitions ship with every varve release
+gh release download --repo pulseengine/varve -p varve-realms.toml
 ```
 
 ```toml
@@ -69,9 +68,10 @@ varve which rivet      # which binary runs here — and which layer it came from
 
 **Artifact:** a committed pin, and a layer identity attached to whatever the loop produces.
 
-> The trust-root value above is the **rolling** channel's provisional root, copied here because
-> varve does not yet publish a canonical `varve-realms.toml` (pulseengine/varve#34). When it does,
-> reference that file instead of pasting the key.
+> The **rolling** channel is provisional and makes no qualification promise; its root rotates at the
+> v1.0 ceremony. That is precisely why the realms file is *downloaded*, not pasted. Verified
+> empty-handed on varve v0.14.0: published assets only, fresh store, no `VARVE_TRUST_ROOT` —
+> `installed layer 2026.08.2 … verified: signature OK, 9 tool(s) match their signed digests`.
 
 ### 1. Start in spar — model the architecture
 

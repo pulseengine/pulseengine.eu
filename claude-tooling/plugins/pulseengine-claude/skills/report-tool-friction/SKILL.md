@@ -66,10 +66,14 @@ gh release list -R pulseengine/<tool> --limit 1
 A pin makes staleness deliberate rather than accidental, but it does **not** make it
 impossible: a project frozen on an old layer is exactly the case that produced the
 13-days-late report above. If the pinned layer predates the fix, the finding is "our pin
-is stale", not "the tool cannot do Y". (`varve status` is intended to surface line
-staleness and known problems, but as of v0.13.0 it requires an ingested line-status
-envelope — `no line-status document cached for line …` — and none is published yet, so
-it is not usable for this check today.)
+is stale", not "the tool cannot do Y".
+
+`varve status` is the intended home for this check — it carries the support window, known
+problems and yank state for a line. As of **v0.14.0 it does not yet answer for a registry
+install**: `varve install` auto-caches line-status only when the installed oci-layout
+carries one, so an `oci://` install still exits 1 with `no line-status document cached for
+line …`. Distribution over the registry is tracked as `REQ-STATUS-DIST-001`. Until that
+lands, compare the pinned layer against the tool's releases by hand, as above.
 
 A bug or a crash is worth filing immediately regardless. A *missing feature* is
 worth thirty seconds of version-checking first, because the cost of getting it
