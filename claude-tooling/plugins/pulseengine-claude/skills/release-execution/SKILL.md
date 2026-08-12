@@ -3,7 +3,7 @@ name: release-execution
 description: This skill should be used when cutting, shipping, or finishing a release — including "ship it", "cut a release", "tag this", "release v0.X.Y", "take this to release", "work the PR queue to green", "finish the release tail", "publish", or any end-to-end release work that involves PRs, reviewers, merging, CI, tagging, GitHub Release, and crates.io publish. ALWAYS use this skill when the user authorizes autonomous release work or asks to "go as long as you can" on a release campaign.
 metadata:
   author: pulseengine.eu
-  version: "0.1.0"
+  version: "0.2.0"
 ---
 
 # Release execution
@@ -72,9 +72,23 @@ The release does not get tagged until the V-model is closed for everything it cl
 
 The level-by-level closure rules — every requirement decomposed to architecture/design/code, and verified up through **unit, integration, and requirements-qualification** tests (with passing results), not just "has a `verifies` link" — are defined in [`traceability-audit`]; this gate is that audit run before tagging. It composes [`pulseengine-feature-loop`] (which produces the artifacts this gate audits) and [`clean-room-verification`] (verify the "the V is closed" claim cold, don't infer it from a green dashboard).
 
+### 4b. Independence gate (blocking — solo-agent-authored repos)
+
+Step 4 checks that the V is *closed*. This checks **who closed it**. Where one agent both authored
+the work and marked it `verified`, that status carries no independent evidence — the one gap no
+mutation score or green board closes.
+
+- Every requirement in the release scope needs a **fresh-context clean-room review**
+  ([`clean-room-verification`]) that re-derives the verdict from evidence rather than reading the
+  author's summary.
+- **Record reviewer identity, date and outcome on the artifacts**, so independence is auditable
+  later rather than asserted now.
+- **Absent or dissenting review blocks the tag**, exactly like a broken trace link. Canonical
+  statement: varve's `REQ-INDEP-001` — *"No requirement is verified on the author's word alone."*
+
 ### 5. Tag and release
 - **First assert the campaign invariants** ([`pulseengine-operating-contract`] → "Verify the machinery"): the protected branch's `required_status_checks.contexts` is non-empty (the gate is real), **HEAD's CI completed `success`** — not `cancelled` by a merge-train `cancel-in-progress`, which leaves the commit unverified — and everything previously claimed "released" actually carries a tag + a `success` run. A green-looking dashboard over an empty gate or a cancelled HEAD run is not a tag-able state.
-- Once the queue is empty, main is green, **and the traceability gate (step 4) passes**, **PAUSE for fork**: confirm the new tag (`v0.X.Y`) and whether this is the right moment to cut, vs. holding for more. Use `AskUserQuestion` — this is a genuine decision boundary, not a routine step.
+- Once the queue is empty, main is green, **and the traceability gate (step 4) and the independence gate (step 4b) pass**, **PAUSE for fork**: confirm the new tag (`v0.X.Y`) and whether this is the right moment to cut, vs. holding for more. Use `AskUserQuestion` — this is a genuine decision boundary, not a routine step.
 - After confirmation: tag, push tag, watch the release workflow; the release is "verified" only once that run completes `success`.
 
 ### 5b. Mind the notes-vs-assets race

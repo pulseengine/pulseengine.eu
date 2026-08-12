@@ -3,7 +3,7 @@ name: report-tool-friction
 description: This skill should be used whenever a PulseEngine tool (rivet, spar, witness, sigil, meld, loom, synth, kiln, gale, scry, ordeal, varve, smithy, temper — the roster lives in the pulseengine-toolchain memory) produces friction during real work — it errors, crashes, produces wrong or surprising output, is missing a capability you needed, has confusing/undocumented behavior, or forced you into a workaround. ALWAYS use this skill the moment you notice yourself working *around* a tool instead of *with* it, or saying "this should just work but doesn't." The friction is the signal; capturing it as an issue in the tool's own repo is the action. Fires inside [`pulseengine-feature-loop`] and [`release-execution`] and any standalone tool use.
 metadata:
   author: pulseengine.eu
-  version: "0.3.0"
+  version: "0.4.0"
 ---
 
 # Report tool friction
@@ -51,6 +51,25 @@ reports a stale capability. Three measured instances of this exact waste:
   hiding eight skills, so their absence looked like a capability gap;
 - a machine running rivet **0.28.0 against a v0.32.0 release** — four minor
   versions of shipped fixes invisible to everything running there.
+
+**Under a [`varve`] pin, name the layer as well as the version.** `varve which <tool>`
+prints the binary, the layer and the manifest digest — so a capability gap filed from a
+pinned project is reported against a *specific, reproducible* toolchain rather than
+whatever happened to be on PATH:
+
+```sh
+varve which <tool>     # layer + digest — include this in the issue
+<tool> --version
+gh release list -R pulseengine/<tool> --limit 1
+```
+
+A pin makes staleness deliberate rather than accidental, but it does **not** make it
+impossible: a project frozen on an old layer is exactly the case that produced the
+13-days-late report above. If the pinned layer predates the fix, the finding is "our pin
+is stale", not "the tool cannot do Y". (`varve status` is intended to surface line
+staleness and known problems, but as of v0.13.0 it requires an ingested line-status
+envelope — `no line-status document cached for line …` — and none is published yet, so
+it is not usable for this check today.)
 
 A bug or a crash is worth filing immediately regardless. A *missing feature* is
 worth thirty seconds of version-checking first, because the cost of getting it

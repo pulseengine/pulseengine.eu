@@ -3,7 +3,7 @@ name: gate-potency
 description: This skill should be used to audit whether a repo's EXISTING required CI checks can still fail — the vacuous-gate class, where a check runs, reports green, and cannot go red. Use it when the user says "audit our gates", "can our CI actually fail", "is this check real", "why did that slip through a green board", when inheriting or taking over a repo, at the campaign self-verify interval, and before a release whose evidence rests on CI being green. Presence is not potency — a non-empty required-checks list proves a gate exists, never that it bites. The method is negative control (inject a violation, confirm red) plus six mechanical audits for the ways a gate goes inert. Composes with oracle-gate-a-change (which covers wiring an oracle you are authoring), release-execution (fire before tagging) and repo-hygiene (same cadence).
 metadata:
   author: pulseengine.eu
-  version: "0.1.0"
+  version: "0.2.0"
 ---
 
 # Gate potency — can this check still go red?
@@ -42,6 +42,24 @@ Inject a deliberate violation and confirm the check goes **red**: an unformatted
 mutant, a broken trace link, a `sorry` without the exemption, a deleted assertion. Restore
 afterwards. Everything below is a cheap proxy; this is the actual evidence. Do it on a scratch
 branch and record the run URL — that link *is* the potency evidence.
+
+**Worked example — a supply-chain check, audited in minutes.** To establish that varve's digest
+verification actually bites rather than merely existing, append one byte to a tool inside the
+content-addressed core and re-run `varve verify`:
+
+```
+error: tool 'rivet' does not match its signed digest sha256:53af23a… — the binary was altered
+```
+
+Restore, and it is green again. That is potency evidence; *reading* the verification code is not.
+
+**Pair the negative control with a positive one.** A control that goes red proves something fired —
+not that the *mechanism you think* fired. Show it biting in one configuration and correctly inert in
+another. Same audit: pointing `VARVE_TRUST_ROOT` at a bogus key makes `varve verify` exit 1 when the
+pin names no realm, and is *ignored* (exit 0) when it names one — which is exactly the claim that a
+realm's trust root cannot be substituted by the ambient environment. Either result alone proves
+little; the pair isolates the mechanism. Without the red case the test may be vacuous; without the
+green case you have not shown the red came from the property rather than the environment.
 
 ### 2. Reads what it writes
 Assert the gate parses a path the tool actually produces. Compare the parsed path against the real

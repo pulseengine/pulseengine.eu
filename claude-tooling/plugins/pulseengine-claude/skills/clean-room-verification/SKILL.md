@@ -3,7 +3,7 @@ name: clean-room-verification
 description: This skill should be used whenever findings, audits, code-review results, claims, or analysis output need to be validated before reporting — including "verify this", "double-check this", "audit", "is this actually true", "before I report this", "before we merge this", or whenever an agent's summary needs independent confirmation. ALWAYS use this skill before delivering non-trivial inspection results, before claiming a property holds, and whenever agent-produced hashes, digests, versions, file paths, or flag names appear in a report.
 metadata:
   author: pulseengine.eu
-  version: "0.1.0"
+  version: "0.2.0"
 ---
 
 # Clean-room verification
@@ -44,11 +44,24 @@ This is the smithy ritual in PulseEngine vocabulary. The point is to catch hallu
 - **An agent's summary describes intent, not what landed.** Check the diff. Check the file. Check the symbol. Check the digest.
 - **"It passed CI" is a statement about the gate's coverage that day, not a timeless guarantee.** Re-verify on the current artifact, not on the historical green check.
 - **Evidence-backed "blocked" beats forced "done."** If verification surfaces a real blocker, report the blocker — that's the honest path the user explicitly prefers.
+- **In a solo-agent-authored repo, this stops being on-demand and becomes a release gate.** Automation
+  can close almost every gap in such a repo except one: **the authoring agent assigning itself
+  `verified` status.** No mutation score, coverage number or green board closes that — it is a
+  structural independence gap, and it is the finding that repeated audits keep returning. The
+  standing expectation: a release's scope gets a fresh-context reviewer who re-derives every claimed
+  verdict from evidence (runs the named tests, re-checks the oracles, attempts to refute), with
+  **reviewer identity, date and outcome recorded on the artifacts** — and the release gate refuses a
+  scope whose independent review is absent or dissenting. Canonical statement: varve's
+  `REQ-INDEP-001`, *"No requirement is verified on the author's word alone"* (approved, v0.14.0).
+  This is the strongest independence achievable without a second human; treat it as the default for
+  any repo where one agent both writes and blesses the work.
 
 ## Anti-patterns
 
 - Skipping verification because "the agent ran successfully." The agent's exit code is not evidence the claim is true.
 - Re-using the verifier's *own* prior context to verify its findings. The whole point is clean-room.
+- **Marking a requirement `verified` on the strength of having implemented it.** Authorship and
+  verification collapsing into one agent is the gap; a stronger mutation score does not fill it.
 - Burying the verifier's verdict in a footnote. Lead with what was independently confirmed; the rest is suspected.
 - Verifying with a soft oracle (asking an LLM to read the spec back). See [`oracle-gate-a-change`] — mechanical oracle preferred.
 
