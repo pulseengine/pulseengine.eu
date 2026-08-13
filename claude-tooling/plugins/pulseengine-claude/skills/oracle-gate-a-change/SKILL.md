@@ -3,7 +3,7 @@ name: oracle-gate-a-change
 description: This skill should be used whenever proposing, designing, landing, or evaluating a consequential change on a PulseEngine project (rivet, spar, witness, sigil, meld, loom, synth, wohl) — including "propose a change", "add a feature", "fix a bug", "is this safe to land", "what verifies this", "what's the gate", "how do we know this is correct", "before merging this", or whenever a code change needs a mechanical check to back it. ALWAYS use this skill before claiming a property holds and before recommending a change be merged.
 metadata:
   author: pulseengine.eu
-  version: "0.4.0"
+  version: "0.5.0"
 ---
 
 # Oracle-gate a change
@@ -87,6 +87,13 @@ see [`gate-potency`] for auditing checks that are already live.
 
 Per PulseEngine methodology, every claim should carry a falsifiable kill-criterion: "this claim would be wrong if X is observed." This is required for the philosophy to compose — without kill-criteria the falsification stance is empty.
 
+**The prompt that generates the good ones:** *name the thing that would still be false if every
+check you can run passes.* That question is what produces criteria worth having, and it is the step
+most often skipped — a criterion derived from the checks you already have can only restate them.
+
+Where the answer is a check **someone else** must run, say so in the requirement and treat it as
+blocking: see [`traceability-audit`] on externally-owned criteria.
+
 Examples:
 - "AlertDispatcher dedup is correct" → kill-criterion: "if Verus flags a duplicate-acceptance path."
 - "Cross-language LTO eliminated gale symbols" → kill-criterion: "if `nm zephyr.elf | grep gale_` returns non-zero."
@@ -98,6 +105,43 @@ Only the diff that flips the oracle from red to green counts. Specifically:
 - If the oracle was already green before the change: the change must add a new oracle that goes red→green on this diff, or this change isn't actually verified.
 - If the oracle was red: the change should flip it green. If green wasn't reached, the change isn't ready.
 - If the oracle's behavior was unchanged: the change is doing something the oracle doesn't measure. Either expand the oracle or shrink the claim.
+
+### 4b. Record *which* oracle — a version-less claim is unfalsifiable
+
+The skill has always said to run the oracle. It never said **which build of it**. Citing a tool
+result as evidence without its version is the same error as citing a benchmark without hardware.
+
+- **Record the tool version alongside the result**, and state explicitly whether it matches what CI
+  runs. `<tool> --version`; under a pin, `varve which <tool>` gives the layer and manifest digest.
+- **A local pass on a different version is `suspected`, not `verified`.** This is the same
+  distinction this skill already draws between *"the oracle passed"* and *"the gate passed"* — it
+  just extends to *which* oracle.
+
+**Measured, not hypothetical.** Three rivet versions over one identical tree (varve @ `a640673`,
+158 artifacts):
+
+| rivet | result | exit |
+|---|---|---|
+| 0.19.0 | **FAIL** — 60 errors, 62 warnings | 1 |
+| 0.28.0 | **FAIL** — 60 errors, 72 warnings | 1 |
+| 0.32.0 | **PASS** — 72 warnings | 0 |
+
+The verdict *flips*, not just the counts — so "I ran the oracle and it passed" can be false in
+either direction:
+
+- **An old binary's FAIL can be an artifact of its own schema, not a finding.** Here the errors are
+  `unknown artifact type 'verification'` — 0.19 rejects a type the newer schema ships. Chasing that
+  as a defect burns a cycle on a tool gap.
+- **An old binary's PASS can miss rules it never implemented.** The silent direction, and the
+  dangerous one, because it ships as evidence.
+
+Both are the schema-capability question [`traceability-audit`] step 0 already asks — the same check,
+one layer down: *does this binary implement the rules I am claiming it enforced?*
+
+**Watch the pin direction.** When CI pins old and developers run new, the required gate becomes the
+**laxest** check in the system — a local run catches strictly more than the thing that can block a
+merge, inverting what pinning is for. Field case: relay's `verification-gate.yml` and `release.yml`
+pin rivet **v0.19.0** while the current layer ships **0.32.0**.
 
 ### 5. Verify before reporting "done"
 

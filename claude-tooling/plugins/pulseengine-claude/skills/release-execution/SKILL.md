@@ -3,7 +3,7 @@ name: release-execution
 description: This skill should be used when cutting, shipping, or finishing a release — including "ship it", "cut a release", "tag this", "release v0.X.Y", "take this to release", "work the PR queue to green", "finish the release tail", "publish", or any end-to-end release work that involves PRs, reviewers, merging, CI, tagging, GitHub Release, and crates.io publish. ALWAYS use this skill when the user authorizes autonomous release work or asks to "go as long as you can" on a release campaign.
 metadata:
   author: pulseengine.eu
-  version: "0.2.0"
+  version: "0.3.0"
 ---
 
 # Release execution
@@ -68,6 +68,13 @@ The release does not get tagged until the V-model is closed for everything it cl
   - implementation → verification evidence → up the right side of the V: test(s) linked via `verifies`, witness MC/DC truth-table with zero unresolved gap rows for any new decision, sigil attestation for any new build artifact.
 - The gate is **mechanical, not narrative**: an `approved`/`implemented` artifact with no `verifies` link, an untested branch (witness gap row), a requirement with no architecture above it, or an implementation with no requirement tracing to it is a **release blocker** — not a follow-up. Fix the trace or the test, or explicitly demote the artifact's status, before tagging.
 - The rivet **compliance report** (the signed bundle the release-artifact pipeline produces, surfaced on pulseengine.eu) is the human-readable view of this gate. The report passing is necessary; the per-artifact check above is what makes it sufficient.
+- **Record the toolchain that produced the evidence, not just the evidence.** *"Which toolchain
+  qualified this artifact?"* is an assessor question, and it must be answerable from the release
+  record alone. A manifest naming `rustc` and `cargo-component` while rivet, spar, meld and
+  wasm-tools stay invisible does not answer it. Under a pin, the layer name + manifest digest
+  (`varve which <tool>`) is that answer in one line; without one, list the tool versions explicitly.
+  A gate result quoted without the binary that produced it is not reproducible — see
+  [`oracle-gate-a-change`] step 4b for the measured case where the verdict flips between versions.
 - If a *tool* can't express or verify part of the chain, that's friction → [`report-tool-friction`], then carry on with the gate.
 
 The level-by-level closure rules — every requirement decomposed to architecture/design/code, and verified up through **unit, integration, and requirements-qualification** tests (with passing results), not just "has a `verifies` link" — are defined in [`traceability-audit`]; this gate is that audit run before tagging. It composes [`pulseengine-feature-loop`] (which produces the artifacts this gate audits) and [`clean-room-verification`] (verify the "the V is closed" claim cold, don't infer it from a green dashboard).
@@ -85,6 +92,29 @@ mutation score or green board closes.
   later rather than asserted now.
 - **Absent or dissenting review blocks the tag**, exactly like a broken trace link. Canonical
   statement: varve's `REQ-INDEP-001` — *"No requirement is verified on the author's word alone."*
+
+### 4c. Published-contract check (blocking — before tag, not in the tail)
+
+Ask, explicitly: **does this release change something a downstream consumer binds to?** Registry
+path, namespace, interface identity, artifact name, media type, `:latest` semantics. If yes, tell
+the consumers **before** tagging — and prefer dual-publishing (or an alias) through a transition
+over a clean cut.
+
+Step 8 treats dependent-repo updates as tail cleanup. That is too late by construction: once tagged,
+the artifact is already the thing they cannot find, and the failure surfaces as *their* bug report.
+
+Field case — the whole lesson in one release: publishing moved from flat
+`ghcr.io/<org>/<product>-<stage>` to nested `<product>/<stage>`. It **moved**; it did not
+dual-publish. The flat repositories froze at the previous release with a stale `:latest` still
+resolving, so the consumer checked exactly the paths they had been given, saw nothing new, and
+reported that publishing looked *"stalled"* two releases back. They were right for the contract they
+held.
+
+The instructive part: a WIT **namespace rename** in the same release *was* pre-announced, carefully,
+with a before/after table. The **path move** was not. Only the unannounced one caused harm —
+announcing one breaking change made the coordination feel handled. So make it a checklist item, not
+a judgement call: enumerate *every* published surface this release touches, not the one you happened
+to be thinking about.
 
 ### 5. Tag and release
 - **First assert the campaign invariants** ([`pulseengine-operating-contract`] → "Verify the machinery"): the protected branch's `required_status_checks.contexts` is non-empty (the gate is real), **HEAD's CI completed `success`** — not `cancelled` by a merge-train `cancel-in-progress`, which leaves the commit unverified — and everything previously claimed "released" actually carries a tag + a `success` run. A green-looking dashboard over an empty gate or a cancelled HEAD run is not a tag-able state.

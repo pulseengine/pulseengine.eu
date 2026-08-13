@@ -3,7 +3,7 @@ name: pulseengine-feature-loop
 description: This skill should be used when doing a feature end-to-end on a PulseEngine project (rivet, spar, witness, sigil, meld, loom, synth, wohl, kiln) — including "implement a feature", "add a new requirement", "extend the architecture", "write a new pass", "ship a feature end-to-end", "do this properly with traceability", "model-driven implementation", or any feature work that should pass through the full AADL → WIT → typed traceability → oracle-gated code → MC/DC → attestation → verify loop. ALWAYS use this skill when the user authorizes feature work on a PulseEngine project and the work touches more than a single file.
 metadata:
   author: pulseengine.eu
-  version: "0.3.0"
+  version: "0.4.0"
 ---
 
 # PulseEngine feature loop
@@ -120,6 +120,13 @@ Then, the moment the oracle is green:
 rivet coverage --tests    # marker → requirement map; the burn-down list
 rivet verify REQ-001      # advances implemented → verified, opt-in and auditable
 ```
+
+**If a criterion belongs to another project, say so in the requirement and hold
+the artifact at `implemented`.** The loop is shaped for one repo; the work often
+is not. A criterion only a downstream consumer can run is not missing evidence —
+it is evidence that is not yours to produce, and promoting without it asserts
+exactly the property you did not check. See [`traceability-audit`] →
+*"Verified is not always decidable inside this repo."*
 
 `rivet verify` **refuses without evidence** — *"no verifying evidence. Add an
 incoming `verifies` link … or a `// rivet: verifies REQ-001` marker"* — so this

@@ -3,7 +3,7 @@ name: traceability-audit
 description: This skill should be used to ensure the rivet traceability graph is COMPLETE and bidirectional across the whole V — requirement → architecture → design → code, and back up through unit, integration, and system/requirements-qualification tests — for ANY safety standard the project targets (DO-178C aerospace, ISO 26262 automotive, EN 50128 rail, IEC 61508 functional-safety, IEC 62304 medical, ASPICE, SOTIF, EU AI Act), including components certified to several at once. Use it both while authoring (research/exploration phase — add findings and wire their linkages as you go) and as the blocking check before a release. Use it whenever the question is "are all the rivet artifacts in and properly linked", "is every requirement designed/implemented/tested at each level", "did we capture this finding into rivet", or before tagging when the V-model gate must hold. It defines the closure rules the release V-model gate enforces; pair with oracle-gate-a-change (rivet check is the oracle) and proof-synthesis (proofs are right-side evidence alongside tests).
 metadata:
   author: pulseengine.eu
-  version: "0.2.0"
+  version: "0.3.0"
 ---
 
 # Traceability audit
@@ -104,6 +104,49 @@ re-derive them by eye**:
 debt this audit exists to find — one repo shipped on `FAIL (0 errors, 87
 warnings, 33 broken cross-refs)` where the warnings *were* the unmapped
 verification.
+
+## "Verified" is not always decidable inside this repo
+
+The audit above assumes the V closes here. For anything with a downstream consumer it often does
+not: a requirement can carry a criterion **only another project can run**. That is not a gap in the
+evidence — it is the evidence being *someone else's to produce*, and it must be a declared state
+rather than the author's judgement call.
+
+**The block already works.** `rivet verify` refuses to promote without evidence — measured:
+
+```
+$ rivet verify REQ-EXT-001
+error: refusing to verify 'REQ-EXT-001': no verifying evidence. Add an incoming `verifies` link
+       from a test/verification artifact, or a `// rivet: verifies REQ-EXT-001` marker …
+exit 1
+```
+
+So the mechanism is there; what rivet has no field for is **who owns the unrun criterion**. Note
+`external-anchor` is *not* it — that type models the **inbound** boundary (a supplier's requirements
+handed to us: `source-of-truth`, `received-as-reqif`, `received-as-polarion-export`). The outbound
+case — a criterion owed by a downstream consumer — has no typed home today. Until it does:
+
+- **Name the criterion and its owner in the requirement itself**, not in a PR comment or a head.
+- **Hold the artifact at `implemented`.** Never `verified`, however green everything you *can* run is.
+- **Tag it** (e.g. `cross-project`) so the set is queryable, and treat it as a release blocker in
+  [`release-execution`] rather than a footnote.
+
+**Why this earns its place.** A requirement demanded that a fused cascade stay rebasable; its
+criterion — *"`meld fuse --address-rebase` accepts the fused cascade"* — belonged to a different
+project. Every in-repo check was green: all six components verified byte-for-byte from the registry,
+component header present, **0** `memory.grow`, **0** `wasi:*`, cosign-verified to the tagged commit.
+Calling it `verified` would have been entirely defensible. It was held at `implemented` solely
+because that one criterion was unrun. Then the other project ran it:
+
+```
+Error: Fusion failed
+  'mixer.wasm' … carries no relocation metadata (linking/reloc.*);
+  its absolute addresses cannot be rebased safely
+```
+
+Zero `memory.grow` was **necessary but not sufficient** — all six components had
+`reloc-sections=0`. Promoted on in-repo evidence, the trace would have asserted precisely the
+property that was false, and it would have surfaced on hardware instead of in two days.
 Treat any open edge as a finding. For **every `approved`/`implemented`
 artifact**, both directions must close:
 
