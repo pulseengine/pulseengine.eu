@@ -1,6 +1,6 @@
 ---
 name: pulseengine-toolchain
-description: "The single roster of what each pulseengine tool does — rivet, spar, witness, sigil, meld, loom, synth, kiln, gale, scry, smithy, thrum, temper, mcp, wohl. Directory only; the compose-loop procedure lives in the pulseengine-feature-loop skill."
+description: "The single roster of what each pulseengine tool does — rivet, spar, witness, sigil, meld, loom, synth, kiln, gale, scry, ordeal, varve, smithy, temper, mcp, wohl (and thrum, archived). Directory only; the compose-loop procedure lives in the pulseengine-feature-loop skill."
 metadata:
   node_type: memory
   type: reference
@@ -35,7 +35,7 @@ Map of the PulseEngine tools. Each lives in `/Users/r/git/pulseengine/<name>` on
 
 **scry** — sound **abstract interpretation** for Wasm (Cousot framework) — the third DO-333 formal-methods leg alongside deductive proof (gale) and structural coverage (witness). Computes invariants over the fused Wasm Core module, feeds them to loom and sigil-signed evidence to rivet. A named backend in `proof-synthesis`. Runs witness MC/DC as a live CI gate.
 
-**thrum** — observability / unified dashboard (`thrum-api`) over the toolchain; also the design-system source for the pulseengine.eu site.
+**thrum** — **ARCHIVED** (verified 2026-08-18). Was the observability / unified dashboard (`thrum-api`) over the toolchain, and remains the design-system source the pulseengine.eu site's colours came from. Do not file issues against it and do not treat it as a live tool; a `thrum` binary may still be installed locally from before it was retired.
 
 **temper** — GitHub App that hardens org repos to standards (dependabot routing, config, auto-merge). Org automation, not a per-project CLI.
 
