@@ -23,11 +23,50 @@ Any tool that emits results a gate might parse offers it, and advertises it in *
 `--help` — not only on a subcommand, where nobody looks first. Grep-scraping human output is how
 gates go vacuous.
 
-**4. `verify` is the shared verb** for "check this artifact against its evidence." Already true of
-six of nine tools; keep it. Domain-specific verbs (`analyze`, `inspect`, `fuse`) stay
-domain-specific — the convention governs the shell of the CLI, not its vocabulary.
+**4. Subcommand vocabulary is shared — and a name means one thing across the toolchain.**
+Where a concept already has a name, reuse it rather than inventing a synonym; where you need a new
+concept, do not reuse a name that means something else somewhere. Already established by use:
 
-**5. Enforce 1–2 mechanically at release.** A release job that runs the freshly built binary and
+| verb | tools | meaning |
+|---|---|---|
+| `verify` | loom, rivet, spar, synth, witness, wsc | check an artifact against its evidence |
+| `keygen` | witness, wsc | generate a signing keypair |
+| `attest` | witness, wsc | produce a signed statement about an artifact |
+| `diff` | rivet, spar, witness | compare two versions and report the delta |
+| `lsp` / `mcp` | rivet, spar | expose the tool to editors / agents |
+
+**Live collision to fix, not to copy:** `bundle` means *"an artifact plus its link-graph closure"*
+in rivet and *"a trust bundle for air-gapped verification"* in wsc. Same word, unrelated concepts,
+in one toolchain a user drives in one session. Domain-specific verbs (`fuse`, `instrument`,
+`allocate`, `disasm`) need no permission — the rule is about **collisions and synonyms**, not about
+flattening vocabulary.
+
+**5. Embedded docs are `<tool> docs`, with `docs <topic>` for a topic.**
+Shipping documentation inside the binary is one of the best things this toolchain does — it works on
+a fresh machine with no repo — but it is spelled three ways today: rivet has `docs` *and*
+`quickstart`, witness has only `quickstart`, wsc has only `docs`. Converge on **`docs`** as the
+command and topics beneath it; a bare `quickstart` alias for `docs quickstart` is fine (rivet's
+shape). Agents and users should not have to guess which tool spells it which way.
+
+**6. `--help` is user-facing, not a changelog or a traceability surface.**
+Command descriptions say **what the command does**, in a first sentence that stands alone. They do
+not carry requirement IDs, issue numbers, version tags, or repo-relative doc paths — that
+provenance belongs in rivet artifacts, the CHANGELOG, and `docs`, all of which already hold it
+properly. Measured leakage today: rivet's help carries **6 `REQ-*` ids and 7 issue refs**; witness
+opens descriptions with their release provenance, e.g.
+
+    cross-check   v0.36 (REQ-058) — cross-check two run JSON files from different backends
+
+The reader wants the verb, not the ticket. Keep the traceability — move it to where it is queryable
+(`rivet get REQ-058` answers this better than help text ever will).
+
+**7. Help lines wrap at 100 columns; a command's description is one sentence.**
+Detail belongs in `<tool> <cmd> --help` and `docs`, not in the top-level list. Measured: witness has
+a single line of **497 characters** and 16 lines over 100 columns; rivet peaks at **405** with 11
+over. kilnd, loom, meld, ordeal and wsc are all under 80 with none over — so this is achievable and
+already achieved by five of nine.
+
+**8. Enforce 1–2 mechanically at release.** A release job that runs the freshly built binary and
 asserts `--version` equals the tag being released. This is the fix varve adopted after shipping a
 v0.14.0 binary that reported `0.13.1` (pulseengine/varve#38) — a `version-guard` job plus the
 artifact-level assert. Without it, rule 1 is a request; with it, it cannot regress.
