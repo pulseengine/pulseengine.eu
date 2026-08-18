@@ -3,7 +3,7 @@ name: pulseengine-feature-loop
 description: This skill should be used when doing a feature end-to-end on a PulseEngine project (rivet, spar, witness, sigil, meld, loom, synth, wohl, kiln) — including "implement a feature", "add a new requirement", "extend the architecture", "write a new pass", "ship a feature end-to-end", "do this properly with traceability", "model-driven implementation", or any feature work that should pass through the full AADL → WIT → typed traceability → oracle-gated code → MC/DC → attestation → verify loop. ALWAYS use this skill when the user authorizes feature work on a PulseEngine project and the work touches more than a single file.
 metadata:
   author: pulseengine.eu
-  version: "0.4.0"
+  version: "0.5.0"
 ---
 
 # PulseEngine feature loop
@@ -135,6 +135,12 @@ discharges only part of the requirement. If the loaded schema has no
 verification type at all, that is the finding: see [`traceability-audit`] step 0.
 
 ### 4. Write the code, oracle-gated per change
+
+**If the feature touches a tool's command line, conform to [`pulseengine-cli-conventions`]** —
+`--version`/`-V` print `<binary-name> <semver>` and exit 0, `--help` exits 0, unknown flags exit
+2, structured output is `--format json`. A new subcommand that invents its own flag spelling is
+a defect the day it lands, and the convention is cheap to meet while the code is open.
+
 
 Per [`oracle-gate-a-change`]:
 - Identify the mechanical oracle for each property the code claims (rivet check / Kani / Verus / fuzz / witness gap / sigil verify / `nm` symbol check).

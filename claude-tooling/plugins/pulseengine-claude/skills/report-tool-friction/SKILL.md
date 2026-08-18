@@ -3,7 +3,7 @@ name: report-tool-friction
 description: This skill should be used whenever a PulseEngine tool (rivet, spar, witness, sigil, meld, loom, synth, kiln, gale, scry, ordeal, varve, smithy, temper — the roster lives in the pulseengine-toolchain memory) produces friction during real work — it errors, crashes, produces wrong or surprising output, is missing a capability you needed, has confusing/undocumented behavior, or forced you into a workaround. ALWAYS use this skill the moment you notice yourself working *around* a tool instead of *with* it, or saying "this should just work but doesn't." The friction is the signal; capturing it as an issue in the tool's own repo is the action. Fires inside [`pulseengine-feature-loop`] and [`release-execution`] and any standalone tool use.
 metadata:
   author: pulseengine.eu
-  version: "0.4.0"
+  version: "0.5.0"
 ---
 
 # Report tool friction
@@ -118,6 +118,10 @@ Filing the issue is not a stop point. Note the workaround in the issue, apply it
 - **Batching everything to the end of the session.** You forget the specifics; repros decay. File when you hit it.
 - **Filing in the consuming repo instead of the tool repo.** The fix lives where the tool lives.
 - **Filing without searching for a dupe.** Noise erodes the signal of the `tool-friction` label.
+- **A CLI that breaks [`pulseengine-cli-conventions`] is friction, not taste.** `--version` that
+  errors or prints no version, an unknown flag exiting 1 instead of 2, structured output missing
+  or spelled differently — these are filable defects with a named baseline behind them, and they
+  block evidence recording. Do not soften them into preferences.
 - **Turning every preference into friction.** Friction is "the tool failed at what it's for," not "I'd have designed it differently." Disagreements about design are a different conversation.
 - **Pausing the real work to perfect the issue.** Capture, link, continue. A terse-but-real issue beats a polished one you never filed.
 

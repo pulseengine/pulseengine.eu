@@ -113,6 +113,13 @@ result as evidence without its version is the same error as citing a benchmark w
 
 - **Record the tool version alongside the result**, and state explicitly whether it matches what CI
   runs. `<tool> --version`; under a pin, `varve which <tool>` gives the layer and manifest digest.
+- **`--version` is not universal in this toolchain — prefer the layer identity.** Measured across
+  layer `2026.08.2`: `--version` works on 6 of 9 tools, **errors** on `ordeal` (exit 2) and `spar`
+  (exit 1), and prints no version at all on `kilnd`. `ordeal`'s version appears only as the first
+  line of `--help`; `spar` and `kilnd` expose none anywhere. So a rule built on `--version` alone is
+  unexecutable for a third of the toolchain — `varve which <tool>` (layer + manifest digest) is the
+  identity that exists for **all** of them, and is more precise anyway. The baseline every tool
+  must meet is [`pulseengine-cli-conventions`]; tracked as pulseengine.eu#167.
 - **A local pass on a different version is `suspected`, not `verified`.** This is the same
   distinction this skill already draws between *"the oracle passed"* and *"the gate passed"* — it
   just extends to *which* oracle.
