@@ -3,7 +3,7 @@ name: release-execution
 description: This skill should be used when cutting, shipping, or finishing a release — including "ship it", "cut a release", "tag this", "release v0.X.Y", "take this to release", "work the PR queue to green", "finish the release tail", "publish", or any end-to-end release work that involves PRs, reviewers, merging, CI, tagging, GitHub Release, and crates.io publish. ALWAYS use this skill when the user authorizes autonomous release work or asks to "go as long as you can" on a release campaign.
 metadata:
   author: pulseengine.eu
-  version: "0.3.0"
+  version: "0.3.1"
 ---
 
 # Release execution
@@ -79,7 +79,7 @@ The release does not get tagged until the V-model is closed for everything it cl
 
 The level-by-level closure rules — every requirement decomposed to architecture/design/code, and verified up through **unit, integration, and requirements-qualification** tests (with passing results), not just "has a `verifies` link" — are defined in [`traceability-audit`]; this gate is that audit run before tagging. It composes [`pulseengine-feature-loop`] (which produces the artifacts this gate audits) and [`clean-room-verification`] (verify the "the V is closed" claim cold, don't infer it from a green dashboard).
 
-### 4b. Independence gate (blocking — solo-agent-authored repos)
+### 4b. Independence gate (solo-agent-authored repos — recorded now, blocking when the project says so)
 
 Step 4 checks that the V is *closed*. This checks **who closed it**. Where one agent both authored
 the work and marked it `verified`, that status carries no independent evidence — the one gap no
@@ -90,8 +90,13 @@ mutation score or green board closes.
   author's summary.
 - **Record reviewer identity, date and outcome on the artifacts**, so independence is auditable
   later rather than asserted now.
-- **Absent or dissenting review blocks the tag**, exactly like a broken trace link. Canonical
-  statement: varve's `REQ-INDEP-001` — *"No requirement is verified on the author's word alone."*
+- **Record the verdict even when it is not yet enforced.** The canonical statement — varve's
+  `REQ-INDEP-001`, *"No requirement is verified on the author's word alone"* — is explicit that at
+  v0.x the recorded verdict is **advisory**: a missing or dissenting review is *visible but
+  non-blocking*, with the refute-and-block gate deferred to v1.0 alongside the root ceremony. Adopt
+  it the same way: **the auditable trail is the deliverable**, and claiming the gate is enforced
+  before it is would be the exact overclaim this step exists to prevent. Make it blocking when the
+  project says it is.
 
 ### 4c. Published-contract check (blocking — before tag, not in the tail)
 
