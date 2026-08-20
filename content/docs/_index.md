@@ -9,11 +9,8 @@ sort_by = "weight"
 
 How the ecosystem fits together — from modeling a system to shipping a compliance report.
 
-- [Overview](/docs/guide/) — what PulseEngine is, how the pieces connect
-- [Model your architecture](/docs/guide/architecture/) — validate before you write code
-- [Verify your code](/docs/guide/verify/) — three proof paths, every commit
-- [Trace to evidence](/docs/guide/trace/) — requirements to tests to audit trail
-- [Ship compliance](/docs/guide/compliance/) — the report generates itself
+- [Overview](/docs/guide/) — what PulseEngine is, how the pieces connect, and how gale and relay use it
+- [Formal Verification Guide for AI Agents](/guides/verification-guide/) — the working reference: error tables, proof tactics, the Rust subset intersection, and the Bazel rules
 
 ## Tool Reference
 

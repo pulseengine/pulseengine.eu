@@ -11,6 +11,8 @@ Three modes:
       A draft is "scheduled" when ready = true, hold is not true, date > today.
       A draft is "held"      otherwise — no ready flag, ready = false, an
                              explicit hold = true, or ready but missing a date.
+                             The report splits this bucket: `hold = true` is a
+                             decision, a missing `ready` is an omission.
       The absence of `ready` is the default, so forgetting it can never
       publish a post early; you have to opt in.
 
@@ -133,11 +135,33 @@ def render_report(inventory: dict, published: list[dict], run_url: str) -> str:
         lines.append("- _none_")
     lines.append("")
 
+    # Two very different states used to render identically as `∞ Held`:
+    # a post parked on purpose (`hold = true`) and a finished post that
+    # simply never got `ready = true`. Collapsing them is how a post rots —
+    # one measured instance sat 101 days while this report was green daily.
+    # An omission needs an action; a hold does not. Show them apart.
     held = inventory["held"]
-    lines.append(f"**Held ({len(held)}):**")
-    if held:
-        for p in held:
-            lines.append(f"- ∞ · `{p['slug']}` — {p['title']}")
+    parked = [p for p in held if p.get("hold")]
+    unmarked = [p for p in held if not p.get("hold")]
+
+    lines.append(f"**Held on purpose — `hold = true` ({len(parked)}):**")
+    if parked:
+        for p in parked:
+            lines.append(f"- ⏸ · `{p['slug']}` — {p['title']}")
+    else:
+        lines.append("- _none_")
+    lines.append("")
+
+    lines.append(f"**Not yet marked `ready = true` ({len(unmarked)}):**")
+    if unmarked:
+        lines.append(
+            "_These will never publish until someone adds `ready = true`. "
+            "If that is deliberate, set `hold = true` instead so it stops "
+            "showing up here as an omission._"
+        )
+        for p in unmarked:
+            age = f"{p['date']} · " if p.get("date") else "no date · "
+            lines.append(f"- ⚠️ {age}`{p['slug']}` — {p['title']}")
     else:
         lines.append("- _none_")
     lines.append("")

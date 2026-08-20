@@ -9,7 +9,7 @@ authors = ["Ralf Anton Beier"]
 +++
 
 {% note(kind="tip") %}
-**Reading order for this stack** — if you arrived here cold, [*Three patterns colliding*](/blog/three-patterns-colliding/) is the synthesis: why this method belongs alongside Karpathy's LLM Wiki and typed compliance. This post is the method itself. The [v0.1.0 announcement](/blog/rivet-v0.1.0/) covers what rivet is and how to install it.
+**Reading order for this stack** — if you arrived here cold, [*Three patterns colliding*](/blog/three-patterns-colliding/) is the synthesis: why this method belongs alongside Karpathy's LLM Wiki and typed compliance. This post is the method itself. The [v0.1.0 announcement](/blog/rivet-v0-1-0/) covers what rivet is and how to install it.
 {% end %}
 
 {% insight() %}
