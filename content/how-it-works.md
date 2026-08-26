@@ -112,6 +112,32 @@ fused multi-memory yet.
 
 {{ pipeline() }}
 
+**The two bands read in opposite directions.**
+[sigil](https://github.com/pulseengine/sigil) spans *above* the line because it
+acts on what flows through it — attesting the artifacts the pipeline produces.
+[varve](https://github.com/pulseengine/varve) spans *below* because it delivers
+the boxes themselves: the exact meld, loom, synth and kiln binaries a build ran,
+as one signed, dated, digest-pinned layer. sigil answers *"is this component what
+it claims to be?"* — varve answers *"is the toolchain that produced it the one you
+think, on every machine and every runner?"* A packaging line, not another station
+on the assembly line.
+
+A per-project `varve.toml` names a realm and a layer; the realm supplies both the
+registry and the trust root, so no environment variable is involved. Outside a
+pinned project a shim **refuses** — `error: no varve.toml found walking up from …`,
+exit 1 — rather than silently running whatever is on PATH. Anti-rollback is
+offline: an older layer is rejected with no network and no clock.
+
+The limits are varve's own, and belong here rather than in a footnote. The
+**rolling channel is provisional and makes no qualification promise** — its root
+rotates at a v1.0 ceremony that has not happened, and the qualified channel is not
+open. There is **no key rotation, revocation, expiry, threshold or transparency
+log**, so a consumer pins the root by hand from a published asset and a leaked
+root stays valid until every consumer edits their own config. And the published
+layer carries the tools that *check* our work, not the upstream Bytecode Alliance
+tools that *build* it — layer composition across two trust roots ships in the
+tool, but what is published today is one realm.
+
 ### 4 · Verify — the gate
 
 Not one technique but several, deliberately independent, so no single blind spot
