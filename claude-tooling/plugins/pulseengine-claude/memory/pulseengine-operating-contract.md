@@ -150,6 +150,22 @@ requires; don't design for hypothetical futures. Only validate at true system
 boundaries (user input, external APIs), not internal code. Adjacent improvements
 are a scope grant the user makes, not one you take.
 
+## Ask the tool, don't parse its files
+Before reaching for `grep`, `jq`, `yq`, `sed` or a path glob over a PulseEngine tool's own data,
+check whether the tool answers the question directly — **it usually does, and we built it to.**
+Run `<tool> --help` and the tool's own docs command first (rivet ships `rivet docs`,
+`rivet quickstart`, `rivet context`; `--help` text on these tools is detailed and the error messages
+are instructional — read them rather than guessing syntax).
+
+Text-munging a tool's store is a **silent** failure mode: it reimplements one command badly, drifts
+the moment the schema moves, and yields untyped results that look authoritative. Measured instance:
+rivet exposes **52 commands** and these skills named **8** — so `rivet get`, `list`, `query`, `sql`,
+`impact`, `stats`, `bundle`, `next-id` and the whole `add`/`link`/`modify`/`remove` mutation family
+went unused in favour of ad-hoc greps, including by the agent writing this file.
+
+The tool's built-in docs are versioned with the binary; a skill is not. **When they disagree, the
+binary wins** — and the disagreement is a finding worth filing, not a detail to smooth over.
+
 ## Don't transcribe reasoning into the response
 Auditability here comes from tool results, rivet artifacts, proofs, and signed
 evidence — not a prose recap of the model's own thinking. Don't instruct a skill

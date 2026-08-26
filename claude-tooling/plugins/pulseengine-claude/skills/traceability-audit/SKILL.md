@@ -3,7 +3,7 @@ name: traceability-audit
 description: This skill should be used to ensure the rivet traceability graph is COMPLETE and bidirectional across the whole V — requirement → architecture → design → code, and back up through unit, integration, and system/requirements-qualification tests — for ANY safety standard the project targets (DO-178C aerospace, ISO 26262 automotive, EN 50128 rail, IEC 61508 functional-safety, IEC 62304 medical, ASPICE, SOTIF, EU AI Act), including components certified to several at once. Use it both while authoring (research/exploration phase — add findings and wire their linkages as you go) and as the blocking check before a release. Use it whenever the question is "are all the rivet artifacts in and properly linked", "is every requirement designed/implemented/tested at each level", "did we capture this finding into rivet", or before tagging when the V-model gate must hold. It defines the closure rules the release V-model gate enforces; pair with oracle-gate-a-change (rivet check is the oracle) and proof-synthesis (proofs are right-side evidence alongside tests).
 metadata:
   author: pulseengine.eu
-  version: "0.2.0"
+  version: "0.4.0"
 ---
 
 # Traceability audit
@@ -86,6 +86,44 @@ Symptoms that mean you are on this rock, not doing well:
 - every requirement tops out at `implemented`;
 - verification fields exist in the YAML but no rule reads them.
 
+## Use rivet's commands — not grep, jq, yq or sed over its YAML
+
+The single most common failure in practice is not a wrong audit — it is **hand-parsing the artifact
+files** when the tool answers the question directly. rivet ships **52 commands**; a text search over
+`artifacts/*.yaml` reimplements one of them badly, silently drifts when the schema moves, and
+produces counts that are not typed.
+
+**Start here, in the tool, not in this file:**
+
+```sh
+rivet docs                 # built-in topic list (artifact-format, cli, json-output,
+                           #   cross-repo, mutation, commit-traceability, audit, …)
+rivet docs <topic>         # the topic; `rivet docs cli` is the full command reference
+rivet quickstart           # the 10-step oracle-gated quickstart, shipped in the tool
+rivet context              # writes .rivet/agent-context.md from the project's current state
+rivet <cmd> --help         # every command; the errors are instructional, read them
+```
+
+`rivet docs` is authoritative and versioned with the binary — **this skill is not**. When they
+disagree, the binary wins, and that disagreement is itself the finding (see
+[`oracle-gate-a-change`] step 4b).
+
+**Reach for these instead of text munging:**
+
+| instead of | use | why |
+|---|---|---|
+| `grep -c '^  - id:' artifacts/*.yaml` | `rivet stats` | typed per-type counts, not a line count |
+| `grep -A6 REQ-123 artifacts/*.yaml` | `rivet get REQ-123` | resolved artifact incl. links and fields |
+| `grep`/`jq` for "all X with status Y" | `rivet query '(and (= type "requirement") (!= status "verified"))'` | s-expression filter over the real graph |
+| `jq` over exported JSON | `rivet query` / `rivet sql`, or `rivet docs json-output` | shares one engine with the MCP tool and doc embeds, so results agree |
+| eyeballing what a change touches | `rivet impact <ID>` | the graph knows |
+| hand-editing YAML to add/link artifacts | `rivet add` / `link` / `modify` / `remove` / `batch` (`rivet docs mutation`) | schema-checked; no broken indentation or duplicate IDs |
+| grepping for the next free ID | `rivet next-id <type>` | no collisions |
+| assembling a review packet by hand | `rivet bundle <ID>` | the artifact plus its link-graph closure |
+
+Hand-editing YAML is not forbidden — it is fine for bulk authoring — but **a read that a command
+answers should use the command**, and any mutation should be re-checked with `rivet validate`.
+
 ## Closure rules — the audit (mechanical; `rivet check` is the oracle)
 
 Run `rivet validate && rivet check && rivet coverage` for each declared schema.
@@ -104,6 +142,89 @@ re-derive them by eye**:
 debt this audit exists to find — one repo shipped on `FAIL (0 errors, 87
 warnings, 33 broken cross-refs)` where the warnings *were* the unmapped
 verification.
+
+## "Verified" is not always decidable inside this repo
+
+The audit above assumes the V closes here. For anything with a downstream consumer it often does
+not: a requirement can carry a criterion **only another project can run**. That is not a gap in the
+evidence — it is the evidence being *someone else's to produce*, and it must be a declared state
+rather than the author's judgement call.
+
+**The block already works.** `rivet verify` refuses to promote without evidence — measured:
+
+```
+$ rivet verify REQ-EXT-001
+error: refusing to verify 'REQ-EXT-001': no verifying evidence. Add an incoming `verifies` link
+       from a test/verification artifact, or a `// rivet: verifies REQ-EXT-001` marker …
+exit 1
+```
+
+**rivet already models this — use `externals:`, don't invent a convention.** Declare the other repo
+in `rivet.yaml` and link to the artifact that does not exist yet; the unresolved reference *is* the
+block. Run `rivet docs cross-repo` for the full topic.
+
+```yaml
+# rivet.yaml
+externals:
+  jess:
+    path: ../jess          # or: git: https://github.com/…  +  ref:
+    prefix: jess
+```
+
+```yaml
+# the requirement whose criterion is owed by jess
+links:
+  - type: traces-to
+    target: jess:VER-FUSE-REBASE-001
+```
+
+Measured, both directions:
+
+| state | `rivet validate` |
+|---|---|
+| jess has not run it (artifact absent) | **FAIL** — `1 broken cross-refs`, exit 1 |
+| jess publishes the verification artifact | **PASS**, exit 0 — and `rivet get jess:VER-FUSE-REBASE-001` resolves |
+
+So the promotion block is mechanical and *self-clearing*: it lifts exactly when the other party does
+the work, with no status edit by hand. Pin the external with `rivet lock` (commit SHAs) and refresh
+with `rivet sync`; `rivet validate` then checks cross-repo links, circular deps, ref conflicts and
+V-model completeness **across** repos, and `rivet baseline verify <name>` checks a baseline is
+consistent across them.
+
+Pick the right mechanism per link — rivet ships two and they are not interchangeable:
+
+| | `externals:` | `external-anchor` + `cited-source` |
+|---|---|---|
+| source | another **rivet** repo | any file — ReqIF, PDF, OSLC export |
+| pinned by | git commit SHA (`rivet lock`) | sha256 of the bytes |
+| use when | the other side is a rivet project and you want its whole graph | non-rivet supplier, or one delivered document |
+
+`external-anchor` is the **inbound** supplier boundary (`received-as-reqif`,
+`received-as-polarion-export`) — their requirements arriving here. A criterion *owed by a downstream
+consumer* is `externals:`.
+
+Then, still:
+
+- **Hold the artifact at `implemented`.** Never `verified`, however green everything you *can* run is.
+- **Name the criterion in the requirement itself**, so the reader knows what the unresolved link means.
+- Treat it as a release blocker in [`release-execution`] rather than a footnote.
+
+**Why this earns its place.** A requirement demanded that a fused cascade stay rebasable; its
+criterion — *"`meld fuse --address-rebase` accepts the fused cascade"* — belonged to a different
+project. Every in-repo check was green: all six components verified byte-for-byte from the registry,
+component header present, **0** `memory.grow`, **0** `wasi:*`, cosign-verified to the tagged commit.
+Calling it `verified` would have been entirely defensible. It was held at `implemented` solely
+because that one criterion was unrun. Then the other project ran it:
+
+```
+Error: Fusion failed
+  'mixer.wasm' … carries no relocation metadata (linking/reloc.*);
+  its absolute addresses cannot be rebased safely
+```
+
+Zero `memory.grow` was **necessary but not sufficient** — all six components had
+`reloc-sections=0`. Promoted on in-repo evidence, the trace would have asserted precisely the
+property that was false, and it would have surfaced on hardware instead of in two days.
 Treat any open edge as a finding. For **every `approved`/`implemented`
 artifact**, both directions must close:
 

@@ -1,6 +1,6 @@
 ---
 name: pulseengine-toolchain
-description: "The single roster of what each pulseengine tool does — rivet, spar, witness, sigil, meld, loom, synth, kiln, gale, scry, smithy, thrum, temper, mcp, wohl. Directory only; the compose-loop procedure lives in the pulseengine-feature-loop skill."
+description: "The single roster of what each pulseengine tool does — rivet, spar, witness, sigil, meld, loom, synth, kiln, gale, scry, ordeal, varve, smithy, temper, mcp, wohl (and thrum, archived). Directory only; the compose-loop procedure lives in the pulseengine-feature-loop skill."
 metadata:
   node_type: memory
   type: reference
@@ -35,7 +35,7 @@ Map of the PulseEngine tools. Each lives in `/Users/r/git/pulseengine/<name>` on
 
 **scry** — sound **abstract interpretation** for Wasm (Cousot framework) — the third DO-333 formal-methods leg alongside deductive proof (gale) and structural coverage (witness). Computes invariants over the fused Wasm Core module, feeds them to loom and sigil-signed evidence to rivet. A named backend in `proof-synthesis`. Runs witness MC/DC as a live CI gate.
 
-**thrum** — observability / unified dashboard (`thrum-api`) over the toolchain; also the design-system source for the pulseengine.eu site.
+**thrum** — **ARCHIVED** (verified 2026-08-18). Was the observability / unified dashboard (`thrum-api`) over the toolchain, and remains the design-system source the pulseengine.eu site's colours came from. Do not file issues against it and do not treat it as a live tool; a `thrum` binary may still be installed locally from before it was retired.
 
 **temper** — GitHub App that hardens org repos to standards (dependabot routing, config, auto-merge). Org automation, not a per-project CLI.
 
@@ -49,6 +49,11 @@ Two properties of varve are load-bearing for the other skills, both verified by 
 re-verified against v0.14.0 on 2026-08-12 (tamper still detected, realm still authoritative):
 
 - **No silent fallback.** Outside a pinned project a shim *refuses* — `error: no varve.toml found …`, exit 1 — rather than running whatever is on PATH. Inside one it dispatches and exits 0.
+- **Coverage boundary — state it, don't assume it.** The layer carries the PulseEngine tools that
+  *check* our work; it does **not** carry the upstream Bytecode Alliance tools that *build* it
+  (`wasm-tools`, `cargo-component`, `wkg`), which are often the ones whose behaviour decides what
+  actually ships. Tracked as pulseengine/varve#52. So `varve which <tool>` answers the provenance
+  question for rivet/spar/meld/synth/witness and not yet for the build chain.
 - **Realms beat the ambient environment.** When the pin names a `realm`, a committed `varve-realms.toml` supplies the registry *and* the trust root, and a hostile `VARVE_TRUST_ROOT` cannot substitute a different root. Negative control: the same bogus root makes `varve verify` exit 1 with no realm, and is ignored with one. Prefer the realm path — it needs no environment variable and is the stronger of the two.
 
 ## How they compose

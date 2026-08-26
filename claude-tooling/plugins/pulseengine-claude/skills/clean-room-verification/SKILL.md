@@ -3,7 +3,7 @@ name: clean-room-verification
 description: This skill should be used whenever findings, audits, code-review results, claims, or analysis output need to be validated before reporting — including "verify this", "double-check this", "audit", "is this actually true", "before I report this", "before we merge this", or whenever an agent's summary needs independent confirmation. ALWAYS use this skill before delivering non-trivial inspection results, before claiming a property holds, and whenever agent-produced hashes, digests, versions, file paths, or flag names appear in a report.
 metadata:
   author: pulseengine.eu
-  version: "0.2.0"
+  version: "0.3.0"
 ---
 
 # Clean-room verification
@@ -30,6 +30,14 @@ This is the smithy ritual in PulseEngine vocabulary. The point is to catch hallu
    - An explicit instruction: "Return one of `confirm`, `refute`, or `cannot-verify` per claim. Do not guess. `cannot-verify` is a valid and preferred answer over a guess."
 
 3. **Treat agent-produced artifacts as unverified claims.** Hashes, digests, version pins, file paths, flag names, symbol names — even when produced by a tool that *should* be authoritative — count as claims until checked against the real artifact. The verifier should pull the image, grep the binary, read the file, run the command.
+
+   **Including the version of the verifier itself** — the one nobody checks. A tool's own build is
+   as much a claim as anything it reports, and it decides what the report *can* say: an older binary
+   may not implement the rule you are relying on, or may flag a type it simply does not know. Record
+   `<tool> --version` (or `varve which <tool>` for the layer + digest) next to the verdict, and note
+   whether it matches CI. Measured: `rivet validate` on one unchanged tree returns **FAIL (exit 1)**
+   under 0.19.0 and **PASS (exit 0)** under 0.32.0. A verdict quoted without its binary is not
+   reproducible, and therefore not evidence.
 
 4. **Reconcile.** Compare the verifier's confirm/refute/cannot-verify against your draft findings:
    - `refute` → the claim is wrong; rewrite or drop it.

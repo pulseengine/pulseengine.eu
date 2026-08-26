@@ -3,7 +3,7 @@ name: release-artifact-pipeline
 description: This skill should be used when setting up, standardizing, auditing, or modifying a release artifact pipeline on a PulseEngine project — including "standardize release artifacts", "set up release workflow", "fix the release pipeline", "add cosign signing", "add SLSA attestation", "add SBOM", "switch to signed SHA256SUMS", "sign the wasm with sigil", "add a witness/scry gate to the release", "publish to crates.io / npm", "add a Pages verification dashboard", "audit release artifacts", "migrate off per-file .sha256 sidecars", or any GitHub Actions release.yml setup/refactor. ALWAYS use this skill when proposing or reviewing changes to a release.yml workflow, when adopting the PulseEngine release-artifact standard for a new repo, or before claiming a release pipeline is "compliant" or "signed". Covers all five tracks — native binaries, distribution channels (crates.io + npm), wasm signing (sigil + cosign) and wasm verification gates (witness MC/DC + scry), the Pages verification dashboard, and rivet verification extraction.
 metadata:
   author: pulseengine.eu
-  version: "0.3.0"
+  version: "0.4.0"
 ---
 
 # Release artifact pipeline
@@ -58,6 +58,25 @@ build-env.txt                          # rustc / cargo / cosign / runner version
 6. **Sign the sums file** — `cosign sign-blob --yes --bundle SHA256SUMS.txt.cosign.bundle --output-signature SHA256SUMS.txt.sig --output-certificate SHA256SUMS.txt.pem SHA256SUMS.txt` (keyless OIDC).
 7. **Record build environment** — write `build-env.txt` (rustc/cargo/cosign/runner versions).
 8. **Upload everything** — `gh release upload` over everything in `release-assets/`.
+
+### Required: the CLI baseline, asserted at release
+
+Every binary in the layer must meet [`pulseengine-cli-conventions`] — `--version`/`-V` print
+`<binary-name> <semver>` and exit 0, `--help` exits 0, an unknown flag exits 2, structured output is
+`--format json`. **Assert it in the release job rather than trusting it**, because a version string
+is exactly the thing that slips silently:
+
+- a **version-guard** step that fails the build when the git tag ≠ the workspace version, *before*
+  anything compiles; and
+- the artifact-level twin — run the **freshly built** binary and assert `--version` equals the tag
+  (native targets).
+
+Both come from varve's own slip: v0.14.0 shipped a binary reporting `0.13.1`, so `self-update`
+advertised the same upgrade forever (pulseengine/varve#38). Guarding the workspace version alone
+would not have caught it — the binary is the artifact, so the binary is what gets asked.
+
+A tool that cannot report its own version cannot appear in release evidence; see
+[`oracle-gate-a-change`] step 4b.
 
 ### Required workflow permissions
 
