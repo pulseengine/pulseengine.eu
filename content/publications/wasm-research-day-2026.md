@@ -8,6 +8,9 @@ template = "talk.html"
 [extra]
 event = "Wasm Research Day 2026"
 slot = "25 + 5, remote"
+# The recording, as published by the event. Tracking parameters stripped —
+# the canonical short form is what belongs in a permanent link.
+video = "https://youtu.be/z6fOKl5Hrk4"
 +++
 
 <section class="slide">
