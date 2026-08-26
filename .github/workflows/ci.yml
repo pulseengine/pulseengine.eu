@@ -30,3 +30,12 @@ jobs:
       # site when it was added, four of them on the nav-linked /docs/ page.
       - name: Check internal links
         run: python3 scripts/check-internal-links.py
+
+      # The marketplace manifest is the storefront an outsider's `/plugin
+      # install` reads, and nothing else validates it. Measured 2026-08-26: it
+      # advertised v0.12.0 / "fourteen procedural skills" while the plugin was
+      # v0.25.0 with sixteen — thirteen minor versions of silent drift. The
+      # cache keys on plugin.json, so this never failed anything; it was just
+      # wrong. Now it fails here.
+      - name: Check the plugin marketplace manifest
+        run: python3 scripts/check-plugin-manifest.py

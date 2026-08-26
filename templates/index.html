@@ -38,6 +38,48 @@
   </section>
   {% endif %}
 
+  <!-- The adoption path. The page above says what was built and shows the
+       evidence; this says the same thing can be run by someone else. Two
+       artifacts of different kinds, deliberately not flattened into one: varve
+       delivers the binaries, the plugin delivers the method. -->
+  <section class="landing__adopt">
+    <h2 class="adopt__heading">Run the same factory</h2>
+    <p class="adopt__lead">
+      The tools are open, and so is the way they are driven.
+    </p>
+
+    <div class="adopt__grid">
+      <div class="adopt">
+        <div class="adopt__label" style="color: var(--cyan)">the toolchain</div>
+        <a class="adopt__name" href="https://github.com/pulseengine/varve" rel="noopener">varve</a>
+        <p class="adopt__desc">
+          Nine tools as one signed, dated, digest-pinned layer. A per-project pin
+          decides which binaries run; outside a pinned project the shims
+          <em>refuse</em> rather than fall back to whatever is on PATH.
+        </p>
+        <code class="adopt__cmd">varve install</code>
+      </div>
+
+      <div class="adopt">
+        <div class="adopt__label" style="color: var(--purple)">the method</div>
+        <a class="adopt__name" href="https://github.com/pulseengine/pulseengine.eu/tree/main/claude-tooling" rel="noopener">pulseengine-claude</a>
+        <p class="adopt__desc">
+          Sixteen procedural skills, the methodology memory and the session
+          hooks &mdash; the loop that produced everything on this site, as an
+          installable Claude Code plugin.
+        </p>
+        <code class="adopt__cmd">/plugin marketplace add pulseengine-eu github.com/pulseengine/pulseengine.eu</code>
+      </div>
+    </div>
+
+    <p class="adopt__note">
+      The rolling channel is provisional and makes no qualification promise
+      &mdash; its trust root rotates at a v1.0 ceremony that has not happened,
+      and there is no key rotation or revocation yet.
+      <a href="{{ get_url(path='@/how-it-works.md') }}">How it works &rarr;</a>
+    </p>
+  </section>
+
   <!-- The links -->
   <nav class="landing__nav" aria-label="Explore PulseEngine">
     <a href="{{ get_url(path='@/projects/_index.md') }}">Projects</a>
@@ -109,6 +151,85 @@
     /* uses existing .grid and .glass-card styles */
   }
 
+  /* Adoption. Two cards, muted like the rest of the page — this is a
+     pointer, not a tutorial. Install blocks rot faster than anything else on
+     a site, so the commands here are the two that do not change per release. */
+  .landing__adopt {
+    text-align: center;
+  }
+
+  .adopt__heading {
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 0.5rem;
+  }
+
+  .adopt__lead {
+    font-size: 0.9rem;
+    color: var(--text-faint);
+    margin-bottom: 2rem;
+  }
+
+  .adopt__grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    text-align: left;
+  }
+
+  .adopt {
+    background: var(--surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: 12px;
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .adopt__label {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .adopt__name {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .adopt__desc {
+    font-size: 0.85rem;
+    color: var(--text-faint);
+    line-height: 1.6;
+    margin: 0;
+    flex: 1;
+  }
+
+  /* The plugin command is long and must not force the page to scroll
+     sideways; it wraps instead. */
+  .adopt__cmd {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--text-dim);
+    background: var(--bg);
+    border: 1px solid var(--border-subtle);
+    border-radius: 6px;
+    padding: 0.45rem 0.6rem;
+    overflow-wrap: anywhere;
+    line-height: 1.5;
+  }
+
+  .adopt__note {
+    font-size: 0.78rem;
+    color: var(--text-faint);
+    line-height: 1.7;
+    margin-top: 1.25rem;
+  }
+
   .landing__nav {
     display: flex;
     justify-content: center;
@@ -139,6 +260,10 @@
     .landing {
       gap: 3rem;
       padding-top: 3rem;
+    }
+
+    .adopt__grid {
+      grid-template-columns: 1fr;
     }
   }
 </style>
