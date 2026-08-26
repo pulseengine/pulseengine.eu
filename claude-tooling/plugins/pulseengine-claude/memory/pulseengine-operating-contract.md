@@ -25,6 +25,16 @@ the count early. (Cargo is just the example: `cargo test --no-fail-fast`, and ru
 one `cargo` at a time — concurrent invocations corrupt the incremental cache. The
 *rule* is exit-code-over-summary; the cargo bits are its instance.)
 
+**A tool result behind a claim is necessary, not sufficient.** The rule above
+catches a claim with no evidence; it does not catch a claim that *reaches
+further than its evidence* — a grep that cannot see the subprocess form of the
+thing it searched, a checker whose clean result came from matching nothing, a
+*cause* asserted from data that only shows the symptom, a confident row for a
+repo never probed. Five measured instances, one session, every one grounded in
+a tool result. Before a claim that generalizes, asserts a cause, asserts a
+negative, or reports a measurement as clean: name the instrument, name what it
+is blind to, and print the denominator. See [`verify-your-own-claims`].
+
 ## Never merge around a red or absent gate
 Merging happens **only** through passing required status checks. Never merge to
 bypass, clear, or unblock a queue, and never because you judged the work done —
