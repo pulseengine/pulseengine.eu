@@ -20,6 +20,13 @@
        anyone who arrives here from a link with no route back. This is that
        route. It fades once the deck is being driven; see _talk.scss. #}
     <a class="deck__home" href="{{ config.base_url }}/" title="Back to {{ config.title }}">&larr; pulseengine.eu</a>
+    {# The recording, when there is one. Mirrors deck__home in the opposite
+       free corner: a deck that drops the site nav should still offer the one
+       thing a reader who missed the talk actually wants. #}
+    {% if page.extra.video %}
+    <a class="deck__video" href="{{ page.extra.video }}" target="_blank" rel="noopener"
+       title="Watch the recording of {{ page.title }}">&#9654; Recording</a>
+    {% endif %}
     <div class="deck__stage" id="stage">
       {{ page.content | safe }}
     </div>

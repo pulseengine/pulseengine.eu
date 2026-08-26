@@ -470,6 +470,40 @@
 .deck.is-presenting .deck__home:hover,
 .deck.is-presenting .deck__home:focus-visible { opacity: 1; }
 
+// The recording link. Deliberately the same chrome as .deck__home rather
+// than a new visual language — it is the same kind of affordance (a way out
+// of the deck), so it fades under the same presenting rule and sits in the
+// only free corner: top-right (counter and nav are bottom-right, hint is
+// bottom-left).
+.deck__video {
+  position: absolute;
+  top: var(--safe-t);
+  right: var(--safe-r);
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  min-height: 44px;                 // same touch target as the deck controls
+  padding: 0 .85rem;
+  font-family: $font-mono;
+  font-size: .85rem;
+  line-height: 1;
+  color: $text-dim;
+  background: $surface;
+  border: 1px solid $border-subtle;
+  border-radius: 10px;
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  transition: color .15s ease, border-color .15s ease, opacity .2s ease;
+  z-index: 3;
+
+  &:hover { color: $text; border-color: $border; }
+}
+
+.deck.is-presenting .deck__video { opacity: .6; }
+.deck.is-presenting .deck__video:hover,
+.deck.is-presenting .deck__video:focus-visible { opacity: 1; }
+
 // ─── On-screen controls ───────────────────────────────────────────────
 // The only way to drive the deck on a tablet.
 
@@ -594,7 +628,7 @@
   .deck { position: static; }
   .deck__stage { display: block; }
   .slide { visibility: visible; opacity: 1; page-break-after: always; min-height: 100vh; }
-  .deck__progress, .deck__counter, .deck__hint, .deck__home { display: none; }
+  .deck__progress, .deck__counter, .deck__hint, .deck__home, .deck__video { display: none; }
 }
 
 // On a narrow screen (a tablet held in portrait) a long code line has nowhere

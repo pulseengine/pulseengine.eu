@@ -14,8 +14,11 @@
   <div class="grid">
     {% for page in section.pages %}
     <a href="{{ page.permalink }}" class="glass-card glass-card--link">
+      {# The whole card is one <a>, so the recording cannot be a nested link —
+         it is a marker saying one exists. The link itself lives on the deck. #}
       <div class="blog-card__date">
         {{ page.date | date(format="%B %d, %Y") }}{% if page.draft %} · draft{% endif %}
+        {% if page.extra.video %}<span class="badge badge--red">&#9654; recording</span>{% endif %}
       </div>
       <div class="glass-card__title">{{ page.title }}</div>
       <div class="glass-card__desc">{{ page.description }}</div>
