@@ -21,3 +21,12 @@ jobs:
 
       - name: Build
         run: zola build
+
+      # `zola build` does not validate links, and `zola check
+      # --skip-external-links` only understands Zola's `@/path.md` syntax —
+      # measured: it exits 0 with a deliberately dead `/docs/guide/compliance/`
+      # in content/docs/_index.md. Our content uses raw absolute hrefs, so that
+      # gate would be vacuous. This one is not: six dead links were live on the
+      # site when it was added, four of them on the nav-linked /docs/ page.
+      - name: Check internal links
+        run: python3 scripts/check-internal-links.py

@@ -1,10 +1,16 @@
 name: Blog auto-publish
 
-# Runs daily at 06:00 UTC. Scans content/blog/ for drafts; for any
-# post with `date <= today`, `draft = true`, and `hold` not set, it
-# opens an auto-merge PR that flips draft to false. Each publish
-# becomes its own PR/squash-merge so deploy fires per-post and the
-# audit trail is clean.
+# Runs daily at 06:00 UTC. Scans content/blog/ for drafts and publishes
+# a post ONLY when it has opted in: `draft = true`, `ready = true`,
+# `hold` not set, and `date <= today`. It then opens an auto-merge PR
+# that flips draft to false. Each publish becomes its own PR/squash-merge
+# so deploy fires per-post and the audit trail is clean.
+#
+# `ready = true` is the opt-in and is deliberate — forgetting it can never
+# publish a post early. The cost is the opposite failure: a finished post
+# with no `ready` sits forever while this job reports success daily (one
+# measured case ran 101 days). The status report therefore separates
+# `hold = true` (a decision) from a missing `ready` (an omission).
 #
 # Always posts a status report to a pinned issue (label
 # `autopublish-status`) using a bot-marker (`<!-- blog-cron-status -->`)

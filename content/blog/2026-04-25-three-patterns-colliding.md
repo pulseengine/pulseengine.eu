@@ -9,11 +9,11 @@ authors = ["Ralf Anton Beier"]
 +++
 
 {% note(kind="tip") %}
-**Reading order for this stack** — start here for the synthesis. Then [*Mythos slop-hunt: oracle-gated audits in practice*](/blog/mythos-slop-hunt/) for the audit method that produced PR #205. The [v0.1.0 announcement](/blog/rivet-v0.1.0/) covers what rivet is and how to install it.
+**Reading order for this stack** — start here for the synthesis. Then [*Mythos slop-hunt: oracle-gated audits in practice*](/blog/mythos-slop-hunt/) for the audit method that produced PR #205. The [v0.1.0 announcement](/blog/rivet-v0-1-0/) covers what rivet is and how to install it.
 {% end %}
 
 {% insight() %}
-Karpathy named the missing piece. From most LLM-tooling vantage points his April 2026 LLM Wiki gist is a clean idea about personal knowledge bases. From the desk of someone who has spent fifteen years in cybersecurity and safety-critical engineering, it is the third pillar of a pattern that has been forming since early 2025 — alongside [oracle-gated agent verification](/blog/spec-driven-development-is-half-the-loop/) and [typed compliance traceability in rivet](/blog/rivet-v0.1.0/). Each pillar by itself is incomplete. Knowledge accumulation alone hallucinates over time. Oracle-gated verification alone has nothing to remember. Typed compliance alone has no narrative and no acceleration. Together — agents read sources, run oracles, write typed artifacts, humans curate at the edges, the auditor queries the result — they are a candidate state of the art for AI-assisted engineering on systems that have to be both fast and provable. From where I sit, in my direct experience of both communities, that union is unheard of. This post is why.
+Karpathy named the missing piece. From most LLM-tooling vantage points his April 2026 LLM Wiki gist is a clean idea about personal knowledge bases. From the desk of someone who has spent fifteen years in cybersecurity and safety-critical engineering, it is the third pillar of a pattern that has been forming since early 2025 — alongside [oracle-gated agent verification](/blog/spec-driven-development-is-half-the-loop/) and [typed compliance traceability in rivet](/blog/rivet-v0-1-0/). Each pillar by itself is incomplete. Knowledge accumulation alone hallucinates over time. Oracle-gated verification alone has nothing to remember. Typed compliance alone has no narrative and no acceleration. Together — agents read sources, run oracles, write typed artifacts, humans curate at the edges, the auditor queries the result — they are a candidate state of the art for AI-assisted engineering on systems that have to be both fast and provable. From where I sit, in my direct experience of both communities, that union is unheard of. This post is why.
 {% end %}
 
 ## The three patterns
@@ -40,7 +40,7 @@ This is the verification half of the loop spec-driven development omits. SDD's Q
 
 ### rivet — *audit reads the result*
 
-[rivet](/blog/rivet-v0.1.0/) keeps SDLC traceability — requirements, design decisions, hazards, tests — as YAML in git, validated on every commit, designed for an LLM agent to read and write. Two co-equal content layers: typed atomic artifacts with typed links between them, and Markdown documents that cite the atoms by ID. One Rust binary the agent drives three ways — CLI, [MCP](https://modelcontextprotocol.io) server, or LSP backend.
+[rivet](/blog/rivet-v0-1-0/) keeps SDLC traceability — requirements, design decisions, hazards, tests — as YAML in git, validated on every commit, designed for an LLM agent to read and write. Two co-equal content layers: typed atomic artifacts with typed links between them, and Markdown documents that cite the atoms by ID. One Rust binary the agent drives three ways — CLI, [MCP](https://modelcontextprotocol.io) server, or LSP backend.
 
 The data-model lineage runs through [sphinx-needs](https://sphinx-needs.readthedocs.io/) (which we used across PulseEngine projects from early 2025 through early 2026, before rivet replaced it everywhere) and DOORS-style typed traceability with decades of safety-critical practice on it. Stable typed IDs, typed link predicates, schema-validated fields. The auditor queries the graph and the graph answers.
 

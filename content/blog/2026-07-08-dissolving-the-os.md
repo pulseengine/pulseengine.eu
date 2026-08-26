@@ -148,7 +148,7 @@ real placement bug (below) and is simply the right layering.
 
 ## The barriers nobody documents
 
-Like the [cross-language-LTO work](/blog/2026-05-01-cross-language-lto-three-quiet-barriers/),
+Like the [cross-language-LTO work](/blog/cross-language-lto-three-quiet-barriers/),
 the headline number is the boring part. The story is the barriers — and this time
 they were spread across five repos. Each one is the kind of thing you only find by
 pushing real code through the whole pipeline.
