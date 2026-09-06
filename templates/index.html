@@ -49,27 +49,27 @@
     </p>
 
     <div class="adopt__grid">
-      <div class="adopt">
+      <a class="adopt" href="https://github.com/pulseengine/varve" rel="noopener">
         <div class="adopt__label" style="color: var(--cyan)">the toolchain</div>
-        <a class="adopt__name" href="https://github.com/pulseengine/varve" rel="noopener">varve</a>
+        <div class="adopt__name">varve</div>
         <p class="adopt__desc">
-          Nine tools as one signed, dated, digest-pinned layer. A per-project pin
-          decides which binaries run; outside a pinned project the shims
-          <em>refuse</em> rather than fall back to whatever is on PATH.
+          The nine tools as one signed, dated, digest-pinned layer. A committed pin
+          decides which binaries a project runs; outside one the shims
+          <em>refuse</em> rather than quietly fall back to PATH.
         </p>
-        <code class="adopt__cmd">varve install</code>
-      </div>
+        <span class="adopt__go">Pin a project &rarr;</span>
+      </a>
 
-      <div class="adopt">
+      <a class="adopt" href="https://github.com/pulseengine/pulseengine.eu/tree/main/claude-tooling" rel="noopener">
         <div class="adopt__label" style="color: var(--purple)">the method</div>
-        <a class="adopt__name" href="https://github.com/pulseengine/pulseengine.eu/tree/main/claude-tooling" rel="noopener">pulseengine-claude</a>
+        <div class="adopt__name">pulseengine-claude</div>
         <p class="adopt__desc">
-          Sixteen procedural skills, the methodology memory and the session
-          hooks &mdash; the loop that produced everything on this site, as an
-          installable Claude Code plugin.
+          The procedural skills, the methodology memory and the session hooks.
+          The loop that produced everything on this site, as an installable
+          Claude Code plugin.
         </p>
-        <code class="adopt__cmd">/plugin marketplace add pulseengine-eu github.com/pulseengine/pulseengine.eu</code>
-      </div>
+        <span class="adopt__go">Install the plugin &rarr;</span>
+      </a>
     </div>
 
     <p class="adopt__note">
@@ -186,6 +186,13 @@
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
+    text-decoration: none;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+
+  .adopt:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
   }
 
   .adopt__label {
@@ -209,18 +216,15 @@
     flex: 1;
   }
 
-  /* The plugin command is long and must not force the page to scroll
-     sideways; it wraps instead. */
-  .adopt__cmd {
+  /* Was a <code> block holding a copyable command. Removed: `varve install`
+     alone errors without a committed pin, and the plugin's marketplace line
+     wrapped mid-token into four unreadable fragments. A landing page is the
+     wrong surface for a quickstart that goes stale; it points at one. */
+  .adopt__go {
     font-family: var(--font-mono);
-    font-size: 0.72rem;
-    color: var(--text-dim);
-    background: var(--bg);
-    border: 1px solid var(--border-subtle);
-    border-radius: 6px;
-    padding: 0.45rem 0.6rem;
-    overflow-wrap: anywhere;
-    line-height: 1.5;
+    font-size: 0.78rem;
+    color: var(--accent);
+    margin-top: 0.25rem;
   }
 
   .adopt__note {
