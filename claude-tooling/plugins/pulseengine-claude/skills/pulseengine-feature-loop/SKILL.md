@@ -205,7 +205,7 @@ The loop's *cost* is now in tooling, not labor. Skipping a step skips the corres
 
 - Hand-writing WIT files. Spar generates them; if WIT changes, the AADL changed first.
 - Writing code before the rivet typed artifacts exist. The traceability must lead, not follow.
-- Trusting `witness` coverage percentages. Read the gap rows in the truth table. From `witness-the-truth-table-not-the-percentage` and `witness-wasm-mcdc`.
+- Trusting `witness` coverage percentages. Read the gap rows in the truth table — a percentage cannot tell you *which* condition vector is missing, and the missing vector is the finding.
 - Skipping attestation ("`wsc` is only for releases", "it's internal"). If the artifact ever leaves your machine — including to CI — the attestation chain is the gate that lets others trust what you built.
 - Inlining clean-room verification or oracle-gating instead of pointing at those skills. Duplication is the failure mode this whole stack is designed to avoid.
 - Working around a tool silently. If you hand-edit generated WIT, `|| true` a failing check, or do a step outside the tool "for now," that's friction — file it via [`report-tool-friction`]. Unreported workarounds are how the tools stop improving.
