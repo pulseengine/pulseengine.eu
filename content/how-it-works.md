@@ -69,9 +69,9 @@ Reading it:
   host now; an on-target `no_std` interpreter is the dashed, in-progress path).
 - **The graph edges (dashed) are the news.** loom now hands synth the invariants it
   *proved* (`wsc.facts`); the **Verify gate** (green) blocks the build when the
-  evidence isn't there; and every stage's evidence — plus the agents' own
-  **coordination** (purple, via agora) — lands in **rivet** (amber), the traceability
-  spine. These edges span *repositories*; no single repo's CI owns them.
+  evidence isn't there; and every stage's evidence lands in **rivet** (amber), the
+  traceability spine. The agents' own coordination lands there too, through
+  GitHub issues and releases. These edges span *repositories*; no single repo's CI owns them.
 - **Blue is ours; the external engines we build on** — Verus, Z3, Rocq, Lean,
   Sigstore, Aeneas — live inside the Verify and Attest steps, not as separate nodes.
 
@@ -212,11 +212,9 @@ the Phase-2 arc (its name is the falconry tether, on purpose).
 
 Today PulseEngine's agents coordinate the plain way — they synchronize through
 **GitHub issues and releases**, running in loops to hunt issues, implement features,
-and check whether a new release actually works.
-A dedicated coordination substrate ([agora](https://github.com/pulseengine/agora)) was
-spiked to make that chatter faster than round-tripping through GitHub, and **archived** —
-GitHub issues and releases turned out to be sufficient, and they are durable, signed and
-auditable without new infrastructure. Around that, [rivet](https://github.com/pulseengine/rivet)'s
+and check whether a new release actually works. That is a deliberate choice rather
+than a gap: issues and releases are already durable, signed and auditable, with no new
+infrastructure to trust. Around that, [rivet](https://github.com/pulseengine/rivet)'s
 MCP tools expose validate / add / link / coverage to agents, and
 [temper](https://github.com/pulseengine/temper) (a GitHub App) holds every repo to
 the same standards. The [mcp](https://github.com/pulseengine/mcp) framework was our

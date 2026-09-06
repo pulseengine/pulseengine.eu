@@ -749,6 +749,9 @@
       },
       {
         "name": "thrum"
+      },
+      {
+        "name": "rules_moonbit"
       }
     ],
     "activity": {
@@ -956,7 +959,14 @@
         }
       ]
     },
-    "retired": [],
+    "retired": [
+      {
+        "name": "timedate-mcp"
+      },
+      {
+        "name": "moonbit_checksum_updater"
+      }
+    ],
     "activity": {
       "commits": 775,
       "prs_opened": 698,
@@ -1211,5 +1221,111 @@
       }
     ],
     "trend": "**ordeal** is born — and with it the toolchain stops trusting its own solver. An untrusted QF_BV search paired with a formally-verified LRAT checker (the CompCert pattern): a result is no longer believed because the solver said so, but because an independent checker re-derived it. 21 releases in its first month, with **rules_ordeal** landing alongside to make it a hermetic build gate. The volume settles back from June's crest — 148 releases and 1,156 commits against 235 and 1,485 — but the centre of gravity moves down a layer: **synth** still leads by a distance (321 commits, 47 releases) while **gale** and **ordeal** take second and fourth as the work turns from shipping features to making the instruments themselves checkable. Fewer releases, deeper foundations."
+  },
+  {
+    "month": "2026-08",
+    "born": [
+      {
+        "name": "varve",
+        "fork": false,
+        "archived": false,
+        "lang": "Rust",
+        "desc": "varve — the PulseEngine toolchain layer manager: pinned, signed, dated toolchain bundles. One layer per release; read the one your project pins."
+      },
+      {
+        "name": "pulseengine-layers",
+        "fork": false,
+        "archived": false,
+        "lang": "Python",
+        "desc": "Layer assembly for the pulseengine realm — tool manifest and signed deposits. The assembler itself lives in pulseengine/varve."
+      }
+    ],
+    "released": {
+      "count": 88,
+      "repos": [
+        {
+          "repo": "varve",
+          "n": 36
+        },
+        {
+          "repo": "meld",
+          "n": 10
+        },
+        {
+          "repo": "synth",
+          "n": 9
+        },
+        {
+          "repo": "rivet",
+          "n": 6
+        },
+        {
+          "repo": "relay",
+          "n": 6
+        },
+        {
+          "repo": "witness",
+          "n": 4
+        },
+        {
+          "repo": "sigil",
+          "n": 3
+        },
+        {
+          "repo": "loom",
+          "n": 3
+        },
+        {
+          "repo": "spar",
+          "n": 3
+        },
+        {
+          "repo": "scry",
+          "n": 3
+        },
+        {
+          "repo": "ordeal",
+          "n": 2
+        },
+        {
+          "repo": "rules_ordeal",
+          "n": 2
+        },
+        {
+          "repo": "gale",
+          "n": 1
+        }
+      ]
+    },
+    "retired": [
+      {
+        "name": "agora"
+      }
+    ],
+    "activity": {
+      "commits": 739,
+      "prs_opened": 734,
+      "issues_opened": 302,
+      "busiest": [
+        {
+          "repo": "synth",
+          "commits": 151
+        },
+        {
+          "repo": "varve",
+          "commits": 105
+        },
+        {
+          "repo": "spar",
+          "commits": 60
+        },
+        {
+          "repo": "rivet",
+          "commits": 56
+        }
+      ]
+    },
+    "milestones": [],
+    "trend": "**varve** is born, and the toolchain stops trusting the toolchain. July's **ordeal** removed the need to believe a solver; August removes the need to believe a build machine. A varve layer is the whole tool set as one signed, dated, digest-pinned bundle, so \"which meld, which loom, which rivet produced this artifact\" is answerable rather than assumed. Outside a pinned project the shims refuse instead of falling back to whatever is on PATH. **pulseengine-layers** lands beside it so the manifest listing a realm's tools is not a commit to the tool that signs them.\n\nIt arrived at speed: 36 of the month's 88 releases are varve's own, more than meld, synth, rivet, relay and witness combined. **synth** still leads on commits at 151, with varve second at 105 and **spar** third at 60.\n\nVolume keeps settling from June's crest: 88 releases and 739 commits against July's 148 and 1,156. **agora** is retired, the coordination substrate spiked in June and abandoned once the issue-driven loop proved sufficient. Two months, one direction: first make the solver's answers checkable, then make the tools that produce them identifiable."
   }
 ]
