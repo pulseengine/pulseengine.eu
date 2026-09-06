@@ -122,6 +122,11 @@ Filing the issue is not a stop point. Note the workaround in the issue, apply it
   errors or prints no version, an unknown flag exiting 1 instead of 2, structured output missing
   or spelled differently — these are filable defects with a named baseline behind them, and they
   block evidence recording. Do not soften them into preferences.
+- **A mirror you were forced to create is friction, not test hygiene.** If you hardcoded a
+  value in a test because the tool would not tell you what the value is, the finding is
+  *"the tool cannot report its own constants"* — file it. Fixing it in the test only moves
+  the debt. (synth: 38 harnesses mirror a compiler layout constant because the compiler
+  cannot print it.)
 - **Turning every preference into friction.** Friction is "the tool failed at what it's for," not "I'd have designed it differently." Disagreements about design are a different conversation.
 - **Pausing the real work to perfect the issue.** Capture, link, continue. A terse-but-real issue beats a polished one you never filed.
 
