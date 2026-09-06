@@ -156,17 +156,6 @@
               <span class="face-tool__desc">verified primitives → gust OS</span>
             </a>
           </div>
-          <div class="face-divider"></div>
-          <div class="face-tools">
-            <a href="https://github.com/pulseengine/relay" class="face-tool" rel="noopener">
-              <span class="face-tool__name">relay</span>
-              <span class="face-tool__desc">cFS-inspired flight software</span>
-            </a>
-            <a href="https://github.com/pulseengine/wohl" class="face-tool" rel="noopener">
-              <span class="face-tool__name">wohl</span>
-              <span class="face-tool__desc">home supervision</span>
-            </a>
-          </div>
         </div>
 
         <!-- Bottom: Agent -->
@@ -281,6 +270,56 @@
     </div>
   </div>
 
+  <!-- The other axis. The six faces above are stages of the base; varve delivers
+       it and these three consume it. Neither is a stage, which is why both kept
+       being forced into one. The repo taxonomy already splits them this way:
+       toolchain development vs toolchain consumers. -->
+  <section class="page-section built">
+    <h2 class="built__heading">Built on the base</h2>
+    <p class="built__lead">
+      The six faces above are the toolchain. These are products made
+      <em>with</em> it &mdash; each one drives the same loop end to end, and each
+      is where the methodology has to survive contact with a real domain.
+    </p>
+
+    <div class="built__grid">
+      <a class="built__card" href="https://github.com/pulseengine/relay" rel="noopener">
+        <div class="built__name">relay</div>
+        <div class="built__domain">flight software</div>
+        <p class="built__desc">
+          Formally verified flight-software components for WebAssembly, inspired by
+          NASA's cFS and reimagined as generic components. Mission-layer engines
+          proven with Verus.
+        </p>
+      </a>
+      <a class="built__card" href="https://github.com/pulseengine/wohl" rel="noopener">
+        <div class="built__name">wohl</div>
+        <div class="built__domain">home supervision</div>
+        <p class="built__desc">
+          A wireless field-sensor product on STM32G0 &mdash; CCSDS payloads over a
+          sub-GHz radio, bridged at the hub. The small-target end of the range,
+          where footprint decides what is possible.
+        </p>
+      </a>
+      <a class="built__card" href="https://github.com/pulseengine/jess" rel="noopener">
+        <div class="built__name">jess</div>
+        <div class="built__domain">hardware integration</div>
+        <p class="built__desc">
+          Where software meets hardware: carries relay's falcon flight stack from
+          simulation through hardware-in-the-loop to a real drone, tracked in
+          rivet the whole way.
+        </p>
+      </a>
+    </div>
+
+    <p class="built__note">
+      Beneath all of it, <a href="https://github.com/pulseengine/varve" rel="noopener">varve</a>
+      delivers the toolchain itself &mdash; the exact binaries a build ran, as one
+      signed, dated, digest-pinned layer. It is not a stage in the pipeline; it is
+      what makes &ldquo;which pipeline&rdquo; answerable.
+    </p>
+  </section>
+
   <!-- Full project listing -->
   <section class="page-section">
     <div class="blog-post__content">
@@ -294,6 +333,81 @@
 
 {% block head_extra %}
 <style>
+  /* ── Built on the base ─────────────────────────
+     A deliberately different card from .face-tool. Consumers were previously
+     rendered in the same vocabulary as the tools, inside the Run face, which
+     is what made them read as part of the toolchain. */
+  .built {
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .built__heading {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+  }
+
+  .built__lead {
+    color: var(--text-faint);
+    line-height: 1.7;
+    margin-bottom: 2rem;
+    max-width: 62ch;
+  }
+
+  .built__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1rem;
+  }
+
+  .built__card {
+    display: block;
+    background: var(--surface);
+    border: 1px solid var(--border-subtle);
+    border-left: 3px solid var(--red);
+    border-radius: 10px;
+    padding: 1.1rem 1.25rem;
+    text-decoration: none;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+
+  .built__card:hover {
+    border-color: var(--red);
+    transform: translateY(-2px);
+  }
+
+  .built__name {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .built__domain {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--red);
+    margin-bottom: 0.6rem;
+  }
+
+  .built__desc {
+    font-size: 0.875rem;
+    color: var(--text-faint);
+    line-height: 1.6;
+    margin: 0;
+  }
+
+  .built__note {
+    font-size: 0.85rem;
+    color: var(--text-faint);
+    line-height: 1.7;
+    margin-top: 1.5rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--border-subtle);
+  }
+
   /* ── Face nav ──────────────────────────────── */
   .face-nav {
     display: flex;
