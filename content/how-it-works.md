@@ -196,9 +196,11 @@ that runs on **real silicon across three chips and two architectures** — Corte
 same components and bit-identical to native, with no runtime underneath; the same
 components also [run live in a browser](https://pulseengine.github.io/gale/).
 
-### 7 · Integrate — relay · wohl · jess
+### 7 · Built on the base — relay · wohl · jess
 
 Applications exercise the chain end-to-end.
+These are not another stage of the pipeline — they are products built *with*
+it, and the place the methodology meets a real domain.
 [relay](https://github.com/pulseengine/relay) is flight software — a formally
 *verifiable* control cascade: its geometric SE(3) attitude loop carries a
 Lean-proven Lyapunov argument, while the IEKF estimator is property-tested with a

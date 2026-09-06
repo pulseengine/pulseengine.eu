@@ -46,3 +46,9 @@ jobs:
       # nothing noticed for eleven days.
       - name: Check plugin post citations resolve
         run: python3 scripts/check-post-citations.py
+
+      # Mermaid compiles classDef into the SVG, where outer CSS cannot reach it,
+      # so light mode is done by rewriting known dark hexes at runtime. A diagram
+      # using a surface colour the patcher does not know renders dark-on-dark.
+      - name: Check mermaid diagrams can render in light mode
+        run: python3 scripts/check-mermaid-light-mode.py
