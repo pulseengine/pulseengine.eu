@@ -56,6 +56,40 @@ re-verified against v0.14.0 on 2026-08-12 (tamper still detected, realm still au
   question for rivet/spar/meld/synth/witness and not yet for the build chain.
 - **Realms beat the ambient environment.** When the pin names a `realm`, a committed `varve-realms.toml` supplies the registry *and* the trust root, and a hostile `VARVE_TRUST_ROOT` cannot substitute a different root. Negative control: the same bogus root makes `varve verify` exit 1 with no realm, and is ignored with one. Prefer the realm path — it needs no environment variable and is the stronger of the two.
 
+## Project name → the binary you actually type
+
+**The repo name is not always the command.** Look here before concluding a tool
+is missing: under a varve pin, asking for the repo name fails *loudly* —
+`varve which sigil` reports it "is not part of layer …" — which reads as
+**absent** when it is merely **renamed**. That near-miss was filed as
+pulseengine.eu#182 after it nearly became a false toolchain-gap report.
+
+Measured through the pin on layer `2026.08.2`
+(`sha256:83a6996…e476d3a`), varve 0.32.0:
+
+| repo | binary you type | `--version` self-reports | |
+|---|---|---|---|
+| rivet | `rivet` | `rivet 0.32.0 (…)` | ✅ |
+| loom | `loom` | `loom 1.2.0` | ✅ |
+| meld | `meld` | `meld 0.42.0` | ✅ |
+| synth | `synth` | `synth 0.55.0` | ✅ |
+| **sigil** | **`wsc`** | `wsc-cli 0.10.0` | ⚠️ repo ≠ binary, **and** self-report ≠ binary (sigil#255) |
+| **kiln** | **`kilnd`** | *(no version, exit 1)* | ⚠️ repo ≠ binary (kiln#486) |
+| witness | `witness` | `witness-mcdc 0.39.0` | ⚠️ self-report ≠ binary (witness#199) |
+| ordeal | `ordeal` | *(no version, exit 2)* | ⚠️ ordeal#120 |
+| spar | `spar` | *(no version, exit 1)* | ⚠️ spar#422 |
+| varve | `varve` | `varve 0.32.0` | ✅ (sits outside the layer it installs) |
+
+**Scope of that measurement:** the nine tools the `pulseengine` layer carries,
+on `aarch64-apple-darwin`. It says nothing about gale, scry, smithy, temper, mcp
+or wohl, which the layer does not carry — and `scry` and `sigil` also publish
+`wasm32-wasip2` **components**, which have no native CLI at all.
+
+Five of the nine break [[pulseengine-cli-conventions]] rule 1. That is not
+folklore — `scripts/check-cli-conventions.py` in the pulseengine.eu repo
+re-derives this table from `varve inspect` and exits non-zero, so the count is
+reproducible rather than remembered. Tracked as pulseengine.eu#183.
+
 ## How they compose
 
 The procedure for composing these tools end-to-end (spar → WIT → rivet → code → witness → sigil → smithy) lives in the **`pulseengine-feature-loop` skill** shipped with this plugin, not here. This memory is the directory; the skill is the recipe.

@@ -66,6 +66,22 @@ a single line of **497 characters** and 16 lines over 100 columns; rivet peaks a
 over. kilnd, loom, meld, ordeal and wsc are all under 80 with none over — so this is achievable and
 already achieved by five of nine.
 
+**8a. The rule is now checkable — run it, don't remember it.**
+`scripts/check-cli-conventions.py` (pulseengine.eu) takes a directory with a
+`varve.toml` pin and checks every tool the layer carries. It uses `varve inspect`
+as the oracle, so rule 1 is checked in its strong form: not *"prints something
+semver-shaped"* but **"agrees with the version its own signed layer records."**
+It exits `2` when it cannot check at all (no pin — every shim refuses, which is
+varve working correctly) and `1` only for real violations, so a missing pin can
+never be mistaken for a conformance failure.
+
+Measured on layer `2026.08.2`, 2026-09-06: **9 checked, 5 violating** — `kilnd`,
+`ordeal`, `spar` (no `--version`), `witness` (`witness-mcdc`), `wsc` (`wsc-cli`).
+`spar` and `kilnd` also break rule 2 (unknown flag exits 1, not 2). The four
+conforming tools all match their layer-recorded version, so there is no
+provenance mismatch — only missing and mis-named identity. Tracked as
+pulseengine.eu#183.
+
 **8. Enforce 1–2 mechanically at release.** A release job that runs the freshly built binary and
 asserts `--version` equals the tag being released. This is the fix varve adopted after shipping a
 v0.14.0 binary that reported `0.13.1` (pulseengine/varve#38) — a `version-guard` job plus the

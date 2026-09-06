@@ -143,7 +143,7 @@ a defect the day it lands, and the convention is cheap to meet while the code is
 
 
 Per [`oracle-gate-a-change`]:
-- Identify the mechanical oracle for each property the code claims (rivet check / Kani / Verus / fuzz / witness gap / sigil verify / `nm` symbol check).
+- Identify the mechanical oracle for each property the code claims (rivet check / Kani / Verus / fuzz / witness gap / `wsc verify` / `nm` symbol check).
 - Write missing oracles first.
 - Land code that flips the oracle from red to green.
 - Each PR passes through `oracle-gate-a-change`.
@@ -157,10 +157,18 @@ If the feature lands a new branch / decision / variant:
 - If gaps appear, witness-viz suggests test stubs — add them, rerun.
 - **Artifact:** truth table file under `witness-out/` (or similar) showing zero unresolved gap rows.
 
-### 6. Sigil — sign the attestation chain
+### 6. Sign the attestation chain — `wsc`, from the **sigil** repo
+
+> **The command is `wsc`. There is no `sigil` executable.** sigil is the
+> repository; `wsc` is the binary it ships, and it is what the signed layer
+> carries. Under a varve pin, asking for the repo name fails loudly and
+> misleadingly — `varve which sigil` reports the tool "is not part of layer …",
+> which reads as *missing* when it is merely *renamed*. See the project→binary
+> table in [`pulseengine-toolchain`] before concluding a tool is absent.
 
 If the feature lands a new build artifact or a new build-stage:
-- Run sigil to sign the relevant outputs.
+- Run **`wsc`** (`wsc sign`, `wsc attest`, `wsc verify-chain`) to sign the
+  relevant outputs.
 - Confirm the verification chain end-to-end: detached verifier accepts the signed artifact.
 - **Artifact:** signed component manifest, verifiable detached.
 
@@ -194,7 +202,7 @@ The loop's *cost* is now in tooling, not labor. Skipping a step skips the corres
 - Hand-writing WIT files. Spar generates them; if WIT changes, the AADL changed first.
 - Writing code before the rivet typed artifacts exist. The traceability must lead, not follow.
 - Trusting `witness` coverage percentages. Read the gap rows in the truth table. From `witness-the-truth-table-not-the-percentage` and `witness-wasm-mcdc`.
-- Skipping sigil "because internal." If the artifact ever leaves your machine — including to CI — the attestation chain is the gate that lets others trust what you built.
+- Skipping attestation ("`wsc` is only for releases", "it's internal"). If the artifact ever leaves your machine — including to CI — the attestation chain is the gate that lets others trust what you built.
 - Inlining clean-room verification or oracle-gating instead of pointing at those skills. Duplication is the failure mode this whole stack is designed to avoid.
 - Working around a tool silently. If you hand-edit generated WIT, `|| true` a failing check, or do a step outside the tool "for now," that's friction — file it via [`report-tool-friction`]. Unreported workarounds are how the tools stop improving.
 - Calling the feature "done" before all eight steps have a green artifact.
