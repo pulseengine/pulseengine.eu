@@ -127,6 +127,6 @@ Filing the issue is not a stop point. Note the workaround in the issue, apply it
 
 ## Where this composes
 
-- [`pulseengine-feature-loop`] — friction surfaces at every step (spar passes, rivet validate, witness gaps, sigil verify); report it inline as you go.
+- [`pulseengine-feature-loop`] — friction surfaces at every step (spar passes, rivet validate, witness gaps, `wsc verify`); report it inline as you go.
 - [`release-execution`] — the release-tail is where deferred friction tends to accumulate; the traceability completeness gate often surfaces tool gaps. File them rather than carrying them in your head.
 - [`oracle-gate-a-change`] — when the oracle itself is the tool that's broken (the check won't run, or runs wrong), that's friction in the verifier — report it; a broken oracle is worse than a missing one.
