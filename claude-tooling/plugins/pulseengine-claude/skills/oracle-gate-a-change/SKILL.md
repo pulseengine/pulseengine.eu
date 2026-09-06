@@ -99,6 +99,41 @@ Examples:
 - "Cross-language LTO eliminated gale symbols" → kill-criterion: "if `nm zephyr.elf | grep gale_` returns non-zero."
 - "PR doesn't drop trace coverage" → kill-criterion: "if `rivet coverage` reports a new uncovered predicate."
 
+### 3b. A new oracle may not introduce a fresh mirror
+
+If the change adds or edits a test that **hardcodes a value the implementation
+also defines** — a base address, a register/ABI convention, a wire-format
+constant, a version — that is a finding. The check is mechanical: grep the
+implementation's constants, grep the test tree, report the intersection that is
+neither derived nor pinned.
+
+**The cost is not what you would guess, and the measurement corrected the
+guess.** The obvious fear is a silent pass — the mirror drifts and the oracle
+tests the wrong thing. Measured in synth, where 38 harness scripts mirror one
+compiler constant: moving the constant made the oracle fail **loudly**, exit 1.
+
+The real damage is that the failure is **detected but not attributed**. All 38
+go red at once, each reporting its own subject — `FAIL nested`, `FAIL br_table`,
+`FAIL spill` — and none of them says *"a constant I copy from the implementation
+moved."* You debug 38 oracles instead of reading one line, and **the cost scales
+with how good your test suite is**.
+
+So, in order of preference:
+
+1. **Derive it** at test time — ask the tool for the value.
+2. **Pin it** in a ledger that fails on divergence.
+3. If neither is practical, make the harness **name the assumption in its own
+   failure message**. That is the cheap 80%: one string per harness turns "38 red
+   oracles" into "38 red oracles that all name the same constant."
+
+Copying it silently is the one option that is not acceptable.
+
+> **A control banked from canonical values is worse than a wrong one.** From the
+> same audit: negative-control fixtures were banked with register assignments the
+> real selector never emits. The control was not incorrect — it was
+> *unreachable*, and it looked like coverage. See [`gate-potency`]; a control you
+> have not watched fail is a hypothesis.
+
 ### 4. Gate the diff
 
 Only the diff that flips the oracle from red to green counts. Specifically:

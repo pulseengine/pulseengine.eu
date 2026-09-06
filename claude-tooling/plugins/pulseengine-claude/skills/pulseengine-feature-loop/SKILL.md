@@ -145,6 +145,10 @@ a defect the day it lands, and the convention is cheap to meet while the code is
 Per [`oracle-gate-a-change`]:
 - Identify the mechanical oracle for each property the code claims (rivet check / Kani / Verus / fuzz / witness gap / `wsc verify` / `nm` symbol check).
 - Write missing oracles first.
+- **A new oracle may not introduce a fresh mirror.** If the test hardcodes a value the
+  implementation also defines, derive it at test time or pin it in a ledger that fails on
+  divergence. Copying is what turns one moved constant into N unattributed red oracles —
+  see [`oracle-gate-a-change`] step 3b.
 - Land code that flips the oracle from red to green.
 - Each PR passes through `oracle-gate-a-change`.
 - **Artifact:** code diff + a now-green oracle traceable to the rivet requirement.
