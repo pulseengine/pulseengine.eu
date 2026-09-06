@@ -10,3 +10,10 @@ playwright-report/
 # Bundled single-file talk (632 KB of inlined fonts) — rebuild with tools/bundle-talk.py
 dist/
 static/talk.html
+
+# Agent bookkeeping: the issue-hunt watermark and the working-context
+# checkpoint. This rule was only in .git/info/exclude, which is per-clone —
+# so a fresh clone (a teammate, or a scheduled agent) saw these as untracked
+# and could commit them. A tracked state file leaks the loop's bookkeeping
+# into every PR, which is the accident the issue-hunt skill warns about.
+.claude/pulseengine/
