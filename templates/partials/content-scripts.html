@@ -120,13 +120,36 @@
       ['#4a5068', '#8a7e62'],   // border → darker warm beige
       ['#e1e4ed', '#1a2235'],   // text → deep navy
       ['#8b90a0', '#44516a'],   // text-dim → medium navy
+      // Node FILLS. Missing these was the bug: the text hex above was being
+      // rewritten to deep navy while the fill it sits on stayed dark navy, so
+      // light mode rendered dark-on-dark and read as washed out rather than
+      // simply dark. Used by how-it-works and 2026-07-18-verified-os-on-silicon.
+      ['#242836', '#fbf7ee'],   // surface-raised → cream card
+      ['#161922', '#ebe5d6'],   // deep fill (gate node) → bg-subtle cream
+      ['#b6bac8', '#44516a'],   // muted light text → medium navy
     ];
-    document.querySelectorAll('.mermaid svg style').forEach(function (styleEl) {
-      var css = styleEl.textContent;
+    function swap(text) {
       replacements.forEach(function (pair) {
-        css = css.split(pair[0]).join(pair[1]);
+        text = text.split(pair[0]).join(pair[1]);
       });
-      styleEl.textContent = css;
+      return text;
+    }
+
+    // The SVG's own <style> element.
+    document.querySelectorAll('.mermaid svg style').forEach(function (styleEl) {
+      styleEl.textContent = swap(styleEl.textContent);
+    });
+
+    // …and inline style ATTRIBUTES. mermaid 11 compiles each `classDef` into
+    // `style="fill:#242836 !important;stroke:… !important"` on the node's own
+    // <rect>, not only into the <style> element above. Patching just the
+    // element left every node fill dark while the text it carries was
+    // rewritten to deep navy — dark-on-dark, which read as washed out rather
+    // than obviously broken, which is why it survived so long.
+    document.querySelectorAll('.mermaid svg [style]').forEach(function (el) {
+      var v = el.getAttribute('style');
+      var patched = swap(v);
+      if (patched !== v) el.setAttribute('style', patched);
     });
   }
 
