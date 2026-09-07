@@ -19,61 +19,22 @@ machine-checked**, never a blanket guarantee. Where a seam is still manual or a
 stage is early, we say so.
 {% end %}
 
-## The pipeline at a glance
+## Three views of one factory
 
-Read the **thick arrows** as the component flowing through the pipeline, and the
-**dashed arrows** as proofs, evidence, and coordination flowing *between* stages —
-the edges that turned the line into a graph.
+The same four tools, looked at from three angles. Switch between them; the boxes
+do not move, only what is said about them.
 
-{% mermaid() %}
-flowchart TB
-  spar["spar<br/>architecture"]
-  code["components<br/>Rust → wasm"]
-  meld["meld<br/>fuse"]
-  loom["loom<br/>optimize"]
-  synth["synth<br/>compile → native"]
-  kiln["kiln<br/>interpret (host)"]
-  gale["gale → gust<br/>verified OS · on real silicon"]
-  apps["relay · wohl · jess"]
-  verify{{"Verify gate<br/>Verus · Rocq · Lean<br/>scry · witness · ordeal"}}
-  sigil["sigil<br/>sign · attest"]
-  rivet[("rivet<br/>traceability spine")]
+{{ factory_views() }}
 
-  spar ==>|WIT + skeletons| code ==> meld ==> loom
-  loom ==>|compile| synth ==> gale
-  loom -.->|interpret · on-target planned| kiln
-  gale ==> apps
+There is no reading key, and that is deliberate. The previous version of this
+picture encoded the component's path as thick arrows and everything else as
+dashed ones, which is what let a single diagram carry three unrelated questions
+and then need three sentences explaining how to look at it. Inside each view
+above, every edge means one thing.
 
-  loom -.->|proofs · wsc.facts| synth
-  verify -.->|gates every stage| loom
-  loom -.-> sigil
-  synth -.-> sigil
-  sigil -.->|signed evidence| rivet
-  verify -.->|evidence| rivet
-  spar -.->|typed artifacts| rivet
-
-  classDef ours fill:#242836,stroke:#6c8cff,color:#e1e4ed;
-  classDef gate fill:#161922,stroke:#4ade80,color:#e1e4ed;
-  classDef spine fill:#242836,stroke:#fbbf24,color:#e1e4ed;
-  classDef agent fill:#242836,stroke:#c084fc,color:#e1e4ed;
-  class spar,code,meld,loom,synth,kiln,gale,apps,sigil ours
-  class verify gate
-  class rivet spine
-{% end %}
-
-Reading it:
-
-- **The component pipeline (thick):** components fuse (meld), optimize (loom), then
-  reach real silicon by being *compiled to native* by synth — that's gale's `gust`,
-  bit-identical on three chips today. kiln *interprets* the same component (on the
-  host now; an on-target `no_std` interpreter is the dashed, in-progress path).
-- **The graph edges (dashed) are the news.** loom now hands synth the invariants it
-  *proved* (`wsc.facts`); the **Verify gate** (green) blocks the build when the
-  evidence isn't there; and every stage's evidence lands in **rivet** (amber), the
-  traceability spine. The agents' own coordination lands there too, through
-  GitHub issues and releases. These edges span *repositories*; no single repo's CI owns them.
-- **Blue is ours; the external engines we build on** — Verus, Z3, Rocq, Lean,
-  Sigstore, Aeneas — live inside the Verify and Attest steps, not as separate nodes.
+What is *not* in any of them: relay, wohl and jess. They are products built with
+this toolchain rather than a stage of it, so putting them at the end of a flow
+would repeat the error the arrows made. They have their own section below.
 
 ## Following the flow
 
@@ -110,7 +71,6 @@ and host-native on **Apple Silicon** (AArch64/ARMv8-A, differential-tested again
 wasmtime). Still early: integer only (scalar float is rejected, not miscompiled), no
 fused multi-memory yet.
 
-{{ pipeline() }}
 
 **The two bands read in opposite directions.**
 [sigil](https://github.com/pulseengine/sigil) spans *above* the line because it
