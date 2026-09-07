@@ -19,6 +19,7 @@
 </div>
 
 {% include "partials/content-scripts.html" %}
+<script src="{{ get_url(path='factory-views.js') }}"></script>
 {% endblock %}
 
 {% block head_extra %}
@@ -48,6 +49,53 @@
     .blog-post__content { overflow-wrap: anywhere; }
     .blog-post__content pre { overflow-x: auto; }
     .blog-post__content table { display: block; overflow-x: auto; }
+  }
+
+  /* ── Stacked factory views (#194) ──────────────────────────────
+     Reuses the Projects page's nav idiom so readers meet a control they
+     already know. The panels are same-size SVGs with identical box
+     coordinates, so switching does not reflow the page. */
+  .fviews { margin: 2rem 0; }
+
+  .fviews__nav {
+    display: flex;
+    gap: .5rem;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+  }
+
+  .fviews__btn {
+    font-family: var(--font-mono);
+    font-size: .78rem;
+    color: var(--text-faint);
+    background: var(--surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: 8px;
+    padding: .45rem .8rem;
+    cursor: pointer;
+    transition: color .15s, border-color .15s;
+  }
+
+  .fviews__btn:hover { color: var(--text); }
+
+  .fviews__btn--on {
+    color: var(--text);
+    border-color: var(--accent);
+  }
+
+  /* Enforce the hidden attribute. The UA rule `[hidden]{display:none}` is a
+     zero-specificity default and loses to any rule that sets display on the
+     element; relying on it left all three panels rendering at once. Keeping
+     the attribute for semantics and no-JS, and making it stick here. */
+  .fviews__svg[hidden] { display: none !important; }
+
+  .fviews__svg {
+    width: 100%;
+    height: auto;
+    background: var(--bg-subtle);
+    border: 1px solid var(--border-subtle);
+    border-radius: 12px;
+    padding: .5rem;
   }
 </style>
 {% endblock %}
