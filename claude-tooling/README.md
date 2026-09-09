@@ -6,21 +6,17 @@ The marketplace manifest itself lives at the **repo root** in `pulseengine.eu/.c
 
 See `plugins/pulseengine-claude/README.md` for plugin details.
 
-## Install (same flow as any other Claude Code marketplace)
+## Install
 
-In Claude Code, run:
+See **[`plugins/pulseengine-claude/README.md`](plugins/pulseengine-claude/README.md)**
+— it carries the install commands for Claude Code, GitHub Copilot CLI and
+opencode, each verified against the tool.
 
-```
-/plugin marketplace add pulseengine-eu github.com/pulseengine/pulseengine.eu
-/plugin install pulseengine-claude@pulseengine-eu
-```
-
-Or the CLI equivalent:
-
-```sh
-claude plugin marketplace add pulseengine-eu github.com/pulseengine/pulseengine.eu
-claude plugin install pulseengine-claude@pulseengine-eu
-```
+Kept there rather than duplicated here: this file previously documented a
+two-argument `marketplace add <name> <source>` form that current Claude Code
+rejects with `✘ Invalid marketplace source format`, while the plugin README
+already had the correct one-argument form. One of the two was fixed and the
+other was not, which is the whole argument for a single source.
 
 ## Layout
 
@@ -32,11 +28,7 @@ pulseengine.eu/                          (repo root)
     └── plugins/
         └── pulseengine-claude/
             ├── .claude-plugin/plugin.json
-            ├── skills/
-            │   ├── clean-room-verification/SKILL.md
-            │   ├── release-execution/SKILL.md
-            │   ├── oracle-gate-a-change/SKILL.md
-            │   └── pulseengine-feature-loop/SKILL.md
+            ├── skills/                   ← one directory per skill, each a SKILL.md
             ├── memory/
             │   ├── pulseengine-philosophy.md
             │   └── pulseengine-toolchain.md
