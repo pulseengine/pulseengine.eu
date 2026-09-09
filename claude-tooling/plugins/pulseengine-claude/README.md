@@ -10,6 +10,9 @@ PulseEngine engineering methodology as installable Claude Code tooling.
   - `pulseengine-repo-taxonomy.md` — the two kinds of PulseEngine repo and which lens to use: **toolchain development** (the tool builds itself — inward; oracle-gate the tool, dogfood the chain) vs **toolchain consumer/application** (compose the full feature loop outward). Picks the right methodology per repo.
   - `pulseengine-operating-contract.md` — **how to run the skills on capable, agentic models** (Fable 5 and successors), grounded in Anthropic's *Prompting Claude Fable 5* guide: ground every progress claim in a tool result; never merge around a red/absent gate; **verify the machinery, not only the artifacts** (campaign invariants: assert the required-checks gate is non-empty; merged ≠ released — claimed-released items must carry a tag + a `success` run; a `cancel-in-progress` merge train leaves the tagged commit's CI unverified); assessment-is-a-deliverable boundaries; finish the turn you promised; minimal scope; don't transcribe reasoning into output (it trips a silent Opus fallback); watch for classifier fallback on crypto work; and the **skill disposition + model routing** — driver / hybrid / explorer / cross-cutting, every skill classified (drivers on a biddable model at low–medium effort; hybrids route their judgment half to a capable model; explorers on the most capable model at higher effort). The prompt-layer twin of oracle-gating.
 
+  - `pulseengine-cli-conventions.md` — the org CLI baseline every tool's command line must meet (`--version` prints `<binary> <semver>` and exits 0, unknown flags exit 2, structured output is `--format json`), with the measured state that produced each rule.
+  - `pulseengine-prose-conventions.md` — how agent-written text should read — commit messages, PR bodies, issue text, blog posts — with the tell-frequencies measured across this repo's own output.
+
 - **Memory-persistence hooks** (`hooks/`) — keep work from starting cold:
   - **SessionStart** injects the methodology memory *and* situational awareness (git branch / status / recent commits, a best-effort repo-category guess, and the working-context resumed from last time).
   - **PreCompact + SessionEnd** save a `.claude/pulseengine/working-context.md` checkpoint (git state + an agent-maintained notes section, kept out of git via `.git/info/exclude`) so context survives compaction and carries to the next session.
@@ -46,7 +49,64 @@ The marketplace manifest lives at `.claude-plugin/marketplace.json` in the repo 
 /plugin install pulseengine-claude@pulseengine-eu
 ```
 
-Equivalent from the shell: `claude plugin marketplace add https://github.com/pulseengine/pulseengine.eu`. A bare `github.com/owner/repo` (no scheme) and the old two-argument `<name> <coords>` form are **not** accepted by current Claude Code.
+Equivalent from the shell: `claude plugin marketplace add https://github.com/pulseengine/pulseengine.eu`. A bare `github.com/owner/repo` (no scheme) and the old two-argument `<name> <coords>` form are **not** accepted by current Claude Code — the two-argument form fails with `✘ Invalid marketplace source format`.
+
+### Using the skills from other agent runtimes
+
+The skills are plain `SKILL.md` files, so runtimes other than Claude Code can
+load them. Only `skills/` travels this way — `memory/` and `hooks/` are Claude
+Code plugin mechanisms with no equivalent elsewhere, so those sessions get the
+procedures without the always-on framing.
+
+**GitHub Copilot CLI** — discovers skills from `.github/skills/`,
+`.agents/skills/`, `.claude/skills/`, `~/.copilot/skills/`, installed plugins,
+or a directory you add. This plugin's skills are under `claude-tooling/`, none
+of those, so add the directory:
+
+```sh
+copilot skill add claude-tooling/plugins/pulseengine-claude/skills
+copilot skill list                 # 18 custom skills, no failure section
+copilot skill remove claude-tooling/plugins/pulseengine-claude/skills
+```
+
+**opencode** — scans `.opencode/skill(s)/<name>/SKILL.md` in a project and
+`~/.config/opencode/skill(s)/` globally, and **auto-loads `~/.claude/skills/`
+and `~/.agents/skills/`** without configuration. For a directory outside those,
+add it to `opencode.json` (`skills.paths` is scanned recursively for
+`**/SKILL.md`):
+
+```json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "skills": {
+    "paths": ["/abs/path/to/pulseengine.eu/claude-tooling/plugins/pulseengine-claude/skills"]
+  }
+}
+```
+
+```sh
+opencode debug skill      # lists every skill that resolved, with its location
+```
+
+Config is read once at startup and is not hot-reloaded, so restart opencode
+after editing. `OPENCODE_DISABLE_CLAUDE_CODE_SKILLS=1` turns off the
+`~/.claude/` scan if you want only the explicit paths.
+
+### The description limit bites hardest here
+
+**A description over 1024 characters does not warn — the skill fails to load.**
+The runtime lists the others and says nothing where the missing one belongs:
+
+```
+✖ The following skills failed to load:
+  • traceability-audit/SKILL.md: Skill description must be at most 1024 characters
+```
+
+Two skills were 11 and 35 characters over before this surfaced, and Claude Code
+loaded them fine throughout — `claude plugin validate` checks manifests, not
+skill frontmatter, so nothing caught it. `scripts/check-skill-frontmatter.py`
+now gates it in CI (`name` ≤ 64 and matching its directory, `description`
+≤ 1024). Run it after editing any frontmatter.
 
 ## Design
 
