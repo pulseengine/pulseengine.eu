@@ -145,6 +145,18 @@ adjective is the finding — overturning the whole result would be wrong.
   `invalid sub-command or arguments` was raised on an *empty device response* — the message named
   the wrong cause and nearly cost a supplier their attention on a wrong report.
 
+## The media case
+
+The same error travels in video. A generated depiction of a real run — a board
+booting, a drone flying under verified control — is a result claimed on a
+substrate that never existed, and a viewer cannot re-run it to find out. It is
+evidence transfer with better production values.
+
+EU AI Act Article 50(4) asks a narrower question (could the audience be deceived
+about how it was made) and fully generated explainers sit outside it. Our
+standard is the harder one: a rendering must never stand in for a measurement.
+See [[pulseengine-generated-media]].
+
 ## Where this composes
 
 - [`gate-potency`] — the sibling class: a check that cannot go red at all. Run both; they miss
