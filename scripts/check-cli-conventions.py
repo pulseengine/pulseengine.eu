@@ -1,6 +1,13 @@
 #!/usr/bin/env python3
 """Check the tools in a pinned varve layer against pulseengine-cli-conventions.
 
+NOT WIRED INTO CI, deliberately. Every other scripts/check-*.py runs on each PR;
+this one cannot, because it needs a `varve.toml` pin and this repo has none.
+Adding a toolchain pin to a static site so it can run a conformance check would
+be the wrong trade. Run it by hand against a pinned project, or move it to varve
+or pulseengine-layers where a pin already exists (pulseengine.eu#183).
+Recorded here so its absence from ci.yml reads as a decision, not an oversight.
+
 Rule 1  `--version` exits 0 and prints `<binary-name> <semver>`.
 Rule 1b the semver equals the version the SIGNED LAYER records for that tool.
 Rule 2  an unknown flag exits 2.
