@@ -100,6 +100,7 @@
         <a href="{{ get_url(path='@/timeline.md') }}"{% if current_path is starting_with("/timeline") %} class="active"{% endif %}>Timeline</a>
         {# Docs nav hidden during revamp — restore when content is ready #}
         {# <a href="{{ get_url(path='@/docs/_index.md') }}"{% if current_path is starting_with("/docs") %} class="active"{% endif %}>Docs</a> #}
+        <a href="{{ get_url(path='@/layers/_index.md') }}"{% if current_path is starting_with("/layers") %} class="active"{% endif %}>Layers</a>
         <a href="{{ get_url(path='@/reports/_index.md') }}"{% if current_path is starting_with("/reports") %} class="active"{% endif %}>Reports</a>
         <a href="{{ get_url(path='@/publications/_index.md') }}"{% if current_path is starting_with("/publications") %} class="active"{% endif %}>Publications</a>
         <a href="https://github.com/pulseengine" rel="noopener">GitHub</a>
@@ -133,5 +134,8 @@
   <script src="{{ get_url(path='journey.js') }}"></script>
   <script src="{{ get_url(path='flip.js') }}"></script>
   <script src="{{ get_url(path='theme-toggle.js') }}"></script>
+  {# Page-specific scripts. Loaded after the shared ones so a page can rely on
+     the theme having been applied. #}
+  {% block scripts %}{% endblock %}
 </body>
 </html>
