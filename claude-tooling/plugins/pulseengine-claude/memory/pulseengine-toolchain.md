@@ -43,17 +43,22 @@ Map of the PulseEngine tools. Each lives in `/Users/r/git/pulseengine/<name>` on
 
 **ordeal** — certificate-checked QF_BV SMT. Ships inside the varve layer; a decision procedure whose results carry a checkable certificate rather than being trusted on the solver's word.
 
-**varve** — toolchain **layer manager**, and the reason "which toolchain produced this artifact?" is answerable. Distributes the whole tool set as one signed, dated, digest-pinned OCI layer (`YYYY.MM.P`) on `ghcr.io/pulseengine/varve/layers`; per-project `varve.toml` pin discovered by walking up from cwd; offline verification against a trust root; anti-rollback counters; content-addressed core so layers coexist and switching is `cd`; PATH shims; `self-update` (old-verifies-new); `deposit` / `export-bazel` for CI. Sits **outside** the layer it installs — it must exist before any layer does. Native Rust CLI, so witness MC/DC and scry are N/A to varve itself (they target the Wasm the layers carry).
+**varve** — toolchain **layer manager**, and the reason "which toolchain produced this artifact?" is answerable. Distributes the whole tool set as one signed, dated, digest-pinned OCI layer (`YYYY.MM.P`) on `ghcr.io/pulseengine/layers`; per-project `varve.toml` pin discovered by walking up from cwd; offline verification against a trust root; anti-rollback counters; content-addressed core so layers coexist and switching is `cd`; PATH shims; `self-update` (old-verifies-new); `deposit` / `export-bazel` for CI. Sits **outside** the layer it installs — it must exist before any layer does. Native Rust CLI, so witness MC/DC and scry are N/A to varve itself (they target the Wasm the layers carry).
 
 Two properties of varve are load-bearing for the other skills, both verified by execution and
 re-verified against v0.14.0 on 2026-08-12 (tamper still detected, realm still authoritative):
 
 - **No silent fallback.** Outside a pinned project a shim *refuses* — `error: no varve.toml found …`, exit 1 — rather than running whatever is on PATH. Inside one it dispatches and exits 0.
-- **Coverage boundary — state it, don't assume it.** The layer carries the PulseEngine tools that
-  *check* our work; it does **not** carry the upstream Bytecode Alliance tools that *build* it
-  (`wasm-tools`, `cargo-component`, `wkg`), which are often the ones whose behaviour decides what
-  actually ships. Tracked as pulseengine/varve#52. So `varve which <tool>` answers the provenance
-  question for rivet/spar/meld/synth/witness and not yet for the build chain.
+- **Three realms now, and one composes the other two** (checked 2026-09-30). varve#52's coverage
+  gap is closed: `pulseengine` carries the tools that *check*, `pulseengine-wasm` carries the
+  upstream component-model tools that *build* (`wasm-tools`, `wac`, `wkg`, `wit-bindgen-wrpc`), and
+  `covalent` holds no tools at all — it exists only to assert *"these two, together, are a
+  toolchain"*. varve verifies each included layer against **its own** realm's root, so a composing
+  realm can assert a pairing and cannot widen trust.
+  The `pulseengine-wasm` realm is named for who *vouches*, not whose payloads it carries: the bytes
+  are upstream's, the signature is ours. Three of its four payloads are ingested with **no proof of
+  origin** and carry the operator's recorded reason inside the signed layer, where `varve inspect`
+  shows `proof = unverified`. Read those before pinning it.
 - **Realms beat the ambient environment.** When the pin names a `realm`, a committed `varve-realms.toml` supplies the registry *and* the trust root, and a hostile `VARVE_TRUST_ROOT` cannot substitute a different root. Negative control: the same bogus root makes `varve verify` exit 1 with no realm, and is ignored with one. Prefer the realm path — it needs no environment variable and is the stronger of the two.
 
 ## Project name → the binary you actually type
@@ -64,8 +69,11 @@ is missing: under a varve pin, asking for the repo name fails *loudly* —
 **absent** when it is merely **renamed**. That near-miss was filed as
 pulseengine.eu#182 after it nearly became a false toolchain-gap report.
 
-Measured through the pin on layer `2026.08.2`
-(`sha256:83a6996…e476d3a`), varve 0.32.0:
+Measured through the pin on layer `2026.08.2`, varve 0.32.0. **That layer no longer
+verifies**: its signing root was retired on 2026-09-07 (varve#110 — it existed only as a
+write-only CI secret, so nobody could back it up or rotate with it), and every layer from
+`2026.08.0` to `2026.09.1` went with it. The table below is a historical measurement, not a
+re-runnable one. Re-measure against a current layer before citing it:
 
 | repo | binary you type | `--version` self-reports | |
 |---|---|---|---|
