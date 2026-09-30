@@ -52,3 +52,10 @@ jobs:
       # using a surface colour the patcher does not know renders dark-on-dark.
       - name: Check mermaid diagrams can render in light mode
         run: python3 scripts/check-mermaid-light-mode.py
+
+      # `claude plugin validate` checks the manifests, not skill frontmatter,
+      # so nothing here looked at descriptions. Two skills sat 11 and 35 chars
+      # over the 1024 limit until GitHub Copilot CLI refused to LOAD them —
+      # not a warning, the skills simply were not there.
+      - name: Check skill frontmatter loads in agent runtimes
+        run: python3 scripts/check-skill-frontmatter.py
