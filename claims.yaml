@@ -1,0 +1,106 @@
+# claims.yaml — the plugin's load-bearing claims, bound to re-derivable evidence.
+#
+# Run in CI:  python3 claude-tooling/plugins/pulseengine-claude/skills/claim-verification/claim-check.py claims.yaml
+#
+# Why this file exists (pulseengine.eu#202): one session turned up seven false
+# claims inside the plugin, every one found by tripping over it rather than by a
+# check. Three of the seven already have a dedicated script in scripts/; the
+# claims below are the ones where the honest statement is a STRING in a document,
+# which is what this mechanism is for.
+#
+# We ship the claim-verification skill and were, until this file, one of three
+# repos in four not using it.
+#
+# Marking the claims, not the narrative: every entry below is an assertion that
+# was FALSE at some point in this repo's history, with the evidence that would
+# have caught it.
+
+claims:
+  # ── The binary is `wsc`; `sigil` is the repository ──────────────────────────
+  # Four skills told an agent to "run sigil". Under a varve pin that fails loudly
+  # and misleadingly — `varve which sigil` reports the tool is not in the layer,
+  # which reads as MISSING when it is merely RENAMED. Cost a near-miss false
+  # toolchain-gap report (pulseengine.eu#182).
+  - id: PLUGIN-SIGIL-IS-A-REPO-NOT-A-COMMAND
+    doc: claude-tooling/plugins/pulseengine-claude/memory/pulseengine-toolchain.md
+    text: "binary you type"
+    evidence:
+      # `sigil` may name the project freely ("sigil attestation"); it may never
+      # appear as a command. max: 0 fails on the first reappearance.
+      - kind: count-max
+        pattern: '(?:\brun\s+sigil\b|`sigil (?:verify|sign|attest|keygen)`|\bsigil (?:verify|sign|attest|keygen)\b)'
+        glob: ['claude-tooling/plugins/pulseengine-claude/**/*.md']
+        max: 0
+      # …and the project→binary table that answers it must still be there.
+      - kind: count-min
+        pattern: '\*\*`wsc`\*\*'
+        glob: ['claude-tooling/plugins/pulseengine-claude/memory/pulseengine-toolchain.md']
+        min: 1
+
+  # ── The install command that current Claude Code accepts ────────────────────
+  # claude-tooling/README.md documented `marketplace add <name> <source>` for
+  # months. Current Claude Code rejects it: "✘ Invalid marketplace source format".
+  # The plugin README had it right the whole time; one of two docs was fixed.
+  - id: PLUGIN-MARKETPLACE-ADD-TAKES-ONE-ARG
+    doc: claude-tooling/plugins/pulseengine-claude/README.md
+    text: "takes **one source argument**"
+    evidence:
+      # The two-argument form must not be documented anywhere.
+      - kind: count-max
+        pattern: 'marketplace add pulseengine-eu '
+        glob: ['claude-tooling/**/*.md', '*.md']
+        max: 0
+
+  # ── Every memory file is documented ─────────────────────────────────────────
+  # The plugin README listed four of six memory files. A reader could not learn
+  # that cli-conventions or prose-conventions existed.
+  - id: PLUGIN-MEMORY-FILES-ALL-DOCUMENTED
+    doc: claude-tooling/plugins/pulseengine-claude/README.md
+    text: "Reference memory"
+    evidence:
+      - kind: count-min
+        pattern: '`pulseengine-cli-conventions\.md`'
+        glob: ['claude-tooling/plugins/pulseengine-claude/README.md']
+        min: 1
+      - kind: count-min
+        pattern: '`pulseengine-prose-conventions\.md`'
+        glob: ['claude-tooling/plugins/pulseengine-claude/README.md']
+        min: 1
+      - kind: count-min
+        pattern: '`pulseengine-generated-media\.md`'
+        glob: ['claude-tooling/plugins/pulseengine-claude/README.md']
+        min: 1
+
+  # ── No superseded model is named as routing guidance ────────────────────────
+  # The operating contract routed drivers to "Opus 4.8" and explorers to
+  # "Fable 5" until both were superseded. A routing rule that must be edited on
+  # every model release is wrong between releases, so it now routes by tier.
+  # This gates the regression, not the wording.
+  - id: CONTRACT-ROUTES-BY-TIER-NOT-MODEL
+    doc: claude-tooling/plugins/pulseengine-claude/memory/pulseengine-operating-contract.md
+    text: "Deliberately no model names above"
+    evidence:
+      # "a biddable model like <name>" / "prefer the most capable model (<name>)"
+      # are the two shapes that aged. Neither may return.
+      - kind: count-max
+        pattern: '(?:biddable\s+model\s+like\s+\w|most capable model\s*\()'
+        glob: ['claude-tooling/plugins/pulseengine-claude/memory/*.md']
+        max: 0
+
+  # ── The layer measurements are marked as historical ─────────────────────────
+  # Layer 2026.08.2 was the measurement basis for the CLI survey and the
+  # project→binary table. Its signing root was retired 2026-09-07 (varve#110) and
+  # every layer from 2026.08.0 to 2026.09.1 went with it, so those figures can no
+  # longer be re-derived. They may be cited as history; not as current.
+  - id: MEMORY-DEAD-LAYER-CITED-AS-HISTORY
+    doc: claude-tooling/plugins/pulseengine-claude/memory/pulseengine-cli-conventions.md
+    text: "a layer that no longer verifies"
+    evidence:
+      - kind: count-min
+        pattern: 'no longer verifies'
+        glob: ['claude-tooling/plugins/pulseengine-claude/memory/pulseengine-cli-conventions.md']
+        min: 1
+      - kind: count-min
+        pattern: 'historical'
+        glob: ['claude-tooling/plugins/pulseengine-claude/memory/pulseengine-toolchain.md']
+        min: 1
