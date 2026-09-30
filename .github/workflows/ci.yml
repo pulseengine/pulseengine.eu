@@ -59,3 +59,10 @@ jobs:
       # not a warning, the skills simply were not there.
       - name: Check skill frontmatter loads in agent runtimes
         run: python3 scripts/check-skill-frontmatter.py
+
+      # The plugin's load-bearing claims, bound to re-derivable evidence
+      # (pulseengine.eu#202). We ship the claim-verification skill and were one
+      # of three repos in four not using it; this runs its own reference
+      # implementation against our own ledger.
+      - name: Check the plugin's claims still hold
+        run: python3 claude-tooling/plugins/pulseengine-claude/skills/claim-verification/claim-check.py claims.yaml

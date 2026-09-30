@@ -200,11 +200,12 @@ Three kinds of skill; run them differently. (This covers the full set — every
 skill is in exactly one class.)
 - **Deterministic driver** — `release-execution` only. Pure rote machinery:
   execute the procedure in order; do not deviate, refactor, or improve. Routine
-  work, so **medium effort, dropping to low if it over-deliberates** (a biddable
-  model like Opus 4.8 fits). The real guard against "reconsider the approach" drift
+  work, so **medium effort, dropping to low if it over-deliberates** — a biddable
+  model rather than the most capable one. The real guard against "reconsider the approach" drift
   is the boundary + minimal-scope blocks above — they hold at any effort; the
   effort knob alone does not.
-- **Hybrids** — `release-planning`, `issue-hunt`, `release-artifact-pipeline`.
+- **Hybrids** — `release-planning`, `issue-hunt`, `release-artifact-pipeline`,
+  `repo-hygiene`, `gate-potency`, `claim-verification`.
   Their *judgment* half (scope a release, triage/evaluate an issue "measure don't
   guess", audit a repo's deltas) is explorer work — capable model, scope, higher
   effort; their *deliver* half (land, gate, ship) routes through the driver
@@ -213,17 +214,24 @@ skill is in exactly one class.)
 - **Explorers** — `proof-synthesis`, `stpa-audit`, `traceability-audit`,
   `pulseengine-feature-loop`, `clean-room-verification`, `bootstrap-verification`.
   Reward depth and initiative; grant scope and **higher effort**, prefer the most
-  capable model (Fable 5), and delegate independent subtasks to subagents. On a
+  capable model available, and delegate independent subtasks to subagents. On a
   long-running explorer, establish a self-check interval and verify with
   fresh-context subagents — both against the spec **and** the campaign machinery
   (the invariants above), which artifact-scoped review misses — exactly
   [`clean-room-verification`].
 - **Cross-cutting / standing practice** — `oracle-gate-a-change`,
-  `report-tool-friction`, `capture-session-learnings`. Not a task you "run" as
+  `report-tool-friction`, `capture-session-learnings`, `verify-your-own-claims`,
+  `evidence-transfer`. Not a task you "run" as
   driver-or-explorer; they fire *inside* other skills (oracle-gate per change) or
   as always-on practice (file friction as you hit it; capture learnings before
   they're lost). They inherit the disposition of whatever skill they're running
   within.
+
+Deliberately no model names above: this file named Opus 4.8 and Fable 5 until
+both were superseded, and a routing rule that has to be edited on every release
+is a rule that will be wrong between releases. Route by tier — biddable for
+drivers, most-capable for explorers — and let the caller resolve which model
+that is today.
 
 A skill is a contract, not an exhaustive checklist: for capable models a short
 closed instruction beats an enumerated one — if an older, over-specified

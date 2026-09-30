@@ -14,6 +14,7 @@ PulseEngine engineering methodology as installable Claude Code tooling.
   - `pulseengine-prose-conventions.md` — how agent-written text should read — commit messages, PR bodies, issue text, blog posts — with the tell-frequencies measured across this repo's own output.
 
 - **Memory-persistence hooks** (`hooks/`) — keep work from starting cold:
+  - `pulseengine-generated-media.md` — what we may publish as video or animation and what it may never stand for: the EU AI Act Article 50(4) limbs we sit outside and why, and the harder in-house rule that a generated depiction must never substitute for a measured result.
   - **SessionStart** injects the methodology memory *and* situational awareness (git branch / status / recent commits, a best-effort repo-category guess, and the working-context resumed from last time).
   - **PreCompact + SessionEnd** save a `.claude/pulseengine/working-context.md` checkpoint (git state + an agent-maintained notes section, kept out of git via `.git/info/exclude`) so context survives compaction and carries to the next session.
 
