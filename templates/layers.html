@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+
+{% block title %}{{ section.title }} — {{ config.title }}{% endblock %}
+{% block description %}{{ section.description }}{% endblock %}
+
+{% block content %}
+{#
+  The layer evidence view. Everything on this page is read from
+  static/layers.json, which scripts/fetch-layers.py writes during the deploy by
+  pulling each layer's DSSE-signed metadata from ghcr.io. No figure here is
+  typed by hand, and the page states how old its data is.
+
+  A committed snapshot of layers.json keeps `zola build` working locally and in
+  CI, where there is no network. The freshness strip reports its age, so a stale
+  snapshot is visible rather than silently presented as current.
+#}
+{% set layers = load_data(path="static/layers.json", required=false) %}
+
+<div class="container lv" id="lv-root" data-src="{{ get_url(path='layers.json') }}">
+  <section class="page-section">
+    <h1 class="section-heading">{{ section.title }}</h1>
+    <p style="max-width:62ch;">{{ section.description }}</p>
+
+    {% if not layers or not layers.realms %}
+      <p class="lv__noscript" style="margin-top:1.5rem;">
+        Layer metadata has not been fetched for this build. Run
+        <code>python3 scripts/fetch-layers.py</code> to populate
+        <code>static/layers.json</code>.
+      </p>
+    {% else %}
+
+    {# ── evidence figures (#201) ─────────────────────────────────────── #}
+    <div class="lv__eyebrow"><b>evidence</b> · measured, not stated</div>
+    <p class="lv__sub">Four figures, each re-derivable from a public registry.
+    Tap one for the exact command that produces it.
+    <span class="lv__stamp" id="lv-gen"></span></p>
+
+    <div class="lv__figs" id="lv-figs"></div>
+
+    <div class="lv__fresh" id="lv-fresh" data-state="live">
+      <span class="lv__dot"></span>
+      <span id="lv-fresh-txt"></span>
+      <span class="lv__seg" role="group" aria-label="Preview freshness states">
+        <button type="button" data-st="live" aria-pressed="true">live</button>
+        <button type="button" data-st="aging" aria-pressed="false">aging</button>
+        <button type="button" data-st="stale" aria-pressed="false">stale</button>
+      </span>
+    </div>
+    <p class="lv__sub" style="margin-top:.75rem;">The strip derives its state from
+    the age of the fetch: under a day is current, under a week is aging, beyond that
+    the figures are withheld rather than shown undated. The three buttons preview the
+    other states.</p>
+
+    {# ── the time machine (#205) ─────────────────────────────────────── #}
+    <div class="lv__eyebrow" style="margin-top:2.75rem;"><b>history</b> · what changed, layer by layer</div>
+    <h2 class="section-heading" style="font-size:1.35rem;">Layers, receding into the past</h2>
+    <p class="lv__sub">The front card is the layer you are reading; the cards behind it
+    are what came before. Scrub with the ruler, the arrows, or the arrow keys. For an
+    ordinary layer the diff is computed against the one behind it at two levels — tool
+    versions, and per-platform payloads. The second level catches a layer that ships
+    fewer builds than its predecessor without any version changing.
+    <strong>covalent</strong> carries no payloads of its own, so it gets a view of its own.</p>
+
+    <div class="lv__realms" id="lv-realms" role="group" aria-label="Realm"></div>
+
+    <div class="lv__tm">
+      <div class="lv__stage" id="lv-stage">
+        <div class="lv__deck" id="lv-deck"></div>
+        <div class="lv__ctrl">
+          <button type="button" id="lv-older" aria-label="Older layer">← older</button>
+          <button type="button" id="lv-newer" aria-label="Newer layer">newer →</button>
+        </div>
+      </div>
+      <div class="lv__scale" id="lv-scale" role="group" aria-label="Layer timeline"></div>
+      <div class="lv__det" id="lv-det"></div>
+    </div>
+
+    <p class="lv__sub" style="margin-top:1.25rem;">
+      <strong>Reading the provenance column.</strong>
+      <code>cosign-sums</code> and <code>build-provenance</code> mean a signature or
+      an attestation covers the bytes, and the row says what it asserts.
+      <code>unverified</code> means nothing vouched for them: the payload was ingested
+      on an explicit operator decision, and the reason is signed into the layer
+      alongside it. Showing that number is the point. A view that could only report
+      green would not be evidence.
+    </p>
+
+    <noscript>
+      <div class="lv__noscript" style="margin-top:1.5rem;">
+        <p><strong>The interactive view needs JavaScript.</strong> The underlying data
+        is <a href="{{ get_url(path='layers.json') }}">layers.json</a>; what follows is
+        a plain summary of the same file, rendered at build time.</p>
+        {% for name, realm in layers.realms %}
+          <h3 style="font-family:var(--font-mono);font-size:1rem;margin-top:1rem;">{{ name }}</h3>
+          <table class="lv__tools">
+            <thead><tr><th>layer</th><th>issued</th><th>payloads</th><th>supported until</th></tr></thead>
+            <tbody>
+            {% for tag in realm.order %}
+              {% set L = realm.layers[tag] %}
+              <tr>
+                <td class="lv__n">{{ L.layer }}</td>
+                <td class="lv__p is-dim">{{ L.issued | default(value="—") | truncate(length=10, end="") }}</td>
+                <td class="lv__p is-dim">{{ L.payloads }}</td>
+                <td class="lv__p is-dim">{{ L.support_until | default(value="—") }}</td>
+              </tr>
+            {% endfor %}
+            </tbody>
+          </table>
+        {% endfor %}
+      </div>
+    </noscript>
+
+    {% endif %}
+  </section>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ get_url(path='layers.js') }}" defer></script>
+{% endblock %}

@@ -25,8 +25,14 @@
 
 .site-nav {
   display: flex;
+  // The nav is eleven items wide and was `nowrap`, so below roughly 900px it
+  // pushed the page into a horizontal scroll — measured 302px of overflow at
+  // 592px, on every page, before the Layers link existed.
+  flex-wrap: wrap;
   gap: 1.5rem;
   align-items: center;
+  justify-content: flex-end;
+  row-gap: 0.5rem;
 }
 
 .site-nav a {

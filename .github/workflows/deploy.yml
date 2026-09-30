@@ -52,6 +52,12 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: cargo run --release --manifest-path tools/fetch-reports/Cargo.toml
 
+      # Refreshes static/layers.json from ghcr.io. A registry hiccup is not fatal:
+      # the script keeps the committed snapshot and the page reports its age
+      # (pulseengine.eu#201 — a stale panel must say so rather than look current).
+      - name: Fetch varve layer metadata
+        run: python3 scripts/fetch-layers.py
+
       - name: Inject build info
         run: |
           SHORT_SHA="${GITHUB_SHA::7}"

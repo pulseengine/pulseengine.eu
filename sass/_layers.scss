@@ -1,0 +1,687 @@
+// ─── Layer evidence view (/layers) ────────────────────────────────────
+//
+// The varve layer history, Time-Machine shaped: a stack of layer cards
+// receding into depth, a ruler to scrub with, and the selected layer's
+// contents and diff below it.
+//
+// Everything here is built on the live CSS variables from _variables.scss,
+// so the light theme comes for free. The few values that cannot be a token —
+// the sunken wells and the card shadow — are local variables flipped for
+// light, because a black overlay reads as dirt on cream paper.
+
+.lv {
+  --lv-card:    var(--surface-raised);
+  --lv-card-2:  var(--surface);
+  --lv-well:    rgba(0, 0, 0, .26);          // recessed areas (ruler, code)
+  --lv-shadow:  rgba(0, 0, 0, .45);
+  --lv-shadow-front: rgba(0, 0, 0, .55);
+  --lv-sheen:   rgba(255, 255, 255, .05);    // top-edge highlight on a tile
+  --lv-hair:    rgba(255, 255, 255, .22);
+  --lv-grad:    linear-gradient(115deg, var(--accent) 0%, var(--cyan) 48%, var(--purple) 100%);
+}
+
+@mixin lv-light {
+  --lv-well:    rgba(90, 74, 40, .07);
+  --lv-shadow:  rgba(90, 74, 40, .16);
+  --lv-shadow-front: rgba(90, 74, 40, .24);
+  --lv-sheen:   rgba(255, 255, 255, .55);
+  --lv-hair:    rgba(255, 255, 255, .8);
+}
+:root[data-theme="light"] .lv { @include lv-light; }
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) .lv { @include lv-light; }
+}
+
+// ─── type ─────────────────────────────────────────────────────────────
+.lv__eyebrow {
+  font-family: $font-mono;
+  font-size: .69rem;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+  gap: .56rem;
+  color: $text-faint;
+  margin-bottom: .6rem;
+
+  &::before { content: ""; width: 1.4rem; height: 1px; background: var(--lv-grad); }
+  b {
+    background: var(--lv-grad);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    font-weight: 600;
+  }
+}
+
+.lv__sub {
+  color: $text-dim;
+  font-size: .91rem;
+  max-width: 72ch;
+  margin: .5rem 0 1.4rem;
+  text-wrap: pretty;
+}
+
+// ─── realm switch ─────────────────────────────────────────────────────
+.lv__realms { display: flex; gap: .5rem; flex-wrap: wrap; margin: 0 0 1.1rem; }
+
+.lv__realm {
+  font: inherit;
+  font-family: $font-mono;
+  font-size: .78rem;
+  cursor: pointer;
+  text-align: left;
+  background: $surface;
+  color: $text-dim;
+  border: 1px solid $border-subtle;
+  border-radius: 12px;
+  padding: .6rem .86rem;
+  min-height: 46px;                        // touch target
+  position: relative;
+  transition: color .26s ease, border-color .26s ease, transform .26s ease;
+
+  b { display: block; font-weight: 600; }
+  span { font-size: .66rem; color: $text-faint; }
+
+  &:hover { transform: translateY(-2px); }
+  &[aria-pressed="true"] {
+    color: $text;
+    border-color: $accent;
+    background: $surface-raised;
+    span { color: $accent; }
+  }
+}
+
+// ─── the stage ────────────────────────────────────────────────────────
+.lv__tm {
+  display: grid;
+  grid-template-columns: 1fr 78px;
+  grid-template-rows: clamp(372px, 48vh, 452px) auto;
+  border: 1px solid $border-subtle;
+  border-radius: 18px;
+  overflow: hidden;
+  background:
+    radial-gradient(90% 70% at 50% 116%, var(--accent-glow), transparent 68%),
+    $bg-subtle;
+}
+
+.lv__stage {
+  position: relative;
+  height: 100%;
+  min-height: 0;
+  perspective: 1500px;
+  perspective-origin: 50% 46%;
+  overflow: hidden;
+
+  // a horizon line sells the depth without drawing a grid
+  &::after {
+    content: "";
+    position: absolute;
+    left: 0; right: 0; top: 30%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent-glow), transparent);
+    pointer-events: none;
+  }
+}
+
+.lv__deck { position: absolute; inset: 0; transform-style: preserve-3d; }
+
+.lv__card {
+  position: absolute;
+  left: 50%;
+  bottom: 68px;
+  width: min(330px, 74vw);
+  margin-left: calc(min(330px, 74vw) / -2);
+  border: 1px solid $border-subtle;
+  border-radius: 13px;
+  background: $surface-raised;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  padding: .8rem .94rem;
+  cursor: pointer;
+  box-shadow: 0 6px 16px var(--lv-shadow);
+  transition: transform .58s cubic-bezier(.22, 1, .36, 1),
+              opacity   .58s cubic-bezier(.22, 1, .36, 1),
+              border-color .3s ease;
+
+  &[data-front="true"] {
+    border-color: $accent;
+    box-shadow: 0 10px 26px var(--lv-shadow-front), 0 0 0 1px var(--accent-glow);
+  }
+
+  .lv__tag {
+    font-family: $font-mono;
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: -.02em;
+    display: flex;
+    align-items: center;
+    gap: .56rem;
+
+    em {
+      font-style: normal;
+      margin-left: auto;
+      font-size: .66rem;
+      font-weight: 500;
+      color: $text-faint;
+      letter-spacing: .06em;
+    }
+  }
+  .lv__when { font-family: $font-mono; font-size: .72rem; color: $text-faint; margin-top: .19rem; }
+  .lv__marks { display: flex; gap: .31rem; flex-wrap: wrap; margin-top: .56rem; min-height: 20px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lv__card { transition: opacity .2s linear; }
+}
+
+.lv__mk {
+  font-family: $font-mono;
+  font-size: .59rem;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  padding: .19rem .44rem;
+  border-radius: 999px;
+  border: 1px solid currentColor;
+
+  &.is-warn { color: $amber; }
+  &.is-bad  { color: $red; }
+  &.is-ok   { color: $green; }
+  &.is-info { color: $accent; }
+}
+
+// ─── the ruler ────────────────────────────────────────────────────────
+.lv__scale {
+  border-left: 1px solid $border-subtle;
+  background: var(--lv-well);
+  height: 100%;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: .56rem 0;
+  scrollbar-width: thin;
+}
+
+.lv__tick {
+  display: block;
+  width: 100%;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  font-family: $font-mono;
+  font-size: .59rem;
+  color: $text-faint;
+  padding: .38rem .25rem;
+  min-height: 34px;
+  position: relative;
+  transition: color .22s ease;
+
+  &::before {
+    content: "";
+    position: absolute;
+    left: 0; top: 50%;
+    width: 9px; height: 1px;
+    background: $border;
+    transition: width .26s ease, background .26s ease;
+  }
+  &[aria-current="true"] {
+    color: $text;
+    &::before { width: 19px; background: $accent; }
+  }
+  &.is-flagged { color: $amber; }
+}
+
+// ─── stage controls ───────────────────────────────────────────────────
+.lv__ctrl {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  display: flex;
+  gap: .5rem;
+  justify-content: center;
+  padding: .75rem;
+  pointer-events: none;
+  z-index: 200;
+  background: linear-gradient(0deg, $bg-subtle 55%, transparent);
+
+  button {
+    pointer-events: auto;
+    font: inherit;
+    font-family: $font-mono;
+    font-size: .69rem;
+    background: $surface;
+    color: $text-dim;
+    border: 1px solid $border-subtle;
+    border-radius: 10px;
+    padding: .56rem .88rem;
+    min-height: 42px;
+    min-width: 46px;
+    cursor: pointer;
+    transition: color .22s ease, border-color .22s ease;
+
+    &:hover:not(:disabled) { color: $text; border-color: $accent; }
+    &:disabled { opacity: .34; cursor: default; }
+  }
+}
+
+// ─── detail panel ─────────────────────────────────────────────────────
+.lv__det {
+  grid-column: 1 / -1;
+  border-top: 1px solid $border-subtle;
+  padding: 1.25rem;
+  min-width: 0;
+  background: $surface;
+}
+
+.lv__det-h {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .38rem .88rem;
+  align-items: baseline;
+  margin-bottom: .75rem;
+
+  h3 {
+    margin: 0;
+    font-family: $font-mono;
+    font-size: clamp(1.3rem, 3vw, 1.75rem);
+    letter-spacing: -.03em;
+    font-weight: 700;
+  }
+  .lv__meta { font-family: $font-mono; font-size: .72rem; color: $text-faint; }
+}
+
+.lv__pills { display: flex; flex-wrap: wrap; gap: .44rem; margin-bottom: 1.1rem; }
+
+.lv__pill {
+  font-family: $font-mono;
+  font-size: .69rem;
+  padding: .31rem .63rem;
+  border-radius: 999px;
+  border: 1px solid $border-subtle;
+  color: $text-dim;
+  background: var(--lv-well);
+
+  &.is-g { color: $green; border-color: $green; }
+  &.is-a { color: $amber; border-color: $amber; }
+  &.is-r { color: $red;   border-color: $red; }
+  &.is-c { color: $cyan;  border-color: $cyan; }
+}
+
+.lv__dl {
+  font-family: $font-mono;
+  font-size: .63rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: $text-faint;
+  margin: 1.4rem 0 .63rem;
+  display: flex;
+  align-items: center;
+  gap: .63rem;
+
+  &::after { content: ""; flex: 1; height: 1px; background: $border-subtle; }
+}
+
+.lv__chg {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .44rem;
+
+  .lv__c {
+    font-family: $font-mono;
+    font-size: .75rem;
+    padding: .38rem .63rem;
+    border-radius: 8px;
+    background: var(--lv-well);
+    border: 1px solid $border-subtle;
+
+    b { font-weight: 600; }
+    .lv__ar { color: $text-faint; }
+    &.is-up b   { color: $cyan; }
+    &.is-add b  { color: $green; }
+    &.is-loss b { color: $red; }
+  }
+}
+
+.lv__none { font-size: .81rem; color: $text-faint; font-style: italic; }
+
+// ─── callouts ─────────────────────────────────────────────────────────
+.lv__alert {
+  border: 1px solid $red;
+  background: var(--lv-well);
+  border-radius: 12px;
+  padding: .88rem .94rem;
+  margin-top: .88rem;
+  font-size: .84rem;
+  line-height: 1.6;
+
+  > b:first-child {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    color: $red;
+    font-family: $font-mono;
+    font-size: .66rem;
+    letter-spacing: .09em;
+    text-transform: uppercase;
+    margin-bottom: .5rem;
+  }
+  b { color: $red; }
+  code {
+    font-family: $font-mono;
+    font-size: .75rem;
+    background: var(--lv-well);
+    padding: .06rem .31rem;
+    border-radius: 4px;
+    color: $cyan;
+  }
+  a { color: $accent; }
+
+  &.is-amber {
+    border-color: $amber;
+    > b:first-child, b { color: $amber; }
+  }
+}
+
+.lv__comp {
+  border: 1px solid $purple;
+  background: var(--lv-well);
+  border-radius: 12px;
+  padding: .94rem;
+  margin-top: .25rem;
+
+  > b {
+    display: block;
+    color: $purple;
+    font-family: $font-mono;
+    font-size: .66rem;
+    letter-spacing: .09em;
+    text-transform: uppercase;
+    margin-bottom: .5rem;
+  }
+  p { margin: 0; font-size: .84rem; color: $text-dim; line-height: 1.62; }
+  strong { color: $text; }
+}
+
+.lv__inc {
+  border: 1px solid $border-subtle;
+  border-radius: 12px;
+  background: var(--lv-well);
+  padding: .81rem .88rem;
+  margin-top: .63rem;
+
+  .lv__inc-top { display: flex; flex-wrap: wrap; gap: .31rem .63rem; align-items: baseline; }
+  .lv__rn { font-family: $font-mono; font-size: .91rem; font-weight: 700; }
+  .lv__lt { font-family: $font-mono; font-size: .78rem; color: $cyan; }
+  .lv__dg {
+    font-family: $font-mono;
+    font-size: .63rem;
+    color: $text-faint;
+    word-break: break-all;
+    margin-top: .38rem;
+  }
+  .lv__facts { display: flex; flex-wrap: wrap; gap: .38rem; margin-top: .63rem; }
+}
+
+// ─── contents table ───────────────────────────────────────────────────
+.lv__tools {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: .81rem;
+
+  th {
+    text-align: left;
+    font-family: $font-mono;
+    font-size: .63rem;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: $text-faint;
+    font-weight: 500;
+    padding: 0 .5rem .5rem 0;
+    border-bottom: 1px solid $border;
+  }
+  td { padding: .56rem .5rem .56rem 0; border-bottom: 1px solid $border-subtle; vertical-align: top; }
+  .lv__n { font-family: $font-mono; font-weight: 600; }
+  .lv__v { font-family: $font-mono; color: $cyan; white-space: nowrap; }
+  .lv__p { font-family: $font-mono; font-size: .69rem; }
+  .is-ok   { color: $green; }
+  .is-warn { color: $amber; }
+  .is-dim  { color: $text-faint; }
+}
+
+.lv__kind {
+  font-family: $font-mono;
+  font-size: .56rem;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  color: $purple;
+  border: 1px solid $purple;
+  border-radius: 4px;
+  padding: .06rem .31rem;
+  margin-left: .38rem;
+  vertical-align: 1px;
+}
+
+.lv__why {
+  margin-top: .38rem;
+
+  summary {
+    cursor: pointer;
+    font-size: .72rem;
+    color: $accent;
+    font-family: $font-mono;
+    list-style: none;
+    min-height: 26px;
+    display: inline-block;
+
+    &::-webkit-details-marker { display: none; }
+    &::before { content: "\25B8 "; display: inline-block; transition: transform .2s ease; }
+  }
+  &[open] summary::before { transform: rotate(90deg); }
+  p {
+    margin: .5rem 0 0;
+    font-size: .78rem;
+    color: $text-dim;
+    max-width: 80ch;
+    border-left: 2px solid $border-subtle;
+    padding-left: .69rem;
+    line-height: 1.62;
+  }
+}
+
+// ─── freshness strip ──────────────────────────────────────────────────
+.lv__fresh {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .56rem .81rem;
+  align-items: center;
+  margin-top: .88rem;
+  padding: .75rem .94rem;
+  border-radius: 12px;
+  font-family: $font-mono;
+  font-size: .75rem;
+  border: 1px solid $border-subtle;
+
+  &[data-state="live"]  { border-color: $green; color: $green; }
+  &[data-state="aging"] { border-color: $amber; color: $amber; }
+  &[data-state="stale"] { border-color: $red;   color: $red; }
+  .lv__txt { color: $text-dim; }
+}
+
+.lv__dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+  flex: none;
+  animation: lv-pulse 2.4s ease-in-out infinite;
+}
+@keyframes lv-pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: .4; transform: scale(.72); } }
+@media (prefers-reduced-motion: reduce) { .lv__dot { animation: none; } }
+
+.lv__seg {
+  display: inline-flex;
+  gap: .19rem;
+  margin-left: auto;
+  background: var(--lv-well);
+  border: 1px solid $border-subtle;
+  border-radius: 10px;
+  padding: .19rem;
+
+  button {
+    font: inherit;
+    font-family: $font-mono;
+    font-size: .69rem;
+    background: none;
+    color: $text-faint;
+    border: 0;
+    border-radius: 7px;
+    padding: .44rem .69rem;
+    min-height: 36px;
+    cursor: pointer;
+    transition: background .22s ease, color .22s ease;
+
+    &[aria-pressed="true"] { background: $surface-raised; color: $text; }
+  }
+}
+
+// ─── noscript fallback ────────────────────────────────────────────────
+.lv__noscript {
+  border: 1px solid $border-subtle;
+  border-radius: 12px;
+  padding: 1rem;
+  background: $surface;
+  font-size: .84rem;
+}
+
+// ─── responsive ───────────────────────────────────────────────────────
+@media (max-width: 560px) {
+  .lv__tm {
+    grid-template-columns: 1fr 54px;
+    grid-template-rows: clamp(340px, 56vh, 410px) auto;
+  }
+  .lv__det { padding: .94rem; }
+}
+
+// ─── evidence figures (pulseengine.eu#201) ────────────────────────────
+// Four numbers, each tappable for the command that re-derives it. The lead
+// tile spans two columns so the grid reads as evidence rather than as a
+// row of equal widgets.
+.lv__figs {
+  display: grid;
+  gap: .75rem;
+  grid-template-columns: repeat(4, 1fr);
+  grid-auto-rows: minmax(112px, auto);
+}
+
+.lv__tile {
+  position: relative;
+  border: 1px solid $border-subtle;
+  border-radius: 14px;
+  background: $surface;
+  padding: 1rem 1.06rem;
+  overflow: hidden;
+  text-align: left;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  width: 100%;
+  transition: border-color .3s ease, transform .3s ease;
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--lv-hair), transparent);
+  }
+  &:hover, &[aria-expanded="true"] { border-color: $accent; transform: translateY(-2px); }
+
+  .lv__k {
+    font-family: $font-mono;
+    font-size: .63rem;
+    letter-spacing: .11em;
+    text-transform: uppercase;
+    color: $text-faint;
+    display: block;
+    margin-bottom: .56rem;
+  }
+  .lv__val {
+    font-family: $font-mono;
+    font-weight: 700;
+    letter-spacing: -.035em;
+    display: block;
+    font-size: clamp(1.7rem, 3.4vw, 2.5rem);
+    line-height: .98;
+    font-variant-numeric: tabular-nums;
+  }
+  .lv__u { font-size: .78rem; color: $text-dim; display: block; margin-top: .44rem; }
+  .lv__more {
+    font-family: $font-mono;
+    font-size: .66rem;
+    color: $accent;
+    display: flex;
+    align-items: center;
+    gap: .31rem;
+    margin-top: .63rem;
+
+    i { font-style: normal; display: inline-block; transition: transform .3s ease; }
+  }
+  &[aria-expanded="true"] .lv__more i { transform: rotate(45deg); }
+
+  &.is-lead {
+    grid-column: span 2;
+    grid-row: span 2;
+    background: $surface-raised;
+    &::after { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: var(--lv-grad); }
+    .lv__val { font-size: clamp(2.4rem, 6vw, 4rem); }
+  }
+  &.is-wide { grid-column: span 2; }
+  &.tone-g .lv__val { color: $green; }
+  &.tone-a .lv__val { color: $amber; }
+  &.tone-r .lv__val { color: $red; }
+}
+
+.lv__prov {
+  grid-column: 1 / -1;
+  display: none;
+  border: 1px solid $border-subtle;
+  border-radius: 14px;
+  background: var(--lv-well);
+  padding: .94rem 1.06rem;
+  font-size: .84rem;
+  color: $text-dim;
+
+  &.is-open { display: block; }
+  code {
+    font-family: $font-mono;
+    font-size: .78rem;
+    color: $cyan;
+    background: var(--lv-well);
+    padding: .06rem .31rem;
+    border-radius: 4px;
+  }
+  .lv__cmd {
+    display: block;
+    font-family: $font-mono;
+    font-size: .72rem;
+    color: $cyan;
+    background: var(--lv-well);
+    border: 1px solid $border-subtle;
+    border-radius: 9px;
+    padding: .69rem .81rem;
+    margin-top: .69rem;
+    overflow-x: auto;
+    white-space: pre;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+@media (max-width: 900px) {
+  .lv__figs { grid-template-columns: repeat(2, 1fr); }
+  .lv__tile.is-lead { grid-column: span 2; grid-row: span 1; }
+}
+@media (max-width: 560px) {
+  .lv__figs { grid-template-columns: 1fr; }
+  .lv__tile.is-lead, .lv__tile.is-wide { grid-column: span 1; }
+}
+
+.lv__stamp { display: block; font-family: $font-mono; font-size: .69rem; color: $text-faint; margin-top: .38rem; }

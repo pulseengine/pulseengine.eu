@@ -60,6 +60,13 @@ jobs:
       - name: Check skill frontmatter loads in agent runtimes
         run: python3 scripts/check-skill-frontmatter.py
 
+      # The layer view builds its whole DOM in JavaScript, so a class the script
+      # emits and the stylesheet does not define renders unstyled and nothing
+      # else notices. Porting the prototype into the site produced six such
+      # defects, all of which built cleanly; this gate catches each of them.
+      - name: Check the layer view's classes are styled
+        run: python3 scripts/check-layers-view.py
+
       # The plugin's load-bearing claims, bound to re-derivable evidence
       # (pulseengine.eu#202). We ship the claim-verification skill and were one
       # of three repos in four not using it; this runs its own reference
