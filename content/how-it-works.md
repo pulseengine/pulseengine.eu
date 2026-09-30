@@ -93,10 +93,12 @@ The limits are varve's own, and belong here rather than in a footnote. The
 rotates at a v1.0 ceremony that has not happened, and the qualified channel is not
 open. There is **no key rotation, revocation, expiry, threshold or transparency
 log**, so a consumer pins the root by hand from a published asset and a leaked
-root stays valid until every consumer edits their own config. And the published
-layer carries the tools that *check* our work, not the upstream Bytecode Alliance
-tools that *build* it — layer composition across two trust roots ships in the
-tool, but what is published today is one realm.
+root stays valid until every consumer edits their own config. Three realms are published, and one
+composes the other two: `pulseengine` carries the tools that *check* our work,
+`pulseengine-wasm` carries the upstream component-model tools that *build* it, and
+`covalent` holds no tools at all. It exists only to assert that those two belong
+together. Each included layer is verified against its own realm's root, so a
+composing realm asserts a pairing and cannot widen trust.
 
 ### 4 · Verify — the gate
 

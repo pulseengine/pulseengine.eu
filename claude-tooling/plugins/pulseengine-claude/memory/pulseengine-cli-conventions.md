@@ -75,7 +75,9 @@ It exits `2` when it cannot check at all (no pin — every shim refuses, which i
 varve working correctly) and `1` only for real violations, so a missing pin can
 never be mistaken for a conformance failure.
 
-Measured on layer `2026.08.2`, 2026-09-06: **9 checked, 5 violating** — `kilnd`,
+Measured on layer `2026.08.2`, 2026-09-06 — **a layer that no longer verifies**, since its
+signing root was retired 2026-09-07 (varve#110). Treat the figures as historical and
+re-measure against a current layer: **9 checked, 5 violating** — `kilnd`,
 `ordeal`, `spar` (no `--version`), `witness` (`witness-mcdc`), `wsc` (`wsc-cli`).
 `spar` and `kilnd` also break rule 2 (unknown flag exits 1, not 2). The four
 conforming tools all match their layer-recorded version, so there is no
