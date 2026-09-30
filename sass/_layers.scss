@@ -141,9 +141,12 @@
   padding: .8rem .94rem;
   cursor: pointer;
   box-shadow: 0 6px 16px var(--lv-shadow);
-  transition: transform .58s cubic-bezier(.22, 1, .36, 1),
-              opacity   .58s cubic-bezier(.22, 1, .36, 1),
-              border-color .3s ease;
+  // Moving the stack is system-initiated, not a drag the finger is steering, so
+  // it gets a duration and an ease-out rather than a spring. 580ms read as slow
+  // once there was nothing to wait for; 260ms is the 2026 convention.
+  transition: transform .26s cubic-bezier(.22, 1, .36, 1),
+              opacity   .26s cubic-bezier(.22, 1, .36, 1),
+              border-color .2s ease;
 
   &[data-front="true"] {
     border-color: $accent;
@@ -152,6 +155,7 @@
 
   .lv__tag {
     font-family: $font-mono;
+    font-variant-numeric: tabular-nums;
     font-size: 1rem;
     font-weight: 700;
     letter-spacing: -.02em;
@@ -210,6 +214,7 @@
   background: none;
   cursor: pointer;
   font-family: $font-mono;
+  font-variant-numeric: tabular-nums;
   font-size: .59rem;
   color: $text-faint;
   padding: .38rem .25rem;
@@ -283,6 +288,7 @@
   h3 {
     margin: 0;
     font-family: $font-mono;
+    font-variant-numeric: tabular-nums;
     font-size: clamp(1.3rem, 3vw, 1.75rem);
     letter-spacing: -.03em;
     font-weight: 700;
@@ -441,7 +447,7 @@
   }
   td { padding: .56rem .5rem .56rem 0; border-bottom: 1px solid $border-subtle; vertical-align: top; }
   .lv__n { font-family: $font-mono; font-weight: 600; }
-  .lv__v { font-family: $font-mono; color: $cyan; white-space: nowrap; }
+  .lv__v { font-family: $font-mono; color: $cyan; white-space: nowrap; font-variant-numeric: tabular-nums; }
   .lv__p { font-family: $font-mono; font-size: .69rem; }
   .is-ok   { color: $green; }
   .is-warn { color: $amber; }
