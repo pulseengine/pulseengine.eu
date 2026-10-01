@@ -11,7 +11,10 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 56px;
+  // min-height, not height: a fixed 56px meant anything that wrapped rendered
+  // outside the header box instead of growing it.
+  min-height: 56px;
+  position: relative;
 }
 
 .site-logo {
@@ -23,16 +26,121 @@
   &:hover { color: $text; }
 }
 
+// Twelve items do not fit one row below 1062px, measured: 836px of links, a
+// 98px logo, a 32px theme toggle and two 24px gaps. `nowrap` pushed the page
+// into a 302px horizontal scroll; `wrap` stacked them into three rows that
+// spilled out of the 56px header, because that header is a fixed height.
+// Neither is a nav, so below the breakpoint the links collapse behind a button.
+//
+// The breakpoint is 1150px rather than 1062px on purpose. The measurement holds
+// for Atkinson Hyperlegible; a client that falls back to a different face — a
+// slow webfont, or a platform without it — lays the same eleven labels out
+// wider, and the failure mode is the horizontal scroll this exists to prevent.
+$nav-collapse: 1150px;
 .site-nav {
   display: flex;
-  // The nav is eleven items wide and was `nowrap`, so below roughly 900px it
-  // pushed the page into a horizontal scroll — measured 302px of overflow at
-  // 592px, on every page, before the Layers link existed.
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 1.5rem;
   align-items: center;
   justify-content: flex-end;
-  row-gap: 0.5rem;
+}
+
+.site-nav__links {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 1.5rem;
+  align-items: center;
+}
+
+.nav-toggle {
+  display: none;              // desktop: the links speak for themselves
+  align-items: center;
+  gap: 0.5rem;
+  background: none;
+  border: 1px solid $border-subtle;
+  border-radius: 8px;
+  color: $text-dim;
+  font: inherit;
+  font-size: 0.875rem;
+  padding: 0.44rem 0.69rem;
+  min-height: 40px;
+  cursor: pointer;
+  transition: color 0.2s, border-color 0.2s;
+
+  &:hover, &[aria-expanded="true"] { color: $text; border-color: $accent; }
+
+  &__text { font-weight: 500; }
+
+  // three bars that become an x when the panel is open
+  &__bars {
+    position: relative;
+    width: 16px;
+    height: 2px;
+    background: currentColor;
+    border-radius: 2px;
+    transition: background 0.2s;
+
+    &::before, &::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      width: 16px;
+      height: 2px;
+      background: currentColor;
+      border-radius: 2px;
+      transition: transform 0.2s ease;
+    }
+    &::before { top: -5px; }
+    &::after  { top: 5px; }
+  }
+
+  &[aria-expanded="true"] &__bars {
+    background: transparent;
+    &::before { transform: translateY(5px) rotate(45deg); }
+    &::after  { transform: translateY(-5px) rotate(-45deg); }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav-toggle__bars, .nav-toggle__bars::before, .nav-toggle__bars::after { transition: none; }
+}
+
+@media (max-width: $nav-collapse) {
+  .nav-toggle { display: inline-flex; }
+
+  .site-nav__links {
+    display: none;
+    position: absolute;
+    top: 100%;
+    right: 0;
+    left: 0;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    padding: 0.5rem;
+    background: $surface;
+    border: 1px solid $border-subtle;
+    border-top: 0;
+    border-radius: 0 0 12px 12px;
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.28);
+    max-height: calc(100vh - 56px);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+
+    &.is-open { display: flex; }
+
+    a {
+      padding: 0.75rem 0.75rem;
+      min-height: 44px;          // touch target
+      display: flex;
+      align-items: center;
+      border-bottom: 1px solid $border-subtle;
+      border-radius: 6px;
+
+      &:last-child { border-bottom: 0; }
+      &.active { background: $surface-raised; border-bottom-color: $accent; }
+    }
+  }
 }
 
 .site-nav a {

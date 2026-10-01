@@ -95,7 +95,7 @@
 // ─── the stage ────────────────────────────────────────────────────────
 .lv__tm {
   display: grid;
-  grid-template-columns: 1fr 78px;
+  grid-template-columns: 1fr 86px;
   grid-template-rows: clamp(372px, 48vh, 452px) auto;
   border: 1px solid $border-subtle;
   border-radius: 18px;
@@ -204,7 +204,20 @@
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   padding: .56rem 0;
+
+  // macOS overlays its scrollbars; Windows reserves real width for them, so on
+  // Edge and Chrome there a classic scrollbar eats ~15px of a 78px column and
+  // squeezes the labels. Both properties are needed: `scrollbar-width` covers
+  // Firefox, the pseudo-elements cover Chromium.
   scrollbar-width: thin;
+  scrollbar-color: $border transparent;
+
+  &::-webkit-scrollbar { width: 6px; }
+  &::-webkit-scrollbar-track { background: transparent; }
+  &::-webkit-scrollbar-thumb {
+    background: $border;
+    border-radius: 3px;
+  }
 }
 
 .lv__tick {
@@ -561,7 +574,7 @@
 // ─── responsive ───────────────────────────────────────────────────────
 @media (max-width: 560px) {
   .lv__tm {
-    grid-template-columns: 1fr 54px;
+    grid-template-columns: 1fr 62px;
     grid-template-rows: clamp(340px, 56vh, 410px) auto;
   }
   .lv__det { padding: .94rem; }
