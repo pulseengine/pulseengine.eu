@@ -31,9 +31,10 @@ import datetime
 import json
 import os
 import pathlib
-import subprocess
 import sys
 import tomllib
+import urllib.error
+import urllib.request
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 CONFIG = ROOT / "reports.toml"
@@ -42,27 +43,37 @@ CONFIG = ROOT / "reports.toml"
 RELEASES_BEHIND = 1
 
 
-def gh_api(path: str) -> list | dict | None:
-    env = dict(os.environ)
-    token = env.get("GITHUB_TOKEN") or env.get("GH_TOKEN")
-    cmd = ["gh", "api", "--paginate", path]
-    try:
-        out = subprocess.run(cmd, capture_output=True, text=True, timeout=90,
-                             env=env)
-    except (OSError, subprocess.TimeoutExpired):
-        return None
-    if out.returncode != 0:
-        return None
-    merged: list = []
-    for chunk in out.stdout.replace("][", ",").splitlines():
-        if not chunk.strip():
-            continue
+def api(path: str) -> list | None:
+    """Call the GitHub API directly.
+
+    This used to shell out to `gh`. The self-hosted deploy runners do not have
+    it, so every call raised OSError, the script reported "could not reach" for
+    all ten projects, printed "0 projects checked" and exited 0. A freshness
+    check that silently checks nothing is worse than no check, because the
+    green step reads as "nothing is stale".
+    """
+    token = os.environ.get("GITHUB_TOKEN") or os.environ.get("GH_TOKEN")
+    headers = {"Accept": "application/vnd.github+json",
+               "User-Agent": "pulseengine.eu-report-freshness"}
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+    out: list = []
+    url = f"https://api.github.com/{path.lstrip('/')}"
+    for _ in range(5):                       # follow Link: rel="next"
+        req = urllib.request.Request(url, headers=headers)
         try:
-            parsed = json.loads(chunk)
-        except json.JSONDecodeError:
-            continue
-        merged.extend(parsed if isinstance(parsed, list) else [parsed])
-    return merged
+            with urllib.request.urlopen(req, timeout=30) as response:
+                out.extend(json.load(response))
+                link = response.headers.get("Link", "")
+        except (urllib.error.URLError, TimeoutError, json.JSONDecodeError,
+                ValueError) as e:
+            print(f"  api error for {path}: {e}", file=sys.stderr)
+            return None
+        nxt = [p for p in link.split(",") if 'rel="next"' in p]
+        if not nxt:
+            break
+        url = nxt[0].split(";")[0].strip(" <>")
+    return out
 
 
 def main() -> int:
@@ -80,7 +91,7 @@ def main() -> int:
     behind, checked, unreachable = [], 0, []
 
     for name, project in sorted(cfg.items()):
-        releases = gh_api(f"repos/{project['repo']}/releases?per_page=100")
+        releases = api(f"repos/{project['repo']}/releases?per_page=100")
         if releases is None:
             unreachable.append(name)
             continue
@@ -114,6 +125,14 @@ def main() -> int:
     print(f"{checked} projects checked, {len(behind)} no longer publishing reports")
     if unreachable:
         print(f"  could not reach: {', '.join(unreachable)}", file=sys.stderr)
+    if not checked:
+        msg = (f"report freshness examined nothing — all {len(cfg)} projects "
+               f"unreachable. The check cannot tell you anything; do not read "
+               f"the green step as 'nothing is stale'.")
+        print(f"error: {msg}", file=sys.stderr)
+        if os.environ.get("GITHUB_ACTIONS"):
+            print(f"::error title=Report freshness check is vacuous::{msg}")
+        return 2
 
     for name, last, days, since, newest in behind:
         age = f"{days} days ago" if days >= 0 else "never"
