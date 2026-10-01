@@ -62,7 +62,12 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Atkinson+Hyperlegible+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="{{ get_url(path='main.css') }}">
+  {# cachebust appends ?h=<content hash>, so a deploy changes the URL.
+     The server sends no Cache-Control, only ETag/Last-Modified, which leaves
+     browsers to cache heuristically — roughly a tenth of the file's age, with
+     no revalidation. A returning visitor got new HTML and new JS against a
+     stylesheet from days earlier, which renders the page unstyled. #}
+  <link rel="stylesheet" href="{{ get_url(path='main.css', cachebust=true) }}">
 
   {% if config.generate_feeds %}
   <link rel="alternate" type="application/atom+xml" title="{{ config.title }} Feed" href="{{ get_url(path='atom.xml') }}">
@@ -141,11 +146,11 @@
       <span class="build-ref"><!-- BUILD_INFO --></span>
     </div>
   </footer>
-  <script src="{{ get_url(path='background.js') }}"></script>
-  <script src="{{ get_url(path='journey.js') }}"></script>
-  <script src="{{ get_url(path='flip.js') }}"></script>
-  <script src="{{ get_url(path='theme-toggle.js') }}"></script>
-  <script src="{{ get_url(path='nav.js') }}"></script>
+  <script src="{{ get_url(path='background.js', cachebust=true) }}"></script>
+  <script src="{{ get_url(path='journey.js', cachebust=true) }}"></script>
+  <script src="{{ get_url(path='flip.js', cachebust=true) }}"></script>
+  <script src="{{ get_url(path='theme-toggle.js', cachebust=true) }}"></script>
+  <script src="{{ get_url(path='nav.js', cachebust=true) }}"></script>
   {# Page-specific scripts. Loaded after the shared ones so a page can rely on
      the theme having been applied. #}
   {% block scripts %}{% endblock %}

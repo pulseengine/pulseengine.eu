@@ -19,7 +19,7 @@
 </div>
 
 {% include "partials/content-scripts.html" %}
-<script src="{{ get_url(path='factory-views.js') }}"></script>
+<script src="{{ get_url(path='factory-views.js', cachebust=true) }}"></script>
 {% endblock %}
 
 {% block head_extra %}

@@ -16,7 +16,7 @@
 #}
 {% set layers = load_data(path="static/layers.json", required=false) %}
 
-<div class="container lv" id="lv-root" data-src="{{ get_url(path='layers.json') }}">
+<div class="container lv" id="lv-root" data-src="{{ get_url(path='layers.json', cachebust=true) }}">
   <section class="page-section">
     <h1 class="section-heading">{{ section.title }}</h1>
     <p style="max-width:62ch;">{{ section.description }}</p>
@@ -88,7 +88,7 @@
     <noscript>
       <div class="lv__noscript" style="margin-top:1.5rem;">
         <p><strong>The interactive view needs JavaScript.</strong> The underlying data
-        is <a href="{{ get_url(path='layers.json') }}">layers.json</a>; what follows is
+        is <a href="{{ get_url(path='layers.json', cachebust=true) }}">layers.json</a>; what follows is
         a plain summary of the same file, rendered at build time.</p>
         {% for name, realm in layers.realms %}
           <h3 style="font-family:var(--font-mono);font-size:1rem;margin-top:1rem;">{{ name }}</h3>
@@ -116,5 +116,5 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="{{ get_url(path='layers.js') }}" defer></script>
+<script src="{{ get_url(path='layers.js', cachebust=true) }}" defer></script>
 {% endblock %}

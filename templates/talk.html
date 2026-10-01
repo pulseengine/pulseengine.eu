@@ -12,7 +12,7 @@
   <title>{{ page.title }}</title>
   <meta name="description" content="{{ page.description | default(value=config.description) }}">
   <link rel="icon" href="{{ get_url(path='favicon.svg') }}" type="image/svg+xml">
-  <link rel="stylesheet" href="{{ get_url(path='main.css') }}">
+  <link rel="stylesheet" href="{{ get_url(path='main.css', cachebust=true) }}">
 </head>
 <body>
   <div class="deck" id="deck">
