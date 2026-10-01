@@ -199,14 +199,17 @@ def add_diffs(realm: dict) -> None:
             "removed": [n for n in sorted(src) if n not in now],
         }
 
-    # Lines newest-first by their newest layer's issue date, so a realm that
-    # back-patches an old line does not bury the line that is current.
+    # Lines newest-first by line identity, not by recent activity. The timeline
+    # draws one lane per line, and a lane that moves when an old line receives a
+    # patch is harder to read than one that holds still: 2026.10 stays above
+    # 2026.09 whichever was touched last. `newest_issued` is carried so a caller
+    # that does want recency can sort on it.
     realm["lines"] = sorted(
         ({"line": line,
           "layers": sorted(tags, key=_sort_key)[::-1],
           "newest_issued": max(realm["layers"][t]["issued"] or "" for t in tags)}
          for line, tags in by_line.items()),
-        key=lambda L: L["newest_issued"], reverse=True)
+        key=lambda L: _sort_key(L["line"]), reverse=True)
 
 
 def resolve_compositions(realms: dict) -> None:

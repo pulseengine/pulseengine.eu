@@ -109,7 +109,7 @@ function renderRealms() {
              el('span', null, n + (n === 1 ? ' layer · ' : ' layers · ') + LABEL[name]));
     b.addEventListener('click', () => {
       if (name === REALM) return;
-      swap(() => { REALM = name; IDX = 0; renderRealms(); buildDeck(); select(); });
+      swap(() => { REALM = name; IDX = 0; renderRealms(); buildDeck(); buildTimeline(); select(); });
     });
     host.append(b);
   });
@@ -132,6 +132,110 @@ function marks(L) {
   if (L.diff.added.length) m.push(['ok', '+' + L.diff.added.length + ' new']);
   if (!m.length) m.push(['info', Object.keys(L.tools).length + ' tools']);
   return m.slice(0, 3);
+}
+
+/* ── the timeline: lines as lanes on a real time axis ─────────────────────
+   The stack encodes one axis, "what came before", and the data has two that
+   disagree. A layer cut into 2026.09 after 2026.10 opened is later in TIME and
+   older in its LINE; a stack can only draw it as older, which is wrong.
+   Here time runs left to right and each line gets its own lane, so a
+   back-patch lands to the right of the newer line's layers and visibly below
+   them. Support is drawn as the tail after a line's last deposit, which is
+   what makes two lines supported at once legible. */
+const DAY = 864e5;
+
+function buildTimeline() {
+  const host = $('#lv-timeline');
+  if (!host) return;
+  host.textContent = '';
+  const realm = R(REALM);
+  const lines = realm.lines || [];
+  if (!lines.length) return;
+
+  const all = realm.order.map(t => realm.layers[t]);
+  const times = all.map(L => +new Date(L.issued)).filter(Number.isFinite);
+  const ends = all.map(L => L.support_until ? +new Date(L.support_until) : 0);
+  const now = Date.now();
+  const t0 = Math.min(...times);
+  const t1 = Math.max(...ends, ...times, now);
+  const days = Math.max(1, (t1 - t0) / DAY);
+
+  // Enough width that a cluster of same-day deposits is still separable, and
+  // the chart scrolls rather than compressing a month into a thumbnail.
+  const PX_DAY = 17, PAD = 26, LANE = 46;
+  const w = Math.max(host.clientWidth || 600, Math.round(days * PX_DAY) + PAD * 2);
+  const h = lines.length * LANE + 34;
+  const x = ms => PAD + ((ms - t0) / (t1 - t0)) * (w - PAD * 2);
+
+  const NS = 'http://www.w3.org/2000/svg';
+  const el2 = (n, a) => { const e = document.createElementNS(NS, n);
+    for (const k in a) e.setAttribute(k, a[k]); return e; };
+  const svg = el2('svg', { viewBox: `0 0 ${w} ${h}`, width: w, height: h,
+                           class: 'lv__tlsvg', role: 'img' });
+  svg.append(Object.assign(el2('title'), { textContent:
+    `${lines.length} lines, ${all.length} layers, by issue date` }));
+
+  // month ticks
+  const d = new Date(t0); d.setUTCDate(1);
+  for (let m = new Date(d); +m <= t1; m.setUTCMonth(m.getUTCMonth() + 1)) {
+    if (+m < t0) continue;
+    svg.append(el2('line', { x1: x(+m), x2: x(+m), y1: 16, y2: h - 12, class: 'lv__tlgrid' }));
+    const lbl = el2('text', { x: x(+m) + 4, y: 12, class: 'lv__tltext' });
+    lbl.textContent = m.toISOString().slice(0, 7);
+    svg.append(lbl);
+  }
+
+  lines.forEach((line, i) => {
+    const y = 26 + i * LANE;
+    const layers = line.layers.map(t => realm.layers[t]);
+    const issued = layers.map(L => +new Date(L.issued));
+    const first = Math.min(...issued), last = Math.max(...issued);
+    const horizon = Math.max(...layers.map(L =>
+      L.support_until ? +new Date(L.support_until) : 0));
+
+    const name = el2('text', { x: PAD, y: y - 8, class: 'lv__tlname' });
+    name.textContent = line.line;
+    svg.append(name);
+
+    // the supported tail, then the deposit span on top of it
+    if (horizon > last) svg.append(el2('rect', { x: x(last), y: y - 5,
+      width: Math.max(2, x(horizon) - x(last)), height: 10, rx: 5,
+      class: 'lv__tlsupport' + (horizon < now ? ' is-expired' : '') }));
+    svg.append(el2('rect', { x: x(first) - 3, y: y - 3,
+      width: Math.max(6, x(last) - x(first) + 6), height: 6, rx: 3, class: 'lv__tlspan' }));
+
+    layers.forEach(L => {
+      const idx = realm.order.indexOf(L.layer);
+      const cx = x(+new Date(L.issued));
+      const dot = el2('circle', { cx, cy: y, r: 5, class: 'lv__tldot',
+        tabindex: '0', role: 'button', 'data-i': idx });
+      dot.append(Object.assign(el2('title'), { textContent:
+        `${L.layer} · ${fmtDate(L.issued)} · supported to ${L.support_until || '?'}` }));
+      const pick = () => go(idx);
+      dot.addEventListener('click', pick);
+      dot.addEventListener('keydown', e => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(); } });
+      svg.append(dot);
+    });
+  });
+
+  // now
+  svg.append(el2('line', { x1: x(now), x2: x(now), y1: 16, y2: h - 12, class: 'lv__tlnow' }));
+  const nl = el2('text', { x: x(now) + 4, y: h - 2, class: 'lv__tltext is-now' });
+  nl.textContent = 'today';
+  svg.append(nl);
+
+  host.append(svg);
+  markTimeline();
+}
+
+function markTimeline() {
+  const cur = R(REALM).order[IDX];
+  $$('.lv__tldot').forEach(d => {
+    const on = R(REALM).order[+d.dataset.i] === cur;
+    d.classList.toggle('is-current', on);
+    d.setAttribute('r', on ? 7.5 : 5);
+  });
 }
 
 function buildDeck() {
@@ -195,7 +299,7 @@ function layout() {
 function go(i) {
   const n = Math.max(0, Math.min(cards.length - 1, i));
   if (n === IDX) return;
-  IDX = n; layout(); select();
+  IDX = n; layout(); markTimeline(); select();
 }
 
 /* ── detail ──────────────────────────────────────────────────────────────── */
@@ -448,6 +552,8 @@ fetch(DATA_URL).then(r => r.json()).then(d => {
   const hl = location.hash.match(/layer=([\d.]+)/);
   const i = hl ? R(REALM).order.indexOf(hl[1]) : -1;
   IDX = i < 0 ? 0 : i;
-  layout(); select(); wireInput();
+  layout(); buildTimeline(); select(); wireInput();
+  // the chart is laid out in pixels, so a resize needs a redraw
+  let rt; addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(buildTimeline, 180); });
 
 });
