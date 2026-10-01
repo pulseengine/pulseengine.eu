@@ -63,6 +63,17 @@
 
     <div class="lv__realms" id="lv-realms" role="group" aria-label="Realm"></div>
 
+    {# Lines run in parallel, so chronology and line membership are two axes.
+       The chart puts time on the horizontal and gives each line its own lane,
+       which is the only shape that can show a layer cut into an older line
+       after a newer line opened. #}
+    <div class="lv__timeline" id="lv-timeline" aria-label="Layers by issue date"></div>
+    <p class="lv__sub" style="margin-top:.5rem">Time runs left to right and each
+    line has its own lane. The solid bar is the span a line received deposits;
+    the lighter tail is how long its newest layer stays supported. Two lanes
+    overlapping is two lines supported at once, which is the normal state once a
+    new line opens.</p>
+
     <div class="lv__tm">
       <div class="lv__stage" id="lv-stage">
         <div class="lv__deck" id="lv-deck"></div>

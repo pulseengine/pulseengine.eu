@@ -757,3 +757,44 @@
 @media (prefers-reduced-motion: reduce) {
   .report-versions summary::before { transition: none; }
 }
+
+// ─── the timeline: lines as lanes ─────────────────────────────────────
+.lv__timeline {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border: 1px solid $border-subtle;
+  border-radius: 14px;
+  background: var(--lv-well);
+  padding: .5rem 0;
+  margin-bottom: .75rem;
+  scrollbar-width: thin;
+
+  &::-webkit-scrollbar { height: 6px; }
+  &::-webkit-scrollbar-track { background: transparent; }
+  &::-webkit-scrollbar-thumb { background: $border; border-radius: 3px; }
+}
+
+.lv__tlsvg { display: block; }
+
+.lv__tlgrid  { stroke: $border-subtle; stroke-width: 1; }
+.lv__tlnow   { stroke: $accent; stroke-width: 1.5; stroke-dasharray: 3 3; }
+.lv__tltext  { fill: $text-faint; font-family: $font-mono; font-size: 9px; }
+.lv__tltext.is-now { fill: $accent; }
+.lv__tlname  { fill: $text-dim; font-family: $font-mono; font-size: 10px; font-weight: 600; }
+
+.lv__tlspan    { fill: $accent; opacity: .55; }
+.lv__tlsupport { fill: $green; opacity: .22; }
+.lv__tlsupport.is-expired { fill: $red; opacity: .2; }
+
+.lv__tldot {
+  fill: $surface-raised;
+  stroke: $accent;
+  stroke-width: 1.5;
+  cursor: pointer;
+  transition: r .2s ease, fill .2s ease;
+
+  &:hover { fill: $accent; }
+  &:focus-visible { outline: 2px solid $accent; outline-offset: 2px; }
+  &.is-current { fill: $accent; stroke: $text; stroke-width: 2; }
+}
+@media (prefers-reduced-motion: reduce) { .lv__tldot { transition: none; } }
