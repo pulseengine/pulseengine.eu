@@ -118,35 +118,95 @@ def fetch_realm(realm: str, repo: str) -> dict:
 
 
 def add_diffs(realm: dict) -> None:
-    """Diff each layer against its predecessor at two levels: version and platform.
+    """Diff each layer against its predecessor IN ITS OWN LINE.
 
-    The platform level is not redundant. Layer 2026.09.18 shipped ten fewer
-    platform payloads than 2026.09.17 while its only version change was a patch
-    bump, so a version-only history calls that layer routine.
+    Lines run in parallel. `varve deposit` takes --layer, --counter and
+    --issued-at as explicit inputs, so a line does not close when the next one
+    opens: 2026.09.21 can be cut after 2026.10.5 and is a patch to the older
+    line, not a step after the newer one.
+
+    Diffing across the whole realm gets that wrong in a way that rewrites
+    published history. Before a back-patch exists, 2026.10.0 reads
+    `meld 0.58.3 -> 0.59.0` against 2026.09.20. Publish a 2026.09.21 carrying
+    meld 0.58.4 and a realm-wide sort drops it between them, so 2026.10.0
+    silently becomes `meld 0.58.4 -> 0.59.0` against a predecessor that did not
+    exist when it was cut.
+
+    Grouping by line also keeps the two orderings honest, because they disagree:
+    by tag the back-patch sits below 2026.10.1, by issue date it is the newest
+    layer in the realm. `prev` answers "what did this change", which is a
+    question about its own line; chronology is `issued` and is the caller's to
+    read.
+
+    The platform level is not redundant either. Layer 2026.09.18 shipped ten
+    fewer platform payloads than 2026.09.17 while its only version change was a
+    patch bump, so a version-only history calls that layer routine.
     """
-    tags = sorted(realm["layers"], key=_sort_key)
-    for i, tag in enumerate(tags):
-        cur = realm["layers"][tag]
-        diff = {"versions": [], "added": [], "removed": [], "platforms": []}
-        cur["prev"] = tags[i - 1] if i else None
-        if i:
-            prev = realm["layers"][tags[i - 1]]["tools"]
-            now = cur["tools"]
-            for name in sorted(now):
-                if name in prev:
-                    if prev[name]["version"] != now[name]["version"]:
-                        diff["versions"].append({"tool": name,
-                                                 "from": prev[name]["version"],
-                                                 "to": now[name]["version"]})
-                    was, is_ = set(prev[name]["platforms"]), set(now[name]["platforms"])
-                    if was != is_:
-                        diff["platforms"].append({"tool": name,
-                                                  "lost": sorted(was - is_),
-                                                  "gained": sorted(is_ - was)})
-            diff["added"] = [{"tool": n, "version": now[n]["version"]}
-                             for n in sorted(now) if n not in prev]
-            diff["removed"] = [n for n in sorted(prev) if n not in now]
-        cur["diff"] = diff
+    by_line: dict[str, list[str]] = {}
+    for tag, layer in realm["layers"].items():
+        by_line.setdefault(layer.get("line") or tag.rsplit(".", 1)[0], []).append(tag)
+
+    for line, tags in by_line.items():
+        tags.sort(key=_sort_key)
+        for i, tag in enumerate(tags):
+            cur = realm["layers"][tag]
+            diff = {"versions": [], "added": [], "removed": [], "platforms": []}
+            cur["prev"] = tags[i - 1] if i else None
+            cur["line_position"] = {"line": line, "index": i, "of": len(tags)}
+            if i:
+                prev = realm["layers"][tags[i - 1]]["tools"]
+                now = cur["tools"]
+                for name in sorted(now):
+                    if name in prev:
+                        if prev[name]["version"] != now[name]["version"]:
+                            diff["versions"].append({"tool": name,
+                                                     "from": prev[name]["version"],
+                                                     "to": now[name]["version"]})
+                        was, is_ = set(prev[name]["platforms"]), set(now[name]["platforms"])
+                        if was != is_:
+                            diff["platforms"].append({"tool": name,
+                                                      "lost": sorted(was - is_),
+                                                      "gained": sorted(is_ - was)})
+                diff["added"] = [{"tool": n, "version": now[n]["version"]}
+                                 for n in sorted(now) if n not in prev]
+                diff["removed"] = [n for n in sorted(prev) if n not in now]
+            cur["diff"] = diff
+
+    # The first layer of a new line has no predecessor in that line, but it did
+    # continue from somewhere: the layer that was newest in the realm at the
+    # moment it was issued. Resolving that by ISSUE TIME rather than by tag is
+    # what makes it stable — a 2026.09.21 cut later has a greater `issued`, so
+    # it can never retroactively become 2026.10.0's branch point.
+    by_issued = sorted(realm["layers"].items(), key=lambda kv: kv[1]["issued"] or "")
+    for tag, layer in realm["layers"].items():
+        layer["branched_from"] = None
+        if layer["prev"] or not layer["issued"]:
+            continue
+        earlier = [t for t, o in by_issued
+                   if o["issued"] and o["issued"] < layer["issued"]]
+        if not earlier:
+            continue
+        parent = earlier[-1]
+        src = realm["layers"][parent]["tools"]
+        now = layer["tools"]
+        layer["branched_from"] = {
+            "layer": parent,
+            "line": realm["layers"][parent].get("line"),
+            "versions": [{"tool": n, "from": src[n]["version"], "to": now[n]["version"]}
+                         for n in sorted(now)
+                         if n in src and src[n]["version"] != now[n]["version"]],
+            "added": [n for n in sorted(now) if n not in src],
+            "removed": [n for n in sorted(src) if n not in now],
+        }
+
+    # Lines newest-first by their newest layer's issue date, so a realm that
+    # back-patches an old line does not bury the line that is current.
+    realm["lines"] = sorted(
+        ({"line": line,
+          "layers": sorted(tags, key=_sort_key)[::-1],
+          "newest_issued": max(realm["layers"][t]["issued"] or "" for t in tags)}
+         for line, tags in by_line.items()),
+        key=lambda L: L["newest_issued"], reverse=True)
 
 
 def resolve_compositions(realms: dict) -> None:

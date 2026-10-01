@@ -704,3 +704,19 @@
 }
 
 .lv__stamp { display: block; font-family: $font-mono; font-size: .69rem; color: $text-faint; margin-top: .38rem; }
+
+// Lines run in parallel, so the ruler names each one where it begins. Without
+// it the jump from 2026.09.20 to 2026.10.0 reads as one more step rather than
+// as a new line that the old one keeps running alongside.
+.lv__line-mark {
+  font-family: $font-mono;
+  font-size: .56rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: $accent;
+  padding: .5rem .25rem .25rem;
+  border-top: 1px solid $border;
+  margin-top: .25rem;
+
+  &:first-child { border-top: 0; margin-top: 0; }
+}

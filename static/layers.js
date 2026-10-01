@@ -137,19 +137,30 @@ function marks(L) {
 function buildDeck() {
   const deck = $('#lv-deck'), scale = $('#lv-scale');
   deck.textContent = ''; scale.textContent = ''; cards = [];
+  let lastLine = null;
   R(REALM).order.forEach((tag, i) => {
     const L = R(REALM).layers[tag];
+    const line = L.line || tag.replace(/\.\d+$/, '');
+
     const c = el('button', 'lv__card'); c.type = 'button'; c.dataset.i = i;
     const t = el('div', 'lv__tag'); t.append(document.createTextNode(L.layer));
     t.append(el('em', null, 'counter ' + L.counter)); c.append(t);
-    c.append(el('div', 'lv__when', fmtDate(L.issued) + ' · ' +
+    c.append(el('div', 'lv__when', fmtDate(L.issued) + ' \u00b7 ' +
       (L.includes.length ? L.includes.length + ' includes' : L.payloads + ' blobs')));
     const mk = el('div', 'lv__marks');
+    if (!L.prev && L.branched_from) mk.append(el('span', 'lv__mk is-info', 'line ' + line));
     marks(L).forEach(([cls, txt]) => mk.append(el('span', 'lv__mk is-' + cls, txt)));
     c.append(mk);
     c.addEventListener('click', () => go(i));
     deck.append(c); cards.push(c);
 
+    // The ruler is the one place the boundary between lines can be stated
+    // without competing with the stack, so each line gets a heading there.
+    if (line !== lastLine) {
+      const h = el('div', 'lv__line-mark', line);
+      scale.append(h);
+      lastLine = line;
+    }
     const tk = el('button', 'lv__tick'); tk.type = 'button'; tk.dataset.i = i;
     tk.textContent = L.layer.replace(/^\d{4}\./, '');
     if (marks(L).some(([cls]) => cls === 'bad')) tk.classList.add('is-flagged');
@@ -224,15 +235,37 @@ function select() {
 
   if (L.includes.length) return composition(L, det, stated, eff);
 
-  det.append(el('div', 'lv__dl', L.prev ? 'tool versions changed vs ' + L.prev
-                                    : 'oldest layer in this realm'));
+  // A layer is diffed against its predecessor IN ITS OWN LINE. The first layer
+  // of a new line has none, but it continued from whatever was newest in the
+  // realm when it was issued, so that comparison is shown and labelled a branch.
+  const bf = L.branched_from;
+  const src = L.prev ? L.diff : (bf || L.diff);
+  det.append(el('div', 'lv__dl',
+    L.prev ? 'tool versions changed vs ' + L.prev
+           : bf ? 'line ' + (L.line || '') + ' starts here \u2014 changes vs ' + bf.layer
+                : 'oldest layer in this realm'));
   const vd = el('div', 'lv__chg');
-  L.diff.versions.forEach(v => vd.append(chip('up', v.tool + ' ' + v.from, '→', v.to)));
-  L.diff.added.forEach(a => vd.append(chip('add', '+ ' + a.tool + ' ' + a.version)));
-  L.diff.removed.forEach(r => vd.append(chip('loss', '− ' + r)));
+  (src.versions || []).forEach(v => vd.append(chip('up', v.tool + ' ' + v.from, '\u2192', v.to)));
+  (src.added || []).forEach(a => vd.append(chip('add',
+    '+ ' + (a.tool || a) + (a.version ? ' ' + a.version : ''))));
+  (src.removed || []).forEach(r => vd.append(chip('loss', '\u2212 ' + r)));
   if (!vd.children.length) vd.append(el('span', 'lv__none',
-    L.prev ? 'no tool version changed' : 'nothing behind it to compare against'));
+    (L.prev || bf) ? 'no tool version changed' : 'nothing behind it to compare against'));
   det.append(vd);
+
+  if (!L.prev && bf) {
+    const n = el('div', 'lv__alert is-amber');
+    n.append(el('b', null, '\u25c9 a new line starts here'));
+    n.insertAdjacentHTML('beforeend',
+      'This is counter 1 of line <b>' + (L.line || '') + '</b>. It continued from <b>' +
+      bf.layer + '</b> in line <b>' + bf.line + '</b>, the layer that was newest when this ' +
+      'one was issued.<br><br>Lines run in parallel. <code>varve deposit</code> takes the layer ' +
+      'tag, the counter and the issue date as explicit inputs, so line ' + bf.line + ' does not ' +
+      'close when this one opens: it can still receive a patch, and its layers keep their own ' +
+      'support windows. The branch point is resolved by issue time, so a layer added to ' +
+      bf.line + ' later cannot change what this layer is recorded as having changed.');
+    det.append(n);
+  }
 
   const lost = L.diff.platforms.filter(p => p.lost.length);
   const gained = L.diff.platforms.filter(p => p.gained.length);
@@ -258,7 +291,10 @@ function select() {
     det.append(a);
   }
   contents(tools, det);
-  if (!L.prev) det.append(originNote());
+  // Only the genuinely oldest layer explains where the history stops. The
+  // first layer of a NEW line also has no predecessor, but it has a branch
+  // point, and that case is covered above.
+  if (!L.prev && !L.branched_from) det.append(originNote());
 }
 
 function originNote() {
