@@ -720,3 +720,40 @@
 
   &:first-child { border-top: 0; margin-top: 0; }
 }
+
+// ─── reports: the full version list ───────────────────────────────────
+// Every version is deployed under reports/<name>/<version>/, but the card
+// only ever showed three and offered "all N versions" as a link to one of
+// them. The rest are a disclosure now.
+.report-versions {
+  width: 100%;
+
+  summary {
+    cursor: pointer;
+    font-size: .8rem;
+    color: $text-dim;
+    list-style: none;
+    min-height: 32px;
+    display: inline-flex;
+    align-items: center;
+    gap: .31rem;
+
+    &::-webkit-details-marker { display: none; }
+    &::before { content: "\25B8"; display: inline-block; transition: transform .2s ease; }
+    &:hover { color: $accent; }
+  }
+  &[open] summary::before { transform: rotate(90deg); }
+
+  &__list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .44rem;
+    margin-top: .63rem;
+    max-height: 13rem;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .report-versions summary::before { transition: none; }
+}

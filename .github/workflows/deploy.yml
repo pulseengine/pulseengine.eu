@@ -55,6 +55,23 @@ jobs:
       # Refreshes static/layers.json from ghcr.io. A registry hiccup is not fatal:
       # the script keeps the committed snapshot and the page reports its age
       # (pulseengine.eu#201 — a stale panel must say so rather than look current).
+      # Surfaces projects that stopped attaching a report asset. Deliberately
+      # non-blocking: whether an upstream release carries a report is not this
+      # repository's to control, and a site that cannot deploy because another
+      # repo changed its release workflow would be worse than a stale figure.
+      - name: Report which projects stopped publishing evidence
+        continue-on-error: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 scripts/check-report-freshness.py
+
+      # fetch-reports records every release that carried a report asset, but
+      # does not check the extracted bundle contains the file the page links to.
+      # Bundles are not uniform — scry ships no HTML at all — so without this
+      # every scry link was a 404 and six old witness versions were dead.
+      - name: Drop report versions whose entry file is missing
+        run: python3 scripts/prune-report-versions.py
+
       - name: Fetch varve layer metadata
         run: python3 scripts/fetch-layers.py
 

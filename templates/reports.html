@@ -33,11 +33,24 @@
               <div class="glass-card__desc">Latest: v{{ project.latest }} &middot; {{ project.versions | length }} version{{ project.versions | length | pluralize }}</div>
               <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.75rem; align-items: center;">
                 {% for version in shown %}
-                  <a href="{{ get_url(path='reports/' ~ name ~ '/' ~ version ~ '/compliance/') }}"
+                  <a href="{{ get_url(path='reports/' ~ name ~ '/' ~ version ~ '/' ~ project.entry | default(value='compliance/index.html')) }}"
                      class="badge {% if version == project.latest %}badge--accent{% else %}badge--cyan{% endif %}" style="text-decoration: none;">v{{ version }}</a>
                 {% endfor %}
                 {% if project.versions | length > shown | length %}
-                  <a href="{{ get_url(path='reports/' ~ name ~ '/latest/compliance/') }}" style="font-size: 0.8rem; color: #8b90a0;">all {{ project.versions | length }} versions</a>
+                  {# Every version is deployed at reports/<name>/<version>/, so the
+                     older ones are a disclosure rather than a link to one report.
+                     This used to point at .../latest/, which showed a single
+                     version while offering "all N". #}
+                  <details class="report-versions">
+                    <summary>all {{ project.versions | length }} versions</summary>
+                    <div class="report-versions__list">
+                      {% for version in project.versions %}
+                        <a href="{{ get_url(path='reports/' ~ name ~ '/' ~ version ~ '/' ~ project.entry | default(value='compliance/index.html')) }}"
+                           class="badge {% if version == project.latest %}badge--accent{% else %}badge--cyan{% endif %}"
+                           style="text-decoration: none;">v{{ version }}</a>
+                      {% endfor %}
+                    </div>
+                  </details>
                 {% endif %}
               </div>
             </div>
@@ -57,11 +70,24 @@
               <div class="glass-card__desc">Latest: v{{ project.latest }} &middot; {{ project.versions | length }} version{{ project.versions | length | pluralize }}</div>
               <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.75rem; align-items: center;">
                 {% for version in shown %}
-                  <a href="{{ get_url(path='reports/' ~ name ~ '/' ~ version ~ '/mcdc/verdict-evidence/suite-index.html') }}"
+                  <a href="{{ get_url(path='reports/' ~ name ~ '/' ~ version ~ '/' ~ project.entry | default(value='mcdc/verdict-evidence/suite-index.html')) }}"
                      class="badge {% if version == project.latest %}badge--accent{% else %}badge--cyan{% endif %}" style="text-decoration: none;">v{{ version }}</a>
                 {% endfor %}
                 {% if project.versions | length > shown | length %}
-                  <a href="{{ get_url(path='reports/' ~ name ~ '/latest/mcdc/verdict-evidence/suite-index.html') }}" style="font-size: 0.8rem; color: #8b90a0;">all {{ project.versions | length }} versions</a>
+                  {# Every version is deployed at reports/<name>/<version>/, so the
+                     older ones are a disclosure rather than a link to one report.
+                     This used to point at .../latest/, which showed a single
+                     version while offering "all N". #}
+                  <details class="report-versions">
+                    <summary>all {{ project.versions | length }} versions</summary>
+                    <div class="report-versions__list">
+                      {% for version in project.versions %}
+                        <a href="{{ get_url(path='reports/' ~ name ~ '/' ~ version ~ '/' ~ project.entry | default(value='mcdc/verdict-evidence/suite-index.html')) }}"
+                           class="badge {% if version == project.latest %}badge--accent{% else %}badge--cyan{% endif %}"
+                           style="text-decoration: none;">v{{ version }}</a>
+                      {% endfor %}
+                    </div>
+                  </details>
                 {% endif %}
               </div>
             </div>
