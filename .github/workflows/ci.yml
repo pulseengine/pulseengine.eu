@@ -67,6 +67,13 @@ jobs:
       - name: Check the layer view's classes are styled
         run: python3 scripts/check-layers-view.py
 
+      # The host sends no Cache-Control, only ETag/Last-Modified, so a browser
+      # caches heuristically and does not revalidate. A reader got the new
+      # /layers HTML and JS against a main.css from days earlier and saw an
+      # unstyled page. cachebust=true puts a content hash in the URL.
+      - name: Check static assets are cache-busted
+        run: python3 scripts/check-asset-cachebust.py
+
       # The plugin's load-bearing claims, bound to re-derivable evidence
       # (pulseengine.eu#202). We ship the claim-verification skill and were one
       # of three repos in four not using it; this runs its own reference
