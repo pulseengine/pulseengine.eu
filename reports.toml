@@ -1,3 +1,11 @@
+# Report sources. `fetch-reports` reads this during the deploy and writes
+# static/reports/index.json; templates/reports.html reads BOTH, taking the
+# version list from the index and the entry path from here.
+#
+# `entry` is the file inside a version directory that a reader should land on.
+# It is not uniform: witness ships an HTML suite, scry ships plain text and no
+# HTML at all, so a single hardcoded path made every scry link on the reports
+# page a 404. Default when absent: "compliance/".
 # reports.toml — projects that publish rivet compliance reports
 #
 # Each project entry declares:
@@ -62,10 +70,12 @@ exclude = ["*-rc*", "*-alpha*"]
 repo = "pulseengine/witness"
 kind = "mcdc"
 asset_pattern = "{name}-v{version}-compliance-evidence.tar.gz"
+entry = "mcdc/verdict-evidence/suite-index.html"
 exclude = ["*-rc*", "*-alpha*"]
 
 [projects.scry]
 repo = "pulseengine/scry"
 kind = "mcdc"
 asset_pattern = "{name}-v{version}-mcdc-evidence.tar.gz"
+entry = "mcdc/coverage-report.txt"
 exclude = ["*-rc*", "*-alpha*"]
