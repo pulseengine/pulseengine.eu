@@ -1,0 +1,107 @@
+# Scope for 0.35.0 — the three site features chosen on 2026-10-02.
+#
+# Everything here is `draft`: committed to the release, not started. The
+# acceptance criteria are written as things a gate or a command can decide,
+# because a criterion nobody can check is how a feature reaches `implemented`
+# without being verifiable.
+#
+# Burn-down: `rivet release status 0.35.0`
+
+artifacts:
+  # ── #201: the hero as evidence ─────────────────────────────────────────
+  - id: REQ-HERO-EVIDENCE
+    type: requirement
+    title: The landing page states current verification evidence, not a claim about it
+    description: >-
+      pulseengine.eu#201 argues the hero should hold a bounded live artifact
+      that is evidence rather than decoration. The figures exist on /layers and
+      come from a deploy-refreshed source; the landing page still describes the
+      project instead of showing its state.
+    status: draft
+    release: "0.35.0"
+    category: functional
+    priority: should
+
+  - id: FEAT-HERO-EVIDENCE
+    type: feature
+    title: Evidence panel in the landing-page hero
+    description: >-
+      The four figures already rendered on /layers, in the hero, reading the
+      same deploy-written layers.json so the two cannot disagree.
+    status: draft
+    release: "0.35.0"
+    phase: phase-1
+    acceptance-criteria:
+      - "Every figure in the hero is read from static/layers.json; no figure is typed into a template."
+      - "The hero and /layers show the same value for the same figure in the same build."
+      - "With layers.json absent or older than a week, the hero withholds the figures and states their age rather than showing them undated."
+      - "check-asset-cachebust and the existing gates stay green; no new unstyled class (check-layers-view)."
+    links:
+      - type: satisfies
+        target: REQ-HERO-EVIDENCE
+
+  # ── reports <-> layers ─────────────────────────────────────────────────
+  - id: REQ-REPORT-CROSSLINK
+    type: requirement
+    title: A tool in a layer is linked to its verification evidence, or the gap is stated
+    description: >-
+      Measured 2026-10-01 against layer 2026.10.0 — of 16 tools, 4 have a report
+      at the exact shipped version, 3 ship ahead of their newest report (synth
+      0.78.0 against 0.43.0), and 9 have no report at all. A page that linked
+      only where evidence exists would read as though the other 12 were fine.
+    status: draft
+    release: "0.35.0"
+    category: functional
+    priority: should
+
+  - id: FEAT-REPORT-CROSSLINK
+    type: feature
+    title: Link each layer payload to its report at that version
+    description: >-
+      Join layers.json to reports/index.json on tool name and version, honouring
+      the project/binary aliases (wsc is sigil, kilnd is kiln), and render three
+      distinct states rather than two.
+    status: draft
+    release: "0.35.0"
+    phase: phase-1
+    acceptance-criteria:
+      - "A tool whose exact shipped version has a report links to that version's report, not to latest."
+      - "A tool shipping ahead of its newest report says so, with both versions, rather than linking the older one silently."
+      - "A tool with no report says so; it is not omitted from the table."
+      - "The join is computed at deploy time from the two JSON files; no mapping is hand-maintained in a template except the alias table, which is in one place."
+      - "A gate fails if the alias table names a tool that is in neither file."
+    links:
+      - type: satisfies
+        target: REQ-REPORT-CROSSLINK
+
+  # ── install ────────────────────────────────────────────────────────────
+  - id: REQ-LAYER-INSTALL
+    type: requirement
+    title: A reader can install the layer the page describes
+    description: >-
+      /layers says what a layer carries and how long it is supported, and gives
+      a reader no way to obtain it. The registry coordinates are already on the
+      page; the commands are not.
+    status: draft
+    release: "0.35.0"
+    category: functional
+    priority: could
+
+  - id: FEAT-LAYER-INSTALL
+    type: feature
+    title: Install and pin instructions on /layers
+    description: >-
+      The varve.toml stanza and the install command for the selected layer, with
+      realm, channel and registry filled from the live data so they cannot go
+      stale, plus how to verify what was installed.
+    status: draft
+    release: "0.35.0"
+    phase: phase-1
+    acceptance-criteria:
+      - "Realm, channel, registry and layer tag in the shown commands come from layers.json, not from prose."
+      - "Switching realm or layer changes the commands to match the selection."
+      - "Any command not executed against a real install is marked as transcribed from varve's documentation rather than shown as observed output."
+      - "The composition case shows the effective support horizon, not covalent's stated one (varve#226)."
+    links:
+      - type: satisfies
+        target: REQ-LAYER-INSTALL

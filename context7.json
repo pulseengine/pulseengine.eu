@@ -1,0 +1,31 @@
+{
+  "$schema": "https://context7.com/schema/context7.json",
+  "projectTitle": "pulseengine.eu (site + pulseengine-claude plugin)",
+  "description": "The PulseEngine website and the pulseengine-claude Claude Code plugin: always-on methodology memory, eighteen procedural skills, memory-persistence hooks, and the CI gates that keep the site's claims checkable. Zola static site, Python gates, rivet-traced.",
+  "folders": [],
+  "excludeFolders": [
+    "public",
+    "node_modules",
+    "static/reports",
+    "content/blog",
+    "sass",
+    "templates",
+    "artifacts",
+    "tools"
+  ],
+  "excludeFiles": [
+    "static/layers.json",
+    "static/reports/index.json",
+    "CHANGELOG.md"
+  ],
+  "rules": [
+    "The plugin is `claude-tooling/plugins/pulseengine-claude`. Its skills are one directory each under `skills/`, with the procedure in SKILL.md; `memory/` is always-on framing (vocabulary, toolchain, operating contract), not procedure.",
+    "A skill's frontmatter `name` must be 64 characters or fewer and match its directory, and `description` 1024 or fewer. Over-length does not warn — the skill silently fails to load. `scripts/check-skill-frontmatter.py` is the gate.",
+    "Every gate in `scripts/` is red-first: run it against the defect it exists to catch and see it fail before wiring it into CI. A gate that has never been seen to fail is a gate nobody has verified — see the `gate-potency` skill.",
+    "Claims that are load-bearing strings in a document are bound to evidence in `claims.yaml` and checked by the plugin's own `claim-verification` skill. Add a claim there rather than asserting it in prose.",
+    "The CI gates are modelled in rivet: `artifacts/ci-gates.yaml` holds one `requirement` per gate with a `verification` that links to it, and each gate script carries a `# rivet: verifies REQ-...` marker. Run `rivet validate` and `rivet coverage --tests --scan-paths scripts`.",
+    "A release is cut by bumping the version in both `.claude-plugin/marketplace.json` and the plugin's `plugin.json`, merging, then pushing a `vX.Y.Z` tag. The tag triggers `release.yml`; the workflow does not create tags. `scripts/check-plugin-version-current.py` makes the bump mandatory whenever the plugin changes.",
+    "Layer data on `/layers` comes from `static/layers.json`, written at deploy time by `scripts/fetch-layers.py` reading signed varve manifests from ghcr.io. It is never hand-edited, and the page states how old its data is."
+  ],
+  "url": "https://context7.com/pulseengine/pulseengine.eu"
+}

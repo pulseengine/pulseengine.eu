@@ -1,6 +1,6 @@
 ---
 name: verify-your-own-claims
-description: This skill should be used before reporting findings to a user, writing a PR body or issue comment, posting an audit result, or making any assertion about a codebase, a toolchain, or a system's state — especially a claim that GENERALIZES ("only X and Y do Z", "all of them pass"), asserts a CAUSE ("it fails because…"), asserts a NEGATIVE ("there is no…"), or reports a measurement as clean ("0 found", "all green"). ALWAYS use it when a claim rests on a grep, a search, a script you just wrote, or an API listing. It is the counterpart to [`claim-verification`], which gates a repo's documents with CI; this one covers the assertions you emit into a conversation, a PR body or an issue, where there is no build to fail — so the check has to be a procedure you run, not a gate that runs for you.
+description: This skill should be used before reporting findings to a user, writing a PR body or issue comment, posting an audit result, or making any assertion about a codebase, a toolchain, or a system's state — especially a claim that GENERALIZES ("only X and Y do Z", "all of them pass"), asserts a CAUSE ("it fails because…"), asserts a NEGATIVE ("there is no…"), or reports a measurement as clean ("0 found", "all green"). ALWAYS use it when a claim rests on a grep, a search, a script you just wrote, or an API listing. It is the counterpart to [`claim-verification`], which gates a repo's documents with CI; this one covers the assertions you emit into a conversation, a PR body or an issue, where there is no build to fail — so the check has to be a procedure you run, not a gate that runs for you. Check 5 covers the environmental case: an instrument correct where it was written and inert where it ran, whose zero or silence is not a measurement — it catches false alarm as well as false confidence.
 metadata:
   author: pulseengine.eu
   version: "0.1.0"
@@ -38,7 +38,7 @@ Five instances, one session, same author, all with evidence in hand:
 Note what is *not* in that table: a single instance of reporting work that was
 never done. The contract's rule was satisfied every time.
 
-## The four checks
+## The five checks
 
 Run these against the claim you are about to make. Each one is named after the
 instance it would have caught.
@@ -83,6 +83,45 @@ never produces a negative finding; it produces no finding.
 
 The tell: you are about to write a confident cell for something you have not
 run a command against.
+
+### 5. Is the instrument valid in the environment where it just ran?
+
+Checks 1 to 4 all assume the instrument ran. An instrument can be correct where
+you wrote it and inert where it executed, and then its output — green, red or
+silent — is not a measurement at all. **Name the environment, not just the
+instrument.**
+
+This is the one that produces false ALARM as readily as false confidence. The
+other four guard against over-claiming; this one also catches hours spent fixing
+something that was never broken.
+
+Measured, one session, six instances:
+
+| the instrument | where it was valid | where it ran | what it reported |
+|---|---|---|---|
+| `gh api` in a freshness check | a laptop with the CLI | a self-hosted runner without it | `0 projects checked`, exit 0 — read as "nothing is stale" |
+| `requestAnimationFrame` timing | a visible tab | a backgrounded tab, where rAF never fires | a timeout — read as "the renderer is frozen" |
+| `rivet coverage --tests` | a tree with `src/`, `tests/` | a repo whose scripts live in `scripts/` | `0/9 (0.0%)` — read as "the markers do not work" |
+| `env!("CARGO_BIN_NAME")` | `cargo build` | `rules_rust` under Bazel | compiled locally, failed the real build |
+| `zola check --skip-external-links` | Zola `@/path.md` links | content using raw absolute hrefs | exit 0 with a dead link present |
+| a CSS transition's computed value | a painting tab | a hidden tab, where transitions do not advance | `opacity: 0` — read as "the rule is not applying" |
+
+Three of those six were false alarms, and two cost a detour before the
+instrument itself was questioned.
+
+The tell: **you are about to report a number you did not watch the instrument
+produce in this environment.** A zero, a timeout, and a silence all look the
+same from a tool that is not running.
+
+The move is cheap: run the instrument against something you *know* it should
+find, in the same environment. If the positive control also comes back empty,
+the instrument is the finding.
+
+```sh
+# before trusting "0 dead links" from CI, make CI find one
+# before trusting "no markers", point the scanner at a file you just marked
+# before concluding "frozen", check document.visibilityState
+```
 
 ## Then: separate what you measured from what you concluded
 

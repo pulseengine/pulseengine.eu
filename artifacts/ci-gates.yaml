@@ -20,7 +20,7 @@ artifacts:
       before being wired into CI, so a green run means the check could still
       have failed.
     status: verified
-    release: "0.33.0"
+    release: "0.34.0"
     links:
       - type: satisfies
         target: REQ-LINKS
@@ -47,7 +47,7 @@ artifacts:
     description: >-
       No internal href in the built output may 404. `zola check --skip-external-links` is vacuous against raw absolute hrefs — verified by negative control: it exits 0 with a dead link present.
     status: verified
-    release: "0.33.0"
+    release: "0.34.0"
     category: functional
     priority: must
 
@@ -57,7 +57,7 @@ artifacts:
     description: >-
       Parses the built HTML, handles all three href quoting forms that minification produces, and resolves each internal link against public/. Returns 2 if it matched zero links, so a broken regex cannot report a clean run.
     status: verified
-    release: "0.33.0"
+    release: "0.34.0"
     method: automated-test
     test-location: scripts/check-internal-links.py
     links:
@@ -70,7 +70,7 @@ artifacts:
     description: >-
       `.claude-plugin/marketplace.json` is what a reader sees; plugin.json is what installs. Drift is invisible: measured 2026-08-26 the manifest advertised 0.12.0 and fourteen skills while the plugin was 0.25.0 with sixteen.
     status: verified
-    release: "0.33.0"
+    release: "0.34.0"
     category: functional
     priority: must
 
@@ -80,7 +80,7 @@ artifacts:
     description: >-
       Compares version and description between the two manifests, and checks the spelled-out skill count against skills/ on disk.
     status: verified
-    release: "0.33.0"
+    release: "0.34.0"
     method: automated-test
     test-location: scripts/check-plugin-manifest.py
     links:
@@ -93,7 +93,7 @@ artifacts:
     description: >-
       The plugin attributes claims to posts by slug. Deleting a draft in #169 left four citations pointing at files that no longer existed, invisible for eleven days because a citation is prose, not a link.
     status: verified
-    release: "0.33.0"
+    release: "0.34.0"
     category: functional
     priority: must
 
@@ -103,7 +103,7 @@ artifacts:
     description: >-
       Resolves each cited slug against content/blog/, matching on stem rather than filename so a date correction does not break a citation.
     status: verified
-    release: "0.33.0"
+    release: "0.34.0"
     method: automated-test
     test-location: scripts/check-post-citations.py
     links:
@@ -116,7 +116,7 @@ artifacts:
     description: >-
       Mermaid compiles classDef into the rendered SVG where outer CSS cannot reach it, so light mode is done by rewriting known hex values at runtime. An unmapped surface colour renders dark on dark — washed out rather than obviously broken, which is why it survived.
     status: verified
-    release: "0.33.0"
+    release: "0.34.0"
     category: functional
     priority: must
 
@@ -126,7 +126,7 @@ artifacts:
     description: >-
       Requires every hex in a mermaid block to be in the patcher's replacement map or on the semantic-accent allowlist.
     status: verified
-    release: "0.33.0"
+    release: "0.34.0"
     method: automated-test
     test-location: scripts/check-mermaid-light-mode.py
     links:
@@ -139,7 +139,7 @@ artifacts:
     description: >-
       `name` must be 64 characters or fewer and match its directory; `description` 1024 or fewer. Over-length does not warn — GitHub Copilot CLI refuses to load the skill, so it is simply absent.
     status: verified
-    release: "0.33.0"
+    release: "0.34.0"
     category: functional
     priority: must
 
@@ -149,7 +149,7 @@ artifacts:
     description: >-
       Reads each SKILL.md frontmatter and checks both limits and the name/directory match.
     status: verified
-    release: "0.33.0"
+    release: "0.34.0"
     method: automated-test
     test-location: scripts/check-skill-frontmatter.py
     links:
@@ -162,7 +162,7 @@ artifacts:
     description: >-
       The view builds its whole DOM in JavaScript, so a class the script emits and the stylesheet does not define renders unstyled while everything still builds. Porting the prototype produced six such defects, all of which built cleanly.
     status: verified
-    release: "0.33.0"
+    release: "0.34.0"
     category: functional
     priority: must
 
@@ -172,7 +172,7 @@ artifacts:
     description: >-
       Diffs the classes layers.js emits against those _layers.scss defines, and catches a class name assigned where a CSS value belongs.
     status: verified
-    release: "0.33.0"
+    release: "0.34.0"
     method: automated-test
     test-location: scripts/check-layers-view.py
     links:
@@ -185,7 +185,7 @@ artifacts:
     description: >-
       The host sends no Cache-Control, only ETag and Last-Modified, so browsers cache heuristically and do not revalidate. A reader got new HTML and new JS against a main.css days old, and the page rendered unstyled.
     status: verified
-    release: "0.33.0"
+    release: "0.34.0"
     category: functional
     priority: must
 
@@ -195,7 +195,7 @@ artifacts:
     description: >-
       Requires every static asset reference in the templates to carry cachebust=true, so the URL changes when the bytes do.
     status: verified
-    release: "0.33.0"
+    release: "0.34.0"
     method: automated-test
     test-location: scripts/check-asset-cachebust.py
     links:
@@ -208,7 +208,7 @@ artifacts:
     description: >-
       One session turned up seven false claims inside the plugin, every one found by tripping over it rather than by a check. The honest statement for these is a string in a document, which is what the claim-verification mechanism is for.
     status: verified
-    release: "0.33.0"
+    release: "0.34.0"
     category: functional
     priority: must
 
@@ -218,7 +218,7 @@ artifacts:
     description: >-
       Runs the plugin's own claim-verification reference implementation against claims.yaml; each entry is an assertion that was false at some point in this repo's history.
     status: verified
-    release: "0.33.0"
+    release: "0.34.0"
     method: automated-test
     test-location: claude-tooling/plugins/pulseengine-claude/skills/claim-verification/claim-check.py
     links:
@@ -231,7 +231,7 @@ artifacts:
     description: >-
       The cache keys on plugin.json's version, so two trees carrying the same version are indistinguishable to anyone who installed the first. Measured 2026-10-02: five plugin files had changed after v0.32.0 was set, with no bump.
     status: verified
-    release: "0.33.0"
+    release: "0.34.0"
     category: functional
     priority: must
 
@@ -241,7 +241,7 @@ artifacts:
     description: >-
       Finds the commit that set the current version and fails if any plugin file changed after it. Treats an uncommitted bump as in flight.
     status: verified
-    release: "0.33.0"
+    release: "0.34.0"
     method: automated-test
     test-location: scripts/check-plugin-version-current.py
     links:
