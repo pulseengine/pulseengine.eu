@@ -74,6 +74,42 @@ jobs:
       - name: Check static assets are cache-busted
         run: python3 scripts/check-asset-cachebust.py
 
+      # The plugin installs by version and the cache keys on it, so two trees
+      # carrying the same version are indistinguishable to anyone who already
+      # installed the first. check-plugin-manifest keeps the two manifests in
+      # step with each other; they can do that while both are stale.
+      - name: Check the plugin version tracks its content
+        run: python3 scripts/check-plugin-version-current.py
+
+      # The V for the gates themselves. rivet is pinned to the version the
+      # signed varve layer ships, not "latest", so CI and a local run agree —
+      # a project that validates on one version and runs another is the same
+      # shape as a gate that passes against the wrong instrument.
+      - name: Install rivet
+        run: |
+          set -euo pipefail
+          VER=v0.39.0
+          rm -rf /tmp/rivet /tmp/rivet-bin
+          gh release download "$VER" --repo pulseengine/rivet --dir /tmp/rivet \
+            --pattern '*x86_64-unknown-linux-gnu*'
+          mkdir -p /tmp/rivet-bin "$HOME/.local/bin"
+          tar xzf /tmp/rivet/*.tar.gz -C /tmp/rivet-bin
+          BIN=$(find /tmp/rivet-bin -type f -name rivet | head -1)
+          test -n "$BIN"
+          install -m 0755 "$BIN" "$HOME/.local/bin/rivet"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          "$HOME/.local/bin/rivet" --version
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # --strict-empty is the point: without it a config typo that loads zero
+      # artifacts reports n/a for every rule and historically 100% overall, so
+      # the gate passes by examining nothing.
+      - name: Check the gates' own traceability
+        run: |
+          rivet validate
+          rivet coverage --tests --scan-paths scripts --strict-empty
+
       # The plugin's load-bearing claims, bound to re-derivable evidence
       # (pulseengine.eu#202). We ship the claim-verification skill and were one
       # of three repos in four not using it; this runs its own reference

@@ -1,0 +1,121 @@
+name: Release
+
+# The plugin is what this repo publishes. It installs by version and the plugin
+# cache keys on that version, so a version that is bound to no tag is a claim an
+# installer cannot check: two different trees can carry v0.33.0 and the second
+# silently never reaches anyone who already has the first.
+#
+# This repo had 0 tags and 0 releases while rivet, varve and witness each had 30.
+# That was a gap, not a property (pulseengine.eu#215).
+#
+# Fires when the version in plugin.json changes on main. The version bump IS the
+# release trigger — there is no separate "cut a release" step to forget, and
+# check-plugin-version-current.py makes the bump mandatory whenever the plugin
+# changes, so the two ends meet.
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'claude-tooling/plugins/pulseengine-claude/.claude-plugin/plugin.json'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: [self-hosted, linux, x64, light]
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0          # the version-currency check reads history
+
+      - name: Read the version
+        id: v
+        run: |
+          set -euo pipefail
+          V=$(python3 -c "import json;print(json.load(open('claude-tooling/plugins/pulseengine-claude/.claude-plugin/plugin.json'))['version'])")
+          echo "version=$V" >> "$GITHUB_OUTPUT"
+          echo "tag=v$V" >> "$GITHUB_OUTPUT"
+          echo "::notice::plugin version $V"
+
+      - name: Stop if the tag already exists
+        env:
+          TAG: ${{ steps.v.outputs.tag }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          if git rev-parse "$TAG" >/dev/null 2>&1 || gh release view "$TAG" >/dev/null 2>&1; then
+            echo "::notice::$TAG already released — nothing to do"
+            echo "SKIP=1" >> "$GITHUB_ENV"
+          fi
+
+      - name: Install rivet
+        if: ${{ env.SKIP != '1' }}
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/rivet /tmp/rivet-bin
+          gh release download v0.39.0 --repo pulseengine/rivet --dir /tmp/rivet \
+            --pattern '*x86_64-unknown-linux-gnu*'
+          mkdir -p /tmp/rivet-bin "$HOME/.local/bin"
+          tar xzf /tmp/rivet/*.tar.gz -C /tmp/rivet-bin
+          BIN=$(find /tmp/rivet-bin -type f -name rivet | head -1)
+          test -n "$BIN"
+          install -m 0755 "$BIN" "$HOME/.local/bin/rivet"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # The V has to be closed before the thing ships, not after. --strict-empty
+      # so a config typo that loads nothing fails instead of reporting 100%.
+      - name: The V must be closed
+        if: ${{ env.SKIP != '1' }}
+        run: |
+          set -euo pipefail
+          rivet validate
+          rivet coverage --tests --scan-paths scripts --strict-empty
+          python3 scripts/check-plugin-version-current.py
+          python3 scripts/check-plugin-manifest.py
+
+      - name: Bundle the plugin
+        if: ${{ env.SKIP != '1' }}
+        env:
+          V: ${{ steps.v.outputs.version }}
+        run: |
+          set -euo pipefail
+          tar czf "pulseengine-claude-v$V.tar.gz" \
+            -C claude-tooling/plugins pulseengine-claude
+          sha256sum "pulseengine-claude-v$V.tar.gz" > SHA256SUMS.txt
+          cat SHA256SUMS.txt
+
+      # NOTE: a release created with GITHUB_TOKEN does NOT trigger `on: release`
+      # workflows — GitHub's recursion guard. Nothing here depends on that today;
+      # if something ever does, call it from this job rather than adding an
+      # `on: release` trigger that will silently never fire. That exact mistake
+      # cost synth 42 releases with no compliance report (pulseengine/synth#1453).
+      - name: Tag and release
+        if: ${{ env.SKIP != '1' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.v.outputs.tag }}
+          V: ${{ steps.v.outputs.version }}
+        run: |
+          set -euo pipefail
+          gh release create "$TAG" \
+            --title "pulseengine-claude $TAG" \
+            --notes "Plugin \`pulseengine-claude\` v$V, released from \`${GITHUB_SHA}\`.
+
+          Install:
+          \`\`\`
+          /plugin marketplace add pulseengine/pulseengine.eu
+          /plugin install pulseengine-claude
+          \`\`\`
+
+          The V for this repo's CI gates is closed at this commit: \`rivet validate\` passes and every requirement carries a \`verifies\` link to the gate that checks it." \
+            "pulseengine-claude-v$V.tar.gz" SHA256SUMS.txt
+          echo "::notice::released $TAG"

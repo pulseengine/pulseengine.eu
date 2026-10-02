@@ -1,0 +1,25 @@
+# rivet project for pulseengine.eu.
+#
+# Scope is deliberately narrow: the CI gates. Each gate is already a mechanical
+# oracle with a red-first verification history, so `requirement` -> `verification`
+# with a source marker in the script is a tight, honest mapping and the V closes
+# without inventing process. Nine requirements that genuinely reach `verified`
+# are worth more here than sixty sitting at `implemented`.
+#
+# NO `externals:` on purpose. Cross-repo externals are why sigil's release has
+# been dead since 2026-09-08 (pulseengine/sigil#284): the sibling checkouts do
+# not resolve in CI, every link into them reports zero targets, and the release
+# job fails on its own compliance step. Not importing that here.
+#
+# The version tracks the plugin, which is the artifact this repo publishes.
+
+project:
+  name: pulseengine-eu
+  version: "0.33.0"
+  schemas:
+    - common
+    - dev
+
+sources:
+  - path: artifacts
+    format: generic-yaml

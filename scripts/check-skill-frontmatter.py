@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# rivet: verifies REQ-SKILL-LOADS
 """Fail if a SKILL.md's frontmatter breaks the limits agent runtimes enforce.
 
 Why this exists: `claude plugin validate` checks the plugin and marketplace
