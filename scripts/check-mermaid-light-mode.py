@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# rivet: verifies REQ-LIGHT-MODE
 """Fail if a mermaid diagram uses a surface colour the light-mode patcher cannot map.
 
 Mermaid compiles each `classDef` into CSS inside the rendered SVG's own <style>

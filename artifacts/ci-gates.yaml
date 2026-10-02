@@ -1,0 +1,250 @@
+# The CI gates, as requirements with the gate script as their verification.
+#
+# The `verification` artifacts are `verified`, not `implemented`: every gate here
+# was red-first checked — run against the defect it exists to catch and seen to
+# fail — before being wired into CI. That is verification of the test itself, and
+# it is why `gate-potency` exists in this plugin. A gate that has never been seen
+# to fail is a gate nobody has verified.
+#
+# Each `verification` carries a `verifies` link AND the script carries a
+# `# rivet: verifies REQ-...` source marker, so `rivet verify` cites both the
+# artifact link and the line of code. Written against rivet 0.39.0, the version
+# the signed layer ships.
+
+artifacts:
+  - id: FEAT-CI-GATES
+    type: feature
+    title: Mechanical gates on every pull request
+    description: >-
+      Each gate is red-first verified against the defect it exists to catch
+      before being wired into CI, so a green run means the check could still
+      have failed.
+    status: verified
+    release: "0.33.0"
+    links:
+      - type: satisfies
+        target: REQ-LINKS
+      - type: satisfies
+        target: REQ-MANIFEST-SYNC
+      - type: satisfies
+        target: REQ-CITATIONS
+      - type: satisfies
+        target: REQ-LIGHT-MODE
+      - type: satisfies
+        target: REQ-SKILL-LOADS
+      - type: satisfies
+        target: REQ-VIEW-STYLED
+      - type: satisfies
+        target: REQ-ASSET-FRESH
+      - type: satisfies
+        target: REQ-CLAIMS-HOLD
+      - type: satisfies
+        target: REQ-PLUGIN-VERSION-CURRENT
+
+  - id: REQ-LINKS
+    type: requirement
+    title: Every internal link in the built site resolves
+    description: >-
+      No internal href in the built output may 404. `zola check --skip-external-links` is vacuous against raw absolute hrefs — verified by negative control: it exits 0 with a dead link present.
+    status: verified
+    release: "0.33.0"
+    category: functional
+    priority: must
+
+  - id: VER-LINKS
+    type: verification
+    title: check-internal-links.py
+    description: >-
+      Parses the built HTML, handles all three href quoting forms that minification produces, and resolves each internal link against public/. Returns 2 if it matched zero links, so a broken regex cannot report a clean run.
+    status: verified
+    release: "0.33.0"
+    method: automated-test
+    test-location: scripts/check-internal-links.py
+    links:
+      - type: verifies
+        target: REQ-LINKS
+
+  - id: REQ-MANIFEST-SYNC
+    type: requirement
+    title: The storefront advertises the plugin that actually installs
+    description: >-
+      `.claude-plugin/marketplace.json` is what a reader sees; plugin.json is what installs. Drift is invisible: measured 2026-08-26 the manifest advertised 0.12.0 and fourteen skills while the plugin was 0.25.0 with sixteen.
+    status: verified
+    release: "0.33.0"
+    category: functional
+    priority: must
+
+  - id: VER-MANIFEST-SYNC
+    type: verification
+    title: check-plugin-manifest.py
+    description: >-
+      Compares version and description between the two manifests, and checks the spelled-out skill count against skills/ on disk.
+    status: verified
+    release: "0.33.0"
+    method: automated-test
+    test-location: scripts/check-plugin-manifest.py
+    links:
+      - type: verifies
+        target: REQ-MANIFEST-SYNC
+
+  - id: REQ-CITATIONS
+    type: requirement
+    title: Every post the plugin cites exists
+    description: >-
+      The plugin attributes claims to posts by slug. Deleting a draft in #169 left four citations pointing at files that no longer existed, invisible for eleven days because a citation is prose, not a link.
+    status: verified
+    release: "0.33.0"
+    category: functional
+    priority: must
+
+  - id: VER-CITATIONS
+    type: verification
+    title: check-post-citations.py
+    description: >-
+      Resolves each cited slug against content/blog/, matching on stem rather than filename so a date correction does not break a citation.
+    status: verified
+    release: "0.33.0"
+    method: automated-test
+    test-location: scripts/check-post-citations.py
+    links:
+      - type: verifies
+        target: REQ-CITATIONS
+
+  - id: REQ-LIGHT-MODE
+    type: requirement
+    title: Every diagram is legible in light mode
+    description: >-
+      Mermaid compiles classDef into the rendered SVG where outer CSS cannot reach it, so light mode is done by rewriting known hex values at runtime. An unmapped surface colour renders dark on dark — washed out rather than obviously broken, which is why it survived.
+    status: verified
+    release: "0.33.0"
+    category: functional
+    priority: must
+
+  - id: VER-LIGHT-MODE
+    type: verification
+    title: check-mermaid-light-mode.py
+    description: >-
+      Requires every hex in a mermaid block to be in the patcher's replacement map or on the semantic-accent allowlist.
+    status: verified
+    release: "0.33.0"
+    method: automated-test
+    test-location: scripts/check-mermaid-light-mode.py
+    links:
+      - type: verifies
+        target: REQ-LIGHT-MODE
+
+  - id: REQ-SKILL-LOADS
+    type: requirement
+    title: Every skill loads in the agent runtimes we support
+    description: >-
+      `name` must be 64 characters or fewer and match its directory; `description` 1024 or fewer. Over-length does not warn — GitHub Copilot CLI refuses to load the skill, so it is simply absent.
+    status: verified
+    release: "0.33.0"
+    category: functional
+    priority: must
+
+  - id: VER-SKILL-LOADS
+    type: verification
+    title: check-skill-frontmatter.py
+    description: >-
+      Reads each SKILL.md frontmatter and checks both limits and the name/directory match.
+    status: verified
+    release: "0.33.0"
+    method: automated-test
+    test-location: scripts/check-skill-frontmatter.py
+    links:
+      - type: verifies
+        target: REQ-SKILL-LOADS
+
+  - id: REQ-VIEW-STYLED
+    type: requirement
+    title: Every class the layer view emits is styled
+    description: >-
+      The view builds its whole DOM in JavaScript, so a class the script emits and the stylesheet does not define renders unstyled while everything still builds. Porting the prototype produced six such defects, all of which built cleanly.
+    status: verified
+    release: "0.33.0"
+    category: functional
+    priority: must
+
+  - id: VER-VIEW-STYLED
+    type: verification
+    title: check-layers-view.py
+    description: >-
+      Diffs the classes layers.js emits against those _layers.scss defines, and catches a class name assigned where a CSS value belongs.
+    status: verified
+    release: "0.33.0"
+    method: automated-test
+    test-location: scripts/check-layers-view.py
+    links:
+      - type: verifies
+        target: REQ-VIEW-STYLED
+
+  - id: REQ-ASSET-FRESH
+    type: requirement
+    title: A deploy cannot serve a stale stylesheet
+    description: >-
+      The host sends no Cache-Control, only ETag and Last-Modified, so browsers cache heuristically and do not revalidate. A reader got new HTML and new JS against a main.css days old, and the page rendered unstyled.
+    status: verified
+    release: "0.33.0"
+    category: functional
+    priority: must
+
+  - id: VER-ASSET-FRESH
+    type: verification
+    title: check-asset-cachebust.py
+    description: >-
+      Requires every static asset reference in the templates to carry cachebust=true, so the URL changes when the bytes do.
+    status: verified
+    release: "0.33.0"
+    method: automated-test
+    test-location: scripts/check-asset-cachebust.py
+    links:
+      - type: verifies
+        target: REQ-ASSET-FRESH
+
+  - id: REQ-CLAIMS-HOLD
+    type: requirement
+    title: The plugin's load-bearing claims are bound to evidence
+    description: >-
+      One session turned up seven false claims inside the plugin, every one found by tripping over it rather than by a check. The honest statement for these is a string in a document, which is what the claim-verification mechanism is for.
+    status: verified
+    release: "0.33.0"
+    category: functional
+    priority: must
+
+  - id: VER-CLAIMS-HOLD
+    type: verification
+    title: claim-check.py
+    description: >-
+      Runs the plugin's own claim-verification reference implementation against claims.yaml; each entry is an assertion that was false at some point in this repo's history.
+    status: verified
+    release: "0.33.0"
+    method: automated-test
+    test-location: claude-tooling/plugins/pulseengine-claude/skills/claim-verification/claim-check.py
+    links:
+      - type: verifies
+        target: REQ-CLAIMS-HOLD
+
+  - id: REQ-PLUGIN-VERSION-CURRENT
+    type: requirement
+    title: The plugin version tracks the plugin's content
+    description: >-
+      The cache keys on plugin.json's version, so two trees carrying the same version are indistinguishable to anyone who installed the first. Measured 2026-10-02: five plugin files had changed after v0.32.0 was set, with no bump.
+    status: verified
+    release: "0.33.0"
+    category: functional
+    priority: must
+
+  - id: VER-PLUGIN-VERSION-CURRENT
+    type: verification
+    title: check-plugin-version-current.py
+    description: >-
+      Finds the commit that set the current version and fails if any plugin file changed after it. Treats an uncommitted bump as in flight.
+    status: verified
+    release: "0.33.0"
+    method: automated-test
+    test-location: scripts/check-plugin-version-current.py
+    links:
+      - type: verifies
+        target: REQ-PLUGIN-VERSION-CURRENT
+

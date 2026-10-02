@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# rivet: verifies REQ-VIEW-STYLED
 """Fail if the layer view's JavaScript emits a class the stylesheet does not define.
 
 The view builds its entire DOM in `static/layers.js`; nothing in the Tera

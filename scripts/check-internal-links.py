@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# rivet: verifies REQ-LINKS
 """Fail if any internal link in the built site points at a page that does not exist.
 
 Why this exists rather than `zola check`: `zola check --skip-external-links`

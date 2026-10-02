@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# rivet: verifies REQ-ASSET-FRESH
 """Fail if a template links a static asset without a cache-busting hash.
 
 The deploy host sends no `Cache-Control` header — only `ETag` and

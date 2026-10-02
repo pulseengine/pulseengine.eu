@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# rivet: verifies REQ-MANIFEST-SYNC
 """Fail if the marketplace manifest has drifted from the plugin it advertises.
 
 `.claude-plugin/marketplace.json` is what someone running `/plugin install`

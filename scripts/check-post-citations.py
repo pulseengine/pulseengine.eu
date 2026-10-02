@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# rivet: verifies REQ-CITATIONS
 """Fail if the plugin cites a blog post that is not in content/blog/.
 
 The plugin's memory and skills attribute claims to posts by slug, e.g.
