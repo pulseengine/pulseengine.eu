@@ -1,17 +1,21 @@
 name: Release
 
 # The plugin is what this repo publishes. It installs by version and the plugin
-# cache keys on that version, so a version that is bound to no tag is a claim an
+# cache keys on that version, so a version bound to no tag is a claim an
 # installer cannot check: two different trees can carry v0.33.0 and the second
 # silently never reaches anyone who already has the first.
 #
 # This repo had 0 tags and 0 releases while rivet, varve and witness each had 30.
 # That was a gap, not a property (pulseengine.eu#215).
 #
-# Fires when the version in plugin.json changes on main. The version bump IS the
-# release trigger — there is no separate "cut a release" step to forget, and
+# Triggered by pushing a tag, as in rivet, varve, witness and synth. The tag must
+# already exist; this workflow does not create tags. A release is cut by:
+#
+#   bump plugin.json + marketplace.json -> merge -> git tag vX.Y.Z && git push --tags
+#
 # check-plugin-version-current.py makes the bump mandatory whenever the plugin
-# changes, so the two ends meet.
+# changes, and the gate below refuses a tag that disagrees with the manifest, so
+# the tag, the manifest and the tree cannot drift apart.
 
 concurrency:
   group: release-${{ github.ref }}
@@ -19,10 +23,16 @@ concurrency:
 
 on:
   push:
-    branches: [main]
-    paths:
-      - 'claude-tooling/plugins/pulseengine-claude/.claude-plugin/plugin.json'
+    tags:
+      - "v*"
+  # Manual re-run for a tag whose initial run failed partway. The tag
+  # must already exist; this does not create tags.
   workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing release tag to (re)build (e.g. v0.33.0)"
+        required: true
+        type: string
 
 permissions:
   contents: write
@@ -33,48 +43,48 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
+          ref: ${{ inputs.tag || github.ref }}
           fetch-depth: 0          # the version-currency check reads history
 
-      - name: Read the version
+      - name: Resolve the tag and the version it claims
         id: v
-        run: |
-          set -euo pipefail
-          V=$(python3 -c "import json;print(json.load(open('claude-tooling/plugins/pulseengine-claude/.claude-plugin/plugin.json'))['version'])")
-          echo "version=$V" >> "$GITHUB_OUTPUT"
-          echo "tag=v$V" >> "$GITHUB_OUTPUT"
-          echo "::notice::plugin version $V"
-
-      - name: Stop if the tag already exists
         env:
-          TAG: ${{ steps.v.outputs.tag }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          INPUT_TAG: ${{ inputs.tag }}
         run: |
           set -euo pipefail
-          if git rev-parse "$TAG" >/dev/null 2>&1 || gh release view "$TAG" >/dev/null 2>&1; then
-            echo "::notice::$TAG already released — nothing to do"
-            echo "SKIP=1" >> "$GITHUB_ENV"
+          TAG="${INPUT_TAG:-${GITHUB_REF#refs/tags/}}"
+          MANIFEST=claude-tooling/plugins/pulseengine-claude/.claude-plugin/plugin.json
+          V=$(python3 -c "import json;print(json.load(open('$MANIFEST'))['version'])")
+          echo "tag=$TAG"       >> "$GITHUB_OUTPUT"
+          echo "version=$V"     >> "$GITHUB_OUTPUT"
+          echo "::notice::tag $TAG · plugin manifest says $V"
+
+          # The tag is the claim; the manifest is what installs. A tag that
+          # disagrees would publish bytes under a version they do not carry.
+          if [ "$TAG" != "v$V" ]; then
+            echo "::error::tag $TAG does not match plugin version v$V — tag the commit that carries the version you mean to publish"
+            exit 1
           fi
 
+      # curl, not `gh`: the self-hosted runners do not have the GitHub CLI.
       - name: Install rivet
-        if: ${{ env.SKIP != '1' }}
         run: |
           set -euo pipefail
-          rm -rf /tmp/rivet /tmp/rivet-bin
-          gh release download v0.39.0 --repo pulseengine/rivet --dir /tmp/rivet \
-            --pattern '*x86_64-unknown-linux-gnu*'
-          mkdir -p /tmp/rivet-bin "$HOME/.local/bin"
-          tar xzf /tmp/rivet/*.tar.gz -C /tmp/rivet-bin
+          VER=v0.39.0
+          ASSET="rivet-$VER-x86_64-unknown-linux-gnu.tar.gz"
+          rm -rf /tmp/rivet-bin && mkdir -p /tmp/rivet-bin "$HOME/.local/bin"
+          curl -fsSL --retry 3 -o /tmp/rivet.tar.gz \
+            "https://github.com/pulseengine/rivet/releases/download/$VER/$ASSET"
+          tar xzf /tmp/rivet.tar.gz -C /tmp/rivet-bin
           BIN=$(find /tmp/rivet-bin -type f -name rivet | head -1)
           test -n "$BIN"
           install -m 0755 "$BIN" "$HOME/.local/bin/rivet"
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       # The V has to be closed before the thing ships, not after. --strict-empty
-      # so a config typo that loads nothing fails instead of reporting 100%.
+      # so a config typo that loads zero artifacts fails instead of reporting
+      # 100% against nothing.
       - name: The V must be closed
-        if: ${{ env.SKIP != '1' }}
         run: |
           set -euo pipefail
           rivet validate
@@ -82,8 +92,38 @@ jobs:
           python3 scripts/check-plugin-version-current.py
           python3 scripts/check-plugin-manifest.py
 
+      # The release note is generated from the trace, at the tagged commit —
+      # Automotive SPICE 11-03, the same mechanism rivet uses for its own
+      # releases. Generated HERE rather than pasted from a local run, so what
+      # ships is what the trace says.
+      #
+      # rivet refuses a note over an empty scope, and the guards below refuse an
+      # empty or malformed one: an empty note would ship as the release body and
+      # read as though nothing had been delivered.
+      - name: Generate the release note
+        env:
+          TAG: ${{ steps.v.outputs.tag }}
+          V: ${{ steps.v.outputs.version }}
+        run: |
+          set -euo pipefail
+          OUT="release-note-$V.md"
+          PREV=$(git tag --list 'v*' --sort=-v:refname \
+                 | grep -v "^$TAG$" | head -1 || true)
+          if [ -n "$PREV" ]; then
+            echo "::notice::note for $TAG since $PREV"
+            rivet release notes "$V" --since "$PREV" > "$OUT"
+          else
+            echo "::warning::no preceding tag — the note omits its commit section"
+            rivet release notes "$V" > "$OUT"
+          fi
+          test -s "$OUT"
+          head -1 "$OUT" | grep -q '^# Release note' || {
+            echo "::error::generated file is not a release note"; exit 1; }
+          grep -q '0 withheld' "$OUT" || \
+            echo "::warning::some artifacts in scope are not release-ready — see the note"
+          echo "--- release note ---"; cat "$OUT"
+
       - name: Bundle the plugin
-        if: ${{ env.SKIP != '1' }}
         env:
           V: ${{ steps.v.outputs.version }}
         run: |
@@ -93,29 +133,45 @@ jobs:
           sha256sum "pulseengine-claude-v$V.tar.gz" > SHA256SUMS.txt
           cat SHA256SUMS.txt
 
-      # NOTE: a release created with GITHUB_TOKEN does NOT trigger `on: release`
-      # workflows — GitHub's recursion guard. Nothing here depends on that today;
-      # if something ever does, call it from this job rather than adding an
-      # `on: release` trigger that will silently never fire. That exact mistake
-      # cost synth 42 releases with no compliance report (pulseengine/synth#1453).
-      - name: Tag and release
-        if: ${{ env.SKIP != '1' }}
+      # The REST API, not `gh`. The tag already exists, so this attaches a
+      # release to it rather than creating one.
+      - name: Publish the release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG: ${{ steps.v.outputs.tag }}
           V: ${{ steps.v.outputs.version }}
+          REPO: ${{ github.repository }}
         run: |
           set -euo pipefail
-          gh release create "$TAG" \
-            --title "pulseengine-claude $TAG" \
-            --notes "Plugin \`pulseengine-claude\` v$V, released from \`${GITHUB_SHA}\`.
+          python3 - <<'PY' > /tmp/release-body.json
+          import json, os
+          v, tag = os.environ["V"], os.environ["TAG"]
+          note = open(f"release-note-{v}.md").read()
+          body = (
+            f"Plugin `pulseengine-claude` v{v}.\n\n"
+            "Install:\n```\n"
+            "/plugin marketplace add pulseengine/pulseengine.eu\n"
+            "/plugin install pulseengine-claude\n"
+            "```\n\n---\n\n" + note
+          )
+          json.dump({"tag_name": tag, "name": f"pulseengine-claude {tag}",
+                     "body": body, "draft": False, "prerelease": False},
+                    open("/dev/stdout", "w"))
+          PY
+          ID=$(curl -fsS -X POST \
+            -H "Authorization: Bearer $GITHUB_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            -d @/tmp/release-body.json \
+            "https://api.github.com/repos/$REPO/releases" \
+            | python3 -c 'import json,sys; print(json.load(sys.stdin)["id"])')
+          echo "::notice::release $TAG created (id $ID)"
 
-          Install:
-          \`\`\`
-          /plugin marketplace add pulseengine/pulseengine.eu
-          /plugin install pulseengine-claude
-          \`\`\`
-
-          The V for this repo's CI gates is closed at this commit: \`rivet validate\` passes and every requirement carries a \`verifies\` link to the gate that checks it." \
-            "pulseengine-claude-v$V.tar.gz" SHA256SUMS.txt
-          echo "::notice::released $TAG"
+          for f in "pulseengine-claude-v$V.tar.gz" SHA256SUMS.txt "release-note-$V.md"; do
+            curl -fsS -X POST \
+              -H "Authorization: Bearer $GITHUB_TOKEN" \
+              -H "Content-Type: application/octet-stream" \
+              --data-binary @"$f" \
+              "https://uploads.github.com/repos/$REPO/releases/$ID/assets?name=$f" \
+              > /dev/null
+            echo "  uploaded $f"
+          done
