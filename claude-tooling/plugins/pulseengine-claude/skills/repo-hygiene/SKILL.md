@@ -162,17 +162,30 @@ For every open issue, one of exactly four dispositions:
 
 **A repo with no tags has no release to cite.** The first disposition is then
 unsatisfiable, and the whole board silently fails it: measured on
-`pulseengine.eu` — 0 tags, 0 releases, continuously deployed — 17 of 27 open
-issues had a merged PR and none could ever meet the closure bar. For a repo that
-deploys rather than releases, the shipping evidence is the **deploy**: the merge
-commit on the default branch *and* a successful deploy run for that SHA. Both are
-checkable by an outsider, which is the property that mattered; what is not
-acceptable is dropping to "merged" alone.
+`pulseengine.eu` — 0 tags, 0 releases — 17 of 27 open issues had a merged PR and
+none could ever meet the closure bar.
+
+Before reaching for a substitute, ask the prior question: **should this repo be
+releasing?** A repo that publishes something others install or depend on has a
+consumable artifact, and a version on that artifact which is bound to no tag is
+a claim with nothing behind it. `pulseengine.eu` ships `pulseengine-claude`
+v0.32.0, bumped across at least three commits, against zero tags — while
+`rivet`, `varve` and `witness` each carry 30 tags and 30 releases. "No tags" was
+not a property of the repo; it was a gap in it. Say so rather than routing
+around it.
+
+Only when the repo genuinely has no consumable artifact — a pure site or docs
+target that is deployed and never installed — is the shipping evidence the
+**deploy**: the merge commit on the default branch *and* a successful deploy run
+for that SHA. Both are checkable by an outsider, which is the property that
+mattered; what is not acceptable is dropping to "merged" alone.
 
 ```sh
-gh api repos/$R/tags --jq 'length'          # 0 -> deploy-continuous
+gh api repos/$R/tags --jq 'length'          # 0 -> ask WHY before substituting
+# does it publish something installable? a plugin manifest, a crate, an action:
+git ls-files | grep -E 'plugin.json|Cargo.toml|action.yml' | head
 gh run list --workflow=deploy.yml --limit 1 \
-  --json headSha,conclusion                 # cite THIS, not the merge
+  --json headSha,conclusion                 # only if nothing is installable
 ```
 
 Disciplines that make this honest:
