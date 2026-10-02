@@ -1,9 +1,9 @@
 ---
 name: repo-hygiene
-description: This skill should be used to run a complete hygiene sweep over a repo after a release or on a standing cadence — stale worktrees, dead local/remote branches (including squash-merge artifacts git cannot see as merged), ancient stashes, agent build caches, status noise, and the open-issue board. Use it when the user says "clean up", "hygiene", "check worktrees and branches", "what's stale", or when a release tick finishes and residue has accumulated. It is quiesce-gated so it is safe to run inside a live multi-agent campaign, not only after everything has stopped. Closure is evidence-based — an issue closes because its fix is on a tagged release (close with ref), because it is obsolete/superseded/captured elsewhere (close with rationale), or it stays open with an explicit "remaining:" note — never silently. Composes with issue-hunt (the board is its watermark surface), release-execution (fire this as the release tail), and the operating contract.
+description: This skill should be used to run a complete hygiene sweep over a repo after a release or on a standing cadence — stale worktrees, dead local/remote branches (including squash-merge artifacts git cannot see as merged), ancient stashes, agent build caches, status noise, and the open-issue board. Use it when the user says "clean up", "hygiene", "check worktrees and branches", "what's stale", or when a release tick finishes and residue has accumulated. It is quiesce-gated so it is safe to run inside a live multi-agent campaign. Closure is evidence-based — an issue closes on a tagged release, or on the deploy run for its merge SHA in a repo that has no tags, or with a rationale when obsolete or captured elsewhere; otherwise it stays open with a "remaining:" note, or is marked perennial if it is a living surface rather than a task — never silently. Composes with issue-hunt (the board is its watermark surface), release-execution (fire this as the release tail), and the operating contract.
 metadata:
   author: pulseengine.eu
-  version: "0.2.0"
+  version: "0.3.0"
 ---
 
 # Repo hygiene — the post-release residue sweep
@@ -147,7 +147,7 @@ path-deps (CI rebases them independently), `Cargo.lock` churn is **inherent** �
 noise or gitignore it.
 
 ### 9. The issue board — evidence-based closure
-For every open issue, one of exactly three dispositions:
+For every open issue, one of exactly four dispositions:
 
 - **Close with the shipping ref** — the fix is on a *tagged release* (not just
   merged). Say which release and which PR.
@@ -155,6 +155,38 @@ For every open issue, one of exactly three dispositions:
   absorbed into a roadmap artifact); link what replaced it.
 - **Stays open with a "remaining:" note** — a genuine residual, named
   precisely, ideally with an owner.
+- **Perennial by design** — a living issue that is a surface, not a task: a bot
+  status thread, a standing "feedback wanted", a tracking umbrella whose items
+  are still open. It never closes, and a sweep that proposes closing it is
+  wrong. Mark it once so later passes stop re-deciding.
+
+**A repo with no tags has no release to cite.** The first disposition is then
+unsatisfiable, and the whole board silently fails it: measured on
+`pulseengine.eu` — 0 tags, 0 releases — 17 of 27 open issues had a merged PR and
+none could ever meet the closure bar.
+
+Before reaching for a substitute, ask the prior question: **should this repo be
+releasing?** A repo that publishes something others install or depend on has a
+consumable artifact, and a version on that artifact which is bound to no tag is
+a claim with nothing behind it. `pulseengine.eu` ships `pulseengine-claude`
+v0.32.0, bumped across at least three commits, against zero tags — while
+`rivet`, `varve` and `witness` each carry 30 tags and 30 releases. "No tags" was
+not a property of the repo; it was a gap in it. Say so rather than routing
+around it.
+
+Only when the repo genuinely has no consumable artifact — a pure site or docs
+target that is deployed and never installed — is the shipping evidence the
+**deploy**: the merge commit on the default branch *and* a successful deploy run
+for that SHA. Both are checkable by an outsider, which is the property that
+mattered; what is not acceptable is dropping to "merged" alone.
+
+```sh
+gh api repos/$R/tags --jq 'length'          # 0 -> ask WHY before substituting
+# does it publish something installable? a plugin manifest, a crate, an action:
+git ls-files | grep -E 'plugin.json|Cargo.toml|action.yml' | head
+gh run list --workflow=deploy.yml --limit 1 \
+  --json headSha,conclusion                 # only if nothing is installable
+```
 
 Disciplines that make this honest:
 
@@ -167,7 +199,14 @@ Disciplines that make this honest:
   for regression.
 - **Cite the release, not the merge.** Merged ≠ released — close on the
   tagged-release ref, never a merge commit alone; the tag is the evidence an
-  outsider can check.
+  outsider can check. In a repo with no tags, cite the deploy run for the merge
+  SHA; it is the same property — something an outsider can verify — reached a
+  different way. Check which kind of repo you are in before applying this, or
+  the rule reads as "never close".
+- **A merged PR that references an issue is a cue to review, not to close.**
+  `pulseengine.eu#201` was referenced by a merged PR whose own body said "Part
+  of #201"; closing on the reference would have discarded the open half. Read
+  what the PR claims it did before deciding — the reference opens the question.
 - **Guard the auto-close cascade on umbrella issues.** A PR body saying `closes
   #30` auto-closes the *entire* multi-item umbrella when it fixed *one* item.
   When a PR addresses one item of a multi-item issue, use `Refs #N`, **never**
