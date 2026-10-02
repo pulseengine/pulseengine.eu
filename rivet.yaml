@@ -15,7 +15,7 @@
 
 project:
   name: pulseengine-eu
-  version: "0.33.0"
+  version: "0.34.0"
   schemas:
     - common
     - dev
