@@ -23,3 +23,56 @@ project:
 sources:
   - path: artifacts
     format: generic-yaml
+
+# Commit-to-artifact traceability. Without this block `rivet release notes
+# --since` prints "Could not read the commit range: no 'commits' section in
+# rivet.yaml" — the section is there and empty, which is how v0.34.0 shipped
+# with a release note that had scope but no history.
+#
+# Trailer names match rivet's own rivet.yaml so a contributor moving between
+# repos writes the same footer.
+commits:
+  format: trailers
+  # Every value here must be a link type this project's schemas actually
+  # define. rivet's own rivet.yaml maps `Fixes: fixes`, which works there
+  # because it loads more schemas; `fixes` does not exist in common+dev and
+  # copying the map wholesale left every commit an orphan.
+  # Check with: rivet schema links
+  trailers:
+    Implements: implements
+    Verifies: verifies
+    Satisfies: satisfies
+    Refs: traces-to
+  # Types that do not need a trailer. A version bump or a CI tweak is not a
+  # change to a requirement, and demanding a trailer for one trains people to
+  # add a meaningless trailer, which is worse than no trailer.
+  exempt-types:
+    - chore
+    - style
+    - ci
+    - docs
+    - build
+    - deps
+  skip-trailer: "Trace: skip"
+  # Only commits touching these paths are expected to carry a trailer. The site
+  # content and templates are not modelled in rivet, so demanding a trailer for
+  # a blog post would ask for a link to an artifact that does not exist.
+  traced-paths:
+    - scripts/
+
+  # KNOWN GAP, 2026-10-02: with this config, `rivet commits` reports every
+  # commit as `orphan` and `rivet release notes --since` prints "No commits …
+  # reference an artifact in this release", even for a commit whose trailers
+  # git itself parses (`git interpret-trailers --parse` shows them).
+  #
+  # Reproduced the feature WORKING in a clean rivet project with this exact
+  # block copied verbatim — `Linked: 1` — against rivet 0.39.0, with and
+  # without a scoped conventional type, multiple trailers, comments inside the
+  # block, and a `release:` field. So the config is not the cause and the
+  # difference is something about this repository that is not yet isolated.
+  #
+  # Shipping it anyway because it is strictly better than no block: the note's
+  # history section now says "No commits reference an artifact" instead of
+  # "Could not read the commit range", which is a true statement rather than a
+  # configuration error. Do not read an empty Changes section as "nothing
+  # changed" until this is resolved.
