@@ -108,6 +108,14 @@ Hardware comes after criterion benchmarks have cleared their regression budget. 
 
 ## Where we stand — honest assessment
 
+{% note(kind="warning") %}
+**Corrected 2026-10-06.** This table originally read `proptest / tokio-rs/loom / sanitizer — ✅ present but unevenly adopted across the estate`. Measured across the thirteen Rust repos, that was too generous on two of the three: sanitizers run in two repos, and the concurrency-permutation layer runs nowhere. `loom` is declared in gale as a `cfg(loom)` dev-dependency and no workflow sets the flag, so the tests it would gate are never built.
+
+A post arguing for overdoing rather than undercommitting should not overstate its own chain. The rows below are counts, re-derivable from the workflow files. The correction runs both ways: the mutation-testing row *understated* — cargo-mutants runs in five repos, not one.
+
+One caveat on the loom row: the dependency is declared, and I sampled 60 of gale's 391 `.rs` files without finding a `cfg(loom)` use. Absence of CI wiring is measured; absence of tests is a sample, not a sweep.
+{% end %}
+
 Traffic-light at the chain-layer level, not the project level. The project-level matrix lives in the tracking issue[^rivet-184].
 
 | Layer | Status |
@@ -118,8 +126,10 @@ Traffic-light at the chain-layer level, not the project level. The project-level
 | Bounded model checking (Kani) | ✅ shipping |
 | Translation validation (Z3 on WASM IR) | ✅ shipping, bespoke |
 | Abstract interpretation | ❌ not yet — the one missing third DO-333 technique class |
-| proptest / tokio-rs/loom / sanitizer | ✅ present but unevenly adopted across the estate |
-| Mutation testing | ◐ shipping at pre-commit in one repo; generalizing via a canonical template |
+| proptest | ◐ 4 of 13 Rust repos |
+| Sanitizers (ASan/TSan) | ◐ 2 of 13 — spar (ASan), gale (ASan + TSan) |
+| Concurrency permutation (tokio-rs/loom) | ❌ declared in gale behind `cfg(loom)`; no CI sets the flag |
+| Mutation testing | ◐ cargo-mutants in 5 of 13 repos. Note: the Safety-Critical Rust Consortium tools list carries mutest-rs, not cargo-mutants, and mutation testing appears in no ISO 26262-6 method table — it earns no direct credit |
 | Traceability (rivet) | ✅ shipping, living artifact |
 
 ## Six standards, one chain
