@@ -255,7 +255,7 @@ kept is that an exemption keyed on a pattern the exempted code itself controls c
 hold, because the proof author writes both the `sorry` and the comment that excuses
 it.
 
-The second failure is mine, and it was in the draft of this post. I wrote that we
+The second failure was in the draft of this post. We wrote that we
 run no axiom-level audit and that four repositories carry Lean files with no
 equivalent gate. Both were false. `ordeal/lean/AxiomCheck.lean` exists for exactly
 this purpose: each `#guard_msgs` pins the exact axiom list of a capstone theorem, so
@@ -264,9 +264,9 @@ lake target, so the required Lean CI job fails with it. Its own header says the 
 budget is guarded separately and that this file "guards everything `sorry`-shaped
 guards miss", naming both `sorryAx` and `native_decide` as the holes it closes.
 
-The reason I got it wrong is the more useful part. I grepped the repositories checked
+The reason we got it wrong is the more useful part. We grepped the repositories checked
 out on this machine, and `ordeal` is not one of them. An instrument that cannot see
-two of the relevant repositories returns silence, and I read that silence as a
+two of the relevant repositories returns silence, and we read that silence as a
 measurement. That is the failure our own `verify-your-own-claims` procedure describes
 in its fifth check, committed by the person who wrote the check.
 
@@ -275,7 +275,7 @@ so the two techniques are not ordered: an axiom audit over selected capstone the
 will miss a `sorry` in a file nothing imports, which a token scan catches, and the
 token scan misses the inherited `sorryAx`, which the audit catches. `spar`'s gate
 counts `sorry`, `sorryAx`, `admit` and a bare `axiom` over comment-stripped text, and
-does not match `native_decide`. The rollout gap is real and smaller than I claimed:
+does not match `native_decide`. The rollout gap is real and smaller than the draft claimed:
 the axiom gate runs in one repository and the others have not adopted it.
 
 ## Where this is being discussed
