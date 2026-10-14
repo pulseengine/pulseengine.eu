@@ -3,7 +3,7 @@ name: claim-verification
 description: This skill should be used whenever writing or editing a README, a badge, a project description, a blog claim, an honesty ledger, a dossier, or ANY document that asserts what the system does, is, or proves — especially verification claims ("formally verified", "proven", "sound", "verified N/N", trusted-base counts). It treats a document's load-bearing claims as requirements that must stay true over time — mark the assertion, bind it to checkable evidence, and gate it so drift fails the build. Use it to author an honest claim, to audit a doc whose claims may have drifted from reality, or to stand up the claim-check gate in a repo. Composes with traceability-audit (requirements↔tests), oracle-gate-a-change (the gate), and clean-room-verification (review the claim cold).
 metadata:
   author: pulseengine.eu
-  version: "0.2.0"
+  version: "0.3.0"
 ---
 
 # Claim verification
@@ -51,6 +51,31 @@ commit.*
    (ordeal's `regen.sh` freshness gate guarding `Kernel.lean` against `kernel.rs`;
    gale's `verification-honesty.md` ledger). A reference implementation ships next to
    this skill: `claim-check.py` + `claims.example.yaml`.
+
+4. **Name the epoch — what expires this claim even while its evidence still passes.**
+   A claim's validity is bounded in time and context, so record the condition that
+   should force re-validation: the model generation it was measured on, the layer
+   that can no longer be re-derived, the tool version, the standard's revision. Then
+   give it a **proof surface** — something that *notices* the condition changed. The
+   first three moves catch a doc drifting from its evidence; this one catches the
+   evidence drifting out from under a claim that still greens.
+
+   Field case, 2026-10-14: the operating contract's routing rule carried the epoch
+   in prose ("no model versions — this file named two that were superseded") and the
+   gate bound only the sentence. Editing the rule tripped the gate on wording while
+   the *claim* had silently narrowed — the string was checked, the scope was not. The
+   fix was to gate the narrower claim (no version-pinned name reached by a routing
+   verb; the tier table in exactly one place), which then immediately found a stale
+   version pinned in a second document. An epoch with no proof surface is a comment.
+
+   This is DO-330's requalification-trigger idea applied to prose, and it has a name
+   in the literature now: **epoch limits** and **proof surfaces**, from *Fifty Years
+   of Specification Completeness* (arXiv:2606.25120), which maps DO-178C traceability
+   and DO-330 triggers onto AI governance documents — system prompts, `AGENTS.md`,
+   policies — and finds 37% of them below a structural-quality threshold, with no
+   standards body requiring these properties of a governance document at all. Use
+   their vocabulary when explaining this to a certification audience; it converts
+   "we have a claim gate" into a term they already hold.
 
 ## The discipline (the prose half — derived empirically across the repos)
 
