@@ -3,7 +3,7 @@ name: oracle-gate-a-change
 description: This skill should be used whenever proposing, designing, landing, or evaluating a consequential change on a PulseEngine project (rivet, spar, witness, sigil, meld, loom, synth, wohl) — including "propose a change", "add a feature", "fix a bug", "is this safe to land", "what verifies this", "what's the gate", "how do we know this is correct", "before merging this", or whenever a code change needs a mechanical check to back it. ALWAYS use this skill before claiming a property holds and before recommending a change be merged.
 metadata:
   author: pulseengine.eu
-  version: "0.5.0"
+  version: "0.6.0"
 ---
 
 # Oracle-gate a change
@@ -204,6 +204,7 @@ Apply [`clean-room-verification`] to the claim "this change passed its oracle." 
   - `cargo test -- <filter matching nothing>` exiting 0,
   - a crashed tool run scored as a clean one,
   - a paths-filter whose error path fails **open**, skipping required contexts — on GitHub a *skipped* required context satisfies the merge button, so a filter is a gate-disabler.
+- **Gate what the agent PRODUCED, not what it was allowed to touch.** Access restriction is the intuitive control and it is the weaker one: a 2026 systematisation of 39 agent execution-security papers (arXiv:2607.05743) reports that **69–98% of real denylists fail**, and that **benign out-of-scope agent actions occur at rates up to 17.1% under realistic prompting** — a class *no* access-control paper in its corpus addresses, because the action is not malicious, merely outside the task. A permission boundary cannot catch a well-intentioned edit to the wrong thing; an oracle over the diff can. Keep the sandbox (worktree isolation, least privilege) — but never let it stand in for the gate.
 - **Missing evidence is red, never green.** An absent results file must fail the gate, not default to a clean count.
 - **A documented gap with an "unreachable" judgment is a standing obligation, not a closed item.** Re-verify the reachability claim whenever a new code path lands near the gap. Field case: an independently-mechanized model bridge documented a semantics divergence as "unreachable via input masking" — a later code path made it reachable, and the divergence let a vacuous proof certify hardware-wrong code for weeks.
 - **Byte-changing fixes re-pin goldens only AFTER the full differential suite passes on the new bytes.** They move together; a re-pin before the differentials is a frozen lie. Keep a printable re-pin aid inside the gate itself (an env-gated branch that emits the new golden tuples instead of asserting) so the ritual is mechanical, not hand-copied.
