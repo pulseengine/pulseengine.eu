@@ -76,9 +76,16 @@ claims:
   # "Fable 5" until both were superseded. A routing rule that must be edited on
   # every model release is wrong between releases, so it now routes by tier.
   # This gates the regression, not the wording.
+  #
+  # Narrowed when delegate-by-cost landed: the contract no longer claims "no
+  # model names anywhere" but the stronger, checkable pair — no VERSION-pinned
+  # name as routing guidance, and tier names in exactly ONE table. Versions may
+  # still be cited as history ("it named Opus 4.8 ... until both were
+  # superseded"), which is why the third rule below keys on routing VERBS and
+  # not on the version string alone.
   - id: CONTRACT-ROUTES-BY-TIER-NOT-MODEL
     doc: claude-tooling/plugins/pulseengine-claude/memory/pulseengine-operating-contract.md
-    text: "Deliberately no model names above"
+    text: "Deliberately no model *versions* anywhere in this file"
     evidence:
       # "a biddable model like <name>" / "prefer the most capable model (<name>)"
       # are the two shapes that aged. Neither may return.
@@ -86,6 +93,23 @@ claims:
         pattern: '(?:biddable\s+model\s+like\s+\w|most capable model\s*\()'
         glob: ['claude-tooling/plugins/pulseengine-claude/memory/*.md']
         max: 0
+      # A version-pinned model name reached by a routing verb — "route X to
+      # Opus 4.8", "run drivers on Sonnet 4.6". History ("named", "until",
+      # "superseded") does not match.
+      - kind: count-max
+        pattern: '(?:route|run|prefer|use)\b[^.]{0,60}\b(?:Opus|Sonnet|Haiku|Fable|Mythos)\s+\d'
+        glob: ['claude-tooling/plugins/pulseengine-claude/**/*.md']
+        max: 0
+      # Tier names live in exactly one rung table. The claim is "one table to
+      # edit", so more than one header row is the drift this catches.
+      - kind: count-max
+        pattern: '\|\s*rung\s*\|'
+        glob: ['claude-tooling/plugins/pulseengine-claude/**/*.md']
+        max: 1
+      - kind: count-min
+        pattern: '\|\s*rung\s*\|'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/delegate-by-cost/SKILL.md']
+        min: 1
 
   # ── The layer measurements are marked as historical ─────────────────────────
   # Layer 2026.08.2 was the measurement basis for the CLI survey and the
