@@ -256,7 +256,7 @@ artifacts:
     description: >-
       The manifests carry a spelled-out skill COUNT; only the README says what each skill does. Measured 2026-10-14 the roster listed 14 of 18 — evidence-transfer, gate-potency, repo-hygiene and verify-your-own-claims were installed, loadable, triggering and undocumented, and the count check could not see it.
     status: verified
-    release: "0.35.0"
+    release: 0.36.0
     category: functional
     priority: must
 
@@ -266,7 +266,7 @@ artifacts:
     description: >-
       Derives both sides from disk — every skills/ directory has a README bullet, and every README bullet names a directory that exists. Negative-controlled in both directions on 2026-10-14 (dropped bullet, phantom entry).
     status: verified
-    release: "0.35.0"
+    release: 0.36.0
     method: automated-test
     test-location: scripts/check-readme-skill-roster.py
     links:
