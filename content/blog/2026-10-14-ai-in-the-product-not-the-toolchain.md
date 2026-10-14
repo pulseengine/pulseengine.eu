@@ -183,17 +183,31 @@ problem, and it is open in a standards sense as well as a technical one.
 
 ## Our dates, stated plainly
 
-We have been building on the second question since before we knew it was a gap, and
-the dates are worth separating rather than rounding into one claim.
+The dates are worth separating rather than rounding into one claim, and worth
+deflating first. The January to March 2026 work is a generic verification substrate.
+Nothing about typed traceability or an AADL parser is specific to an agent having
+written the code, so it is not evidence of having seen this gap early. ISO/IEC TR
+5469 is dated 8 January 2024 and predates all of it by two years. These are dates,
+not a priority claim.
 
 The verification substrate dates to the first week of March 2026. `rivet`, our SDLC
 traceability tool, has its initial commit on 7 March 2026; `spar`, the AADL
 architecture analysis, on 8 March. The proof rule sets are older still, with
 `rules_rocq_rust` starting 11 January 2026 and `rules_verus` on 20 February.
 
-The agent-facing half is later. The methodology became an installable artifact on
-24 May 2026, and the traceability gate that blocks a release until the V closes
-landed on 2 June 2026. Anyone who wants to check either date can read the git log.
+The agent-facing half is later, and it needs a distinction this post would be
+dishonest without. The methodology became an installable artifact on 24 May 2026, and
+the skill that makes V-closure a release precondition landed on 2 June 2026. That
+second commit touches six files and every one is Markdown or JSON. It is a procedure
+an agent is told to follow, not a check that fails. By this post's own argument it
+does not count, and we are not exempt from the argument.
+
+The mechanically enforced part is older. `rivet audit`, the AI-session and commit
+traceability gate, landed on 18 May 2026 as 799 lines of Rust with CLI tests
+(rivet #297). That is the date that means what the other two only look like they
+mean. Anyone who wants to check any of the three can read the git log, and the pull
+request merge timestamps are the stronger instrument because commit dates are
+author-set.
 
 We are not claiming to predate the Five Eyes agentic AI guidance, which CISA dates
 to 1 May 2026. That guidance is about securing agents, through
@@ -210,18 +224,35 @@ and excluded any line carrying a `-- TODO` comment. That exclusion was a deliber
 no-op when written, because the tracked sorries kept their TODO on the previous
 line. The sorries then grew from 5 to 12 and moved the comment onto the same line,
 and the no-op became universal. Twelve went in and zero came out, while the step
-printed that the gate was green. The replacement counts every form including
-`sorryAx`, with no comment-based exemption, against a ratchet floor. The lesson we
+printed that the gate was green. The replacement counts `sorry`, `sorryAx`, `admit`
+and a bare `axiom` over comment-stripped text, with no comment-based exemption,
+against a declared floor. The lesson we
 kept is that an exemption keyed on a pattern the exempted code itself controls cannot
 hold, because the proof author writes both the `sorry` and the comment that excuses
 it.
 
-The second is still open. Our proof-honesty gates are token scans over a set of
-paths, and a token scan cannot see a transitive dependency. A proof that inherits
-`sorryAx` from an imported lemma carries no local token to match. `#print axioms` and
-a kernel-level audit follow the dependency graph and are strictly stronger, and we do
-not run one yet. Four of our repositories carry Lean files with no equivalent gate at
-all.
+The second failure is mine, and it was in the draft of this post. I wrote that we
+run no axiom-level audit and that four repositories carry Lean files with no
+equivalent gate. Both were false. `ordeal/lean/AxiomCheck.lean` exists for exactly
+this purpose: each `#guard_msgs` pins the exact axiom list of a capstone theorem, so
+any new axiom changes the message and fails elaboration, and the file is a default
+lake target, so the required Lean CI job fails with it. Its own header says the sorry
+budget is guarded separately and that this file "guards everything `sorry`-shaped
+guards miss", naming both `sorryAx` and `native_decide` as the holes it closes.
+
+The reason I got it wrong is the more useful part. I grepped the repositories checked
+out on this machine, and `ordeal` is not one of them. An instrument that cannot see
+two of the relevant repositories returns silence, and I read that silence as a
+measurement. That is the failure our own `verify-your-own-claims` procedure describes
+in its fifth check, committed by the person who wrote the check.
+
+What is actually true is narrower. A token scan cannot see a transitive dependency,
+so the two techniques are not ordered: an axiom audit over selected capstone theorems
+will miss a `sorry` in a file nothing imports, which a token scan catches, and the
+token scan misses the inherited `sorryAx`, which the audit catches. `spar`'s gate
+counts `sorry`, `sorryAx`, `admit` and a bare `axiom` over comment-stripped text, and
+does not match `native_decide`. The rollout gap is real and smaller than I claimed:
+the axiom gate runs in one repository and the others have not adopted it.
 
 ## Where this is being discussed
 
