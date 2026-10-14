@@ -1,6 +1,6 @@
 +++
 title = "AI in the product, not AI in the toolchain"
-description = "We read 40 standards pages looking for guidance on using an AI agent inside a certified development process. There is one informative Technical Report from 2024 and one draft ASPICE chapter from July 2026. The draft says review the AI-generated output before acceptance, and stops there."
+description = "We read 40 standards pages looking for guidance on using an AI agent inside a development process that has to satisfy a certification standard. What is published is one informative Technical Report from 2024, and a VDA Guidelines chapter we have only second-hand. Every framework makes verifying the output the hinge, and none says what the verification has to produce."
 date = 2026-10-14
 draft = false
 ready = true
@@ -20,6 +20,19 @@ The second question is what happens when an agent writes code that goes into a
 certified product. The agent never ships inside the artifact, so in certification
 language it is a development tool and the question is tool qualification. Call that
 AI in the toolchain.
+
+The standards do have a generic answer to the second question, and it is older than
+the problem. DO-178C requires a tool to be qualified only when it eliminates,
+reduces or automates a process **and** its output is not otherwise verified.
+ISO 26262-8 works the same way: the tool confidence level follows from the tool's
+impact and the likelihood of detecting a malfunction, so a tool whose output is
+independently checked needs no qualification measures. Both frameworks are
+deliberately technology-neutral, and both therefore already cover an agent.
+
+Which means the interesting question is not whether a standard applies. It is that
+every one of these frameworks makes "verify the output" the hinge, and none of them
+says what verifying the output consists of when the output is a four-hundred-file
+diff that no human will read line by line. That is the gap this post is about.
 
 We went looking for published guidance on the second one. The result is a short
 section below, because there almost isn't any.
@@ -86,7 +99,7 @@ section below, because there almost isn't any.
   <text x="416" y="386" font-size="11" fill="var(--text-dim,#8b90a0)">One informative report and one draft sentence.</text>
 </svg>
 <figcaption>Measured 14 October 2026 across 40 standards pages. The right-hand panel is
-the whole published guidance for using an AI agent inside a certified development process.</figcaption>
+the whole published guidance for using an AI agent inside a development process that has to satisfy a certification standard.</figcaption>
 </figure>
 
 ## What exists for AI in the product
@@ -108,10 +121,19 @@ wrote the code.
 
 ## What exists for AI in the toolchain
 
-Across 40 standards pages we fetched and read, exactly one document's scope
-explicitly covers using AI to build safety-related functions: **ISO/IEC TR
-5469:2024**, published 8 January 2024. It is a Technical Report, which means
-informative rather than normative. You cannot be assessed against it.
+Across 40 standards pages we fetched and read, one published document whose scope we
+could actually read covers using AI to build safety-related functions: **ISO/IEC TR
+5469:2024**, published 8 January 2024. It is a Technical Report, so it carries no
+normative requirements and there is no conformity claim to make against it.
+
+That is a weaker statement than "only one document exists", deliberately. ISO/IEC
+TS 22440 is reported to carry the same third scope bullet, covering the use of AI
+technology to design, develop and verify safety-related functions, and it is a
+Technical Specification with a Part 1 titled *Requirements*. We could not confirm it:
+`iso.org` returns HTTP 403 to us, and the committee mirror's page for 22440-1 shows
+the title and stage with the scope preview blank. If that bullet is in the current
+draft then the normative successor is already in progress, and the honest version of
+this section is that the published guidance is thin rather than absent.
 
 The second item is the VDA QMC Working Group 13 Guidelines, 3rd edition, which
 VDA's publications page dates to July 2026 after a public review that ran to
@@ -131,7 +153,7 @@ is commercial off-the-shelf software at Levels A and B, and there is no AI item.
 confidence in the use of software tools, has sat at stage 90.92, "to be revised",
 since 8 July 2024.
 
-One body says the gap out loud. The ISO page for ISO/PAS 8800:2024 states that it
+One scope statement draws the boundary explicitly. ISO/PAS 8800:2024 states that it
 "This document does not provide specific guidelines for software tools that use AI methods."
 
 {% note(kind="tip") %}
@@ -149,14 +171,15 @@ reported second-hand, says to review AI-generated output before acceptance.
 
 That is correct. It is also where the difficulty starts rather than ends, because
 "review" carries the whole obligation in that sentence, and the sentence does not
-say what review means. If it means a human reads the diff and agrees, four 2026
-results put numbers on what that misses.
+say what review means. If it means a human reads the diff and agrees, nobody
+has measured that at all. What four 2026 results do measure is automated agreement,
+and the numbers are not reassuring.
 
 An evaluation of specification autoformalization in Verus found that an
 LLM-as-judge misses 26% of the failures an executable specification test catches
 (arXiv:2605.26457). A repository-level study found that roughly a quarter of
 test-passing patches admit counterexamples, and that only 56% of agent-written
-specifications pass audit, with the dominant failure being faithfulness: a
+specifications pass that study's own audit, with the dominant failure being faithfulness: a
 specification that constrains part of the behaviour and leaves the rest free
 (arXiv:2609.21190). Work on Dafny reinforcement learning reports models learning
 "specification hacking" against weak specifications, which the author found after
@@ -165,7 +188,7 @@ verifier-reward training had already raised the verified reward from 2.2% to 58.
 reports a pass rate of 9.7% rising to 31.1%, so the two figures are different
 experiments rather than a before and after.
 
-Machine checking is not automatically safe either. A proof repair study on Isabelle
+Machine checking is not automatically sufficient either. A proof repair study on Isabelle
 found that of 144 candidates Isabelle accepted, 6 had modified text that was
 supposed to be protected, and every one came from a workflow permitted to edit the
 whole theory file (arXiv:2608.13459). A green build answers whether the checker was
@@ -219,7 +242,8 @@ assuring what an agent produced.
 A post about mechanical review should say where ours failed, because both failures
 are the kind the literature above predicts.
 
-The first was a self-exemption. A Lean gate in `spar` counted unproven obligations
+The first was a self-exemption, found by our own audit and tracked as spar #385. A
+Lean gate in `spar` counted unproven obligations
 and excluded any line carrying a `-- TODO` comment. That exclusion was a deliberate
 no-op when written, because the tracked sorries kept their TODO on the previous
 line. The sorries then grew from 5 to 12 and moved the comment onto the same line,
@@ -256,22 +280,36 @@ the axiom gate runs in one repository and the others have not adopted it.
 
 ## Where this is being discussed
 
-Mostly not in the safety-critical rooms. We checked the pages of the Eclipse SDV
-Working Group, Eclipse S-CORE, the Bytecode Alliance, two ELISA working groups, the
-Xen Safety Committee, the Safety-Critical Rust Consortium and CNCF TAG Security, and
-found no AI-agent workstream on any of them. Eclipse S-CORE's own project site lists
-Quality (ASPICE), Safety (ISO 26262) and Security (ISO 21434) as the standards the
-platform addresses, and carries no AI policy. Its Eclipse project page lists the two
-ISO standards and does not mention ASPICE.
+Mostly not in the safety-critical rooms, with a caveat about our instrument. On
+14 October 2026 we read the published pages of the Eclipse SDV Working Group,
+Eclipse S-CORE, the Bytecode Alliance, ELISA's Tools and Open Source Engineering
+Process working groups, the Xen Safety Committee, the Safety-Critical Rust
+Consortium and CNCF TAG Security, and found none of them publishing a workstream on
+qualifying agent-written code against a safety standard. That is a narrower claim
+than "no AI work": CNCF has AI security material and an agentic-systems effort under
+other TAGs, and a group's published pages are weaker evidence than its minutes. Eclipse S-CORE publishes no AI policy of its
+own, but it does not need to: it inherits the Eclipse Foundation's Generative AI
+Usage Guidelines, v1.0 of April 2024, which require a committer to make reasonable
+effort to ensure generated content is accurate and to put all output through the
+project's normal vetting for testing, intellectual property and security. A
+project-level policy template requiring contributors to validate generated code
+before submission exists as a proposed draft rather than an adopted rule, and the
+guidelines are written for committers rather than all contributors.
 
-One room is working on exactly this. The COVESA Generative AI Group's stated mission
-is making generative AI tooling "interoperable, standardized, and accessible across
+So the review obligation is already stated at open-source governance level, which
+makes the gap sharper rather than wider. Eclipse says vet the output. ASPICE says
+verify the output. DO-178C says qualify the tool unless the output is verified.
+Nobody says what the verification has to produce, or how anyone would check that it
+happened.
+
+One room is closest to it. The COVESA Generative AI Group's stated mission is
+making generative AI tooling "interoperable, standardized, and accessible across
 the entire automotive V-model", organised by V-model stage from requirements to
 homologation, aligning with AUTOSAR, ISO 26262 and ASPICE. Its current pilot stage is
 requirements management, and it is still finalising its charter.
 
-A charter being written now will decide whether "review the AI output" stays a
-process statement or becomes a mechanical obligation with a defined artifact. The
+A charter being written now will shape whether "review the AI output" stays a
+process statement or acquires a defined artifact. The
 group listed charter and operating procedures as in progress when we read its page
 on 14 October 2026.
 
