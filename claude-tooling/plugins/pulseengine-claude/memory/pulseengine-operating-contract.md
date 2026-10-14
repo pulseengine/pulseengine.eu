@@ -221,17 +221,34 @@ skill is in exactly one class.)
   [`clean-room-verification`].
 - **Cross-cutting / standing practice** — `oracle-gate-a-change`,
   `report-tool-friction`, `capture-session-learnings`, `verify-your-own-claims`,
-  `evidence-transfer`. Not a task you "run" as
+  `evidence-transfer`, `delegate-by-cost`. Not a task you "run" as
   driver-or-explorer; they fire *inside* other skills (oracle-gate per change) or
   as always-on practice (file friction as you hit it; capture learnings before
   they're lost). They inherit the disposition of whatever skill they're running
   within.
 
-Deliberately no model names above: this file named Opus 4.8 and Fable 5 until
-both were superseded, and a routing rule that has to be edited on every release
-is a rule that will be wrong between releases. Route by tier — biddable for
-drivers, most-capable for explorers — and let the caller resolve which model
-that is today.
+**Routing is not only per-skill — it is per-subtask, and the default direction is
+down.** A capable model is the wrong machine for most of the work it gets handed:
+a repo census, a file-by-file extract, a mechanical audit, a build-and-test loop.
+Push those to a subagent on a cheaper tier and grade the result. **The gate is
+economic, not stylistic:** delegating down pays when checking the answer costs
+materially less than producing it, and costs *more* than never delegating when it
+does not — you pay the cheap attempt, the check, and the expensive attempt anyway.
+So: a cheap oracle exists → push it down; no cheap oracle → do it here. On a
+mechanical failure escalate one rung at a time; on a *disagreement with your own
+judgment*, re-derive from the worker's cited evidence before overruling it — the
+top tier is not the oracle. [`delegate-by-cost`] holds the ladder, the rung table
+and the stop-and-ask terminus; this paragraph is the always-on half, kept here
+because a skill cannot trigger on "work you were about to do anyway".
+
+Deliberately no model *versions* anywhere in this file: it named Opus 4.8 and
+Fable 5 until both were superseded, and a routing rule that has to be edited on
+every release is a rule that will be wrong between releases. Route by tier —
+biddable for drivers, most-capable for explorers — and let the caller resolve
+which model that is today. The one place tiers are named is the rung table in
+[`delegate-by-cost`], and it names the *harness enum aliases*, which float across
+model generations rather than pinning a version. That is the exception the rule
+allows, and it is one table to edit, not a rule scattered through prose.
 
 A skill is a contract, not an exhaustive checklist: for capable models a short
 closed instruction beats an enumerated one — if an older, over-specified

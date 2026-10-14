@@ -60,6 +60,15 @@ jobs:
       - name: Check skill frontmatter loads in agent runtimes
         run: python3 scripts/check-skill-frontmatter.py
 
+      # check-plugin-manifest keeps the manifests' spelled-out skill COUNT
+      # honest, but only the README says what each skill DOES — and nothing
+      # checked it. The roster drifted to 14 of 18 (evidence-transfer,
+      # gate-potency, repo-hygiene, verify-your-own-claims: installed,
+      # loadable, triggering, undocumented) and the count check could not see
+      # it. Both directions, derived from disk so it needs no maintenance.
+      - name: Check the README documents every installed skill
+        run: python3 scripts/check-readme-skill-roster.py
+
       # The layer view builds its whole DOM in JavaScript, so a class the script
       # emits and the stylesheet does not define renders unstyled and nothing
       # else notices. Porting the prototype into the site produced six such
