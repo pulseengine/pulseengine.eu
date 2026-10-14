@@ -237,46 +237,38 @@ to 1 May 2026. That guidance is about securing agents, through
 least privilege and prompt injection defence, and it is a different axis from
 assuring what an agent produced.
 
-## What we got wrong in our own gates
+## Where our own gates stand
 
-A post about mechanical review should say where ours failed, because both failures
-are the kind the literature above predicts.
+A post about mechanical review should say where ours failed. One did, and it failed
+in the way the literature above predicts.
 
-The first was a self-exemption, found by our own audit and tracked as spar #385. A
-Lean gate in `spar` counted unproven obligations
-and excluded any line carrying a `-- TODO` comment. That exclusion was a deliberate
-no-op when written, because the tracked sorries kept their TODO on the previous
-line. The sorries then grew from 5 to 12 and moved the comment onto the same line,
-and the no-op became universal. Twelve went in and zero came out, while the step
-printed that the gate was green. The replacement counts `sorry`, `sorryAx`, `admit`
-and a bare `axiom` over comment-stripped text, with no comment-based exemption,
-against a declared floor. The lesson we
-kept is that an exemption keyed on a pattern the exempted code itself controls cannot
-hold, because the proof author writes both the `sorry` and the comment that excuses
-it.
+A Lean gate in `spar` counted unproven obligations and excluded any line carrying a
+`-- TODO` comment. That exclusion was a deliberate no-op when written, because the
+tracked sorries kept their TODO on the previous line. The sorries then grew from 5 to
+12 and moved the comment onto the same line, and the no-op became universal. Twelve
+went in and zero came out, while the step printed that the gate was green. We found
+it in our own audit and track it as spar #385. The replacement counts `sorry`,
+`sorryAx`, `admit` and a bare `axiom` over comment-stripped text, with no
+comment-based exemption, against a declared floor. The lesson we kept is that an
+exemption keyed on a pattern the exempted code itself controls cannot hold, because
+the proof author writes both the `sorry` and the comment that excuses it.
 
-The second failure was in the draft of this post. We wrote that we
-run no axiom-level audit and that four repositories carry Lean files with no
-equivalent gate. Both were false. `ordeal/lean/AxiomCheck.lean` exists for exactly
-this purpose: each `#guard_msgs` pins the exact axiom list of a capstone theorem, so
-any new axiom changes the message and fails elaboration, and the file is a default
-lake target, so the required Lean CI job fails with it. Its own header says the sorry
-budget is guarded separately and that this file "guards everything `sorry`-shaped
-guards miss", naming both `sorryAx` and `native_decide` as the holes it closes.
+The axiom-level check is a separate gate and it exists. `ordeal/lean/AxiomCheck.lean`
+pins the exact axiom list of each capstone theorem with `#guard_msgs`, so any new
+axiom changes the message and fails elaboration, and the file is a default lake
+target, which makes the required Lean CI job fail with it. Its header states the
+division of labour: the sorry budget is guarded separately, and this file "guards
+everything `sorry`-shaped guards miss", naming `sorryAx` and `native_decide`
+(`ofReduceBool`) as the holes it closes.
 
-The reason we got it wrong is the more useful part. We grepped the repositories checked
-out on this machine, and `ordeal` is not one of them. An instrument that cannot see
-two of the relevant repositories returns silence, and we read that silence as a
-measurement. That is the failure our own `verify-your-own-claims` procedure describes
-in its fifth check, committed by the person who wrote the check.
-
-What is actually true is narrower. A token scan cannot see a transitive dependency,
-so the two techniques are not ordered: an axiom audit over selected capstone theorems
-will miss a `sorry` in a file nothing imports, which a token scan catches, and the
-token scan misses the inherited `sorryAx`, which the audit catches. `spar`'s gate
-counts `sorry`, `sorryAx`, `admit` and a bare `axiom` over comment-stripped text, and
-does not match `native_decide`. The rollout gap is real and smaller than the draft claimed:
-the axiom gate runs in one repository and the others have not adopted it.
+The two techniques are complementary rather than ordered, which is worth stating
+because it is tempting to rank them. A token scan cannot see a transitive dependency,
+so it misses a proof that inherits `sorryAx` from an imported lemma. An axiom audit
+over selected capstone theorems cannot see a `sorry` in a file nothing imports, which
+the token scan catches. `spar`'s scan does not match `native_decide`; `ordeal`'s audit
+does. Running one is not a substitute for running the other, and the gap we have is a
+rollout gap: the axiom gate runs in one repository, and the others carrying Lean have
+not adopted it.
 
 ## Where this is being discussed
 
