@@ -1,6 +1,6 @@
 +++
 title = "AI in the product, not AI in the toolchain"
-description = "We went looking for published guidance on using an AI agent inside a development process that has to satisfy a certification standard. What is published is one informative Technical Report from 2024 and a VDA Guidelines chapter we have only second-hand. The FAA planned a rule, and it asks you to disclose the use rather than to establish anything about the output. Every framework makes verifying the output the hinge, and none says what the verification has to produce."
+description = "We went looking for published guidance on using an AI agent inside a development process that has to satisfy a certification standard. What is published is one informative Technical Report from 2024 and a VDA Guidelines chapter we have only second-hand. The FAA planned a rule, and it asks you to disclose the use rather than to establish anything about the output. Every tool-qualification framework makes verifying the output the hinge, and nothing we could read says what the verification has to produce."
 date = 2026-10-14
 draft = false
 ready = true
@@ -15,10 +15,10 @@ There are two questions here, and they get run together: certifying a system tha
 product. The standards bodies have
 answered the first one at length and the second one barely at all — one informative
 Technical Report, one chapter we can only read second-hand, and a regulator's planned
-rule that asks you to disclose the use rather than establish anything about the
-output. Every framework that touches the second question makes "verify the output"
-the hinge, and not one says what the verification has to produce. That is the gap,
-and the measurements below are what is in it.
+rule that asks you to disclose the use rather than establish anything about the output.
+The tool-qualification frameworks that already cover an agent all turn on verifying its
+output, and nothing we could read says what that verification has to produce. That is
+the gap, and the measurements below are what is in it.
 {% end %}
 
 Two questions get confused, and the confusion matters because the standards bodies
@@ -117,11 +117,11 @@ than what it found, because most of its length is caveats about what we could no
   <text x="428" y="422" font-size="11.5" font-weight="700" fill="var(--accent,#6c8cff)">where we are</text>
   <text x="428" y="437" font-size="10.5" fill="var(--text,#e1e4ed)">substrate Mar 2026 · rivet, spar</text>
   <text x="428" y="451" font-size="10.5" fill="var(--text,#e1e4ed)">agent output gated mechanically, May 2026</text>
-  <text x="416" y="480" font-size="11" fill="var(--text-dim,#8b90a0)">Nothing here states what the verification must produce.</text>
+  <text x="416" y="480" font-size="11" fill="var(--text-dim,#8b90a0)">Nothing we could read states what the verification must produce.</text>
 </svg>
-<figcaption>Measured 14 and 15 October 2026 across more than 40 standards pages. The right-hand
-panel is the whole published guidance for using an AI agent inside a development process that has
-to satisfy a certification standard — and the one item in it with normative force is in ballot, not in print.</figcaption>
+<figcaption>Measured 14 and 15 October 2026. The right-hand panel is everything we could find
+that speaks to using an AI agent inside a development process which has to satisfy a certification
+standard. Two of its five entries are documents we have not been able to read.</figcaption>
 </figure>
 
 ## What exists for AI in the product
@@ -148,9 +148,10 @@ Machine Learning Model Testing, and SUP.11 Machine Learning Data Management, eac
 numbered base practices an assessor can rate.[^vdapam41] Across its roughly 41,000
 words, "machine learning" appears 59 times. "Artificial intelligence" appears zero
 times, "generative" zero, "large language" zero. That is the shape of the whole
-problem in one document: when the AI is the product, the same working group gives you
-five numbered processes; when the AI is the tool, it gives you a chapter in a separate
-book you have to buy on paper.
+problem in one document: when the AI is the product, the working group gives you five
+numbered processes with rateable base practices; when the AI is the tool, its normative
+model says nothing at all, and what it reportedly gives you instead is a chapter in a
+separate book you have to buy on paper.
 
 ## What exists for AI in the toolchain
 
@@ -355,15 +356,16 @@ qualifying agent-written code against a safety standard. That is a narrower clai
 than "no AI work": CNCF has AI security material and an agentic-systems effort under
 other TAGs, and a group's published pages are weaker evidence than its minutes.
 
-AUTOSAR belongs on that list now, and it is the most pointed entry. Its published
+AUTOSAR belongs on that list too, and it is the most pointed entry. Its published
 concept roadmap runs four release buckets and roughly thirty named concepts — time-sensitive
 networking, CANsec, SOME/IP metadata, safe hardware-acceleration APIs, feature graphs,
 over-the-air update machinery — and not one of them concerns AI, in the product or in
 the toolchain.[^autosarconcepts] Its cross-standard working groups are Architecture,
 Methodology and Templates, Security and Safety as lead groups, plus Application
 Interfaces, In-Vehicle Communication, Diagnostics, Timing and Tracing, Time
-Synchronization and Update and Configuration Management. There is no AI working group.
-WG-SAF's scope is ISO 26262 with no AI item, and WG-MT — which owns "the overall
+Synchronization and Update and Configuration Management, with WG-CP and WG-AP for the
+two platforms. We read every working-group page the site publishes and found no AI group
+among them. WG-SAF's scope is ISO 26262 with no AI item, and WG-MT — which owns "the overall
 AUTOSAR methodology and all template-, manifest-documents / exchange formats", the
 natural home for how AI-assisted development fits the process — lists no AI item
 either.[^autosarwgs] That matters because of who is aligning with whom, below.
@@ -379,8 +381,8 @@ guidelines are written for committers rather than all contributors.
 
 So the review obligation is already stated at open-source governance level, which
 makes the gap sharper rather than wider. Eclipse says vet the output. ASPICE says
-verify the output. The FAA tells its own staff to put it through human review, and
-tells applicants to disclose that they used it. DO-178C says qualify the tool unless
+verify the output. The FAA told its own staff to put it through human review, and
+planned to tell applicants to disclose that they used it. DO-178C says qualify the tool unless
 the output is verified. Nobody we could read says what the verification has to
 produce, or how anyone would check that it happened.
 
@@ -408,10 +410,11 @@ without a definition. Anyone building an agentic development process for a certi
 product is writing the missing definition whether they mean to or not.
 
 **The window is narrower than it looks.** The ISO 26262-8 Edition 3 ballot opened on
-14 October 2026 and runs twelve weeks; COVESA's Generative AI Group was still
-finalising its charter when we read its page on the same day. Both of those documents
-will say something about tool confidence and AI-assisted development, and neither has
-said it yet. That is an unusual amount of still-wet concrete for this industry.
+14 October 2026 and runs twelve weeks; COVESA's Generative AI Group was still finalising
+its charter when we read its page on the same day. One of those documents is circulating
+right now in a form we cannot read, and the other has not been written. Whatever either
+says about tool confidence, it is being decided this quarter — an unusual amount of
+still-wet concrete for this industry.
 
 **Pick the mechanism before anyone picks it for you, and prefer one that fails.**
 Every result in the literature section above is a case where a check was satisfied and
@@ -506,7 +509,9 @@ standards ask for the first. Nothing we could read asks for the second.
 
 ## Corrections
 
-The first version of this post, published 14 October 2026, got the following wrong.
+The first version of this post, published 14 October 2026, said the following. Each item
+is corrected or superseded below; the first two were wrong when published, and the rest
+were true then and are no longer the best we can do.
 
 - **ISO 26262 Edition 3 is at Draft International Standard, not awaiting one.** All
   twelve parts are at stage 40.20 and the 12-week DIS ballot opened on
@@ -520,8 +525,8 @@ The first version of this post, published 14 October 2026, got the following wro
   working groups carry no AI item, in the product or in the toolchain.[^autosarconcepts][^autosarwgs]
 - **FAA policy is not absent from this post.** The post said `faa.gov` returned 403 on
   every attempt. The *Roadmap for Artificial Intelligence Safety Assurance*, Version I,
-  is signed 23 July 2024 and plans a policy statement requiring applicants to disclose
-  AI use "in their systems, or in the development of documents".[^faaroadmap]
+  is signed 23 July 2024 and plans a policy statement telling applicants that they
+  "should disclose" AI use "in their systems, or in the development of documents".[^faaroadmap]
 - **The ISO/IEC TS 22440 scope bullet is confirmed, for the wrong draft.** "Use of AI
   technology to design, develop and verify safety-related functions" is recorded
   verbatim against the single-document working draft that was deleted on 6 May 2024.
@@ -612,4 +617,4 @@ records rather than on the text.
 
 [^autosarconcepts]: AUTOSAR — *AUTOSAR Concept Roadmap & Upcoming Standards*. Read 15 October 2026. [autosar.org](https://www.autosar.org/standards/autosar-concept-roadmap). Primary (open access). Four release buckets (R2X-11 backlog, R26-11, R25-11, R24-11); no concept names AI.
 
-[^autosarwgs]: AUTOSAR — *Cross-Standard Working Groups*. Read 15 October 2026. [autosar.org](https://www.autosar.org/working-groups/cross-standard). Primary (open access). Four lead working groups (WG-A Architecture, WG-MT Methodology & Templates, WG-SEC Security, WG-SAF Safety) and six further cross-standard groups; WG-MT scope quoted from this page.
+[^autosarwgs]: AUTOSAR — working groups. Read 15 October 2026: [Cross-Standard](https://www.autosar.org/working-groups/cross-standard) (four lead groups — WG-A Architecture, WG-MT Methodology & Templates, WG-SEC Security, WG-SAF Safety — plus six further cross-standard groups; WG-MT scope quoted from this page), [Classic Platform](https://www.autosar.org/working-groups/classic-platform) (WG-CP), [Adaptive Platform](https://www.autosar.org/working-groups/adaptive-platform) (WG-AP) and [Artop](https://www.autosar.org/working-groups/cross-standard/artop). Primary (open access). That is every working-group page the site publishes; none matched artificial intelligence, machine learning, LLM or generative.
