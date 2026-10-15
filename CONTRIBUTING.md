@@ -162,15 +162,56 @@ Danger with red accent.
 {% end %}
 ```
 
-### Other shortcodes
+### The insight block — every post has one
+
+**Open every post with `{% insight() %}` directly after the frontmatter, before the
+first `## ` heading.** All 19 posts published before this guide said so used one; it is
+the house opening, not an option. It carries the thesis in four to eight lines, and it
+must not state a claim the body does not carry.
+
+```markdown
+{% insight() %}
+The one paragraph you would want a reader to keep if they read nothing else.
+Links and `inline code` work; the body is rendered as Markdown.
+{% end %}
+```
+
+Long or heavily-cited posts also carry the `deep-dive` tag, and close on a takeaway
+section rather than trailing off.
+
+### Every shortcode in `templates/shortcodes/`
+
+This table is the full set. If you add or remove a file in `templates/shortcodes/`,
+change this table in the same commit — a shortcode the guide does not mention is a
+shortcode nobody uses, and one the guide invents fails the build.
 
 | Shortcode | Purpose | Usage |
 |---|---|---|
-| `pipeline()` | Full pipeline SVG (meld → loom → synth → kiln + sigil) | `{% pipeline() %}{% end %}` |
-| `project_card(...)` | Glass card for a project | `{{ project_card(name="meld", desc="...", url="...", icon="🔗", badge="accent") }}` |
-| `mermaid()` | Mermaid diagram | See above |
-| `note(kind="...")` | Callout box (info/tip/warning/danger) | See above |
-| `figure(src, alt, caption)` | Image with semantic caption | `{{ figure(src="img.png", alt="...", caption="...") }}` |
+| `insight()` | Opening thesis block — **required, see above** | `{% insight() %}...{% end %}` |
+| `note(kind="...")` | Callout box (`info`/`tip`/`warning`/`danger`) | `{% note(kind="tip") %}...{% end %}` |
+| `mermaid()` | Mermaid diagram | `{% mermaid() %}...{% end %}` |
+| `figure(src, alt, caption)` | Raster/vector image with semantic caption | `{{ figure(src="img.png", alt="...", caption="...") }}` |
+| `tree(root, parts)` | ASCII-art directory tree | `{{ tree(root="crates", parts=["a", "b"]) }}` |
+| `project_card(name, desc, url, ...)` | Glass card for a project; optional `icon`, `badge`, `label`, `releases`, `vscode` | `{{ project_card(name="meld", desc="...", url="...", icon="🔗", badge="accent") }}` |
+| `compliance_artifact(id, prefix)` | One rivet artifact, resolved from site data | `{{ compliance_artifact(id="REQ-001") }}` |
+| `compliance_stats(type_name)` | Artifact counts by type | `{{ compliance_stats(type_name="requirement") }}` |
+| `factory_views()` | The factory views panel; takes no arguments | `{{ factory_views() }}` |
+
+There is no `pipeline()` shortcode. The pipeline SVG lives in the page templates
+(`about.html`, `projects.html`, `how-it-works.html`) and is not callable from Markdown.
+
+### Citations in a heavily-sourced post
+
+Use CommonMark footnotes, not a hand-numbered list: `[^key]` at the point of the claim
+and `[^key]: ...` definitions at the bottom under `## Sources and caveats`. `config.toml`
+sets `bottom_footnotes = true`, and `sass/_blog.scss` styles the rendered list, the
+back-references and the `:target` highlight. Give every definition a tier — primary,
+secondary, peer-reviewed, or not read — so a reader can weigh it, and open the section
+with a paragraph naming whatever you could not access.
+
+**A footnote reference does not work inside a shortcode body.** Shortcode bodies are
+rendered through a separate `| markdown` call, so `[^key]` inside `{% note %}` or
+`{% insight %}` will not resolve. Put the reference in the surrounding prose instead.
 
 ### Content styling reference
 
@@ -195,6 +236,10 @@ date = YYYY-MM-DD
 [taxonomies]
 tags = ["..."]
 +++
+
+{% insight() %}
+The thesis in one paragraph — required, and it goes here, above everything else.
+{% end %}
 
 Opening paragraph — hook the reader, state what this post covers.
 
@@ -222,6 +267,10 @@ Highlight important takeaways in callout boxes.
 ## What's next
 
 Wrap up and point to related resources.
+
+## Sources and caveats
+
+Access caveats first, then `[^key]: ...` definitions with a tier on each.
 ```
 
 ## Design system

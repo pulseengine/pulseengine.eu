@@ -18,7 +18,7 @@ The Anthropic red team's Mythos scaffold is four prompts and one rule: a mechani
 
 ## The four prompts
 
-`scripts/mythos/` in [rivet](https://github.com/pulseengine/rivet/tree/feat/agent-pipelines-foundation/scripts/mythos) ships the pipeline. The shape is the same as the [SDD post](/blog/spec-driven-development-is-half-the-loop/) described in the abstract; this is the concrete oracle-and-prompt pair tuned for slop.
+`scripts/mythos/` in [rivet](https://github.com/pulseengine/rivet/tree/main/scripts/mythos) ships the pipeline. The shape is the same as the [SDD post](/blog/spec-driven-development-is-half-the-loop/) described in the abstract; this is the concrete oracle-and-prompt pair tuned for slop.
 
 {% tree(root="scripts/mythos/") %}
 HOWTO.md | pipeline overview + oracle design

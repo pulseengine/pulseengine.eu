@@ -145,6 +145,31 @@
     margin-bottom: 1.5rem;
   }
 
+  // Inline SVG diagrams authored directly in a post. These are NOT the figure()
+  // shortcode: an SVG loaded through <img> cannot read the page's CSS custom
+  // properties, so a themed diagram has to be inlined and carry its own class.
+  // Dense two-panel diagrams stay legible by scrolling inside the figure rather
+  // than scaling 10px labels down to nothing on a phone.
+  .standards-map {
+    margin: 2rem 0;
+    overflow-x: auto;
+
+    svg {
+      display: block;
+      min-width: 560px;
+      margin: 0 auto;
+    }
+
+    figcaption {
+      max-width: 62ch;
+      margin: 0.75rem auto 0;
+      text-align: center;
+      font-size: 0.8rem;
+      line-height: 1.5;
+      color: $text-faint;
+    }
+  }
+
   // Shortcode figure with caption
   .figure {
     margin: 1.5rem 0;
