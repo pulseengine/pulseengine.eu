@@ -25,7 +25,7 @@ comes from someone else.
 
 Eclipse S-CORE is a good someone else: an open, ISO 26262 / ASPICE-shaped body of
 automotive safety engineering, actively maintained by a working group with real
-domain expertise, published as a [sphinx-needs](https://sphinx-needs.com) typed
+domain expertise, published as a [sphinx-needs](https://sphinx-needs.readthedocs.io/en/latest/) typed
 graph. We don't control it, we can't edit it to suit our tools, and it's far
 larger than anything we'd hand-write. Perfect.
 

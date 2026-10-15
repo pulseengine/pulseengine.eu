@@ -398,7 +398,7 @@ Qed.
 **Learning Resources for Tactics:**
 - [Coq Tactics Reference](https://coq.inria.fr/refman/proof-engine/tactics.html) - Official documentation
 - [Software Foundations: Tactics](https://softwarefoundations.cis.upenn.edu/lf-current/Tactics.html) - Interactive tutorial
-- [Coq Art](https://xavierleroy.org/coqart/) - Advanced tactics and automation
+- [Coq'Art](https://www.labri.fr/perso/casteran/CoqArt/) - Bertot and Castéran; advanced tactics and automation
 - [Certified Programming with Dependent Types](http://adam.chlipala.net/cpdt/) - Advanced proof techniques
 
 ## Key Theorems Explained

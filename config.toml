@@ -15,6 +15,11 @@ skip_anchor_prefixes = [
 ]
 skip_prefixes = [
     "https://dl.acm.org/",
+    # Both return 403 to every non-browser client, browser User-Agent included;
+    # verified by hand 2026-10-15. The pages are live for a human reader, so there
+    # is no automated check that can pass and nothing to fix in the link itself.
+    "https://www.mdpi.com/",
+    "https://militaryembedded.com/",
 ]
 
 [markdown]
