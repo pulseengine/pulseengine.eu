@@ -1,0 +1,60 @@
+name: Issue classes
+
+# The issue-hunt backlog brake (REQ-ISSUE-CLASS-RATCHET). Every open rivet and
+# spar issue must carry exactly one class on the oracle axis:
+#
+#   agent-closable  a named reproducer exists AND currently fails on main
+#   needs-decision  scope, architecture, priority, or no oracle yet
+#
+# The brake applies to needs-decision only, so discovery is never throttled.
+#
+# TWO TRIGGERS, TWO DIFFERENT CHECKS — deliberately, not as a fallback:
+#
+# The --self-test decision table runs on pull requests from ci.yml's `build`
+# job, not from here: `build` is the only context branch protection requires, and
+# a job in this path-filtered workflow could not be made required without every
+# unrelated PR waiting forever for a status that never reports.
+#
+# This workflow is therefore the LIVE half only — scheduled, because tracker
+# state drifts with no PR involved, so a PR gate alone would be green over a
+# backlog that grew overnight. It re-runs the table first so a scheduled red is
+# never ambiguous between "logic broke" and "queues drifted".
+#
+# The live check needs ISSUE_CLASS_TOKEN: a token with read access to
+# pulseengine/rivet and pulseengine/spar issues. The default GITHUB_TOKEN is
+# scoped to this repository only. Without it the script exits 2 — could not run
+# — and this job goes RED. It does not skip. A gate that cannot reach its
+# evidence has verified nothing, and saying so is the whole point of #1110.
+#
+# Expect this RED until the backlog is classified. That is a ratchet working as
+# designed, not a broken job: 33 rivet + 37 spar issues were unclassified when
+# it was added.
+
+# THE SCHEDULE IS deliberately NOT ARMED YET. Two prerequisites are open: the
+# ISSUE_CLASS_TOKEN secret, and the first classification pass over the ~70 open
+# issues. Arming it before those exist would make this job red from its first run
+# for a reason everyone already knows — and a gate that is red on day one trains
+# the team to ignore red, which is the failure this whole brake exists to avoid.
+# Re-add the `schedule:` block below once both are done:
+#
+#   schedule:
+#     - cron: "41 6 * * *"   # daily, 06:41 UTC
+#
+# Until then it runs on demand, which is enough to record the floors.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  live:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Decision table
+        run: python3 scripts/check-issue-classes.py --self-test
+      - name: Classes and the needs-decision ratchet
+        env:
+          ISSUE_CLASS_TOKEN: ${{ secrets.ISSUE_CLASS_TOKEN }}
+        run: python3 scripts/check-issue-classes.py

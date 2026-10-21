@@ -128,3 +128,19 @@ jobs:
       # implementation against our own ledger.
       - name: Check the plugin's claims still hold
         run: python3 claude-tooling/plugins/pulseengine-claude/skills/claim-verification/claim-check.py claims.yaml
+
+      # The issue-hunt backlog brake's decision table (REQ-ISSUE-CLASS-RATCHET).
+      # It lives here, in `build`, because `build` is the only context branch
+      # protection actually requires — a job in its own path-filtered workflow
+      # cannot be made required without every unrelated PR waiting forever for a
+      # status that never reports. The table needs no network, so it belongs on
+      # the PR; the live tracker check is scheduled in issue-classes.yml, since
+      # queue state drifts with no PR involved.
+      - name: Check the backlog brake can still fail
+        run: python3 scripts/check-issue-classes.py --self-test
+
+      # External review of #232 found a compiled .pyc in that PR and a second
+      # one tracked for longer, with all ten gates green over both: each asked
+      # whether a claim matched the tree, none asked what was in it.
+      - name: Check no build artifact is tracked
+        run: python3 scripts/check-no-build-artifacts.py

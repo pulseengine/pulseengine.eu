@@ -17,3 +17,13 @@ static/talk.html
 # and could commit them. A tracked state file leaks the loop's bookkeeping
 # into every PR, which is the accident the issue-hunt skill warns about.
 .claude/pulseengine/
+
+# Python bytecode. Two .pyc files were tracked until 2026-10-21 — one rode along
+# in #232 and ten gates ran green over both, because they all check whether a
+# claim matches the tree and none checked what is in it.
+# scripts/check-no-build-artifacts.py now fails on them.
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/

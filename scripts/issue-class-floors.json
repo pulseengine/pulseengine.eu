@@ -1,0 +1,15 @@
+{
+  "_comment": [
+    "Ratchet floors for the issue-hunt backlog brake (REQ-ISSUE-CLASS-RATCHET).",
+    "A floor is whatever the needs-decision queue measured at the first fully",
+    "classified pass. It can only tighten. null means: not yet measured, so the",
+    "brake cannot fire for that repo and check-issue-classes.py says so rather",
+    "than inventing a number nobody can defend.",
+    "agent-closable is deliberately uncapped — the brake must never throttle",
+    "discovery, only undecided work."
+  ],
+  "repos": {
+    "pulseengine/rivet": { "needs-decision_floor": null },
+    "pulseengine/spar":  { "needs-decision_floor": null }
+  }
+}
