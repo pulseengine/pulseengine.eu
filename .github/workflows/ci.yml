@@ -126,6 +126,12 @@ jobs:
       # (pulseengine.eu#202). We ship the claim-verification skill and were one
       # of three repos in four not using it; this runs its own reference
       # implementation against our own ledger.
+      # The checker's own logic first. set-equal and count-equals must fail on an
+      # empty side and in both directions (pulseengine.eu#198); a checker only
+      # ever seen to pass is indistinguishable from one that cannot fail.
+      - name: Check the claim checker can still fail
+        run: python3 claude-tooling/plugins/pulseengine-claude/skills/claim-verification/claim-check.py --self-test
+
       - name: Check the plugin's claims still hold
         run: python3 claude-tooling/plugins/pulseengine-claude/skills/claim-verification/claim-check.py claims.yaml
 

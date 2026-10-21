@@ -3,7 +3,7 @@ name: pulseengine-feature-loop
 description: This skill should be used when doing a feature end-to-end on a PulseEngine project (rivet, spar, witness, sigil, meld, loom, synth, wohl, kiln) — including "implement a feature", "add a new requirement", "extend the architecture", "write a new pass", "ship a feature end-to-end", "do this properly with traceability", "model-driven implementation", or any feature work that should pass through the full AADL → WIT → typed traceability → oracle-gated code → MC/DC → attestation → verify loop. ALWAYS use this skill when the user authorizes feature work on a PulseEngine project and the work touches more than a single file.
 metadata:
   author: pulseengine.eu
-  version: "0.5.0"
+  version: "0.6.0"
 ---
 
 # PulseEngine feature loop
@@ -149,6 +149,27 @@ Per [`oracle-gate-a-change`]:
   implementation also defines, derive it at test time or pin it in a ledger that fails on
   divergence. Copying is what turns one moved constant into N unattributed red oracles —
   see [`oracle-gate-a-change`] step 3b.
+- **Name every coupled pair the change creates or touches, and gate the pair.** Two
+  artifacts that must agree drift apart while each passes its own checks, because nothing
+  owns the relationship between them. relay ran a flight core and published components that
+  disagreed for about 3 months and 40 releases with every artifact green (pulseengine.eu#198).
+  The recurring shapes:
+  - **generated + committed** (WIT from AADL, bindings, lockfiles): regenerate and diff in
+    CI, per root, enumerated;
+  - **mirrored trees** (verus/plain, host/target): diff what must match;
+  - **manifest + payload** (a table and the files it lists, a count and the set it counts):
+    assert the sets equal, both directions;
+  - **enumerated set + citations** (a CI matrix and the artifacts citing it): cited-but-absent
+    *and* present-but-uncited, since a one-way check is satisfied by citing nothing;
+  - **shipped closure + verified closure**: compare what the binary reaches with what the
+    evidence covers;
+  - **config at two sites**: the same thing constructed in two places.
+
+  For manifest + payload, the cheapest gate is a `claims.yaml` entry with `set-equal` or
+  `count-equals` (see [`claim-verification`]) rather than another script. Three rules make
+  such a check real: **fail closed on an empty side** ("0 mismatches" and "nothing compared"
+  must not look alike), **watch it fail once** before trusting it, and **waive existing debt
+  loudly**, printed on every run, so the check lands without the debt blocking it.
 - Land code that flips the oracle from red to green.
 - Each PR passes through `oracle-gate-a-change`.
 - **Artifact:** code diff + a now-green oracle traceable to the rivet requirement.

@@ -153,3 +153,59 @@ claims:
         glob: ['claude-tooling/plugins/pulseengine-claude/skills/issue-hunt/SKILL.md']
         max: 0
 
+
+  # ── Coupled artifacts (pulseengine.eu#198): pairs that must agree ──────────
+  # Each pair below drifted at least once with every per-artifact check green,
+  # because nothing owned the relationship between the two halves.
+
+  # The plugin README annotates its `copilot skill list` example with a skill
+  # count. check-readme-skill-roster.py reads that same file and passed while it
+  # said 18 against 19 on disk: the roster script checks the bullet list, not
+  # a number written in prose. (External review, brief 6.)
+  - id: PLUGIN-README-SKILL-COUNT
+    doc: claude-tooling/plugins/pulseengine-claude/README.md
+    text: "custom skills"
+    evidence:
+      - kind: count-equals
+        number: {file: claude-tooling/plugins/pulseengine-claude/README.md, pattern: '# (\d+) custom skills'}
+        set: {glob: 'claude-tooling/plugins/pulseengine-claude/skills/*/SKILL.md', name: 'skills/([^/]+)/SKILL\.md$'}
+
+  # CONTRIBUTING's shortcode table omitted insight() and tree() and listed a
+  # pipeline() with no file, so a post was written without the house opening.
+  - id: CONTRIBUTING-SHORTCODES-MATCH-DISK
+    doc: CONTRIBUTING.md
+    text: "Every shortcode in `templates/shortcodes/`"
+    evidence:
+      - kind: set-equal
+        left:  {glob: 'templates/shortcodes/*.html', name: 'shortcodes/([^/]+)\.html$'}
+        right: {file: CONTRIBUTING.md, pattern: '^\| `([a-z_]+)\(', after: '### Every shortcode in', before: '### '}
+
+  # The claim-verification skill documents the evidence kinds; claim-check.py
+  # implements them. They drifted: the skill advertised a `badge` kind the
+  # checker never had, so an agent following it got "unknown evidence kind".
+  - id: CLAIM-KINDS-DOCUMENTED-EQUALS-IMPLEMENTED
+    doc: claude-tooling/plugins/pulseengine-claude/skills/claim-verification/SKILL.md
+    text: "Evidence is a predicate"
+    evidence:
+      - kind: set-equal
+        left:  {file: claude-tooling/plugins/pulseengine-claude/skills/claim-verification/claim-check.py, pattern: 'kind == "([a-z-]+)"'}
+        right: {file: claude-tooling/plugins/pulseengine-claude/skills/claim-verification/SKILL.md, pattern: '^   - `([a-z-]+)` —', after: 'Evidence is a predicate', before: '3. **Gate it**'}
+
+  # The feature loop names the coupled-pair step with its three rules. If the
+  # step is dropped or a rule goes missing, an agent stops gating pairs.
+  - id: FEATURE-LOOP-GATES-COUPLED-PAIRS
+    doc: claude-tooling/plugins/pulseengine-claude/skills/pulseengine-feature-loop/SKILL.md
+    text: "Name every coupled pair the change creates or touches"
+    evidence:
+      - kind: count-min
+        pattern: '\*\*fail closed on an empty side\*\*'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/pulseengine-feature-loop/SKILL.md']
+        min: 1
+      - kind: count-min
+        pattern: '\*\*watch it fail once\*\*'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/pulseengine-feature-loop/SKILL.md']
+        min: 1
+      - kind: count-min
+        pattern: '\*\*waive existing debt\s+loudly\*\*'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/pulseengine-feature-loop/SKILL.md']
+        min: 1
