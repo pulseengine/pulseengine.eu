@@ -10,7 +10,10 @@ glob-match = "0.2"
 semver = "1"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-serde_yaml = "0.9"
+# rivet's own lossless YAML stack (rivet#1085), replacing serde_yaml: archived,
+# and its unsafe-libyaml dependency is flagged by RUSTSEC-2024-0449. Not on
+# crates.io yet, so pinned to the release tag. pulseengine.eu#228.
+rivet-yaml = { git = "https://github.com/pulseengine/rivet", tag = "v0.41.0" }
 tar = "0.4"
 toml = "0.8"
 ureq = "3"

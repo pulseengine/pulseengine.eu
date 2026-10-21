@@ -503,7 +503,7 @@ fn generate_data_files(
 ) -> Result<usize, String> {
     let content = fs::read_to_string(yaml_path)
         .map_err(|e| format!("failed to read {}: {e}", yaml_path.display()))?;
-    let file: GenericFile = serde_yaml::from_str(&content)
+    let file: GenericFile = rivet_yaml::from_str(&content)
         .map_err(|e| format!("failed to parse artifacts.yaml: {e}"))?;
 
     let mut by_type = std::collections::BTreeMap::new();
