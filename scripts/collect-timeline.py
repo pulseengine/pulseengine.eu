@@ -264,7 +264,10 @@ def main() -> int:
 
     ordered = [merged[m] for m in sorted(merged)]
     DATA.parent.mkdir(parents=True, exist_ok=True)
-    DATA.write_text(json.dumps(ordered, indent=2) + "\n")
+    # ensure_ascii=False: the committed file holds raw UTF-8 (em-dashes, emoji in
+    # repo descriptions). Writing escaped \uXXXX instead re-encoded 41 untouched
+    # lines on every run, burying the one new month in a diff nobody can review.
+    DATA.write_text(json.dumps(ordered, indent=2, ensure_ascii=False) + "\n")
     print(f"wrote {len(ordered)} months ({ordered[0]['month']}..{ordered[-1]['month']}); "
           f"collected {len(to_collect)} new")
     empty = [m['month'] for m in ordered if not m.get('trend')]
