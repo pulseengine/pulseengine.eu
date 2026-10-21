@@ -3,7 +3,7 @@ name: issue-hunt
 description: This skill should be used to run an incremental bug/feature hunt over a repo's issue tracker — pick up everything NEW since the last pass (new issues and new comments), digest and triage it, work the actionable items through the verification chain, and accumulate toward a feature release. Use it when the user says "hunt the issues", "do a bug/feature hunt", "look into the issues and work them", "loop through the issues", "digest the new issues and comments since last time", or wants a standing loop (via /loop or a scheduled agent) that drives the tracker toward releases. One invocation is one pass; the "since last time" watermark is what makes it a loop rather than a full re-scan. Composes with release-planning (land + ship), the feature loop, and the operating contract.
 metadata:
   author: pulseengine.eu
-  version: "0.2.0"
+  version: "0.3.0"
 ---
 
 # Issue hunt — the incremental bug/feature delivery loop
@@ -38,8 +38,10 @@ to be tight. Cheap re-reads are fine; a silently skipped comment is not.
 
 The state is more than one timestamp — keep, per repo:
 - `watermark` — pass-start time of the last successful pass.
-- `last_seen_comment_id` per touched issue — the highest comment id already
-  digested, so a re-pull (or a self-echo, below) is recognized and skipped
+- `last_seen_comment_id` per touched issue — the highest **REST** comment id
+  already digested (the numeric `id` from `gh api .../comments`, not the
+  `IC_kw…` node id `gh issue view --json comments` returns, which does not
+  compare), so a re-pull (or a self-echo, below) is recognized and skipped
   without re-triaging.
 - **`queues`** per repo — `{ agent_closable, needs_decision, floor, brake,
   demoted_this_pass }`, refreshed from `check-issue-classes.py --format json` at
@@ -65,12 +67,25 @@ digest the entire backlog.
    across passes instead of silently dropped.
 
 1. **Pull what's new since the watermark** (from watermark − ~60s; see State).
-   - New / updated open issues:
-     `gh issue list --repo <R> --state open --search "updated:>=<WATERMARK>" --json number,title,updatedAt,labels,author`
-     (a new comment bumps an issue's `updatedAt`, so this catches comment
-     activity too, not just new issues).
-   - New comments on each touched issue:
-     `gh issue view <N> --repo <R> --json comments --jq '.comments[] | select(.createdAt > "<WATERMARK>")'`.
+   - New / updated issues **and pull requests — two queries, because `gh issue
+     list` returns issues only and never a PR**:
+     `gh issue list --repo <R> --state all --search "updated:>=<WATERMARK>" --json number,title,updatedAt,labels,author`
+     `gh pr list --repo <R> --state all --search "updated:>=<WATERMARK>" --json number,title,updatedAt,labels,author`
+     (a new comment bumps `updatedAt`, so these catch comment activity too).
+     Without the second query every PR the loop did not open is invisible to the
+     pass: dependabot bumps, partner PRs, a fork's contribution. Measured
+     2026-10-21: four dependabot PRs on relay went unseen for a day, and one of
+     them carried the thread that exposed a release-path action pinned to a commit
+     outside its repository's history (pulseengine.eu#233).
+   - New comments on each touched issue or PR, over REST and **all pages**:
+     `gh api repos/<R>/issues/<N>/comments --paginate --jq '.[] | select(.created_at > "<WATERMARK>")'`.
+     REST ids are numeric and comparable with `last_seen_comment_id`; the
+     `gh issue view --json comments` ids are GraphQL node ids and are not. And
+     without `--paginate` the endpoint returns one page of 30: on jess#167, 30 of
+     50 comments, the rest dropped without an error. For a PR also read its review
+     comments, `gh api repos/<R>/pulls/<N>/comments --paginate`.
+   - **List every open PR not in `pending_gates`.** A PR the loop neither owns nor
+     has seen is exactly the item a watermark misses; treat it as new.
    - **Filter your own echoes.** This loop comments on issues (triage notes,
      "landed in rivet", "fixed in #NN") — and every such comment bumps `updatedAt`,
      so the next pass re-pulls the issue and sees *its own* comment as "new". Drop

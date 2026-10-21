@@ -128,3 +128,28 @@ claims:
         pattern: 'historical'
         glob: ['claude-tooling/plugins/pulseengine-claude/memory/pulseengine-toolchain.md']
         min: 1
+
+  # ── issue-hunt sees pull requests, and reads comments by comparable id ───────
+  # Step 1 swept with `gh issue list`, which returns issues only, so every PR the
+  # loop did not open was invisible: four dependabot PRs on relay sat unseen for a
+  # day (pulseengine.eu#233). The comment fetch used `gh issue view --json
+  # comments`, whose GraphQL node ids never compare with the REST ids stored as
+  # last_seen_comment_id, and dropped everything past page one of a long thread.
+  - id: ISSUE-HUNT-SWEEPS-PRS-AND-PAGINATES
+    doc: claude-tooling/plugins/pulseengine-claude/skills/issue-hunt/SKILL.md
+    text: "two queries, because `gh issue"
+    evidence:
+      - kind: count-min
+        pattern: 'gh pr list --repo <R> --state all --search "updated:>=<WATERMARK>"'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/issue-hunt/SKILL.md']
+        min: 1
+      - kind: count-min
+        pattern: 'gh api repos/<R>/issues/<N>/comments --paginate'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/issue-hunt/SKILL.md']
+        min: 1
+      # The non-comparable GraphQL fetch must not come back as the instruction.
+      - kind: count-max
+        pattern: 'gh issue view <N> --repo <R> --json comments'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/issue-hunt/SKILL.md']
+        max: 0
+

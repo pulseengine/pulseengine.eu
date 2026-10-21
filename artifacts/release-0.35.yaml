@@ -18,7 +18,6 @@ artifacts:
       come from a deploy-refreshed source; the landing page still describes the
       project instead of showing its state.
     status: draft
-    release: 0.38.0
     category: functional
     priority: should
 
@@ -29,7 +28,6 @@ artifacts:
       The four figures already rendered on /layers, in the hero, reading the
       same deploy-written layers.json so the two cannot disagree.
     status: draft
-    release: 0.38.0
     phase: phase-1
     acceptance-criteria:
       - "Every figure in the hero is read from static/layers.json; no figure is typed into a template."
@@ -50,7 +48,6 @@ artifacts:
       0.78.0 against 0.43.0), and 9 have no report at all. A page that linked
       only where evidence exists would read as though the other 12 were fine.
     status: draft
-    release: 0.38.0
     category: functional
     priority: should
 
@@ -62,7 +59,6 @@ artifacts:
       the project/binary aliases (wsc is sigil, kilnd is kiln), and render three
       distinct states rather than two.
     status: draft
-    release: 0.38.0
     phase: phase-1
     acceptance-criteria:
       - "A tool whose exact shipped version has a report links to that version's report, not to latest."
@@ -83,7 +79,6 @@ artifacts:
       a reader no way to obtain it. The registry coordinates are already on the
       page; the commands are not.
     status: draft
-    release: 0.38.0
     category: functional
     priority: could
 
@@ -95,7 +90,6 @@ artifacts:
       realm, channel and registry filled from the live data so they cannot go
       stale, plus how to verify what was installed.
     status: draft
-    release: 0.38.0
     phase: phase-1
     acceptance-criteria:
       - "Realm, channel, registry and layer tag in the shown commands come from layers.json, not from prose."
