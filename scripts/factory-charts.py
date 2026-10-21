@@ -18,7 +18,7 @@ W, H = 760, 420
 COLS = [
     ("Files per change, 90th percentile", "p90"),
     ("Share of changes: feat vs fix", "mix"),
-    ("Open issues (bots excluded)", "open"),
+    ("Open issues, CI alerts excluded", "open"),
 ]
 PANEL_W, PANEL_H = 210, 120
 LEFT, TOP, GAP_X, GAP_Y = 52, 64, 30, 70

@@ -2,7 +2,8 @@
 title = "The machine arrived before the factory"
 description = "Software has called itself a factory since 1968. It never was one, because its production step was a person. Agents turn that step into a machine, and they arrive before the standards a factory depends on: checks that can fail, one source per fact, flow limits, process measurement. What research, practitioners and standards bodies say, and every repository PulseEngine authors, measured from git and the issue trackers."
 date = 2026-10-21
-draft = true
+draft = false
+ready = true
 [taxonomies]
 tags = ["verification", "process", "ai-agents", "deep-dive"]
 authors = ["Ralf Anton Beier"]
@@ -115,15 +116,15 @@ Research measures output and code. Practitioners measure their own loops and rep
 
 **Is it only two?** Picking two repositories invites the question whether they were picked to show the pattern, so the measures ran first over every repository PulseEngine authors and has not archived: 34, after excluding 11 forks whose history is upstream's. Twenty have enough history and use conventional prefixes on at least half their changes, which a feature or fix share needs before it means anything.
 
-| across the 20 | holds in |
-|---|---:|
-| median change touches one or two source files | 20 of 20 |
-| 90th percentile of files per change fell | 13 of 20 |
-| feature share fell, first half to second | 16 of 20 |
-| fix share rose, first half to second | 11 of 20 |
-| at least one issue title in the silent-check vocabulary | 12 of 20 |
+| across the 20 | holds in | sign test |
+|---|---:|---:|
+| median change touches one or two source files | 20 of 20 | n/a |
+| 90th percentile of files per change fell | 13 of 20 | p = 0.025 |
+| feature share fell, first half to second | 16 of 20 | p = 0.006 |
+| fix share rose, first half to second | 11 of 20 | p = 0.32 |
+| at least one issue title in the silent-check vocabulary | 12 of 20 | n/a |
 
-Coupling and a falling feature share hold almost everywhere. The rising fix share holds in barely half, so it is a tendency, not a law. Between them the 20 carry 141 issue titles in the vocabulary of a check that passed without checking, and 441 open issues, 160 of them older than 60 days.
+Treating each repository as one vote, falling coupling and a falling feature share are clearly better than chance, p = 0.025 and 0.006 in a one-sided sign test, and the rising fix share is not, p = 0.32, so it is a tendency rather than a law. The 20 share one author and the same tooling, so they are not independent votes and the p-values are a guide rather than proof. Pooling the repositories into one series would be worse: three of them make up 40% of all changes and none of the three shows the full pattern. Between them the 20 carry 142 issue titles in the vocabulary of a check that passed without checking, and 443 open issues, 160 of them older than 60 days.
 
 Five repositories show all five patterns: rivet, relay, spar, witness and pulseengine.eu. The two with the most history among them, rivet with 639 changes and relay with 428, are the worked examples below. rivet is the traceability tool, first commit 7 March 2026. relay is the flight software framework, first commit 12 April. The numbers come from first-parent history and the GitHub issue trackers, read on 21 October 2026 at rivet `cc3b8075` and relay `46eb314`. Agents write most of both, and how much cannot be counted: the commit trailer that records agent co-authorship is on 91% of relay's changes but 54% of rivet's, where it ranges from 9% to 98% between months, so it records a convention followed unevenly rather than a census. The scripts that produce every number and the figure are listed at the end.
 
@@ -133,7 +134,7 @@ Five repositories show all five patterns: rivet, relay, spar, witness and pulsee
 <desc id="fm-desc">Small multiples for rivet and relay: the 90th percentile of source files per change, the feature and fix share of changes, and the number of open issues with bots excluded, month by month. Open issues end at 34 and 67. Generated from factory-metrics.py output.</desc>
 <text x="52" y="26" font-size="12" font-weight="700" fill="var(--text,#e1e4ed)">Files per change, 90th percentile</text>
 <text x="292" y="26" font-size="12" font-weight="700" fill="var(--text,#e1e4ed)">Share of changes: feat vs fix</text>
-<text x="532" y="26" font-size="12" font-weight="700" fill="var(--text,#e1e4ed)">Open issues (bots excluded)</text>
+<text x="532" y="26" font-size="12" font-weight="700" fill="var(--text,#e1e4ed)">Open issues, CI alerts excluded</text>
 <text x="292" y="42" font-size="10" fill="var(--accent,#6c8cff)">feat</text>
 <text x="322" y="42" font-size="10" fill="var(--amber,#fbbf24)">fix</text>
 <text x="8" y="56" font-size="12" font-weight="700" fill="var(--text,#e1e4ed)">rivet</text>
@@ -158,7 +159,7 @@ Five repositories show all five patterns: rivet, relay, spar, witness and pulsee
 | fix cadence: days since the fixed file last changed | 1 | 6 | n/a | 4 |
 | fix age: days since the changed lines were written | n/a | 177 | n/a | 57 |
 | lines of Rust at month end | 55,566 | 190,734 | 14,341 | 75,051 |
-| open issues, bots excluded | 6 | 33 | 8 | 67 |
+| open issues, CI alerts excluded | 6 | 34 | 8 | 67 |
 
 relay's April changes are 3% conventional, so its feature and fix shares start in May, at 76% and 9%.
 
@@ -168,9 +169,9 @@ relay's April changes are 3% conventional, so its feature and fix shares start i
 
 **Surfaces drift.** The rivet fixes of September and October cluster on one class: the same fact computed in several places that disagreed. One change title reads "five surfaces that disagreed about the same fact" (#1014), others "every surface states the same coverage" (#1019), "`rivet_validate` reaches the same verdict as `rivet validate`" (#1052) and "one STPA type list; the export's EU AI Act badge matches the dashboard" (#1054). The command line, the MCP server, the HTML export and the dashboard each computed their own answer. That clustering is also why so many of October's fixes landed on files another October fix had just touched. This is the duplication trend from the GitClear data, at the scale of one tool. Agents made it cheap to add surfaces; they did not make it cheap to keep them consistent, which is the part of DHH's argument this data does not support. A planned rewrite ran through the same window, replacing serde_yaml with rivet's own value model on 17 September and its own parser and emitter on 14 October (#1085), but only 6 of September's 40 fixes and 2 of October's 22 touch Rust on a YAML or parser path.
 
-**Checks report green without checking.** Searching issue titles for the vocabulary of this failure, words such as silent, no-op, masked, blind, exits 0 and cannot fail, matches 22 titles in rivet and 5 in relay. Reading all 27, two are something else: a missing feature in rivet (#856) and an audit proposal in relay (#257). The remaining 25 are instances. In relay, a clean-room review found that the FLEET-002 check cannot fail (#497), a verification artifact cites a test that cannot fail for the branch it names (#483), the required verification gate's scope filter was blind to `wasm/` (#410), and witness MC/DC coverage of the flight cascade silently stopped being produced because its build target had not built since #393 (#397). In rivet, the supply-chain gate cannot fail because CI creates the configuration it should be checking (#1110). The search also undercounts: rivet #1037, where `verify` promoted a requirement to verified because a link existed, never uses the vocabulary, so 25 is a floor. This is the squelched-signal trend from the GitClear data, appearing inside verification tools, and it is the class the last post called the hinge of tool qualification.
+**Checks report green without checking.** Searching issue titles for the vocabulary of this failure, words such as silent, no-op, masked, blind, exits 0 and cannot fail, matches 23 titles in rivet and 5 in relay. Reading all 28, two are something else: a missing feature in rivet (#856) and an audit proposal in relay (#257). The remaining 26 are instances. In relay, a clean-room review found that the FLEET-002 check cannot fail (#497), a verification artifact cites a test that cannot fail for the branch it names (#483), the required verification gate's scope filter was blind to `wasm/` (#410), and witness MC/DC coverage of the flight cascade silently stopped being produced because its build target had not built since #393 (#397). In rivet, the supply-chain gate cannot fail because CI creates the configuration it should be checking (#1110), and the pinned rivet version a compliance action uses can freeze without anyone noticing (#1113). The search also undercounts: rivet #1037, where `verify` promoted a requirement to verified because a link existed, never uses the vocabulary, so 26 is a floor. This is the squelched-signal trend from the GitClear data, appearing inside verification tools, and it is the class the last post called the hinge of tool qualification.
 
-**The backlog grows because discovery works.** rivet's tracker holds 367 issues, 108 of them automated runner-liveness alerts, and relay's holds 109, 5 of them from bots. Of the rest, all but two in rivet and all but three in relay come from the owner's account. Agents file under that account, so who filed an issue cannot be recovered from the tracker, and the Claude Code marker in the issue body gives a lower bound only: 21 of rivet's 259 and 29 of relay's 104. What can be measured is the flow. Open issues went from 6 to 33 in rivet and from 8 to 67 in relay, with 10 and 26 older than 60 days. The audits that find these issues run faster than the loop decides about them.
+**The backlog grows because discovery works.** Three kinds of author file issues, and the tracker separates only one of them. Bots are CI jobs posting automated alerts: rivet's tracker holds 369 issues, 109 of them runner-liveness alerts, and relay's holds 109, 5 of them alerts. They are excluded, because nobody decided anything to file them. AI agents and the owner both file under the owner's account, so the account cannot tell them apart. The Claude Code marker in an issue body is a lower bound on agent filing, 22 of rivet's 260 issues and 29 of relay's 104, and every marked issue has a body of at least 981 characters in rivet and 1,003 in relay. The owner files only short issues, and of the owner-account issues without the marker, 14 of rivet's 236 and 1 of relay's 72 are shorter than 300 characters. The backlog is therefore overwhelmingly the agents' own inspection, with little from outside: two external authors in rivet and three in relay. What can be measured is the flow. Open issues went from 6 to 34 in rivet and from 8 to 67 in relay, with 10 and 26 older than 60 days. The audits that find these issues run faster than the loop decides about them.
 
 ## What a factory needs
 
@@ -276,7 +277,7 @@ Read as a plan, the order is the one manufacturing followed. The amber column ha
 
 ## Limits
 
-The worked examples are two repositories, picked by a stated rule from a census of all 34 PulseEngine authors. All 34 share one human author, so the census shows the pattern is not an artifact of choosing two; it does not show that it holds for other teams. Commit types are the prefixes the agents chose, and `fix:` includes dependency and CI changes. The share of agent-written code cannot be established from the history, because the co-authorship trailer was applied unevenly. The first and last months are partial: rivet starts on 7 March and relay on 12 April, and October is measured to the 21st, so October's change count covers three weeks and its line count is a reading on that date rather than a month end. Almost all issues are self-filed, so the trackers measure the agents' own inspection and very little external use. The count of checks that report green without checking starts from a keyword search over titles, which is why the 27 matches are read down to 25 above rather than quoted as a class.
+The worked examples are two repositories, picked by a stated rule from a census of all 34 PulseEngine authors. All 34 share one human author, so the census shows the pattern is not an artifact of choosing two; it does not show that it holds for other teams. Commit types are the prefixes the agents chose, and `fix:` includes dependency and CI changes. The share of agent-written code cannot be established from the history, because the co-authorship trailer was applied unevenly. The first and last months are partial: rivet starts on 7 March and relay on 12 April, and October is measured to the 21st, so October's change count covers three weeks and its line count is a reading on that date rather than a month end. Almost all issues are self-filed, so the trackers measure the agents' own inspection and very little external use. The count of checks that report green without checking starts from a keyword search over titles, which is why the 28 matches are read down to 26 above rather than quoted as a class.
 
 ## Take-away
 

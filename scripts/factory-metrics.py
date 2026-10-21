@@ -228,6 +228,16 @@ def issue_table(slug, today, sink=None):
     print(f"issues carrying the Claude Code body marker: {len(marked)} of {len(human)} "
           "(a lower bound on agent-filed issues; provenance is not otherwise recorded)")
     print(f"silently-wrong titles: {sum(bool(SILENT.search(i['title'])) for i in human)}")
+    # Three kinds of author. Bots (CI alerts) are excluded above. Agents and the
+    # owner both file under the owner's account, so the tracker cannot separate
+    # them; the owner files only short issues, so body size is the one signal.
+    own = [i for i in human if i["user"]["login"] in (owner, "avrabe")]
+    mk = [i for i in own if "Generated with [Claude Code]" in (i.get("body") or "")]
+    rest = [i for i in own if i not in mk]
+    blen = lambda i: len(i.get("body") or "")
+    print(f"owner-account issues: {len(own)}; with the agent marker: {len(mk)} "
+          f"(shortest body {min(map(blen, mk)) if mk else '-'} chars); without it: {len(rest)}, "
+          f"of which {sum(blen(i) < 300 for i in rest)} have a body under 300 chars")
 
 
 def main():

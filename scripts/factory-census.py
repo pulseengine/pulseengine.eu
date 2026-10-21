@@ -34,6 +34,7 @@ from __future__ import annotations
 
 import argparse
 import collections
+import math
 import datetime as dt
 import json
 import pathlib
@@ -205,22 +206,37 @@ def main() -> int:
           f"changes, >= 3 active months and >= 50% conventional prefixes")
     print(f"  (excluded: {', '.join(sorted(set(rows) - set(big))) or 'none'})")
 
-    def tally(name, pred):
+    def tally(name, pred, against=None):
+        """`against` is the opposite direction; when given, print a one-sided
+        sign test over the repos that moved either way (ties dropped). Each
+        repo is one vote, so the three largest repos cannot outvote the rest.
+        The repos share an author and tooling, so the votes are not
+        independent and the p-value is a guide, not proof."""
         hits = [k for k, v in big.items() if pred(v["git"])]
-        print(f"  {name:46} {len(hits):2} of {len(big)}   {' '.join(sorted(hits))}")
+        note = ""
+        if against is not None:
+            n = len(hits) + sum(1 for v in big.values() if against(v["git"]))
+            pv = sum(math.comb(n, i) for i in range(len(hits), n + 1)) / 2 ** n
+            note = f"  sign test {len(hits)}/{n} p={pv:.3f}"
+        print(f"  {name:46} {len(hits):2} of {len(big)}{note}   {' '.join(sorted(hits))}")
 
     tally("p90 files per change fell, first to last month",
-          lambda g: g["p90_last"] < g["p90_first"])
+          lambda g: g["p90_last"] < g["p90_first"],
+          against=lambda g: g["p90_last"] > g["p90_first"])
     tally("p90 files per change rose",
           lambda g: g["p90_last"] > g["p90_first"])
     tally("median change touches 1 or 2 source files",
           lambda g: g["med_files"] <= 2)
     tally("feature share fell, first half to second",
           lambda g: g["feat_early"] is not None and g["feat_late"] is not None
-          and g["feat_late"] < g["feat_early"])
+          and g["feat_late"] < g["feat_early"],
+          against=lambda g: g["feat_early"] is not None and g["feat_late"] is not None
+          and g["feat_late"] > g["feat_early"])
     tally("fix share rose, first half to second",
           lambda g: g["fix_early"] is not None and g["fix_late"] is not None
-          and g["fix_late"] > g["fix_early"])
+          and g["fix_late"] > g["fix_early"],
+          against=lambda g: g["fix_early"] is not None and g["fix_late"] is not None
+          and g["fix_late"] < g["fix_early"])
     withiss = {k: v for k, v in big.items() if v["issues"]}
     sil = [(k, v["issues"]["silent_titles"]) for k, v in withiss.items()
            if v["issues"]["silent_titles"] > 0]
