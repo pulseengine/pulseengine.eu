@@ -143,7 +143,7 @@ def git_table(repo, sink=None):
     last_touch = {}
     rows = collections.defaultdict(lambda: {"n": 0, "files": [], "areas": [],
                                             "types": collections.Counter(),
-                                            "fix_age": []})
+                                            "fix_age": [], "conv": 0})
     for c in cs:
         month = c["d"].strftime("%Y-%m")
         row = rows[month]
@@ -153,6 +153,7 @@ def git_table(repo, sink=None):
         row["areas"].append(len({area(f) for f in src}))
         m = re.match(r"(\w+)(\(.*?\))?!?:", c["s"])
         kind = m.group(1).lower() if m else "other"
+        row["conv"] += bool(m)
         row["types"][kind] += 1
         for f in c["f"]:
             if not f.endswith(".rs"):
@@ -180,6 +181,10 @@ def git_table(repo, sink=None):
             sink.setdefault("months", []).append({
                 "month": month, "changes": r["n"], "p90_files": p90,
                 "feat_pct": round(feat, 1), "fix_pct": round(fix, 1),
+                # A feat or fix share means nothing in a month whose changes
+                # mostly do not carry a conventional prefix: relay's first
+                # month is 3% conventional and would otherwise read as 0% feat.
+                "conv_pct": round(100 * r["conv"] / r["n"], 1),
                 "fix_age_days": st.median(ages) if ages else None,
                 "rust_loc": loc})
 

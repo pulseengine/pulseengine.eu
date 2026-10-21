@@ -77,11 +77,14 @@ def main():
     parts = [
         f'<svg viewBox="0 0 {W} {H}" width="100%" role="img" aria-labelledby="fm-title fm-desc" '
         "style=\"max-width:760px;height:auto;font-family:'Atkinson Hyperlegible Next',system-ui,sans-serif\">",
-        '<title id="fm-title">Seven months of rivet and spar, by month</title>',
-        '<desc id="fm-desc">Small multiples for two repositories, March to October 2026: '
-        "the 90th percentile of source files per change falls in both; the feature share "
-        "falls and the fix share rises in both; the number of open issues rises in both "
-        "from single digits to 33 and 37. Generated from factory-metrics.py output.</desc>",
+        f'<title id="fm-title">{esc(" and ".join(n for n, _ in repos))}, by month</title>',
+        '<desc id="fm-desc">Small multiples for '
+        + esc(" and ".join(n for n, _ in repos))
+        + ": the 90th percentile of source files per change, the feature and fix share "
+        "of changes, and the number of open issues with bots excluded, month by month. "
+        "Open issues end at "
+        + esc(" and ".join(str(d["issues"][-1]["open"]) for _, d in repos))
+        + ". Generated from factory-metrics.py output.</desc>",
     ]
     for c, (title, _) in enumerate(COLS):
         x = LEFT + c * (PANEL_W + GAP_X)
@@ -100,8 +103,11 @@ def main():
         p90 = [m["p90_files"] for m in data["months"]]
         parts.append(panel(LEFT, y, months, [(p90, "var(--accent,#6c8cff)", None)],
                            max(30, max(p90)), "", [0]))
-        feat = [m["feat_pct"] for m in data["months"]]
-        fix = [m["fix_pct"] for m in data["months"]]
+        # Skip the share where the month barely uses conventional prefixes, so
+        # it is absent rather than drawn as a false 0%.
+        usable = [m.get("conv_pct", 100) >= 50 for m in data["months"]]
+        feat = [m["feat_pct"] if ok else None for m, ok in zip(data["months"], usable)]
+        fix = [m["fix_pct"] if ok else None for m, ok in zip(data["months"], usable)]
         parts.append(panel(LEFT + PANEL_W + GAP_X, y, months,
                            [(feat, "var(--accent,#6c8cff)", None),
                             (fix, "var(--amber,#fbbf24)", None)], 60, "%", [0, 1],
@@ -112,9 +118,9 @@ def main():
         parts.append(panel(LEFT + 2 * (PANEL_W + GAP_X), y, imonths,
                            [(opn, "var(--red,#f87171)", None)], 40, "", [0]))
     parts.append(f'<text x="{LEFT}" y="{H - 8}" font-size="9.5" '
-                 'fill="var(--text-faint,#808698)">Hollow points: fewer than 10 changes '
-                 'that month. Source: factory-metrics.py over first-parent history and '
-                 'the GitHub issue API, read 21 October 2026.</text>')
+                 'fill="var(--text-faint,#808698)">Hollow: fewer than 10 changes. Feat '
+                 'and fix are omitted for months under half conventional. Source: '
+                 'factory-metrics.py, read 21 October 2026.</text>')
     parts.append("</svg>")
     print("\n".join(parts))
 
