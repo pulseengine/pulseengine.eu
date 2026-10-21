@@ -144,3 +144,34 @@ jobs:
       # whether a claim matched the tree, none asked what was in it.
       - name: Check no build artifact is tracked
         run: python3 scripts/check-no-build-artifacts.py
+
+  # The deploy runs on the same `light` pool as this job. This proves, before a
+  # merge, that the pool can do everything the deploy needs — rather than
+  # finding out on main, where a failed deploy leaves the live site stale.
+  # Same toolchain and cache steps as deploy.yml, so it exercises the real path.
+  deploy-tooling:
+    runs-on: [self-hosted, linux, x64, light]
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Every binary the deploy calls exists on this pool
+        run: |
+          set -euo pipefail
+          missing=0
+          for b in python3 tar ssh scp ssh-keyscan find sed curl git; do
+            if command -v "$b" >/dev/null; then echo "ok   $b"; else echo "MISSING $b"; missing=1; fi
+          done
+          exit $missing
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache fetch-reports build
+        uses: actions/cache@v6
+        with:
+          path: tools/fetch-reports/target
+          key: fetch-reports-${{ hashFiles('tools/fetch-reports/Cargo.lock') }}
+
+      - name: fetch-reports builds on the deploy pool
+        run: cargo build --release --manifest-path tools/fetch-reports/Cargo.toml
