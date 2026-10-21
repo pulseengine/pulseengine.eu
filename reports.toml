@@ -1,6 +1,9 @@
-# Report sources. `fetch-reports` reads this during the deploy and writes
-# static/reports/index.json; templates/reports.html reads BOTH, taking the
-# version list from the index and the entry path from here.
+# Report sources. Read by `fetch-reports` (which writes static/reports/index.json)
+# and by scripts/prune-report-versions.py and scripts/check-report-freshness.py.
+# templates/reports.html reads only the generated index.json, not this file.
+# Stays TOML for now: both Python readers use stdlib tomllib, and moving this to
+# YAML before rivet's YAML has a Python path (rivet#1094) would put them on
+# PyYAML instead (pulseengine.eu#228).
 #
 # `entry` is the file inside a version directory that a reader should land on.
 # It is not uniform: witness ships an HTML suite, scry ships plain text and no
