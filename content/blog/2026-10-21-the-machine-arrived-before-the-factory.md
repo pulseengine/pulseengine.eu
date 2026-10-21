@@ -9,7 +9,11 @@ authors = ["Ralf Anton Beier"]
 +++
 
 {% insight() %}
-The software factory has been a hope since 1968, because its production step, turning a specification into code, was a person whose output varied by an order of magnitude. Agents turn that step into a machine. In manufacturing the standards came first and the machine second; software is getting the machine first. Research measures more output, more duplication and lower stability. Practitioners converge on verification as the limit on autonomy. Standards bodies name the obligation without the mechanism. Measured over seven months, rivet and spar keep their structure, while surfaces drift, checks report green without checking, and the backlog grows because the agents find more than one person can decide. Each of these has a factory answer that is older than software, and the hardware station is still run by hand.
+**Agents are the machine. The factory is everything that checks them, and it has not been built yet.**
+
+- Manufacturing built its standards before its machines. Software got the machine first.
+- In PulseEngine's own repositories the gaps are concrete: checks that pass without checking, the same fact computed in several places, and a backlog that outruns the decisions.
+- Each gap has a mechanical answer older than software. Four things stay human: deciding what correct means, deciding what no oracle can, acting on an alarm, and the signature.
 {% end %}
 
 ## Three positions
