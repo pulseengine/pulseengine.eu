@@ -71,7 +71,7 @@ of those, so add the directory:
 
 ```sh
 copilot skill add claude-tooling/plugins/pulseengine-claude/skills
-copilot skill list                 # 18 custom skills, no failure section
+copilot skill list                 # 19 custom skills, no failure section
 copilot skill remove claude-tooling/plugins/pulseengine-claude/skills
 ```
 

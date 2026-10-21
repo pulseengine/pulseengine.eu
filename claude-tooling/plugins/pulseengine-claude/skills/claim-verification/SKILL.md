@@ -3,7 +3,7 @@ name: claim-verification
 description: This skill should be used whenever writing or editing a README, a badge, a project description, a blog claim, an honesty ledger, a dossier, or ANY document that asserts what the system does, is, or proves — especially verification claims ("formally verified", "proven", "sound", "verified N/N", trusted-base counts). It treats a document's load-bearing claims as requirements that must stay true over time — mark the assertion, bind it to checkable evidence, and gate it so drift fails the build. Use it to author an honest claim, to audit a doc whose claims may have drifted from reality, or to stand up the claim-check gate in a repo. Composes with traceability-audit (requirements↔tests), oracle-gate-a-change (the gate), and clean-room-verification (review the claim cold).
 metadata:
   author: pulseengine.eu
-  version: "0.3.0"
+  version: "0.4.0"
 ---
 
 # Claim verification
@@ -43,7 +43,14 @@ commit.*
      `min` times. Use for must-exist claims (a version string, a required proof
      marker) — it catches drift-to-absent, which `count-max` silently passes.
    - `no-new` — no new `sorry`/`admit` since the ledger's recorded count.
-   - `badge` / `verbatim` — the README badge/tagline matches the ledger's honest
+   - `set-equal` — two artifacts that must agree, checked as a pair: a set of names from
+     paths on disk against a set listed in a doc (optionally between two headings), in
+     **both** directions. Either side yielding nothing **fails**, so "0 mismatches" can
+     never mean "nothing compared". `waive:` lists existing debt, printed on every run.
+   - `count-equals` — a number stated in prose against the size of a set on disk. The
+     plugin README said 18 skills against 19 for weeks while a roster check that read the
+     same file passed, because it checked the bullets, not the number.
+   - `verbatim` — the README badge or tagline matches the ledger's honest
      wording exactly (a badge can't say "Formally Verified" while the ledger says
      "133 external_body + 74 admitted").
 3. **Gate it** — `claim-check` runs in CI, re-derives every predicate, and diffs the

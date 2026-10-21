@@ -48,6 +48,10 @@ artifacts:
         target: REQ-NO-BUILD-ARTIFACTS
       - type: satisfies
         target: REQ-ISSUE-HUNT-SWEEPS-PRS
+      - type: satisfies
+        target: REQ-COUPLED-ARTIFACTS-GATED
+      - type: satisfies
+        target: REQ-FEATURE-LOOP-COUPLED-PAIRS
 
   - id: REQ-LINKS
     type: requirement
@@ -346,4 +350,50 @@ artifacts:
     links:
       - type: verifies
         target: REQ-ISSUE-HUNT-SWEEPS-PRS
+
+  - id: REQ-COUPLED-ARTIFACTS-GATED
+    type: requirement
+    title: Pairs of artifacts that must agree are checked as a pair, failing closed on an empty side
+    description: >-
+      Two artifacts that must agree drift apart while each passes its own checks, because nothing owns the relationship (pulseengine.eu#198). Found in this repo on 2026-10-21: the plugin README said 18 skills against 19 on disk while the roster check reading the same file passed, CONTRIBUTING's shortcode table listed a pipeline() with no file, and the claim-verification skill documented a `badge` evidence kind the checker never implemented. claim-check gains set-equal (two sets, both directions) and count-equals (a stated number against a set's size), each failing when a side yields nothing.
+    status: verified
+    release: 0.39.0
+    category: functional
+    priority: must
+
+  - id: VER-COUPLED-ARTIFACTS-GATED
+    type: verification
+    title: claim-check --self-test and the coupled-artifact claims
+    description: >-
+      13-case decision table, each rule in both directions, run in CI before the claims. Two cases isolate the empty-side guards with every difference waived, added after a mutant disabling the doc-side guard survived the first table. 8 of 8 source mutations caught. Red-first on the real defects: PLUGIN-README-SKILL-COUNT reported "states 18, the source holds 19" before the README was fixed; CONTRIBUTING-SHORTCODES-MATCH-DISK and CLAIM-KINDS-DOCUMENTED-EQUALS-IMPLEMENTED negative-controlled in both directions.
+    status: verified
+    release: 0.39.0
+    method: automated-test
+    test-location: claude-tooling/plugins/pulseengine-claude/skills/claim-verification/claim-check.py
+    links:
+      - type: verifies
+        target: REQ-COUPLED-ARTIFACTS-GATED
+
+  - id: REQ-FEATURE-LOOP-COUPLED-PAIRS
+    type: requirement
+    title: The feature loop tells an agent to name and gate every coupled pair a change touches
+    description: >-
+      Per-artifact rigour does not catch drift between artifacts: relay ran a flight core and published components that disagreed for about 3 months and 40 releases with every artifact green. The feature loop's oracle step now names the six recurring pair shapes and the three rules that make such a check real.
+    status: verified
+    release: 0.39.0
+    category: process
+    priority: should
+
+  - id: VER-FEATURE-LOOP-COUPLED-PAIRS
+    type: verification
+    title: claim FEATURE-LOOP-GATES-COUPLED-PAIRS
+    description: >-
+      claim-check requires the step's anchor text and each of its three rules in the feature-loop skill.
+    status: verified
+    release: 0.39.0
+    method: automated-test
+    test-location: claims.yaml
+    links:
+      - type: verifies
+        target: REQ-FEATURE-LOOP-COUPLED-PAIRS
 
