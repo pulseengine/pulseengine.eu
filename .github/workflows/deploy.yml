@@ -20,7 +20,15 @@ on:
 
 jobs:
   deploy:
-    runs-on: [self-hosted, linux, x64, rust-cpu]
+    # On `light`, not `rust-cpu`. Measured 2026-10-21 over the last 22 deploys
+    # and 25 CI runs: deploys on rust-cpu waited a median 17.9 min to start,
+    # p90 41 hours, worst 7.5 days, because that pool is shared with every
+    # repo's Rust CI. CI on light started in a median 0.1 min. Only one step here
+    # needs Rust (fetch-reports, a small pure-Rust tool, cached), and a published
+    # post or a fix to a live page should not queue behind another repo's build.
+    # ci.yml's `deploy-tooling` job proves on every PR that this pool can build
+    # fetch-reports and has every binary this job calls.
+    runs-on: [self-hosted, linux, x64, light]
     # Fail fast instead of hanging: a stuck deploy (e.g. a wedged scp) must not
     # hold the release-${{ github.ref }} concurrency slot for the 6h default and
     # jam every later deploy. 15 min is generous for a build + tar + scp.
