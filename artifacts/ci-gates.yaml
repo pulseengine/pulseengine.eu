@@ -42,6 +42,10 @@ artifacts:
         target: REQ-PLUGIN-VERSION-CURRENT
       - type: satisfies
         target: REQ-README-ROSTER
+      - type: satisfies
+        target: REQ-ISSUE-CLASS-RATCHET
+      - type: satisfies
+        target: REQ-NO-BUILD-ARTIFACTS
 
   - id: REQ-LINKS
     type: requirement
@@ -272,3 +276,48 @@ artifacts:
     links:
       - type: verifies
         target: REQ-README-ROSTER
+
+  - id: REQ-ISSUE-CLASS-RATCHET
+    type: requirement
+    title: The issue-hunt backlog brake exists and cannot silently pass
+    description: "issue-hunt's exit condition is a release, not an empty tracker, and nothing limited intake — rivet 33 open and spar 37 open on 2026-10-21, spar up from 1 open on 2026-03-31. This requirement is on the MECHANISM only: a brake exists, it splits the queue by whether a mechanical oracle exists (agent-closable, uncapped) rather than by who filed the issue, and it cannot report green without being able to report red. Whether any particular tracker is actually classified is deliberately NOT scoped here: that is a property of rivet's and spar's trackers and belongs in their own release plans, because coupling this plugin's release to work in two other repos makes it unreproducible over time. Provenance is not the axis and is also not available — every non-bot issue in both repos is authored by one account, and the title-length proxy agrees with the Claude Code body marker only 20 percent of the time on rivet's 259 non-bot issues and 35 percent on spar's."
+    status: verified
+    release: 0.37.0
+    category: process
+    priority: must
+
+  - id: VER-ISSUE-CLASS-RATCHET
+    type: verification
+    title: check-issue-classes.py
+    description: >-
+      Pure check over fetched issues, so the 17-case --self-test decision table needs no network and runs from ci.yml's build job, the only context branch protection requires; the live tracker check is scheduled, because queue state drifts with no PR involved. Asserts each rule in BOTH directions, and pins the known trivial-reproducer gap as an explicit case so it cannot change silently. Potency measured 2026-10-21 three ways — the self-test holds 17 of 17; seven source mutations (repro check satisfied, both-labels rule removed, brake off-by-one, staleness disabled, unclassified rule removed, below-floor branch removed, staleness aged from createdAt instead of the label) were all caught with zero survivors; and the live run reddens on production, reporting 33 unclassified in rivet and 37 in spar. A missing cross-repo token exits 2, could not run, never 0. Status is implemented rather than verified because the live half has never been green: the requirement it encodes is not yet met.
+    status: verified
+    release: 0.37.0
+    method: automated-test
+    test-location: scripts/check-issue-classes.py
+    links:
+      - type: verifies
+        target: REQ-ISSUE-CLASS-RATCHET
+
+  - id: REQ-NO-BUILD-ARTIFACTS
+    type: requirement
+    title: git tracks no build artifact
+    description: >-
+      Found by external review of #232: a compiled check-issue-classes .pyc rode along in that PR, and a fetch-layers .pyc had been tracked for longer. All ten gates ran green over both, because each asks whether a claim matches the tree and none asked what is in the tree; .gitignore had no Python entry at all. A .pyc is the worst case of the class — a stale, diff-opaque copy of a script a reviewer is reading, which can shadow its own source on import.
+    status: verified
+    release: 0.37.0
+    category: functional
+    priority: must
+
+  - id: VER-NO-BUILD-ARTIFACTS
+    type: verification
+    title: check-no-build-artifacts.py
+    description: >-
+      Walks `git ls-files` and rejects any path inside __pycache__, node_modules, target or a tool cache, plus any compiled suffix. Extension- and directory-based on purpose: the site legitimately tracks fonts and images, so a generic binary sniff would need an allowlist long enough to hide a real artifact in. Red-first against the live defect on 2026-10-21 — written while both .pyc files were still tracked, reported exactly those two, then green once removed — and negative-controlled by planting a third.
+    status: verified
+    release: 0.37.0
+    method: automated-test
+    test-location: scripts/check-no-build-artifacts.py
+    links:
+      - type: verifies
+        target: REQ-NO-BUILD-ARTIFACTS

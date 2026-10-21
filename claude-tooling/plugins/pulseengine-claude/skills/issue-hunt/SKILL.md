@@ -3,7 +3,7 @@ name: issue-hunt
 description: This skill should be used to run an incremental bug/feature hunt over a repo's issue tracker — pick up everything NEW since the last pass (new issues and new comments), digest and triage it, work the actionable items through the verification chain, and accumulate toward a feature release. Use it when the user says "hunt the issues", "do a bug/feature hunt", "look into the issues and work them", "loop through the issues", "digest the new issues and comments since last time", or wants a standing loop (via /loop or a scheduled agent) that drives the tracker toward releases. One invocation is one pass; the "since last time" watermark is what makes it a loop rather than a full re-scan. Composes with release-planning (land + ship), the feature loop, and the operating contract.
 metadata:
   author: pulseengine.eu
-  version: "0.1.0"
+  version: "0.2.0"
 ---
 
 # Issue hunt — the incremental bug/feature delivery loop
@@ -41,6 +41,10 @@ The state is more than one timestamp — keep, per repo:
 - `last_seen_comment_id` per touched issue — the highest comment id already
   digested, so a re-pull (or a self-echo, below) is recognized and skipped
   without re-triaging.
+- **`queues`** per repo — `{ agent_closable, needs_decision, floor, brake,
+  demoted_this_pass }`, refreshed from `check-issue-classes.py --format json` at
+  pass start. `brake` is `open` or `close-only`; the pass reports it before
+  doing anything else.
 - **`pending_gates`** — open PRs this loop is waiting on, each as
   `{ pr, repo, watcher_run_id?, action_on_green }` (e.g. "merge", "tag vX.Y",
   "close #N"). A pass that opens a PR but can't land it yet (CI still running, a
@@ -101,6 +105,93 @@ digest the entire backlog.
 5. **Advance the watermark** to this pass's start time, **and** update
    `last_seen_comment_id` for every issue you touched (so your own echoes and
    re-pulls are recognized next pass). Both only on a successful pass.
+
+## The backlog brake — split the queue, throttle only the undecided half
+
+Audits find faster than the loop closes. Measured 2026-10-21: rivet 33 open,
+spar 37 open; spar went from 1 to 37 in seven months. The exit condition below is
+right — a release, not an empty tracker — but nothing limited intake.
+
+**Do not throttle discovery.** Self-inspection produces the most valuable finds
+(the silently-wrong class: spar #482, #481, #478; rivet #1037). Throttling the
+hunt to protect a number would suppress exactly the findings worth having.
+
+So the brake splits the queue on the only axis that decides whether an agent can
+finish an item alone — **not** on who filed it:
+
+| class | meaning | under the brake? |
+|---|---|---|
+| **`agent-closable`** | a named reproducer exists **and currently fails on `main`** | **no — uncapped** |
+| **`needs-decision`** | scope, architecture, priority, or no oracle yet | **yes** |
+
+Provenance is deliberately not the axis. It also isn't available: every non-bot
+issue in both repos is authored by the same account, so "agent-filed" cannot be
+recovered from tracker metadata, and the title-length proxy agrees with the
+Claude Code body marker only 20% (rivet, on the 259 non-bot issues) and 35%
+(spar) of the time. The oracle axis needs none of that.
+
+**`agent-closable` carries a reproducer, and the gate checks less than that
+sentence suggests.** If a label alone released an issue from the brake, an agent
+would write both the fix and the exemption that released it — spar #385's bug
+class, which ran green over 12 of 12 unproven obligations. So:
+
+- The issue body carries a fenced ` ```repro ` block holding one command.
+- **Before working an `agent-closable` item, run that command.** It must fail. An
+  exit 0 means the issue is already fixed (close it) or misclassified (demote it)
+  — never "proceed".
+- Promoting `needs-decision` → `agent-closable` *is* authoring that reproducer.
+
+**The proof is by reference, not by command.** `agent-closable` requires a
+`repro-run:` link to a **GitHub Actions run in the issue's own repository**, and
+the gate asserts over the API that the run exists, that its `conclusion` is
+`failure`, and that its head commit **touches a test path**. Only reviewed
+repository code ever executes, in that repo's own CI where it already runs, and
+the token needs read scopes alone.
+
+That closes the hole an earlier revision had: checking only that a ` ```repro `
+block parsed, which ` ```repro `/`true` satisfies. Executing the block here was
+refused and stays refused — issue bodies are editable after labelling, including
+by external filers, and the job holds a cross-repo token, so running strings from
+an issue body would be command injection with a secret in the environment. A
+`true` reproducer cannot produce a red run that adds a test, so it now fails by
+construction.
+
+**Entering class (a) therefore costs a failing test**, which is the work the
+amendment calls an (a)-class task. Expect few or no items to qualify on the first
+pass; that is the mechanism working, not a misconfiguration. Keep the ` ```repro `
+block as local documentation if you like — it is no longer what is checked.
+
+**The threshold is a ratchet, not a number.** The floor is whatever
+`needs-decision` measured at the first fully classified pass, recorded in
+`scripts/issue-class-floors.json` in the pulseengine.eu repo — **committed**,
+because the state file below is git-excluded and a per-machine threshold cannot
+be audited. The ratchet is two-sided: above the floor the pass
+runs **close-only**, and *below* it the floor itself is a finding, because a floor
+left above the real count is headroom new undecided work slips into. Above the
+floor, or growing across two consecutive passes, the pass runs **close-only**: work the oldest actionable items, close obsolete ones with a
+rationale ([`repo-hygiene`]), file nothing new.
+
+**Staleness demotes, timed from the label.** The incentive runs toward class (a),
+so an `agent-closable` item still open **21 days after it was labelled** (not
+filed — most of this backlog predates the brake) demotes to `needs-decision`
+and comes under the brake. It was not oracle-closable in practice. Nobody judges
+motives, and the demotion rate measures classification honesty directly.
+
+**Bulk filers check the brake first.** [`gate-potency`], [`traceability-audit`]
+and internal evaluations check it before filing; over the floor they write **one
+umbrella issue** instead of N.
+
+**Report both queue sizes, the floor and the brake state at the top of every
+pass.** `scripts/check-issue-classes.py` is the oracle — exactly one class per
+open issue, a parseable reproducer on every `agent-closable`, and the ratchet. It
+ships a `--self-test` decision table (22 cases, both directions, 11 of 11
+source mutations caught). Its live half is `workflow_dispatch` only until the
+cross-repo token and the first classified pass exist — arming a schedule that is
+red on day one for a known reason trains everyone to ignore red. See
+`.github/workflows/issue-classes.yml`.
+
+Autonomy here means opening PRs that CI gates, under the standing merge-when-green
+rule. It does not mean pushing to a protected branch.
 
 ## The exit condition is a release, not an empty tracker
 
