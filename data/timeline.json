@@ -1327,5 +1327,99 @@
     },
     "milestones": [],
     "trend": "**varve** is born, and the toolchain stops trusting the toolchain. July's **ordeal** removed the need to believe a solver; August removes the need to believe a build machine. A varve layer is the whole tool set as one signed, dated, digest-pinned bundle, so \"which meld, which loom, which rivet produced this artifact\" is answerable rather than assumed. Outside a pinned project the shims refuse instead of falling back to whatever is on PATH. **pulseengine-layers** lands beside it so the manifest listing a realm's tools is not a commit to the tool that signs them.\n\nIt arrived at speed: 36 of the month's 88 releases are varve's own, more than meld, synth, rivet, relay and witness combined. **synth** still leads on commits at 151, with varve second at 105 and **spar** third at 60.\n\nVolume keeps settling from June's crest: 88 releases and 739 commits against July's 148 and 1,156. **agora** is retired, the coordination substrate spiked in June and abandoned once the issue-driven loop proved sufficient. Two months, one direction: first make the solver's answers checkable, then make the tools that produce them identifiable."
+  },
+  {
+    "month": "2026-09",
+    "born": [
+      {
+        "name": "wasm-layers",
+        "fork": false,
+        "archived": false,
+        "lang": "Python",
+        "desc": "The pulseengine-wasm realm: bytecodealliance's component-model toolchain, assembled into signed varve layers"
+      },
+      {
+        "name": "covalent-layers",
+        "fork": false,
+        "archived": false,
+        "lang": "Python",
+        "desc": "The covalent realm: a layer that composes the pulseengine and pulseengine-wasm toolchains"
+      }
+    ],
+    "released": {
+      "count": 68,
+      "repos": [
+        {
+          "repo": "synth",
+          "n": 17
+        },
+        {
+          "repo": "varve",
+          "n": 14
+        },
+        {
+          "repo": "meld",
+          "n": 13
+        },
+        {
+          "repo": "ordeal",
+          "n": 6
+        },
+        {
+          "repo": "rivet",
+          "n": 4
+        },
+        {
+          "repo": "gale",
+          "n": 3
+        },
+        {
+          "repo": "jess",
+          "n": 3
+        },
+        {
+          "repo": "rules_ordeal",
+          "n": 3
+        },
+        {
+          "repo": "kiln",
+          "n": 2
+        },
+        {
+          "repo": "relay",
+          "n": 2
+        },
+        {
+          "repo": "scry",
+          "n": 1
+        }
+      ]
+    },
+    "retired": [],
+    "activity": {
+      "commits": 884,
+      "prs_opened": 895,
+      "issues_opened": 438,
+      "busiest": [
+        {
+          "repo": "synth",
+          "commits": 212
+        },
+        {
+          "repo": "rivet",
+          "commits": 96
+        },
+        {
+          "repo": "gale",
+          "commits": 84
+        },
+        {
+          "repo": "relay",
+          "commits": 76
+        }
+      ]
+    },
+    "milestones": [],
+    "trend": "The layer idea leaves home. **wasm-layers** assembles bytecodealliance's component-model toolchain into signed varve layers, so the upstream tools the stack depends on become as identifiable as the ones it writes, and **covalent-layers** composes the two realms into one. August made our own build machine answerable; September extends that to tools we did not write.\n\n**synth** leads by a distance, with 212 commits and 17 of the month's 68 releases; **varve** follows with 14 and **meld** with 13. **rivet** is second on commits at 96 and starts its largest rewrite: on 17 September it begins replacing serde_yaml with its own value model. **spar** almost stops, with four merged changes all month.\n\nReleases fall from 88 to 68 while commits rise from 739 to 884, so each release carries more work than in August. Pull requests opened reach 895 and issues opened 438."
   }
 ]
