@@ -26,6 +26,8 @@ All three describe people and agents. None measures the system the code is produ
 
 At the NATO Software Engineering conference in Garmisch in October 1968, Doug McIlroy gave a talk titled "Mass produced software components"[^mcilroy]. One of its section headings states that the software industry is not industrialized, and he compared his colleagues with the hardware engineers: "we are the crofters", they "the industrialists". His proposal was an industry of standard component families.
 
+The same five days produced another word that is still in use, and it undercuts McIlroy's proposal from the next seat along. Presenting what the proceedings label d'Agapeyeff's Inverted Pyramid, Alex d'Agapeyeff described a stack with control programs at the bottom, service routines above them, application programs on top, and assemblers and compilers as buttresses that "don't help to maintain the thing, but if they fail you have a skew". Between the service routines and the applications he put a layer he had to name: "Further up we have what I call middleware."[^dagapeyeff] His reason for needing it is the part worth reading next to McIlroy. However good the manufacturer's software for something like file handling was, it was "just not suitable; it's either inefficient or inappropriate", so his teams rewrote the file handling, the initial message analysis and above all the real-time schedulers. One conference proposed an industry of standard reusable components and coined a name for the layer people write because the standard components do not fit.
+
 Hitachi, Toshiba, NEC and Fujitsu launched organisations they called software factories between the late 1960s and the late 1970s, with standard methods, reuse goals and metrics[^cusumano-wp]. Michael Cusumano studied them in detail and published the book-length account in 1991[^cusumano]. One of his findings from the cooperative tool projects of the 1970s and 1980s reads like a warning for today: tools alone had limited value, and firms needed their own management and training infrastructure to get anything out of them.
 
 All of them still had a person at the production step. The 1968 study DHH cites in his keynote put the spread between programmers at five to thirty times on the same task. A process whose central machine varies by an order of magnitude cannot be scheduled or inspected like a production line, which is why estimates kept missing and defects kept surfacing late. Continuous integration added conveyors around that step. The step itself stayed a workshop.
@@ -95,7 +97,7 @@ PulseEngine has run the experiment in the other order since March 2026: oracles 
 
 **Output rises, stability does not follow.** Google's DORA report for 2025, *State of AI-assisted Software Development*, found AI adoption associated with higher delivery throughput and, as in 2024, with lower delivery stability[^dora]. Faros AI's telemetry from more than 10,000 developers across 1,255 teams found teams with high AI adoption completing 21% more tasks and merging 98% more pull requests without a matching improvement at the organisation level[^faros-2025]; the vendor's 2026 report states that the probability of a production incident per merged pull request has more than tripled[^faros-2026]. A Stanford group measuring output from the git history of more than 100,000 developers puts the median lift at 10 to 15%, with developers slower for their first 30 to 100 hours of AI use[^stanford].
 
-METR's randomised trial is the most careful measurement in this list and the most often misquoted. Its early-2025 study found that allowing AI increased completion time by 19%, with a confidence interval from +2% to +39%, while the same developers had forecast a 24% reduction beforehand and still estimated a 20% reduction after doing the work[^metr-2025]. In February 2026 METR reported that it is changing the design, because the signal had become unreliable: a significant increase in developers declining to participate rather than work without AI, a pay rate cut from $150 to $50 an hour, and time measurements that break down when one developer runs several agents at once. That post restates the 19% figure rather than withdrawing it, offers late-2025 estimates of a 18% speedup for returning participants and 4% for new recruits with confidence intervals that both cross zero, and says its own data is very weak evidence for how much faster developers now are[^metr-2026].
+METR's randomised trial is the most careful measurement in this list and the most often misquoted. Its early-2025 study found that allowing AI increased completion time by 19%, with a confidence interval from +2% to +39%, while the same developers had forecast a 24% reduction beforehand and still estimated a 20% reduction after doing the work[^metr-2025]. In February 2026 METR reported that it is changing the design, because the signal had become unreliable: a significant increase in developers declining to participate rather than work without AI, a pay rate cut from $150 to $50 an hour, and time measurements that break down when one developer runs several agents at once. That post restates the 19% figure rather than withdrawing it, reports late-2025 estimates it states as a speedup of -18% for returning participants and -4% for new recruits, with confidence intervals that both cross zero, and says its own data is very weak evidence for how much faster developers now are[^metr-2026].
 
 **Code quality degrades in specific, measurable ways.** Liu and colleagues analysed 302,600 verified AI-authored commits across 6,299 GitHub repositories in 2026[^liu]. Between 7.5% and 14.8% of each assistant's commits introduce at least one issue found by static analysis, 89.3% of those issues are code smells, and 22.7% of them are still present in the latest revision. GitClear and GitKraken's analysis of 623 million code changes from 2023 to 2026, as reported by LeadDev, finds duplication up 81%, where duplication means five or more consecutive repeated meaningful lines, moved code down 70%, and obfuscation up 47%, defined there as the density of rescue and catch blocks, safe-navigation operators and stubbed methods that squelch unexpected-input signals[^gitclear]. Two of those trends reappear below in PulseEngine's own repositories: duplication as surfaces that drift apart, and squelched signals as checks that report green without checking.
 
@@ -107,7 +109,7 @@ Research measures output and code. Practitioners measure their own loops and rep
 
 ## Seven months, measured
 
-The numbers come from the first-parent history of two repositories and from their GitHub issue trackers, read on 21 October 2026 at rivet `cc3b8075` and spar `02e0df5`. rivet is the traceability tool, first commit 7 March 2026. spar is the AADL architecture analysis, first commit 8 March. Both are written predominantly by agents working under a single human author, and that share cannot be counted precisely: the commit trailer that records agent co-authorship is present on 48% of rivet's changes and 69% of spar's, ranging from 4% to 100% between months, so it is a convention that was followed unevenly rather than a census. The scripts that produce every number and the figure are listed at the end.
+The numbers come from the first-parent history of two repositories and from their GitHub issue trackers, read on 21 October 2026 at rivet `cc3b8075` and spar `02e0df5`. rivet is the traceability tool, first commit 7 March 2026. spar is the AADL architecture analysis, first commit 8 March. Both are written predominantly by agents working under a single human author, and that share cannot be counted precisely: the commit trailer that records agent co-authorship is on 54% of rivet's changes and 93% of spar's, and in rivet it ranges from 9% to 98% between months, so it records a convention followed unevenly rather than a census. The scripts that produce every number and the figure are listed at the end.
 
 <figure class="standards-map">
 <svg viewBox="0 0 760 420" width="100%" role="img" aria-labelledby="fm-title fm-desc" style="max-width:760px;height:auto;font-family:'Atkinson Hyperlegible Next',system-ui,sans-serif">
@@ -138,19 +140,31 @@ The numbers come from the first-parent history of two repositories and from thei
 | feature share | 37% | 9% | 38% | 15% |
 | fix share | 42% | 39% | 12% | 58% |
 | fix cadence: days since the fixed file last changed | 1 | 6 | 1 | 87 |
-| fix age: days since the changed lines were written | n/a | 177 | n/a | 209 |
+| fix age: days since the changed lines were written | n/a | 177 | n/a | 201 |
 | lines of Rust at month end | 55,566 | 190,734 | 96,721 | 171,516 |
 | open issues, bots excluded | 6 | 33 | 1 | 37 |
 
 **Coupling stayed healthy.** The median change touches one or two source files in every month of both repositories, and the 90th percentile fell from 20 files to 4 in rivet and from 28 to 7 in spar. In October, 4% of rivet's changes and 6% of spar's span four or more areas of the tree. Shotgun surgery, Horthy's marker of a code base its agents can no longer change, does not show up in seven months of these two repositories.
 
-**The lifecycle compressed, and both repositories are now fixing old code.** Growth flattened, the feature share fell from about half of all changes to 9% in rivet and 15% in spar, and the fix share rose to 39% and 58%. The obvious next question is whether those fixes repair recent work or defects that surfaced later, and the answer depends entirely on how the question is measured. Counting days since the fixed file last changed gives 6 days for rivet and 87 for spar, which reads as rework in one repository and maturity in the other. That number is only a lower bound, because the lines a fix changes were last edited at or before the file's previous touch. Blaming the lines each fix actually changed gives a median of 177 days in rivet and 209 in spar, and the gap between the two measures is itself measurable: 27 of 59 of rivet's file-level previous touches were other October fixes, against 13 of 45 in spar. The file-level figure was largely reporting how concentrated each repository's fix wave was. Both are repairing code around half a year old, which is what defects surfacing through use look like, and the difference between them is cadence rather than quality. Lehman's laws of software evolution describe the shape: a system in use must keep being adapted, and its complexity grows unless work is done to reduce it[^lehman]. The laws still hold, faster. Problems that used to arrive in year three arrive in month seven.
+**The lifecycle compressed, and both repositories are now fixing old code.** Growth flattened, the feature share fell from about half of all changes to 9% in rivet and 15% in spar, and the fix share rose to 39% and 58%. The obvious next question is whether those fixes repair recent work or defects that surfaced later, and the answer depends entirely on how the question is measured. Counting days since the fixed file last changed gives 6 days for rivet and 87 for spar, which reads as rework in one repository and maturity in the other. That number is only a lower bound, because the lines a fix changes were last edited at or before the file's previous touch. Blaming the lines each fix actually changed gives a median of 177 days in rivet and 201 in spar, and the gap between the two measures is itself measurable: 27 of 59 of rivet's file-level previous touches were other October fixes, against 13 of 45 in spar. The file-level figure was largely reporting how concentrated each repository's fix wave was. Both are repairing code around half a year old, which is what defects surfacing through use look like, and the difference between them is cadence rather than quality. Lehman's laws of software evolution describe the shape: a system in use must keep being adapted, and its complexity grows unless work is done to reduce it[^lehman]. The laws still hold, faster. Problems that used to arrive in year three arrive in month seven.
 
 **Surfaces drift.** The rivet fixes of September and October cluster on one class: the same fact computed in several places that disagreed. One change title reads "five surfaces that disagreed about the same fact" (#1014), others "every surface states the same coverage" (#1019), "`rivet_validate` reaches the same verdict as `rivet validate`" (#1052) and "one STPA type list; the export's EU AI Act badge matches the dashboard" (#1054). The command line, the MCP server, the HTML export and the dashboard each computed their own answer. That clustering is also why so many of October's fixes landed on files another October fix had just touched. This is the duplication trend from the GitClear data, at the scale of one tool. Agents made it cheap to add surfaces; they did not make it cheap to keep them consistent, which is the part of DHH's argument this data does not support. A planned rewrite ran through the same window, replacing serde_yaml with rivet's own value model on 17 September and its own parser and emitter on 14 October (#1085), but only 6 of September's 40 fixes and 2 of October's 22 touch Rust on a YAML or parser path.
 
-**Checks report green without checking.** Searching issue titles for the vocabulary of this failure, words such as silent, no-op, masked, blind, exits 0 and cannot fail, matches 22 titles in rivet and 18 in spar. Reading all 40, three are something else: a missing feature in rivet (#856), and in spar a proposal for future conformance testing (#246) and a missing job timeout (#398). The remaining 37 are instances. In spar, `analyze` exited 0 on analysis errors on the documented CI path (#469, #472), `--pmoo` did nothing on any TSN model (#482), a worst-case traversal budget was checked on the first hop only (#481), and a 0 ps bound passed its budget (#478). In rivet, `verify` promoted a requirement to verified because a link existed (#1037), and the supply-chain gate cannot fail because CI creates the configuration it should be checking (#1110). This is the squelched-signal trend from the same data, appearing inside verification tools, and it is the class the last post called the hinge of tool qualification.
+**Checks report green without checking.** Searching issue titles for the vocabulary of this failure, words such as silent, no-op, masked, blind, exits 0 and cannot fail, matches 22 titles in rivet and 18 in spar. Reading all 40, three are something else: a missing feature in rivet (#856), and in spar a proposal for future conformance testing (#246) and a missing job timeout (#398). The remaining 37 are instances. In spar, `analyze` exited 0 on analysis errors on the documented CI path (#469, #472), `--pmoo` did nothing on any TSN model (#482), and a worst-case traversal budget was checked on the first hop only (#481). In rivet, the supply-chain gate cannot fail because CI creates the configuration it should be checking (#1110). The search also undercounts. spar #478, where a 0 ps bound passed its budget, and rivet #1037, where `verify` promoted a requirement to verified because a link existed, are both instances whose titles never use the vocabulary, so 37 is a floor. This is the squelched-signal trend from the same data, appearing inside verification tools, and it is the class the last post called the hinge of tool qualification.
 
 **The backlog grows because discovery works.** rivet's tracker holds 367 issues, 108 of them automated runner-liveness alerts. Of the remaining 259, all but two come from the owner's account, and spar has three external issues out of 128. Agents file under that account, so who filed an issue cannot be recovered from the tracker. The Claude Code marker in the issue body gives a lower bound only: 21 of rivet's 259 and 27 of spar's 128. What can be measured is the flow. The open count went from 6 in March to 33 in rivet and from 1 to 37 in spar, with 10 and 14 issues older than 60 days. The audits that find these issues run faster than the loop decides about them.
+
+**Is it only these two?** Choosing two repositories invites the question whether they were picked because they show the pattern. So the same measures ran over every repository PulseEngine authors and has not archived: 34, after excluding 11 forks whose history is upstream's. Twenty have enough history and use conventional prefixes on at least half their changes, which a feature or fix share needs before it means anything.
+
+| across the 20 | holds in |
+|---|---:|
+| median change touches one or two source files | 20 of 20 |
+| 90th percentile of files per change fell | 13 of 20 |
+| feature share fell, first half to second | 16 of 20 |
+| fix share rose, first half to second | 11 of 20 |
+| at least one issue title in the silent-check vocabulary | 12 of 20 |
+
+rivet and spar are typical on coupling and on the falling feature share. The rising fix share holds in barely half, so that part of the lifecycle finding is a tendency, not a law. Between them the 20 carry 141 issue titles in the silent-check vocabulary, unread beyond rivet and spar, and 441 open issues, 160 of them older than 60 days.
 
 ## What a factory needs
 
@@ -208,13 +222,55 @@ The protocol exists, the data format exists and the oracles have found real defe
 
 The lights-out factory is where the software discussion keeps pointing, so it is worth looking at what lights-out manufacturing does. FANUC has run lights-out production since 2001; robots build about 50 robots per 24-hour shift and can run unsupervised for up to 30 days[^lightsout]. Few factories run exclusively dark, most use it between shifts, and Philips keeps nine people for quality assurance at the end of an otherwise automated line. The people in those plants define how machines behave in faults and restarts, design inspection systems that replace human checks, analyse breakdown data, specify interlocks and set standards[^dsj]. The production floor is dark. Engineering, maintenance and acceptance are not.
 
-Two differences matter for software. A lights-out plant repeats one fixed design, while an agent loop produces a new design with every change, which makes it closer to a prototype shop and raises the share of judgement. And in safety work the acceptance step has named owners by design: ISO 26262 assigns responsibility for the safety case to people and requires confirmation measures whose independence grows with the integrity level. That is part of what a safety case is.
+Two differences matter for software. A lights-out plant repeats one fixed design, while an agent loop produces a new design with every change, which makes it closer to a prototype shop and raises the share of judgement. And in safety work the acceptance step has named owners by design: ISO 26262 assigns responsibility for the safety case to people and requires confirmation measures whose independence grows with the integrity level.
 
 The target that follows is dark production with a lit release, which is Osmani's light factory with the light concentrated where the standard requires it. Agents produce and check everything for which an oracle exists, around the clock. People set the standards, decide what the oracles cannot, and sign.
 
+{% mermaid() %}
+flowchart LR
+    subgraph first["1. build these first"]
+        direction TB
+        pot["gates whose failure<br/>has been measured"]
+        core["one verdict core<br/>per fact"]
+        ora["an oracle for every<br/>item agents may close"]
+    end
+    subgraph dark["2. then these run dark"]
+        direction TB
+        disc["discovery"]
+        fix["fixing against<br/>the oracle"]
+        gate["gating"]
+        spc["process control,<br/>monthly, line-level"]
+        sil["silicon runs,<br/>boards on a runner"]
+    end
+    subgraph lit["stays white"]
+        direction TB
+        std["deciding what<br/>correct means"]
+        dec["deciding what<br/>no oracle can"]
+        alarm["acting on<br/>a process alarm"]
+        rel["independent review<br/>and the signature"]
+    end
+    first --> dark
+    std --> ora
+    dec --> ora
+    spc --> alarm
+    dark --> rel
+
+    classDef auto fill:#1a1d27,stroke:#4ade80,color:#e1e4ed;
+    classDef partial fill:#1a1d27,stroke:#fbbf24,color:#e1e4ed;
+    classDef human fill:#1a1d27,stroke:#6c8cff,color:#e1e4ed;
+    classDef phase fill:#13161f,stroke:#3d4258,color:#8b90a0;
+
+    class pot,core,ora partial;
+    class disc,fix,gate,spc,sil auto;
+    class std,dec,alarm,rel human;
+    class first,dark,lit phase;
+{% end %}
+
+Read as a plan, the order is the one manufacturing followed. The amber column has to exist before anything goes dark: gates whose ability to fail has been measured, one evaluation core per fact, and an oracle for every item the agents are trusted to close. With those in place, discovery, fixing, gating, process measurement and the silicon runs can go unattended. Four things stay white however far the rest goes: deciding what correct means, deciding what no oracle can, deciding what to do when the process alarm fires, and the independent review and signature a safety case names a person for.
+
 ## Limits
 
-These are two repositories with one human author, so they show what the approach can produce and say nothing about how common the result is. Commit types are the prefixes the agents chose, and `fix:` includes dependency and CI changes. The share of agent-written code cannot be established from the history, because the co-authorship trailer was applied unevenly. The first and last months are partial: both repositories start on 7 and 8 March, and October is measured to the 21st, so October's change count covers three weeks and its line count is a reading on that date rather than a month end. Almost all issues are self-filed, so the trackers measure the agents' own inspection and very little external use. Some months are small: spar merged four changes in September. The count of checks that report green without checking starts from a keyword search over titles, which is why the 40 matches are read down to 37 above rather than quoted as a class.
+The detailed figures are two repositories, and the census widens them to every repository PulseEngine authors. All 34 share one human author, so the census shows the pattern is not an artifact of choosing rivet and spar; it does not show that it holds for other teams. Commit types are the prefixes the agents chose, and `fix:` includes dependency and CI changes. The share of agent-written code cannot be established from the history, because the co-authorship trailer was applied unevenly. The first and last months are partial: both repositories start on 7 and 8 March, and October is measured to the 21st, so October's change count covers three weeks and its line count is a reading on that date rather than a month end. Almost all issues are self-filed, so the trackers measure the agents' own inspection and very little external use. Some months are small: spar merged four changes in September. The count of checks that report green without checking starts from a keyword search over titles, which is why the 40 matches are read down to 37 above rather than quoted as a class.
 
 ## Take-away
 
@@ -222,7 +278,7 @@ The factory was never missing its machine. It was missing everything around the 
 
 ## Reproduce
 
-`scripts/factory-metrics.py <clone> --issues pulseengine/<repo> --line-age 2026-10 --json <out>` produces every number in this post from a full clone and the GitHub REST API, and `scripts/factory-charts.py rivet.json spar.json` renders the figure from that output. The metrics script's header lists each instrument and what it cannot see, including why the two fix-age numbers differ.
+`scripts/factory-metrics.py <clone> --issues pulseengine/<repo> --line-age 2026-10 --json <out>` produces every number in this post from a full clone and the GitHub REST API, and `scripts/factory-charts.py rivet=rivet.json spar=spar.json` renders the figure from that output; the `label=` prefix names each row, so the figure does not depend on what the files are called. `scripts/factory-census.py <dir-of-clones> --issues-org pulseengine` produces the cross-repository table from one clone per repository, pinned to each one's default branch. Each script's header lists its instruments and what they cannot see, including why the two fix-age numbers differ.
 
 ## Sources and caveats
 
@@ -232,6 +288,7 @@ Three items could not be read in full. The Pragmatic Engineer issue is a subscri
 [^dhh]: David Heinemeier Hansson, *Opening Keynote*, Rails World 2026, Austin, 23 September 2026; video published 24 September 2026, [video](https://www.youtube.com/watch?v=vDjW_dRyKXY). Primary, read as a transcript.
 [^orosz]: Gergely Orosz, *What's the ROI of software engineers' spending on AI?*, The Pragmatic Engineer, 20 October 2026. Primary, read up to the Big Tech section (subscriber content).
 [^mcilroy]: M. D. McIlroy, *Mass Produced Software Components*, NATO Software Engineering Conference, Garmisch, 7 to 11 October 1968, [text](https://www.cs.dartmouth.edu/~doug/components.txt). Primary.
+[^dagapeyeff]: Alex d'Agapeyeff, remarks and Figure 3, "d'Agapeyeff's Inverted Pyramid", in Peter Naur and Brian Randell (eds), *Software Engineering: Report on a conference sponsored by the NATO Science Committee*, Garmisch, 7 to 11 October 1968; report dated January 1969, page 14, with the index entry "Middleware 23". [PDF](http://homepages.cs.ncl.ac.uk/brian.randell/NATO/nato1968.PDF). Primary, read at source. The hosted edition carries its own note that it was produced by scanning and OCR of the original and that errors may remain, so the quoted wording is from that transcription rather than the 1969 print.
 [^cusumano-wp]: Michael A. Cusumano, *Japanese Cooperative R&D Projects in Software Technology*, MIT Sloan working paper, 18 October 1989, [PDF](https://dspace.mit.edu/bitstream/1721.1/2280/1/SWP-3087-24832363.pdf). Primary.
 [^cusumano]: Michael A. Cusumano, *Japan's Software Factories: A Challenge to U.S. Management*, Oxford University Press, 1991. Not read; cited for its existence and scope.
 [^dora]: Google Cloud and DORA, *State of AI-assisted Software Development 2025*, [dora.dev](https://dora.dev/research/2025/dora-report/). Title and framing confirmed at source; the throughput and stability findings were read through summaries, not in the report itself.

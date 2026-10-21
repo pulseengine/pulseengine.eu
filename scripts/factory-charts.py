@@ -1,9 +1,13 @@
 #!/usr/bin/env python3
 """Render the small-multiples figure for "The machine arrived before the factory".
 
-    factory-charts.py rivet.json spar.json > figure.svg
+    factory-charts.py rivet=rivet.json spar=spar.json > figure.svg
 
-Input is the --json output of factory-metrics.py. Output is an inline SVG that
+Input is the --json output of factory-metrics.py. Each argument is `label=path`.
+The label is what the row is called in the figure. A bare path still works and
+falls back to the filename stem, but then the rendered figure depends on what
+the file happened to be called: an independent re-run that wrote `v-rivet.json`
+labelled its row "v-rivet" and stopped matching the published figure. Output is an inline SVG that
 reads the site's theme tokens (var(--text) etc.), so it follows light and dark
 mode like the other inline figures. No numbers are typed by hand here.
 """
@@ -63,9 +67,12 @@ def panel(x0, y0, months, series, ymax, unit, labels, thin=()):
 
 def main():
     repos = []
-    for path in sys.argv[1:3]:
+    for arg in sys.argv[1:3]:
+        label, sep, path = arg.partition("=")
+        if not sep:
+            label, path = arg.rsplit("/", 1)[-1].removesuffix(".json"), arg
         with open(path) as fh:
-            repos.append((path.rsplit("/", 1)[-1].removesuffix(".json"), json.load(fh)))
+            repos.append((label, json.load(fh)))
 
     parts = [
         f'<svg viewBox="0 0 {W} {H}" width="100%" role="img" aria-labelledby="fm-title fm-desc" '
