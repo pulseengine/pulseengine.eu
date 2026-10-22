@@ -33,7 +33,8 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("repo")
     ap.add_argument("--ext", nargs="+", required=True)
-    ap.add_argument("--fixes", required=True, help="JSON list of step indices that are fixes")
+    ap.add_argument("--fixes", required=True,
+                    help='JSON list of {"i": step index, "h": commit sha} for the fixes')
     ap.add_argument("--until")
     ap.add_argument("--max", type=int, default=2000)
     ap.add_argument("--out", required=True)
@@ -56,8 +57,13 @@ def main():
     index = {c["h"]: i for i, c in enumerate(steps)}
 
     results = []
-    for i in json.load(open(a.fixes)):
+    for want in json.load(open(a.fixes)):
+        # The index alone silently points at a different commit when the step
+        # sequence differs (other clone, other --until); the sha makes it fail.
+        i = want["i"]
         fix = steps[i]
+        if not fix["h"].startswith(want["h"]):
+            raise SystemExit(f"step {i} is {fix['h'][:12]}, fixes file says {want['h'][:12]}")
         parent = git(a.repo, "rev-parse", f"{fix['h']}^", check=False).strip()
         if not parent:
             continue
