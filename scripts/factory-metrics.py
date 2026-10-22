@@ -35,6 +35,11 @@ import re
 import statistics as st
 import subprocess
 
+# Source extensions counted for lines and fix age. Rust by default, because the
+# first post measured Rust repositories; pass --ext for any other language.
+EXTS = (".rs",)
+
+MAINTAINERS = ()
 EXCLUDE = re.compile(r"(\.md$|\.lock$|CHANGELOG|^docs/|\.ya?ml$|\.json$)")
 SILENT = re.compile(
     r"(?i)silent|never (fires|checked)|no-op|masked|exits 0|cannot fail|blind|"
@@ -74,7 +79,7 @@ def rust_loc_at_month_end(repo, month):
     rev = git(repo, "rev-list", "-1", "--first-parent", f"--before={end}",
               "HEAD").strip()
     files = [f for f in git(repo, "ls-tree", "-r", "--name-only", rev).split()
-             if f.endswith(".rs")]
+             if f.endswith(EXTS)]
     total = 0
     for f in files:
         blob = subprocess.run(["git", "-C", repo, "show", f"{rev}:{f}"],
@@ -127,7 +132,7 @@ def line_age_for_month(repo, month):
             per_commit.append(st.median(ages))
         # How much of the file-level signal is the fix wave measuring itself?
         for f in [x for x in git(repo, "show", "--name-only", "--format=",
-                                 "--first-parent", sha).split() if x.endswith(".rs")][:10]:
+                                 "--first-parent", sha).split() if x.endswith(EXTS)][:10]:
             pm = git(repo, "log", "-1", "--format=%ad|%s", "--date=format:%Y-%m",
                      f"{sha}^", "--", f).strip()
             if pm:
@@ -156,7 +161,7 @@ def git_table(repo, sink=None):
         row["conv"] += bool(m)
         row["types"][kind] += 1
         for f in c["f"]:
-            if not f.endswith(".rs"):
+            if not f.endswith(EXTS):
                 continue
             if kind == "fix" and f in last_touch:
                 row["fix_age"].append((c["d"] - last_touch[f]).days)
@@ -222,7 +227,8 @@ def issue_table(slug, today, sink=None):
     old = sum((today - dt.date.fromisoformat(i["created_at"][:10])).days > 60
               for i in still_open)
     owner = slug.split("/")[0]
-    external = sum(i["user"]["login"] not in (owner, "avrabe") for i in human)
+    team = {owner, *MAINTAINERS}
+    external = sum(i["user"]["login"] not in team for i in human)
     print(f"open > 60 days: {old}; external authors: {external}")
     marked = [i for i in human if "Generated with [Claude Code]" in (i.get("body") or "")]
     print(f"issues carrying the Claude Code body marker: {len(marked)} of {len(human)} "
@@ -231,7 +237,7 @@ def issue_table(slug, today, sink=None):
     # Three kinds of author. Bots (CI alerts) are excluded above. Agents and the
     # owner both file under the owner's account, so the tracker cannot separate
     # them; the owner files only short issues, so body size is the one signal.
-    own = [i for i in human if i["user"]["login"] in (owner, "avrabe")]
+    own = [i for i in human if i["user"]["login"] in team]
     mk = [i for i in own if "Generated with [Claude Code]" in (i.get("body") or "")]
     rest = [i for i in own if i not in mk]
     blen = lambda i: len(i.get("body") or "")
@@ -246,10 +252,17 @@ def main():
     ap.add_argument("--issues", help="owner/repo for the issue tables")
     ap.add_argument("--today", default=dt.date.today().isoformat())
     ap.add_argument("--json", help="also write the monthly series to this file")
+    ap.add_argument("--ext", nargs="+", default=[".rs"],
+                    help="source extensions for lines of code and fix age (default .rs)")
+    ap.add_argument("--maintainers", nargs="*", default=[],
+                    help="logins that count as the project's own, besides the repo owner; "
+                         "everyone else is an external author")
     ap.add_argument("--line-age", metavar="YYYY-MM", action="append",
                     help="also measure LINE-level fix age for this month "
                          "(repeatable; slow, one git blame per hunk)")
     a = ap.parse_args()
+    global EXTS, MAINTAINERS
+    EXTS, MAINTAINERS = tuple(a.ext), tuple(a.maintainers)
     sink = {} if a.json else None
     git_table(a.repo, sink)
     for month in a.line_age or []:
