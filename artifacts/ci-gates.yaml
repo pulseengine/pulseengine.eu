@@ -53,6 +53,8 @@ artifacts:
       - type: satisfies
         target: REQ-FEATURE-LOOP-COUPLED-PAIRS
 
+      - type: satisfies
+        target: REQ-CI-STATUS-SKILL
   - id: REQ-LINKS
     type: requirement
     title: Every internal link in the built site resolves
@@ -397,3 +399,28 @@ artifacts:
       - type: verifies
         target: REQ-FEATURE-LOOP-COUPLED-PAIRS
 
+
+  - id: REQ-CI-STATUS-SKILL
+    type: requirement
+    title: Waiting on CI asks the fleet's status API first, and never writes its host into a repo
+    description: >-
+      Agents waited on pull-request checks by polling GitHub at fixed short intervals, one model turn per poll, unable to tell a running job from one starved of a runner. On 2026-10-22 this session alone polled GitHub every 15 to 20 seconds while the self-hosted fleet's status API could have given a measured start range. The ci-status skill reads that API, configured only through PULSEENGINE_CI_STATUS_URL and PULSEENGINE_CI_STATUS_CACERT, reports an overdue job and a missing or unreachable API once, falls back to gh pr checks with its exit codes, and wakes on the API's recheck interval. The API's host is private infrastructure and must not appear in the public plugin.
+    status: verified
+    release: 0.40.0
+    category: process
+    priority: should
+    fields:
+      category: functional
+
+  - id: VER-CI-STATUS-SKILL
+    type: verification
+    title: claims CI-STATUS-NO-PRIVATE-HOST and CI-STATUS-FALLS-BACK-AND-SAYS-SO
+    description: >-
+      claim-check requires the skill's fallback rule, the gh exit-code table, the unknown-is-not-not_queued rule and the no-double-subtraction rule verbatim, requires the three waiting skills to point at ci-status, and fails if an mDNS .local URL, the local CA directory or a Caddy root certificate name appears anywhere under claude-tooling/. Negative-controlled: a .local URL written into the skill makes the check exit 1.
+    status: verified
+    release: 0.40.0
+    method: automated-test
+    test-location: claims.yaml
+    links:
+      - type: verifies
+        target: REQ-CI-STATUS-SKILL
