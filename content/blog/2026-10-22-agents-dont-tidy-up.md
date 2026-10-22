@@ -2,7 +2,8 @@
 title = "Agents don't tidy up"
 description = "Nine projects, one ruler: three written by people, six written mostly by coding agents, PulseEngine's rivet and spar among them. Fix share, bugs caused by fixes, coupling and bug lifetime do not separate the groups. Refactoring does: judged from the diffs, Hubris and Cranelift spend a quarter to a third of their commits on it, the agent projects 3 to 13%. Agents work on what a gate checks, and nothing checks structure."
 date = 2026-10-22
-draft = true
+draft = false
+ready = true
 [taxonomies]
 tags = ["verification", "process", "ai-agents", "deep-dive"]
 authors = ["Ralf Anton Beier"]
@@ -207,7 +208,7 @@ The measurement says which gate is missing. The agents optimise for what the ora
 - **One change at a time.** The trigger alone, without other process changes in the same period.
 - **A control.** rivet gets the trigger; spar runs unchanged.
 - **The same measurement monthly.** The scripts below, run on a schedule, with the classifier re-scored against its frozen references before every run and the report withheld if it misses the bar.
-- **The criterion fixed in advance.** It is recorded as a checked claim in the repository before the trigger ships, so that no curve can be read as success afterwards. Fix-on-fix is not a usable criterion at this sample size: rivet's 5 of 21 has an interval from 11 to 45%. Refactor share inside pull requests and fixes per month on the hotspot file are. The result, after three to six months, is the next post.
+- **The criterion fixed in advance.** It is recorded in the repository as a checked claim, dated 22 October 2026, before the trigger exists: in the three months after it ships, rivet's `refactor:` share of pull-request commits reaches at least 10% (today 5 of 175), fixes to `rivet-cli/src/main.rs` halve to at most 6.4 a month, the refactor share judged from diffs reaches 15% while the feature share stays above 25%, and spar's `refactor:` share stays at or below 5%. Fix-on-fix is not a usable criterion at this sample size: rivet's 5 of 21 has an interval from 11 to 45%. Refactor share inside pull requests and fixes per month on the hotspot file are. The result, after three to six months, is the next post.
 
 ## Limits
 
