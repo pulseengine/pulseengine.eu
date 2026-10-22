@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """Inline SVG figures for "Agents don't tidy up", from the label and SZZ files.
 
-    tidy-charts.py refactor  > refactor.svg   # refactor share per project, Wilson 95%
+    tidy-charts.py refactor  > refactor.svg   # refactor share per project, two instruments
     tidy-charts.py fixonfix  > fixonfix.svg   # fix-on-fix share against its null
 
-Reads cls/<name>-full-labels.json (commit-classify.py) and szz/<name>.json plus
+Reads cls/<name>-full-labels.json (message labels), cls/judge-diff-labels.json
+(the same commits judged from their diffs), and szz/<name>.json plus
 szz/introducer-labels.json (szz.py, then the same classifier on introducers).
 Colours are site tokens with fallbacks, as in the first post's figures."""
 import json, math, subprocess, sys
@@ -26,6 +27,7 @@ def wilson(k, n, z=1.96):
 
 def refactor():
     rows = HUMAN + AGENT
+    judge = json.load(open("cls/judge-diff-labels.json"))
     W, top, rh = 760, 56, 30
     H = top + rh * len(rows) + 52
     x0, x1 = 150, 720
@@ -34,27 +36,29 @@ def refactor():
          '<title id="rf-title">Share of commits that refactor, per project</title>']
     desc, body = [], []
     for k, (name, label) in enumerate(rows):
-        lab = json.load(open(f"cls/{name}-full-labels.json")).values()
-        n = len(lab)
-        r = sum(v["primary"] == "refactor" for v in lab)
+        msg = json.load(open(f"cls/{name}-full-labels.json"))
+        n = len(msg)
+        r = sum(judge[k]["primary"] == "refactor" for k in msg)
+        rm = sum(v["primary"] == "refactor" for v in msg.values())
         lo, hi = wilson(r, n)
         y = top + rh * k + rh / 2
         col = "var(--green,#4ade80)" if (name, label) in HUMAN else "var(--accent,#6c8cff)"
         body.append(f'<text x="{x0 - 10}" y="{y + 4}" font-size="12" text-anchor="end" fill="var(--text,#e1e4ed)">{label}</text>')
         body.append(f'<line x1="{sx(lo):.1f}" y1="{y}" x2="{sx(hi):.1f}" y2="{y}" stroke="{col}" stroke-width="2" opacity="0.55"/>')
+        body.append(f'<circle cx="{sx(100 * rm / n):.1f}" cy="{y}" r="4.5" fill="none" stroke="{col}" stroke-width="1.5"/>')
         body.append(f'<circle cx="{sx(100 * r / n):.1f}" cy="{y}" r="5" fill="{col}"/>')
-        body.append(f'<text x="{sx(hi) + 8:.1f}" y="{y + 4}" font-size="10.5" fill="var(--text-dim,#8b90a0)">{100 * r / n:.0f}%  (n={n})</text>')
-        desc.append(f"{label} {100 * r / n:.0f}% ({lo:.0f} to {hi:.0f}, n={n})")
-    o.append('<desc id="rf-desc">Refactor share of classified commits with 95% Wilson intervals. ' + "; ".join(desc) + ".</desc>")
+        body.append(f'<text x="{max(sx(hi), sx(100 * rm / n)) + 8:.1f}" y="{y + 4}" font-size="10.5" fill="var(--text-dim,#8b90a0)">{100 * r / n:.0f}%  (n={n})</text>')
+        desc.append(f"{label} {100 * r / n:.0f}% from diffs ({lo:.0f} to {hi:.0f}), {100 * rm / n:.0f}% from messages, n={n}")
+    o.append('<desc id="rf-desc">Refactor share of sampled commits judged from their diffs, with 95% Wilson intervals, and the share from commit messages alone. ' + "; ".join(desc) + ".</desc>")
     o.append(f'<text x="12" y="22" font-size="13" font-weight="700" fill="var(--text,#e1e4ed)">Refactor share of commits</text>')
-    o.append(f'<text x="12" y="40" font-size="10.5" fill="var(--text-dim,#8b90a0)"><tspan fill="var(--green,#4ade80)">●</tspan> written by people   <tspan fill="var(--accent,#6c8cff)">●</tspan> written mostly by agents</text>')
+    o.append(f'<text x="12" y="40" font-size="10.5" fill="var(--text-dim,#8b90a0)"><tspan fill="var(--green,#4ade80)">●</tspan> written by people   <tspan fill="var(--accent,#6c8cff)">●</tspan> written mostly by agents   ○ from the message alone</text>')
     for t in range(0, 51, 10):
         o.append(f'<line x1="{sx(t):.1f}" y1="{top - 4}" x2="{sx(t):.1f}" y2="{top + rh * len(rows)}" stroke="var(--border-subtle,#3d4258)" stroke-width="0.6"/>')
         o.append(f'<text x="{sx(t):.1f}" y="{top + rh * len(rows) + 16}" font-size="10" text-anchor="middle" fill="var(--text-faint,#808698)">{t}%</text>')
     sep = top + rh * len(HUMAN)
     o.append(f'<line x1="20" y1="{sep}" x2="{W - 20}" y2="{sep}" stroke="var(--border-subtle,#3d4258)" stroke-dasharray="3 4"/>')
     o += body
-    o.append(f'<text x="12" y="{H - 10}" font-size="9.5" fill="var(--text-faint,#808698)">Bars: 95% Wilson interval. Full commit messages, prefixes stripped, labelled by Haiku; 15 commits per 250-commit bucket. Source: commit-classify.py, 22 October 2026.</text>')
+    o.append(f'<text x="12" y="{H - 10}" font-size="9.5" fill="var(--text-faint,#808698)">Filled: judged from message and diff (Sonnet), bar = 95% Wilson interval. Hollow: message only (Haiku). 15 commits per 250-commit bucket, 22 October 2026.</text>')
     o.append("</svg>")
     return "\n".join(o)
 
