@@ -209,3 +209,39 @@ claims:
         pattern: '\*\*waive existing debt\s+loudly\*\*'
         glob: ['claude-tooling/plugins/pulseengine-claude/skills/pulseengine-feature-loop/SKILL.md']
         min: 1
+
+  # ── The hotspot-trigger experiment is pre-registered ────────────────────────
+  # "Agents don't tidy up" says the criterion was fixed before the trigger
+  # existed. That is only true while the recorded thresholds are the ones the
+  # post states; moving a threshold must fail here, in review, not quietly.
+  - id: EXPERIMENT-HOTSPOT-TRIGGER-PREREGISTERED
+    doc: content/blog/2026-10-22-agents-dont-tidy-up.md
+    text: "recorded in the repository as a checked claim, dated 22 October 2026"
+    evidence:
+      - kind: file-exists
+        path: docs/experiments/2026-10-hotspot-trigger.md
+      - kind: count-min
+        pattern: 'Pre-registered 2026-10-22, before the trigger exists'
+        glob: ['docs/experiments/2026-10-hotspot-trigger.md']
+        min: 1
+      - kind: count-min
+        pattern: 'share of PR commits in the window is at least 10%, over at least 100 PR commits'
+        glob: ['docs/experiments/2026-10-hotspot-trigger.md']
+        min: 1
+      - kind: count-min
+        pattern: 'average at most 6\.4 per month'
+        glob: ['docs/experiments/2026-10-hotspot-trigger.md']
+        min: 1
+      - kind: count-min
+        pattern: 'judged from diffs, on a fresh sample of the window, is at least 15%, and the feature share judged from diffs stays at or above 25%'
+        glob: ['docs/experiments/2026-10-hotspot-trigger.md']
+        min: 1
+      - kind: count-min
+        pattern: 'spar \(control\): `refactor:` share of PR commits in the window stays at or below 5%'
+        glob: ['docs/experiments/2026-10-hotspot-trigger.md']
+        min: 1
+      # The post must state the same numbers it says were fixed.
+      - kind: verbatim
+        text: "at most 6.4 a month"
+      - kind: verbatim
+        text: "spar's `refactor:` share stays at or below 5%"
