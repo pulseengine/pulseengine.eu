@@ -40,7 +40,8 @@ Merging happens **only** through passing required status checks. Never merge to
 bypass, clear, or unblock a queue, and never because you judged the work done —
 only because the gate reported success. Reporting a release verified requires the
 green CI result, not the local oracles. For release work your turn ends at
-**"pushed, and checks requested."**
+**"pushed, and checks requested."** When you do wait on a run, wait through
+`ci-status`: it reads the fleet's status API before polling GitHub.
 
 Where a repo treats some checks as advisory (coverage bots), condition the
 merge on the **names** of the failing checks against an explicit allowlist —

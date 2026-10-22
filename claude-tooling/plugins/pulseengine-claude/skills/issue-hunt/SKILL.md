@@ -64,7 +64,8 @@ digest the entire backlog.
    last pass left open: for each, look at the PR's current check status and act on
    `action_on_green` if it went green (merge / tag / close), or leave it and
    re-record if still pending. This is what makes a deferred merge get *owned*
-   across passes instead of silently dropped.
+   across passes instead of silently dropped. Read the status through [`ci-status`]:
+   it asks the fleet's status API first and falls back to `gh pr checks`.
 
 1. **Pull what's new since the watermark** (from watermark − ~60s; see State).
    - New / updated issues **and pull requests — two queries, because `gh issue
