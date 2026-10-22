@@ -285,7 +285,9 @@ The factory was never missing its machine. It was missing everything around the 
 
 ## Reproduce
 
-`scripts/factory-metrics.py <clone> --issues pulseengine/<repo> --line-age 2026-10 --json <out>` produces every number in this post from a full clone and the GitHub REST API, and `scripts/factory-charts.py rivet=rivet.json relay=relay.json` renders the figure from that output; the `label=` prefix names each row, so the figure does not depend on what the files are called. `scripts/factory-census.py <dir-of-clones> --issues-org pulseengine` produces the cross-repository table from one clone per repository, pinned to each one's default branch. Each script's header lists its instruments and what they cannot see, including why the two fix-age numbers differ.
+`scripts/factory-metrics.py <clone> --issues pulseengine/<repo> --maintainers avrabe --line-age 2026-10 --json <out>` produces every number in this post from a full clone and the GitHub REST API, and `scripts/factory-charts.py rivet=rivet.json relay=relay.json` renders the figure from that output; the `label=` prefix names each row, so the figure does not depend on what the files are called. `scripts/factory-census.py <dir-of-clones> --issues-org pulseengine` produces the cross-repository table from one clone per repository, pinned to each one's default branch. Each script's header lists its instruments and what they cannot see, including why the two fix-age numbers differ.
+
+**Run it on your own repository.** The scripts work on any git repository and any language. [Measure your own repository](/docs/guide/measure-your-repository/) walks through them, including the two flags that decide whether the output means anything for your project.
 
 ## Sources and caveats
 
