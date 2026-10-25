@@ -129,7 +129,7 @@ src/*.rs          Verus-annotated Rust (39 modules, single source of truth)
 
 > **Honesty note:** Formal verification requires Bazel + Nix and runs via the Formal Verification
 > workflow (triggered on src/proofs/ffi changes + weekly cron). Functional tests run on every commit.
-> See [verification honesty assessment](docs/safety/verification-honesty.md) for the full gap analysis.
+> See [verification honesty assessment](https://github.com/pulseengine/gale/blob/main/docs/safety/verification-honesty.md) for the full gap analysis.
 - **Kani BMC:** 185 bounded model checking harnesses (87 model + 98 FFI, Bazel-only)
 - **Differential testing:** POSIX/FreeRTOS reference models validate spec independence
 - **Property-based testing:** Proptest with random operation sequences

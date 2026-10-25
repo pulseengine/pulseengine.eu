@@ -126,22 +126,22 @@ spar-wasm       WebAssembly component (WASI P2)
 
 ## Documentation
 
-- [Integration plan](docs/plans/2026-03-08-spar-rivet-integration.md) -- rivet lifecycle integration
-- [WASM-as-architecture design](docs/plans/2026-03-10-wasm-as-architecture-design.md) -- WIT/WAC/wRPC transforms
-- [VS Code extension design](docs/plans/2026-03-18-vscode-extension-design.md) -- editor integration
-- [Deployment solver plan](docs/plans/2026-03-21-deployment-solver-plan.md) -- allocation algorithm
+- [Integration plan](https://github.com/pulseengine/spar/blob/main/docs/plans/2026-03-08-spar-rivet-integration.md) -- rivet lifecycle integration
+- [WASM-as-architecture design](https://github.com/pulseengine/spar/blob/main/docs/plans/2026-03-10-wasm-as-architecture-design.md) -- WIT/WAC/wRPC transforms
+- [VS Code extension design](https://github.com/pulseengine/spar/blob/main/docs/plans/2026-03-18-vscode-extension-design.md) -- editor integration
+- [Deployment solver plan](https://github.com/pulseengine/spar/blob/main/docs/plans/2026-03-21-deployment-solver-plan.md) -- allocation algorithm
 
 ## Safety
 
 Full STPA (System-Theoretic Process Analysis) safety analysis:
 
-- [STPA analysis](safety/stpa/analysis.yaml) -- losses, hazards, UCAs, loss scenarios
-- [Safety requirements](safety/stpa/requirements.yaml) -- 23 STPA-derived requirements
-- [Rivet artifacts](artifacts/) -- requirements, architecture decisions, verification records
+- [STPA analysis](https://github.com/pulseengine/spar/blob/main/safety/stpa/analysis.yaml) -- losses, hazards, UCAs, loss scenarios
+- [Safety requirements](https://github.com/pulseengine/spar/blob/main/safety/stpa/requirements.yaml) -- 23 STPA-derived requirements
+- [Rivet artifacts](https://github.com/pulseengine/spar/tree/main/artifacts/) -- requirements, architecture decisions, verification records
 
 ## License
 
-MIT License -- see [LICENSE](LICENSE).
+MIT License -- see [LICENSE](https://github.com/pulseengine/spar/blob/main/LICENSE).
 
 ---
 
