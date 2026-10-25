@@ -137,6 +137,24 @@ that gale's jobs are at the front of the runner queue, that gale's hardware
 is available, that gale's decisions are cleared first. The critical path
 gets the resources. The non-critical path waits.
 
+**Hardware scheduling is a contract.** jess releases `with-device` — a small
+tool that claims and releases hardware. An agent runs `with-device claim
+pixhawk-6xrt`, and the device is locked. Other agents see: CLAIMED, by whom,
+since when. The agent runs `with-device release pixhawk-6xrt`, and the
+device is free. The tool informs the other agents: who has the device, when
+they got it, for how long they need it. The dashboard shows the same: which
+boards are free, which are busy, who's holding them.
+
+```
+$ with-device --status
+  pixhawk-6xrt       CLAIMED by agent-7 since 14:32 (needs 2h)
+  stlink-v1          FREE
+  stlink-v1-f100     CLAIMED by agent-3 since 09:15 (needs 30m)
+```
+
+The contract is the lock. The visibility is the status. The orchestrator
+sees the whole picture — and decides who waits.
+
 **The principle:** resource constraints make the orchestrator's role
 critical. When resources are scarce, someone has to see the whole picture,
 visualize the critical path, and ensure the queue is prioritized. That
