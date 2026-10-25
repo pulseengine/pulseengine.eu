@@ -140,6 +140,4 @@ The proof is not in a paper. It is in the CI log.
 
 ---
 
-*A detailed reference for agents and developers working with these tools is available as the [Verification Guide](/guides/verification-guide/) ([download as Markdown](/guides/VERIFICATION-GUIDE.md)). It covers error tables, proof tactics, the Rust subset intersection, and Bazel rules. We update it as we learn what works — if something is wrong or missing, [open an issue](https://github.com/pulseengine/pulseengine.eu/issues).*
-
 *This post is part of [PulseEngine](/) — a formally verified WebAssembly Component Model engine for safety-critical systems.*
