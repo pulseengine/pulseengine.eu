@@ -15,8 +15,8 @@ no longer writing code — it is deciding, verifying, and integrating. The
 framework that optimises for sprint ceremonies and PI Planning adds friction
 exactly where the flow needs to be fastest. What replaces it is not "less
 process" but a different process: Kanban for the flow, gates for the checks,
-machine-readable contracts between stations, and a thin SAFe shell only where
-the corporation outside demands it.
+machine-readable contracts between stations, and a translation layer to the
+corporation that must not be called SAFe — because the name is the trap.
 {% end %}
 
 I have spent the last ten years inside SAFe organisations. PI Planning events
@@ -340,29 +340,51 @@ machine-readable fabric[^lockheed-digital-thread].
 This is SAFe's idea without SAFe's bureaucracy. SAFe says "coordinate through
 ceremonies." The factory says "coordinate through artifacts and cadence."
 
-## SAFe as interface, not as operating model
+## The translation layer — and why it must not be called SAFe
 
-None of this means SAFe is worthless. It is the wrong internal operating
-model and the right external interface. Three things it still does well:
+None of this means the corporation outside stops existing. Portfolio
+management speaks a language, and you need to speak it back. But the name
+you give the translation layer matters, because the name is the trap.
 
-**Translation to the corporation.** When portfolio management speaks SAFe,
-you speak SAFe back. The artifacts — programme board, PI objectives, epic
-breakdowns — are a translation layer, not a process. You produce them on
-demand, from your machine-readable data, and you do not let them drive your
-internal flow.
+**"SAFe" is not safe.** The name implies safety — security, reliability,
+predictability. What it delivers is coordination overhead: PI Planning,
+ART syncs, programme boards, certification paths. None of those produce
+a safer product. A team that hears "we are keeping a thin SAFe shell" hears
+"we are still doing SAFe, just less of it" — and keeps doing the ceremonies
+that add friction without adding safety. The name launders the framework:
+people think they are being safe because the word says so.
+
+So do not call it SAFe. Call it what it is: a **portfolio translation layer**,
+a **governance interface**, a **corporate compatibility layer**. Produce the
+artifacts the corporation expects — programme board, PI objectives, epic
+breakdowns — from your machine-readable data, on demand. Keep the names where
+they match: a programme board is a programme board, PI objectives are PI
+objectives. But the framework name stays out. When someone asks "are you
+doing SAFe?", the answer is "no — we produce the artifacts your portfolio
+tooling reads, from the same data our gates already generate."
+
+Three things the translation layer does:
+
+**Translation to the corporation.** When portfolio management speaks in
+programme increments and value streams, you translate. The artifacts —
+programme board, PI objectives, epic breakdowns — are a translation layer,
+not a process. You produce them on demand, from your machine-readable data,
+and you do not let them drive your internal flow.
 
 **Traceability and compliance.** For safety work, ASPICE and ISO 26262 want a
-structured trail. That structure can come from rivet artifacts and git history
+structured trail. That structure comes from rivet artifacts and git history
 without a single SAFe ceremony. The compliance officer reads the trail; the
-team does not perform a ceremony to produce it.
+team does not perform a ceremony to produce it. This is the real safety —
+the kind the name "SAFe" promises but does not deliver.
 
 **Cross-team synchronisation.** A thin sync — one short meeting per week —
 keeps teams from drifting apart. That is a Scrum shell, not a Scrum process.
 No sprint commitment, no story points, no retro. Just "here is what changed,
 here is what you are blocked on."
 
-The model is: **Kanban inside, SAFe outside, and the boundary between them
-is a translation layer you control.**
+The model is: **Kanban inside, translation outside, and the boundary between
+them is a layer you control — named for what it does, not for what it
+pretends to be.**
 
 ## What this is not
 
@@ -396,9 +418,13 @@ production tests, the nitty-gritty that needs physical access — hand those to
 the roles whose leverage starts where yours ends. That is not losing control;
 it is scaling it.
 
-**SAFe is a translation layer, not a process.** Speak it to the corporation.
-Do not run your factory on it. The boundary between your Kanban flow and their
-SAFe view is a layer you build, from your machine-readable data, on demand.
+**Do not call the translation layer SAFe.** The name implies safety; the
+framework delivers coordination overhead. A "thin SAFe shell" invites people
+to keep doing SAFe. Call it a portfolio translation layer, a governance
+interface, a corporate compatibility layer — produce the artifacts, keep the
+names where they match, but keep the framework name out. When someone asks
+"are you doing SAFe?", the answer is "no — we produce the artifacts your
+portfolio tooling reads, from the same data our gates already generate."
 
 **Scale through contracts, not ceremonies.** Between stations, the contract is
 the interface: AADL, API specs, traceability links, as code. The cadence is the
@@ -421,9 +447,12 @@ metrics, and I have not benchmarked them against a SAFe organisation running
 the same workload. The comparison is theoretical, grounded in the shape of the
 work, not in a controlled experiment.
 
-The "thin SAFe shell" is a design, not a tested implementation. I produce
-programme-board artifacts from my data when the portfolio asks; I have not
-measured whether that satisfies a real SAFe portfolio or just a checkbox.
+The "portfolio translation layer" is a design, not a tested implementation.
+I produce programme-board artifacts from my data when the portfolio asks; I
+have not measured whether that satisfies a real SAFe portfolio or just a
+checkbox. And the naming discipline — refusing to call it SAFe — is a
+communication choice I have not yet tested at scale. It may confuse more
+than it clarifies.
 
 ## Sources and caveats
 
