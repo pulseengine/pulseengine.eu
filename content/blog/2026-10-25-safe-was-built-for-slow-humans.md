@@ -365,7 +365,7 @@ The metrics "gate potency," "decision latency," and "agent-closed vs
 human-decided ratio" are the author's own terms, coined for this post. A search
 on 25 October 2026 found no prior use in the public literature.
 
-### Industry telemetry and controlled studies
+*Footnotes render at the bottom of the page, grouped by category.*
 
 [^faros-2026]: Faros AI, *AI Engineering Report 2026* (22,000 developers, 4,000 teams). Vendor research; correlation across Faros customers, not a controlled study. [faros.ai](https://www.faros.ai/blog/lab-vs-reality-ai-productivity-study-findings). Secondary (vendor telemetry).
 
@@ -377,7 +377,6 @@ on 25 October 2026 found no prior use in the public literature.
 
 [^dora-2025]: Google Cloud and DORA, *State of AI-assisted Software Development 2025*. Primary (survey-based). [dora.dev](https://dora.dev/dora-report-2025/).
 
-### Practitioner accounts and operating models
 
 [^osmani-factories]: Addy Osmani, *Software Factories, Light and Dark*, 20 July 2026. [addyosmani.com](https://addyosmani.com/blog/software-factories/). Primary (practitioner essay).
 
@@ -395,7 +394,6 @@ on 25 October 2026 found no prior use in the public literature.
 
 [^ona-summit]: Ona, *Background Agents Summit* recap (Stripe, Uber, Monzo, Cloudflare, Harvey, AWS, Genentech). [ona.com](https://ona.com/stories/background-agents-summit). Secondary (event recap).
 
-### SAFe and Scrum critiques
 
 [^jeffries]: Ron Jeffries, *Issues with SAFe*. [ronjeffries.com](https://ronjeffries.com/xprog/articles/issues-with-safe/). Primary (practitioner critique, XP co-creator).
 
@@ -407,7 +405,6 @@ on 25 October 2026 found no prior use in the public literature.
 
 [^scrum-org-ai]: Scrum.org, *AI Augmented Scrum Framework: When Half Your Team is Autonomous Agents*, 2026. [scrum.org](https://www.scrum.org/resources/blog/ai-augmented-scrum-framework-when-half-your-team-autonomous-agents). Primary (framework vendor publication).
 
-### Kanban, Flow, and Lean
 
 [^yeret-wip]: Yuval Yeret, *Calculate Kanban WIP Limits in the AI Age* and *Limiting Work-in-Progress (WIP) in Scrum with Kanban*. [yuvalyeret.com](https://yuvalyeret.com/blog/calculate-kanban-wip-limits-ai-age/). Primary (practitioner blog).
 
@@ -419,7 +416,6 @@ on 25 October 2026 found no prior use in the public literature.
 
 [^remojansen-tps]: remojansen, *Revisiting the Toyota Production System (TPS) in the Age of Coding Agents*. [dev.to](https://dev.to/remojansen/revisiting-the-toyota-production-system-tps-in-the-age-of-coding-agents-2bb5). Primary (practitioner blog).
 
-### Coordination at scale
 
 [^bezos-mandate]: Jeff Bezos, *API Mandate*, Amazon, 2002. Widely circulated; original memo not publicly released. [nordicapis.com](https://nordicapis.com/the-bezos-api-mandate-amazons-manifesto-for-externalization/). Secondary (reconstruction from multiple accounts).
 
