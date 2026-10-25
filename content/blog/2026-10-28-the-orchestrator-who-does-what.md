@@ -122,7 +122,7 @@ What the human actually does, day to day:
 | **Trigger agents** | "continue with the new pulseengine skills" across gale, relay, jess, ordeal, varve — set up a 6-hour cron loop with a one-week timeout |
 | **Review output** | Read the agent reports, check the gates, verify the claims — spawn a clean-room subagent to cross-check |
 | **Decide** | "we need these measurements" — prioritize the decision queue, allocate hardware, plan the next release |
-| **Handle hardware** | Set up the test boards, configure the layers, claim devices with `with-device` |
+| **Handle hardware** | Set up the test boards, configure the layers, install `with-device` — the agents claim and release devices themselves |
 | **Build tools** | When a tool is a bottleneck (Z3 too slow, serde_yaml unmaintained), decide: build or work around |
 
 The human's leverage is in **designing the factory and verifying the output** —
