@@ -17,9 +17,10 @@ gale provides the kernel — the primitives, the proofs, the foundation.
 The names are not labels. They are **principles**. The bottlenecks move —
 hardware, CI, decisions, dependencies. The roles don't.
 
-And behind the agents is a **human** — the orchestrator who defines the
-skills, triggers the loops, reviews the output, and makes the decisions
-the oracles cannot.
+And behind the agents is a **human** — the orchestrator who owns the
+factory, defines the skills, triggers the loops, reviews the output, and
+makes the decisions the oracles cannot. One human. Many agents. The
+orchestrator is the owner.
 {% </insight> %}
 
 [The first post](/blog/safe-was-built-for-slow-humans/) argued that the
@@ -111,8 +112,13 @@ orchestrator is the human who defines, triggers, reviews, decides.
 
 The orchestrator is not an agent. The orchestrator is a **human** — the one
 who writes the skills, sets the cron loops, reviews the output, and makes
-the decisions the oracles cannot. This is not "AI replaces the team." This
-is "the team's leverage changes."
+the decisions the oracles cannot. In this factory, the orchestrator is also
+the **owner**: the only human stakeholder. There is no team, no Scrum
+master, no product owner. There is the orchestrator and the agents.
+
+This is not "AI replaces the team." There was no team to replace — the
+orchestrator was always the one writing the code. Now the agents write the
+code, and the orchestrator designs the factory that writes it.
 
 What the human actually does, day to day:
 
@@ -127,7 +133,9 @@ What the human actually does, day to day:
 
 The human's leverage is in **designing the factory and verifying the output** —
 not in writing the code. The agents write the code. The human writes the
-skills, sets the loops, and decides what the oracles cannot.
+skills, sets the loops, and decides what the oracles cannot. One human,
+many agents. The orchestrator is the owner, the only stakeholder, and the
+only decision-maker.
 
 This is the same pattern as Blog 1's orchestrator role: the coder becomes
 the orchestrator. The person who used to write code now designs the gates,
@@ -136,9 +144,9 @@ moves from code production to decision-making — and the human is the
 decision-maker.
 
 The WIP limit on the decision queue (Blog 1) caps how many decisions can
-wait. The orchestrator prioritizes within that cap. The team size is the
-number of humans needed to keep the queue from growing — not the number
-of people writing code.
+wait. The orchestrator prioritizes within that cap. In this factory, the
+team size is one: the orchestrator. The agents do the work; the orchestrator
+owns the factory.
 
 ## Resource constraints and the critical path
 
@@ -934,10 +942,11 @@ queue moves. The roles stay. The principle stays.
 ## Limits
 
 This is one factory's structure: three repos, three roles, one dependency
-chain. It has not been tested in a larger organisation with more layers,
-more roles, and more complex dependencies. The claim is not "this is the
-only way to structure a factory" but "the roles are clear, and the
-bottlenecks are managed."
+chain, **one human** — the orchestrator who owns the factory and makes every
+decision the oracles cannot. It has not been tested in a larger organisation
+with more layers, more roles, and more complex dependencies. The claim is
+not "this is the only way to structure a factory" but "the roles are clear,
+and the bottlenecks are managed."
 
 The cross-repo issues are real, measured from the issue trackers on 26
 October 2026. The dependency chain (gale → relay → jess) is the actual
