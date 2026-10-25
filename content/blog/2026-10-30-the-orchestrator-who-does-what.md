@@ -147,6 +147,79 @@ jess depends on **everything**. relay depends on the toolchain + gale + rivet.
 gale depends on the toolchain + ordeal. The bottlenecks propagate up the
 chain — and across it.
 
+## The skills are the process
+
+The agents don't work ad-hoc. They work from **skills** — patterns defined
+in this repository. Each skill is a procedure: when it fires, what steps to
+follow, which gates to pass, when to stop and ask a human.
+
+| Skill | Pattern | Loop |
+|---|---|---|
+| `issue-hunt` | Incremental bug/feature hunt over the issue tracker | Every X hours |
+| `gate-potency` | Audit whether CI checks can still fail | Before every release |
+| `oracle-gate-a-change` | Wire a mechanical check before merging | Per change |
+| `pulseengine-feature-loop` | End-to-end feature: spar → rivet → code → witness → sigil | Per feature |
+| `release-planning` | Land + ship, accumulate toward a release | Per release |
+| `clean-room-verification` | Fresh-context subagent validates findings | Per campaign |
+
+The orchestrator's job is not to do the work. It is to:
+
+1. **Define the skills** — the patterns, the procedures, the gates
+2. **Trigger the agents** — start the loops, every X hours
+3. **Review the output** — check the gates, read the reports
+4. **Decide what's next** — clear the decision queue, re-prioritize
+
+The agents work autonomously between triggers. They file issues, fix bugs,
+run the gates, open PRs. The orchestrator stays away — and comes back to
+review.
+
+This is the **vocabulary is the process** insight in action. The skills are
+the vocabulary. The loops are the cadence. The agents are the workers. The
+orchestrator is the human who defines, triggers, reviews, decides.
+
+## Resource constraints and the critical path
+
+The factory has real limitations. Sixteen gigabytes of RAM. Limited disk
+space. A runner queue that backs up. GitHub outages that take the whole
+fleet offline for hours. These are not theoretical — they are the constraints
+we fight with every day.
+
+These limitations make the **overseeing part even more important**. When
+resources are scarce, someone has to decide who gets what. Someone has to
+see the critical path. Someone has to ensure the queue is prioritized.
+
+That someone is the orchestrator.
+
+**What the orchestrator needs to define in the process:**
+
+| Question | What it means | Where it shows |
+|---|---|---|
+| **Who has a need?** | Which agent/repo needs which resource (RAM, disk, runner, hardware) | Resource allocation table |
+| **What is the critical chain?** | The longest chain of dependent gates — the minimum release time | Critical path diagram |
+| **Is it properly queued?** | Is the critical path at the front of the queue, or buried behind non-critical work? | Queue dashboard |
+
+**The dashboard is the control tower.** It shows the runner queue, the
+hardware availability, the GitHub outage status. The orchestrator looks at
+the dashboard and sees: 69 jobs queued on one runner pool, 5 minutes waiting,
+no estimate because fewer than 5 recent jobs in this pool. The orchestrator
+decides: does this job go to the front of the queue, or does it wait?
+
+**GitHub outages are a bottleneck.** When GitHub goes down, the whole fleet
+stops. The agents can't file issues, can't open PRs, can't run CI. The
+orchestrator sees the outage on the dashboard and decides: do we wait, or do
+we work on something that doesn't need GitHub?
+
+**The critical path needs priority.** If jess is blocked on relay, and relay
+is blocked on gale, then gale is the critical path. The orchestrator ensures
+that gale's jobs are at the front of the runner queue, that gale's hardware
+is available, that gale's decisions are cleared first. The critical path
+gets the resources. The non-critical path waits.
+
+**The principle:** resource constraints make the orchestrator's role
+critical. When resources are scarce, someone has to see the whole picture,
+visualize the critical path, and ensure the queue is prioritized. That
+someone is the orchestrator.
+
 ## Cross-repo issues: the bottlenecks are real
 
 The issues don't stay in one repo. They propagate.
