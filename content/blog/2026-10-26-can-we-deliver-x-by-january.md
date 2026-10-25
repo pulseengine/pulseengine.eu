@@ -45,27 +45,29 @@ flowchart TB
         direction TB
         g1["Gate 1: Requirements — requirements validation"]
         g2["Gate 2: Architecture — architecture solver"]
-        g3["Gate 3: Code + tests — CI"]
-        g4["Gate 4: Coverage — coverage check"]
-        g5["Gate 5: Proof — formal proof"]
-        g6["Gate 6: Hardware — simulation + silicon"]
-        g7["Gate 7: Sign-off — human"]
-        g1 --> g2 --> g3 --> g4 --> g5 --> g6 --> g7
+        g3["Gate 3: CI — continuous integration"]
+        g4["Gate 4: Tests — test suite"]
+        g5["Gate 5: Coverage — coverage check"]
+        g6["Gate 6: Proof — formal proof"]
+        g7["Gate 7: Hardware — simulation + silicon"]
+        g8["Gate 8: Sign-off — human"]
+        g1 --> g2 --> g3 --> g4 --> g5 --> g6 --> g7 --> g8
         style g1 fill:#1a1d27,stroke:#4ade80,color:#e1e4ed
         style g2 fill:#1a1d27,stroke:#4ade80,color:#e1e4ed
         style g3 fill:#1a1d27,stroke:#f87171,color:#e1e4ed
-        style g4 fill:#1a1d27,stroke:#8b90a0,color:#e1e4ed
+        style g4 fill:#1a1d27,stroke:#4ade80,color:#e1e4ed
         style g5 fill:#1a1d27,stroke:#8b90a0,color:#e1e4ed
         style g6 fill:#1a1d27,stroke:#8b90a0,color:#e1e4ed
-        style g7 fill:#1a1d27,stroke:#6c8cff,color:#e1e4ed
+        style g7 fill:#1a1d27,stroke:#8b90a0,color:#e1e4ed
+        style g8 fill:#1a1d27,stroke:#6c8cff,color:#e1e4ed
     end
 
     subgraph future["When will it be done? (release history from corpus)"]
         direction TB
-        h1["synth: 156 releases, 6 months, 26/week (fast, rudimentary)"]
+        h1["synth: 156 releases, 6 months, ~6/week (fast, rudimentary)"]
         h2["rivet: 57 releases, 8 months, 1.8/week (mechanical)"]
         h3["relay: 163 releases, 7 months, ~6/week, 57 in decision queue"]
-        h4["X matches relay: 8 gates, 3 need decisions<br/>→ 1–2 weeks mechanical + 2–20 weeks decision-dependent"]
+        h4["X matches relay: 8 gates, 3 need decisions<br/>→ 3–4 weeks mechanical + 2–20 weeks decision-dependent"]
         h1 --> h2 --> h3 --> h4
         style h1 fill:#1a1d27,stroke:#8b90a0,color:#e1e4ed
         style h2 fill:#1a1d27,stroke:#8b90a0,color:#e1e4ed
@@ -88,39 +90,52 @@ flowchart TB
 
 To estimate X, you need history. Every project you've shipped with gates,
 deadlines, and requirements is a reference. Here is the actual corpus from
-our repositories, measured on 26 October 2026:
+our repositories, measured on 26 October 2026 — seven projects spanning
+application, verification, and toolchain layers:
 
 **The gate is the release, not the issue.** In rivet, `rivet release` cuts a
 release — that is the bound, the thing that ships. The issues are the work
 that goes into the release. One release closes many issues; the release is
-what the customer sees.
+what the customer sees. Each gate passage is a release: the mechanical gates
+(requirements, architecture, CI, tests, coverage) are **oracle-gated** — a
+machine can check them (Blog 1's "oracle axis"). The decision gates (safety
+argument, hardware access, sign-off) need a human.
 
-| Project | Releases (gates) | Issues (work) | Months active | Release velocity | Issues/release | Decision queue |
+| Project | Releases (gates) | Issues (work)[^issues-prs] | Months active | Release velocity | Issues/release | Decision queue floor |
 |---|---|---|---|---|---|---|
-| **synth** | 156 | 432 | 6 (May–Oct 2026) | **26/week** | 2.8 | not yet measured |
+| **synth** | 156 | 432 | 6 (May–Oct 2026) | **~6/week** | 2.8 | not yet measured |
 | **rivet** | 57 | 264 | 8 (Mar–Oct 2026) | **1.8/week** | 4.6 | not yet measured |
-| **relay** | 163 (falcon) | 108 | 7 (Apr–Oct 2026) | **~6/week** | 0.7 | **57** |
+| **relay** | 163 (falcon)[^falcon] | 108 | 7 (Apr–Oct 2026) | **~6/week** | 0.7 | **57** |
 | **spar** | 48 | 132 | 8 (Mar–Oct 2026) | **1.6/week** | 2.8 | not yet measured |
-| **gale** | 10 | 89 | 3 (Jul–Oct 2026) | **0.77/week** | 8.9 | **30** |
-| **jess** | 4 | 12 | 3 (Jun–Sep 2026) | **0.31/week** | 3.0 | not yet measured |
+| **gale** | 10 | 89 | 3 (Jul–Sep 2026) | **0.77/week** | 8.9 | **30** |
+| **jess** | 4 | 12 | 4 (Jun–Sep 2026) | **0.24/week** | 3.0 | not yet measured |
+| **loom** | 36 | — | 8 (Jan–Aug 2026) | **1.1/week** | — | **26** |
 
-The decision queue column is the `needs-decision` floor from
-`scripts/issue-class-floors.json` — the number of issues currently waiting
-for a human decision. Relay has 57; gale has 30. These are the queues that
-set the team size.
+The decision queue column is the `needs-decision` **floor** from
+`scripts/issue-class-floors.json` — a ratchet measured at the first fully
+classified pass. It can only tighten, never loosen. It is the brake
+threshold: when the queue of undecided issues exceeds this floor, the
+issue-hunt skill stops filing new agent-closable work until a human
+clears decisions. Relay's floor is 57; gale's is 30; loom's is 26.
+These floors set the minimum team size — the number of humans needed
+to keep the decision queue from growing.
 
 **Cross-repo dependencies.** jess (hardware integration) has open issues
 referencing relay (flight stack) and gale (kernel) — the hardware layer
-cannot close its gates until the software layers pass theirs. synth has
-the highest release velocity (26/week) but is still rudimentary: many
-small releases, fast cadence, but the releases themselves need more work.
-Speed of release is not the same as maturity of the gate.
+cannot close its gates until the software layers pass theirs. These
+dependencies are managed through **contracts** — the thin agreed
+interfaces between stations (see [the next post](/blog/the-orchestrator-who-does-what/)).
+synth and relay tie for the highest release velocity (~6/week) but synth
+is still rudimentary: many small releases, fast cadence, but the
+releases themselves need more work. Speed of release is not the same as
+maturity of the gate.
 
-X has 8 gates: 5 mechanical (CI, tests, coverage), 3 decision-dependent
-(safety argument, hardware access, sign-off). That matches relay's profile:
-hardware-dependent, slow decisions, a decision queue of 57. If your
-hardware access is sorted by March, we're looking at June–July 2027. If
-not, add 8 weeks.
+X has 8 gates: 5 mechanical (requirements validation, architecture solver,
+CI, tests, coverage), 3 decision-dependent (safety argument, hardware
+access, sign-off). That matches relay's profile: hardware-dependent, slow
+decisions, a decision queue of 57. If your hardware access is sorted by
+March, we're looking at May–June 2027 with 80% confidence, June–July 2027
+with a buffer. If not, add 8 weeks.
 
 ## Reference class forecasting, not estimation from scratch
 
@@ -129,22 +144,25 @@ actuals.** This is reference class forecasting (Flyvbjerg, *Reference Class
 Forecasting in Planning and Forecasting*, 2021)[^flyvbjerg] — the same method
 used for railways, bridges, and IT projects that consistently overrun.
 
-> "X matches relay's profile. Relay took 12 weeks: 4 for mechanical gates,
-> 8 waiting on decisions. If your hardware access is sorted by March, we're
-> looking at June–July 2027. If not, add 8 weeks."
+> "X matches relay's profile. Relay took 12 weeks end-to-end: 4 weeks of
+> mechanical gates, 8 weeks waiting on decisions. The critical path allocates
+> 8 weeks to relay's portion — the mechanical work plus the decision wait
+> that runs in parallel with gale's and jess's work. If your hardware access
+> is sorted by March, we're looking at May–June 2027 with 80% confidence,
+> June–July 2027 with a buffer. If not, add 8 weeks."
 
 ## Confidence intervals, not a single date
 
 Give confidence intervals, not false precision. From the corpus:
 
 - **Mechanical gates** (rivet 1.8 releases/week, spar 1.6/week, synth
-  26/week): 5 gates take **3–4 weeks** (80% confidence). Each release
+  ~6/week): 5 gates take **3–4 weeks** (80% confidence). Each release
   closes ~3–5 issues of mechanical work.
 - **Decision gates** (relay ~6/week but 57 in queue, gale 0.77/week with
-  30 in queue, jess 0.31/week hardware-blocked): 3 gates take **2–20 weeks**
+  30 in queue, jess 0.24/week hardware-blocked): 3 gates take **2–20 weeks**
   depending on hardware access and queue position.
 
-> "Based on 6 projects in our corpus, the mechanical gates take 3–4 weeks.
+> "Based on 7 projects in our corpus, the mechanical gates take 3–4 weeks.
 > The decision gates depend on your hardware access. If that's sorted by
 > March, we deliver **May–June 2027** with 80% confidence. With a buffer
 > for queue position, **June–July 2027**. If hardware access slips, add
@@ -170,13 +188,21 @@ chain — the one that sets the minimum release time.
 gale (kernel) → relay (flight stack) → jess (orchestrator)
    4 weeks         8 weeks                12 weeks
    └──────────────┬──────────────────────┘
-                  └─ critical path: 24 weeks
+                  └─ critical path: 24 weeks (application layer)
 ```
 
 If gale takes 4 weeks, relay takes 8 weeks, and jess takes 12 weeks, the
-critical path is **24 weeks**. That is the minimum time to release. Any
-delay on the critical path — gale slips, relay slips, jess slips — delays
-the entire release.
+critical path is **24 weeks** for the application layer. That is the
+minimum time to release the software chain. But the delivery estimate of
+May–July 2027 includes the hardware constraint: the hardware gate cannot
+start until boards are available (sorted by March 2027). The 24-week
+critical path runs from now (October 2026) to ~April 2027 for the
+software; the hardware gate adds the remaining wait until boards are
+free, landing delivery in May–July 2027.
+
+This 24-week critical path covers the **application layer** (gale → relay
+→ jess). The full dependency chain — including the toolchain and
+verification layers — is longer and is traced in [the next post](/blog/the-orchestrator-who-does-what/).
 
 **How to find the critical path:**
 
@@ -259,12 +285,30 @@ releases per week can humans decide and verify?
 The math is simple:
 
 ```
-Team size = (releases per week) / (releases per human per week)
+Steady-state team size = (releases per week) / (releases per human per week)
 ```
 
 If your factory ships 6 releases per week (like relay), and one human can
-decide/verify 1 release per week, you need **6 humans**. Not 100. Not 50.
-Six.
+decide/verify 1 release per week, you need **6 humans** to keep up. Not
+100. Not 50. Six.
+
+But there is a second number: the **queue capacity**. The decision queue
+floor (the ratchet from Blog 1) sets a minimum. Relay's floor is 57 —
+meaning at the first classified pass, 57 issues were waiting for human
+decisions. To clear that backlog at 1 decision per human per day, you
+need enough humans to drain it within your target cycle time. The WIP
+limit on the decision queue caps how many items can wait; the team size
+must be large enough to clear the queue within that limit.
+
+| Measure | Formula | Relay example |
+|---|---|---|
+| Steady-state team size | releases/week ÷ releases/human/week | 6 ÷ 1 = **6 humans** |
+| Queue capacity | decision queue floor ÷ decisions/human/day × target days | 57 ÷ 5 × 5 = **~6 humans** |
+
+Both formulas converge on the same answer when the WIP limit is set
+correctly: the team size is the number of humans needed to keep the
+decision queue from growing. The WIP limit is the brake; the team size
+is the engine that keeps the brake from firing.
 
 The ratio is the insight: **one human can oversee many agents, but the
 limit is release throughput.** An agent can produce a thousand lines in an
@@ -289,9 +333,13 @@ decision queue. Same people, different leverage. The factory needs fewer
 hands on the line, but more hands on the gates.
 {% </note> %}
 
-The WIP limit on the decision queue is the team size. If you cap the
-decision queue at 10 items, you need roughly 10 humans to clear it. If
-you cap it at 50, you need 50. The cap is the team size.
+The WIP limit on the decision queue is the brake. If you cap the
+decision queue at 10 items, you need roughly 10 humans to clear it
+within a week (at 1 decision per human per day, 5 working days). If
+you cap it at 50, you need 50. The cap is the team size — but only
+if the cap matches the throughput. A cap of 50 with 6 releases per
+week means the queue grows faster than humans can drain it. Set the
+cap to match the throughput, and the team size follows.
 
 This is why the vocabulary matters. "Team size" in SAFe means "how many
 people write code." In the factory, it means "how many people ship
@@ -301,11 +349,12 @@ releases." The number is smaller. The leverage is higher.
 
 > "We don't guess. We measure. X has 8 release gates. Two are green, one is
 > red (the proof — we need a decision from your team on the safety
-> argument), five haven't started. Based on 6 projects in our corpus, the
+> argument), five haven't started. Based on 7 projects in our corpus, the
 > mechanical gates take 3–4 weeks. The decision gates depend on your
 > hardware access. If that's sorted by March, we deliver May–June 2027
-> with 80% confidence. Here's the dashboard showing every gate's status,
-> and here's the historical data behind the estimate."
+> with 80% confidence, June–July 2027 with a buffer. Here's the dashboard
+> showing every gate's status, and here's the historical data behind the
+> estimate."
 
 ## Why this beats SAFe estimation
 
@@ -344,9 +393,10 @@ gates**, and that's a measurement, not a guess.
 with gates, deadlines, and requirements is a data point. Find the similar
 one and use its actuals.
 
-**Give confidence intervals, not single dates.** "June–July 2027 at 80%
-confidence" is more honest than "January 2027" — and it separates the
-predictable (mechanical gates) from the unpredictable (decision gates).
+**Give confidence intervals, not single dates.** "May–June 2027 at 80%
+confidence, June–July 2027 with a buffer" is more honest than "January
+2027" — and it separates the predictable (mechanical gates) from the
+unpredictable (decision gates).
 
 **Story points measure complexity, not time.** SAFe doesn't require
 cross-team calibration — it's an organizational practice, and a known
@@ -370,12 +420,13 @@ order-of-magnitude for very early estimation ("30–80 KLOC, high reliability
 concept of gates, oracles, or decision queues. Once you have gates, switch
 to the flow model.
 
-The corpus in this post is illustrative. Real flow velocity varies by team,
+The corpus in this post is real data from the author's repositories,
+measured on 26 October 2026. Real flow velocity varies by team,
 toolchain, and hardware access. The similarity matching is qualitative —
-"high (same toolchain)" is a judgment, not a measurement. A larger corpus
-with more similarity tags would improve the match.
+"X matches relay's profile" is a judgment, not a measurement. A larger
+corpus with more similarity tags would improve the match.
 
-The Monte Carlo intervals assume past projects are representative of future
+The confidence intervals assume past projects are representative of future
 ones. If your factory's throughput is changing (new tools, new team members,
 new gate types), the corpus may not predict the future.
 
@@ -389,13 +440,17 @@ Framework metrics are from Kersten (2018). The SAFe story points research
 is from archived and current scaledagileframework.com documentation plus
 practitioner sources; each is cited with its tier below.
 
-**Caveats on the evidence.** The corpus table is illustrative — real flow
-velocity data would come from the author's own project history. The SAFe
-story points findings are from official SAFe documentation (live and archived
-via Wayback Machine) plus practitioner blogs and forums; the archived SAFe
+**Caveats on the evidence.** The corpus table is real data from the
+author's own repositories, measured on 26 October 2026. The similarity
+matching is qualitative — "X matches relay's profile" is a judgment, not
+a measurement. A larger corpus with more similarity tags would improve
+the match. The confidence intervals are derived from the corpus
+statistics, not from a Monte Carlo simulation. The SAFe story points
+findings are from official SAFe documentation (live and archived via
+Wayback Machine) plus practitioner blogs and forums; the archived SAFe
 4.x/5.0 text is from web.archive.org, and the current SAFe 6 text was
-verified on the live site. Some practitioner quotes (Schwaber, Coplien) are
-via secondary attribution and were not independently verified.
+verified on the live site. Some practitioner quotes (Schwaber, Coplien)
+are via secondary attribution and were not independently verified.
 
 
 [^flyvbjerg]: Bent Flyvbjerg, *Reference Class Forecasting in Planning and Forecasting*, 2021. Primary (book). The method: estimate from the actuals of similar past projects, not from a bottom-up estimate of the current project.
@@ -429,6 +484,14 @@ via secondary attribution and were not independently verified.
 [^safe-wsjf]: Scaled Agile, Inc., *Weighted Shortest Job First (WSJF)*. [scaledagileframework.com](https://scaledagileframework.com/wsjf/). Primary (official documentation). "WSJF is estimated as the relative cost of delay divided by the relative job duration" — deliberately relative, no cross-team point comparability needed.
 
 [^safe-measure-grow]: Scaled Agile, Inc., *Measure and Grow* (updated September 2025). [scaledagileframework.com](https://scaledagileframework.com/measure-and-grow/). Primary (official documentation). "Business agility requires measuring outcomes, flow, and competency... Flow metrics measure delivery efficiency and predictability."
+
+[^falcon]: relay's releases are tagged under the `falcon-` prefix — the flight stack component family within the relay repository. All 163 releases are falcon-component releases.
+
+[^issues-prs]: The "Issues (work)" column counts GitHub issues only (excluding pull requests). GitHub shares the number space between issues and PRs, so the highest issue/PR number in a repo is much larger than the issue count — e.g. jess has 12 issues but the highest number is #297 because PRs occupy the intervening numbers.
+
+---
+
+*Next in the arc: [The orchestrator: who does what when bottlenecks won't go away](/blog/the-orchestrator-who-does-what/) — the roles, the contracts, and the human who defines the skills, triggers the agents, and clears the decision queue.*
 
 ---
 

@@ -13,15 +13,21 @@ authors = ["Ralf Anton Beier"]
 **The roles are the factory.** jess orchestrates — integrates, watches the
 release, owns the ladder. relay flies — the control cascade, verified.
 gale provides the kernel — the primitives, the proofs, the foundation.
+
 The names are not labels. They are **principles**. The bottlenecks move —
 hardware, CI, decisions, dependencies. The roles don't.
+
+And behind the agents is a **human** — the orchestrator who defines the
+skills, triggers the loops, reviews the output, and makes the decisions
+the oracles cannot.
 {% </insight> %}
 
 [The first post](/blog/safe-was-built-for-slow-humans/) argued that the
 bottleneck in an agent factory is not generation — it is verification and
 decisions. [The second post](/blog/can-we-deliver-x-by-january/) showed how
-to estimate from gates and flow history. This post is about the people: who
-does what, and why the roles are clear even when the bottlenecks are not.
+to estimate from gates and flow history. This post is about the roles: who
+does what — the agents, the repos, and the human who orchestrates them —
+and why the roles are clear even when the bottlenecks are not.
 
 ## The roles
 
@@ -43,21 +49,22 @@ flowchart TB
 
     style jess fill:#1a1d27,stroke:#6c8cff,color:#e1e4ed
     style relay fill:#1a1d27,stroke:#fbbf24,color:#e1e4ed
-    style gale fill:#1a1d27,stroke:#22d3ee,color:#e1e4ed
+    style gale fill:#1a1d27,stroke:#fbbf24,color:#e1e4ed
 
     classDef orch fill:#1a1d27,stroke:#6c8cff,color:#e1e4ed;
     classDef flight fill:#1a1d27,stroke:#fbbf24,color:#e1e4ed;
-    classDef kernel fill:#1a1d27,stroke:#22d3ee,color:#e1e4ed;
+    classDef kernel fill:#1a1d27,stroke:#fbbf24,color:#e1e4ed;
 {% </mermaid> %}
 
 | Role | Repo | What they do | The bottleneck they own |
 |---|---|---|---|
-| **Orchestrator** | jess | Hardware integration, release watch, the ladder from sim to silicon | Hardware availability, release timing |
+| **Orchestrator** | jess | Hardware integration, release watch, the **ladder** from sim to silicon | Hardware availability, release timing |
 | **Flight stack** | relay | The control cascade, the verified flight software | Simulation fidelity, HITL binding |
 | **Kernel** | gale | The verified OS primitives, the foundation | Formal proofs, silicon bring-up |
 
 **The names are principles.** "Orchestrator" means: you integrate, you watch
-the release, you own the ladder. "Flight stack" means: you fly, you verify,
+the release, you own the **ladder** — the deployment path from simulation to
+silicon, rung by rung. "Flight stack" means: you fly, you verify,
 you ship the cascade. "Kernel" means: you provide the primitives, you prove
 them, you're the foundation.
 
@@ -78,11 +85,12 @@ follow, which gates to pass, when to stop and ask a human.
 | Skill | Pattern | Loop |
 |---|---|---|
 | `issue-hunt` | Incremental bug/feature hunt over the issue tracker | Every X hours |
-| `gate-potency` | Audit whether CI checks can still fail | Before every release |
+| `gate-potency` | Audit whether CI checks can still fail (Blog 1's "gate potency" metric) | Before every release |
 | `oracle-gate-a-change` | Wire a mechanical check before merging | Per change |
 | `pulseengine-feature-loop` | End-to-end feature: spar → rivet → code → witness → sigil | Per feature |
 | `release-planning` | Land + ship, accumulate toward a release | Per release |
 | `clean-room-verification` | Fresh-context subagent validates findings | Per campaign |
+| `report-tool-friction` | File a report when a tool errors, lacks capability, or forces a workaround | When friction is noticed |
 
 The orchestrator's job is not to do the work. It is to:
 
@@ -98,6 +106,39 @@ review.
 This is the **vocabulary is the process** insight in action. The skills are
 the vocabulary. The loops are the cadence. The agents are the workers. The
 orchestrator is the human who defines, triggers, reviews, decides.
+
+## The human in the loop
+
+The orchestrator is not an agent. The orchestrator is a **human** — the one
+who writes the skills, sets the cron loops, reviews the output, and makes
+the decisions the oracles cannot. This is not "AI replaces the team." This
+is "the team's leverage changes."
+
+What the human actually does, day to day:
+
+| Activity | What it looks like |
+|---|---|
+| **Define skills** | Write the procedures in `pulseengine.eu` — issue-hunt, gate-potency, oracle-gate-a-change, release-planning |
+| **Trigger agents** | "continue with the new pulseengine skills" across gale, relay, jess, ordeal, varve — set up a 6-hour cron loop with a one-week timeout |
+| **Review output** | Read the agent reports, check the gates, verify the claims — spawn a clean-room subagent to cross-check |
+| **Decide** | "we need these measurements" — prioritize the decision queue, allocate hardware, plan the next release |
+| **Handle hardware** | Set up the test boards, configure the layers, claim devices with `with-device` |
+| **Build tools** | When a tool is a bottleneck (Z3 too slow, serde_yaml unmaintained), decide: build or work around |
+
+The human's leverage is in **designing the factory and verifying the output** —
+not in writing the code. The agents write the code. The human writes the
+skills, sets the loops, and decides what the oracles cannot.
+
+This is the same pattern as Blog 1's orchestrator role: the coder becomes
+the orchestrator. The person who used to write code now designs the gates,
+verifies the output, and decides what the oracles cannot. The bottleneck
+moves from code production to decision-making — and the human is the
+decision-maker.
+
+The WIP limit on the decision queue (Blog 1) caps how many decisions can
+wait. The orchestrator prioritizes within that cap. The team size is the
+number of humans needed to keep the queue from growing — not the number
+of people writing code.
 
 ## Resource constraints and the critical path
 
@@ -117,14 +158,17 @@ That someone is the orchestrator.
 | Question | What it means | Where it shows |
 |---|---|---|
 | **Who has a need?** | Which agent/repo needs which resource (RAM, disk, runner, hardware) | Resource allocation table |
-| **What is the critical chain?** | The longest chain of dependent gates — the minimum release time | Critical path diagram |
+| **What is the critical path?** | The longest chain of dependent gates — the minimum release time | Critical path diagram |
 | **Is it properly queued?** | Is the critical path at the front of the queue, or buried behind non-critical work? | Queue dashboard |
 
 **The dashboard is the control tower.** It shows the runner queue, the
 hardware availability, the GitHub outage status. The orchestrator looks at
-the dashboard and sees: 69 jobs queued on one runner pool, 5 minutes waiting,
-no estimate because fewer than 5 recent jobs in this pool. The orchestrator
-decides: does this job go to the front of the queue, or does it wait?
+the dashboard and sees: 69 jobs queued on one runner pool, 5 minutes waiting.
+The ask feature estimates when a job will run — but only when the pool has
+enough recent history (at least 5 recent jobs in the last 3 hours). A pool
+with sparse history returns "no estimate" rather than a guess. The
+orchestrator decides: does this job go to the front of the queue, or does
+it wait?
 
 **GitHub outages are a bottleneck.** When GitHub goes down, the whole fleet
 stops. The agents can't file issues, can't open PRs, can't run CI. The
@@ -158,7 +202,10 @@ sees the whole picture — and decides who waits.
 **The principle:** resource constraints make the orchestrator's role
 critical. When resources are scarce, someone has to see the whole picture,
 visualize the critical path, and ensure the queue is prioritized. That
-someone is the orchestrator.
+someone is the orchestrator. The orchestrator manages **flow** across the
+stations — the same flow Blog 1 defined as the replacement for sprints.
+The WIP limit on the decision queue caps how many items wait; the
+orchestrator prioritizes within that cap.
 
 ## Building your own tools
 
@@ -283,7 +330,8 @@ Here are the real contracts, from the issue trackers:
 > has no battery element — so a host driving the supervised component over
 > the HITL transport **cannot arm it. Ever.**
 >
-> Predicted by jess #167 six days before #571 existed.
+> Predicted by jess #167 six days before relay #571 (the original report;
+> #572 is the tracking issue) existed.
 
 ### Interface identity (relay #589)
 
@@ -342,13 +390,15 @@ tower, its own critical path.
 
 **Each part of the software is a station with its own machine.** gale has
 its own CI, its own agents, its own gates. relay has its own. jess has its
-own. wohl has its own. Each station is a factory cell — it produces, it
-verifies, it ships. The orchestrator coordinates the cells.
+own. wohl has its own. Each station produces, verifies, ships. The
+orchestrator coordinates the stations.
 
-**The control tower shows all factories.** The meta-layer. The dashboard
-that shows: drone factory (jess, relay, gale), home automation factory
-(wohl), the toolchain (meld, loom, synth), the verification chain (rivet,
-witness, sigil). One view. All factories. All orchestrators. All stations.
+**The control tower shows all factories.** The **meta-layer** — the
+cross-factory view that shows all control towers in one dashboard. The
+dashboard that shows: drone factory (jess, relay, gale), home automation
+factory (wohl), the toolchain (meld, loom, synth), the verification chain
+(rivet, witness, sigil). One view. All factories. All orchestrators. All
+stations.
 
 **The principle scales.** One orchestrator per domain. One control tower
 per factory. One meta-layer across all factories. The model is not "one
@@ -545,6 +595,15 @@ tower.
   patterns, used by all agents on all repos
 
 {% <note kind="tip"> %}
+**Projects and tools.** rivet and synth appear in Blog 2's corpus as
+projects (they ship releases). Here they appear as tools in the
+verification and toolchain layers. A repo can be both: it ships releases
+(it's a project) and it provides a capability to other repos (it's a
+tool). The corpus measures release velocity; the dependency tree shows
+what depends on what.
+{% </note> %}
+
+{% <note kind="tip"> %}
 **Two kinds of "layer."** varve manages **toolchain layers** — pinned,
 signed, dated bundles of tools (one layer per release). The **architectural
 layers** in this post (toolchain, verification, application) are a
@@ -558,15 +617,19 @@ is the bundle; the architectural layer is the role.
 
 That is the longest chain. If any link in that chain is delayed, jess is
 delayed. The critical path runs through the toolchain and the verification
-chain — not just the application stack.
+chain — not just the application stack. (Blog 2's 24-week critical path
+covers the application layer only: gale → relay → jess. This post's
+critical path is the full dependency chain for the orchestrator's build.)
 
 ### The issue-level dependency tree
 
 The repos depend on each other. But the **issues** depend on each other too.
 One issue blocks another. That one blocks the next. Downstream.
 
-Here are the real issue-level chains, traced from the issue trackers on
-26 October 2026:
+Here are illustrative issue-level chains, traced from the issue trackers on
+26 October 2026. The issue numbers and titles are real; the dependency
+edges show the *pattern* — how issues propagate across repos — not a
+complete trace of every dependency:
 
 {% <mermaid> %}
 flowchart TD
@@ -587,7 +650,7 @@ flowchart TD
 
     subgraph gale_issues["gale issues (kernel)"]
         g398["gale #398<br/>dissolved objects<br/>address wasm data"]
-        g397["gale #397<br/>bench: four boards<br/>on wohl.local"]
+        g397["gale #397<br/>bench: four boards<br/>shared hardware"]
     end
 
     subgraph synth_issues["synth issues (toolchain)"]
@@ -661,8 +724,9 @@ delayed. The critical path runs through the issues, not just the repos.
 ## The layered factory: each layer built by a machine
 
 The factory is not a flat list of repos. It is **layers**. Each layer is
-built by a **machine** — agents, CI, gates. The layers stack: application
-on top of verification on top of toolchain.
+built by a **machine** — the combination of agents, CI, and gates that
+produces, verifies, and ships. The layers stack: application on top of
+verification on top of toolchain.
 
 {% <mermaid> %}
 flowchart TB
@@ -731,9 +795,11 @@ flowchart TB
 | **2: Verification** | rivet, spar, witness, ordeal | Agents | CI, gates, skills (gate-potency, clean-room-verification) |
 | **1: Toolchain** | meld, loom, synth, kiln, sigil, **varve**, **warte** | Agents | CI, gates, skills (release-planning, release-execution) |
 
-**Each layer is a station with its own machine.** The application layer has
-its own agents, its own CI, its own gates. The verification layer has its
-own. The toolchain layer has its own. Each layer produces, verifies, ships.
+**Each layer contains stations, each with its own machine.** The application
+layer has jess, relay, gale — each with its own agents, CI, gates. The
+verification layer has rivet, spar, witness, ordeal — each with its own.
+The toolchain layer has meld, loom, synth, kiln, sigil — each with its own.
+Each station produces, verifies, ships.
 
 **The layers stack.** Application depends on verification. Verification
 depends on toolchain. The toolchain is the foundation — meld fuses, loom
@@ -889,6 +955,10 @@ are clear and the bottlenecks are managed — is the author's view, not a
 measured outcome.
 
 [^anthropic-scion]: Anthropic, *Redesigning source control at Anthropic*, October 2026. [anthropic.com/research/redesigning-source-control](https://www.anthropic.com/research/redesigning-source-control). Primary (company research publication). The article describes building Scion, an in-house version control system, after git became a bottleneck at 30,000 merges/day and 600 PB of daily git traffic. Key quote: "Claude's ability to write code was both what put us in this situation in the first place and how we were able to quickly build a high-quality, scalable system to deal with it."
+
+---
+
+*This is the last post in the arc. The series: [SAFe was built for slow humans](/blog/safe-was-built-for-slow-humans/) → [Can we deliver X by January?](/blog/can-we-deliver-x-by-january/) → [The orchestrator: who does what](/blog/the-orchestrator-who-does-what/).*
 
 ---
 

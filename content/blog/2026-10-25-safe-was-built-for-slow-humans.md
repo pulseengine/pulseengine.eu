@@ -50,7 +50,7 @@ flowchart TB
         h["Comprehend<br/>(understand the concept)"]
         d["Decide<br/>(what is correct?)"]
         v["Verify<br/>(does the gate fail?)"]
-        s["Sign<br/>(human accountability)"]
+        s["Sign-off<br/>(human accountability)"]
         h --> d --> v --> s
     end
     artifacts --> bottleneck
@@ -146,11 +146,11 @@ flowchart LR
 
     subgraph kanban["Kanban with gates (after agents)"]
         direction TB
-        k1["Continuous intake"] --> k2{"Oracle exists?"}
+        k1["Continuous intake"] --> k2{"Oracle exists?<br/>(can a machine check?)"}
         k2 -->|yes| k3["Agents fix<br/>(uncapped)"]
         k2 -->|no| k4["Decision queue<br/>(WIP-limited)"]
         k4 --> k3
-        k3 --> k5["Gates<br/>(proven to fail)"] --> k6["Release<br/>(human sign-off)"]
+        k3 --> k5["Gates<br/>(proven to fail)"] --> k6["Ship<br/>(human sign-off)"]
         style k1 fill:#1a1d27,stroke:#8b90a0,color:#e1e4ed
         style k2 fill:#1a1d27,stroke:#8b90a0,color:#e1e4ed
         style k3 fill:#1a1d27,stroke:#4ade80,color:#e1e4ed
@@ -196,6 +196,13 @@ proxying for effort once agents write the code.
 | WSJF | Economic prioritisation of features | Oracle-gated triage: can a machine check this? |
 | Portfolio kanban | Visibility of epics across portfolios | WIP limits on the decision queue |
 
+An **oracle** is a mechanical check that can confirm or deny correctness —
+a test that fails when the code is wrong, a proof that fails when the
+property doesn't hold, a coverage check that fails when the code is
+untested. The oracle axis splits work into two classes: what an oracle
+can verify (agents handle it, uncapped) and what needs a human decision
+(the decision queue, WIP-limited).
+
 ## What fits: Kanban with gates
 
 Kanban was built for flow, not for cycles. Four principles, each with a direct
@@ -212,7 +219,8 @@ The WIP limit is the part that matters most. In [The machine arrived before
 the factory](/blog/the-machine-arrived-before-the-factory/) we split the
 backlog on the oracle axis: issues whose fix a mechanical check can confirm go
 to the agents without a cap, and only issues that need a scope, architecture
-or priority decision count against a ratchet.
+or priority decision count against a **ratchet** — a WIP limit that only
+counts issues needing human decisions, and can only tighten, never loosen.
 
 Yuval Yeret puts it precisely: "WIP limits should still mainly reflect human
 capacity and attention… Human attention for steering, review, integration, and
@@ -289,13 +297,13 @@ system can expose the same data.*
 
 {% <mermaid> %}
 flowchart TB
-    subgraph layers["Coordination layers"]
+    subgraph layers["Coordination mechanisms"]
         direction TB
         l1["<b>Kanban</b> (station)<br/>Board, WIP limits, gates"]
         l2["<b>Interface contracts</b><br/>Architecture models, API specs, SLOs, traceability — as code"]
         l3["<b>Integration cadence</b><br/>Weekly merge, KPIs generated automatically"]
         l4["<b>Dependency management</b><br/>Shared board, visible blockers"]
-        l5["<b>Factory control tower</b><br/>Machine-readable metrics over all teams"]
+        l5["<b>Cross-factory metrics layer</b><br/>Machine-readable metrics over all teams"]
     end
     l1 --> l2 --> l3 --> l4 --> l5
 
@@ -306,8 +314,9 @@ flowchart TB
     style l5 fill:#1a1d27,stroke:#c084fc,color:#e1e4ed
 {% </mermaid> %}
 
-Kanban alone does not scale to a large organisation. Between stations you need
-**contracts, not meetings**. The Bezos API Mandate (2002) is the canonical
+Kanban alone does not scale to a large organisation. Between **stations**
+— self-contained units with their own board, WIP limits, and gates — you
+need **contracts, not meetings**. The Bezos API Mandate (2002) is the canonical
 example: "Teams must communicate with each other through these interfaces.
 There will be no other form of interprocess communication allowed"[^bezos-mandate].
 Team Topologies formalizes this as **X-as-a-service**: "one team provides a
@@ -376,7 +385,7 @@ If you keep the process, you keep the bottleneck.
 | Epic / Feature | Work item with gates | Decomposed into gates, not estimated in points |
 | Release train | Integration cadence | Weekly merge to an integration stand, not a train |
 | ART sync | Contract check | Machine-readable contracts, not a meeting |
-| Scrum master | Orchestrator | Designs gates, verifies output, decides what oracles cannot |
+| Coder | Orchestrator | Designs gates, verifies output, decides what oracles cannot |
 | Product owner | Decision owner | Owns the decision queue, not the backlog |
 | Story | Gate-passing work item | Work that passes gates, not work that fits in a sprint |
 
@@ -386,7 +395,7 @@ of process needs three people:
 | Role | What they do | Why they're needed |
 |---|---|---|
 | **Process person** | Designs the new flow, the gates, the WIP limits | Someone who understands process change — not just tools, but how work moves |
-| **Quality person** | Designs the oracles, proves the gates can fail | Someone who understands verification — the gates are the safety system |
+| **Quality owner** | Designs the oracles, proves the gates can fail | Someone who understands verification — the gates are the safety system |
 | **User of the vocabulary** | Uses the new words daily, corrects the old ones | Someone who speaks the new language — if nobody uses it, it's dead |
 
 Without all three, the vocabulary change fails. The process person designs a
