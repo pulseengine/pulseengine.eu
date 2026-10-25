@@ -156,6 +156,51 @@ This is honest because:
 - You're separating **mechanical gates** (predictable) from **decision gates**
   (unpredictable)
 
+## The critical path
+
+Confidence intervals give you a range. But what determines the **minimum**
+time? The **critical path** — the longest chain of dependent gates.
+
+A release is a chain: gate A must pass before gate B can start, gate B before
+gate C, and so on. Some chains are short (mechanical gates, fast). Some are
+long (decision gates, hardware-blocked). The **critical path** is the longest
+chain — the one that sets the minimum release time.
+
+```
+gale (kernel) → relay (flight stack) → jess (orchestrator)
+   4 weeks         8 weeks                12 weeks
+   └──────────────┬──────────────────────┘
+                  └─ critical path: 24 weeks
+```
+
+If gale takes 4 weeks, relay takes 8 weeks, and jess takes 12 weeks, the
+critical path is **24 weeks**. That is the minimum time to release. Any
+delay on the critical path — gale slips, relay slips, jess slips — delays
+the entire release.
+
+**How to find the critical path:**
+
+1. **List the gates** — every gate in the release, with its duration
+2. **List the dependencies** — which gates must pass before each gate can start
+3. **Trace the chains** — follow the dependencies from start to finish
+4. **Find the longest chain** — that's the critical path
+5. **The critical path duration is the minimum release time**
+
+**Why it matters:**
+
+- **Estimation** — the critical path duration is the minimum estimate. Add
+  buffer for the non-critical paths.
+- **Bottlenecks** — the critical path is where the bottlenecks are. Fix the
+  critical path, and the release gets faster.
+- **Prioritization** — work on the critical path first. Work on non-critical
+  paths can wait.
+- **Communication** — tell the customer the critical path. "We can deliver
+  in 24 weeks minimum, because this chain of dependencies takes 24 weeks."
+
+**The critical path moves.** Fix the hardware bottleneck, and the decision
+queue becomes the critical path. Add more runners, and the CI queue moves.
+The critical path is not fixed — it moves as you improve other steps.
+
 ## What you need to collect
 
 To make this work, track per project:
