@@ -110,17 +110,31 @@ orchestrator is the human who directs, triggers, reviews, decides.
 ## The human in the loop
 
 The orchestrator is not an agent. The orchestrator is a **human** — the one
-who enables the agents, sets the triggers, reviews the output, and makes
-the decisions the oracles cannot. In this factory, the orchestrator is also
-the **owner**: the only human stakeholder. There is no team, no Scrum
-master, no product owner. There is the orchestrator and the agents.
+who enables the agents, reviews the output, and makes the decisions the
+oracles cannot. In this factory, the orchestrator is also the **owner**:
+the only human stakeholder. There is no team, no Scrum master, no product
+owner. There is the orchestrator and the agents.
 
 The pattern is simple: **the human enables, the agents do.** The orchestrator
 does not write skills — they tell the pulseengine.eu agent to write or update
 them based on triggers. The orchestrator does not install tools — the agents
 install `with-device`, configure varve layers, and claim hardware themselves.
-The orchestrator does not write code — the agents do. The orchestrator's job
-is to enable, review, and decide.
+The orchestrator does not write code — the agents do.
+
+But enabling is not the main job. The main job is **prioritization** across
+three streams that constantly compete for attention:
+
+| Stream | What it looks like | Example |
+|---|---|---|
+| **Friction** | Tools that don't work, workarounds, things that slow agents down | "I did not intend to create these layers to have to maintain them manually — either automated or I get an email with direct approval" |
+| **Factory operations** | Keeping the factory running — cron jobs, CI, hardware, queues | "reestablish the cron job — had to restart the agent and it got lost" |
+| **Real decisions** | Architecture direction, what to build next, what to merge | "yes these measurements we need to do" / "plan for the next varve release to support Zephyr, WASI, Yocto SDKs" |
+
+The orchestrator's day is spent moving between these three streams. Friction
+reports pile up from the agents (`report-tool-friction` skill). Factory
+operations need constant nudging — cron jobs die, hardware gets unplugged,
+CI queues back up. Real decisions need the orchestrator's judgment — what
+architecture direction, what to prioritize, what to merge.
 
 What the human actually does, day to day:
 
@@ -128,28 +142,31 @@ What the human actually does, day to day:
 |---|---|
 | **Enable agents** | "continue with the new pulseengine skills" across gale, relay, jess, ordeal, varve — set up a 6-hour cron loop with a one-week timeout |
 | **Direct skill work** | Tell the pulseengine.eu agent to write or update skills based on triggers — the agent writes them, not the human |
-| **Review output** | Read the agent reports, check the gates, verify the claims — spawn a clean-room subagent to cross-check |
-| **Decide** | "we need these measurements" — prioritize the decision queue, allocate hardware, plan the next release |
+| **Prioritize friction** | Read friction reports, decide: build a new tool, work around, or ignore |
+| **Keep the factory running** | Reestablish cron jobs, check CI queues, ensure hardware is available |
+| **Make real decisions** | "yes these measurements we need to do" — prioritize the decision queue, plan the next release, allocate hardware |
 | **Set up hardware** | Physically set up the test boards, connect cables, power on devices — the agents install `with-device`, configure varve, and claim devices themselves |
-| **Build or replace tools** | When a tool is a bottleneck (Z3 too slow, serde_yaml unmaintained), decide: build or work around — the agents do the building |
+| **Review output** | Read the agent reports, check the gates, verify the claims — spawn a clean-room subagent to cross-check |
 
-The human's leverage is in **enabling the agents and verifying the output** —
-not in writing the code, writing the skills, or installing the tools. The
-agents do all of that. The human enables, reviews, and decides. One human,
-many agents. The orchestrator is the owner, the only stakeholder, and the
-only decision-maker.
+The concrete architecture work is small. The orchestrator does not design
+the architecture — they ask "what should I do on pulseengine-layer?" and the
+agents figure it out. The orchestrator's leverage is in **enabling the
+agents, prioritizing across friction/operations/decisions, and verifying
+the output** — not in writing code, writing skills, or designing interfaces.
+The agents do all of that. One human, many agents. The orchestrator is the
+owner, the only stakeholder, and the only decision-maker.
 
 This is the same pattern as Blog 1's orchestrator role: the coder becomes
 the orchestrator. The person who used to write code now enables the agents,
-reviews the output, and decides what the oracles cannot. The bottleneck
-moves from code production to decision-making — and the human is the
-decision-maker.
+prioritizes across friction/operations/decisions, and verifies the output.
+The bottleneck moves from code production to prioritization — and the human
+is the prioritizer.
 
 The WIP limit on the decision queue (Blog 1) caps how many decisions can
 wait. The orchestrator prioritizes within that cap. In this factory, the
 team size is one: the orchestrator. The agents do the work — writing code,
 writing skills, installing tools, claiming hardware; the orchestrator
-enables, reviews, and owns the factory.
+enables, prioritizes, and owns the factory.
 
 ## Resource constraints and the critical path
 
