@@ -185,19 +185,43 @@ long (decision gates, hardware-blocked). The **critical path** is the longest
 chain — the one that sets the minimum release time.
 
 {% <mermaid> %}
-flowchart LR
-    gale["gale<br/>kernel<br/>4 weeks"]
-    relay["relay<br/>flight stack<br/>8 weeks"]
-    jess["jess<br/>orchestrator<br/>12 weeks"]
-    gale --> relay --> jess
+flowchart TB
+    subgraph parallel["All three run in parallel (agents active)"]
+        direction LR
+        gale["gale<br/>kernel<br/>4 weeks"]
+        relay["relay<br/>flight stack<br/>8 weeks"]
+        jess["jess<br/>orchestrator<br/>12 weeks"]
+    end
+
+    subgraph chain["Critical path (dependency chain)"]
+        direction LR
+        cg["gale"] --> cr["relay"] --> cj["jess"]
+    end
+
+    gale -.->|"provides primitives"| relay
+    relay -.->|"provides flight stack"| jess
+    jess -.->|"notices issues,<br/>feeds back upstream"| relay
+    jess -.->|"notices issues,<br/>feeds back upstream"| gale
+
     style gale fill:#1a1d27,stroke:#fbbf24,color:#e1e4ed
     style relay fill:#1a1d27,stroke:#fbbf24,color:#e1e4ed
     style jess fill:#1a1d27,stroke:#6c8cff,color:#e1e4ed
+    style cg fill:#1a1d27,stroke:#8b90a0,color:#8b90a0
+    style cr fill:#1a1d27,stroke:#8b90a0,color:#8b90a0
+    style cj fill:#1a1d27,stroke:#8b90a0,color:#8b90a0
+
     classDef app fill:#1a1d27,stroke:#fbbf24,color:#e1e4ed;
     classDef orch fill:#1a1d27,stroke:#6c8cff,color:#e1e4ed;
+    classDef chain fill:#1a1d27,stroke:#8b90a0,color:#8b90a0;
 {% </mermaid> %}
 
 **Critical path: 24 weeks** (application layer). gale (4) + relay (8) + jess (12) = 24 weeks.
+But the work runs in parallel — agents are active in all three repos at the
+same time. The critical path is the **dependency chain**: jess cannot ship
+until relay is bit-exact, relay cannot ship until gale provides its
+primitives. Meanwhile, jess notices issues in relay and gale (downstream
+finds upstream bugs) and feeds them back. The 24 weeks is the minimum time
+for the chain, not a waterfall — the parallel work fills the gaps.
 
 If gale takes 4 weeks, relay takes 8 weeks, and jess takes 12 weeks, the
 critical path is **24 weeks** for the application layer. That is the
