@@ -43,17 +43,20 @@ flowchart TB
         c["Code<br/>(Rust/Wasm)"]
         t["Tests<br/>(executable checks)"]
     end
-    subgraph bottleneck["The real bottleneck"]
+    subgraph bottleneck["The real bottleneck (human time)"]
         direction TB
+        h["Comprehend<br/>(understand the concept)"]
         d["Decide<br/>(what is correct?)"]
         v["Verify<br/>(does the gate fail?)"]
         s["Sign<br/>(human accountability)"]
+        h --> d --> v --> s
     end
     artifacts --> bottleneck
     style r fill:#1a1d27,stroke:#4ade80,color:#e1e4ed
     style a fill:#1a1d27,stroke:#4ade80,color:#e1e4ed
     style c fill:#1a1d27,stroke:#4ade80,color:#e1e4ed
     style t fill:#1a1d27,stroke:#4ade80,color:#e1e4ed
+    style h fill:#1a1d27,stroke:#f87171,color:#e1e4ed
     style d fill:#1a1d27,stroke:#f87171,color:#e1e4ed
     style v fill:#1a1d27,stroke:#fbbf24,color:#e1e4ed
     style s fill:#1a1d27,stroke:#6c8cff,color:#e1e4ed
@@ -65,12 +68,14 @@ flowchart TB
 {% </mermaid> %}
 
 In a team of humans, the bottleneck is writing the code. When agents write the
-code, the bottleneck moves downstream: to decisions, verification, and
-integration. But here is the deeper point: **make everything code and the
-bottleneck does not move.** Requirements as rivet artifacts. Architecture as
-AADL models. Tests as executable checks. Agents can produce all of it — and
-the constraint is still the same: who decides what "correct" means, who
-verifies the output, who signs.
+code, the bottleneck moves downstream: to comprehension, decisions,
+verification, and integration. But here is the deeper point: **make everything
+code and the bottleneck does not move.** Requirements as rivet artifacts.
+Architecture as AADL models. Tests as executable checks. Agents can produce
+all of it — and the constraint is still the same: a human needs time to
+*comprehend* the concept, *decide* what "correct" means, *verify* the output,
+and *sign*. It is not just code that takes human time. Requirements,
+architecture, tests — comprehending any of them is slow for a human.
 
 This is what Osmani means by "Generation is a wide mouth; verification is the
 narrow neck."[^osmani-factories] The artifact is not the bottleneck. The gate
