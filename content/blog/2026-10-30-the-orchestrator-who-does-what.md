@@ -220,6 +220,49 @@ critical. When resources are scarce, someone has to see the whole picture,
 visualize the critical path, and ensure the queue is prioritized. That
 someone is the orchestrator.
 
+## Building your own tools
+
+The toolchain is not fixed. It is built as needed. When a tool is a
+bottleneck, you build your own.
+
+**Anthropic wrote their own git replacement.** Git was a bottleneck — slow,
+complex, error-prone. So they built [Jujutsu](https://github.com/jj-vcs/jj)
+(a Git-compatible VCS in Rust). The new tool fits their stack: fast, simple,
+no C++.
+
+**We wrote ordeal.** Z3 was a bottleneck — slow build time (C++), friction
+with our Rust stack, licensing concerns. So we built
+[ordeal](https://github.com/pulseengine/ordeal) — a certificate-checked
+QF_BV SMT solver in pure Rust. Untrusted solver + formally-verified LRAT
+checker (CompCert pattern). Fast build, no C++, fits our stack.
+
+The pattern:
+
+| Existing tool | Bottleneck | Your tool | Why it fits |
+|---|---|---|---|
+| Git | Slow, complex, error-prone | Jujutsu (jj) | Rust, fast, simple |
+| Z3 | Slow build (C++), friction with Rust | ordeal | Pure Rust, fast build, certificate-checked |
+| gcov / llvm-cov | No MC/DC vocabulary | witness | MC/DC truth tables for Wasm |
+| serde_yaml | Slow, unsafe | rivet value model | Rust-native, schema-driven |
+| Manual traceability | Error-prone, slow | rivet | Git-native, schema-driven, LSP |
+
+**The orchestrator's decision:** when a tool is a bottleneck, do you build
+your own, or work around it? The orchestrator decides:
+
+- **Build** — if the bottleneck is on the critical path, if it causes
+  friction every day, if the workaround is worse than the tool
+- **Work around** — if the bottleneck is rare, if the workaround is cheap,
+  if the tool is not on the critical path
+
+**Friction is data.** When a tool errors, produces wrong output, lacks a
+capability, or forces a workaround — file it. The friction report is the
+input to the build decision. A workaround you don't report is friction the
+next agent re-hits.
+
+The toolchain layer of the factory — meld, loom, synth, kiln, sigil,
+ordeal, rivet, spar, witness — was built this way. Each one removed a
+bottleneck. Each one fits the stack. None of them were bought off-the-shelf.
+
 ## Cross-repo issues: the bottlenecks are real
 
 The issues don't stay in one repo. They propagate.
