@@ -18,9 +18,8 @@ The names are not labels. They are **principles**. The bottlenecks move —
 hardware, CI, decisions, dependencies. The roles don't.
 
 And behind the agents is a **human** — the orchestrator who owns the
-factory, defines the skills, triggers the loops, reviews the output, and
-makes the decisions the oracles cannot. One human. Many agents. The
-orchestrator is the owner.
+factory, enables the agents, reviews the output, and makes the decisions
+the oracles cannot. One human. Many agents. The orchestrator is the owner.
 {% </insight> %}
 
 [The first post](/blog/safe-was-built-for-slow-humans/) argued that the
@@ -95,7 +94,7 @@ follow, which gates to pass, when to stop and ask a human.
 
 The orchestrator's job is not to do the work. It is to:
 
-1. **Define the skills** — the patterns, the procedures, the gates
+1. **Direct the agents** — tell the pulseengine.eu agent to write or update skills, set the patterns, define the gates
 2. **Trigger the agents** — start the loops, every X hours
 3. **Review the output** — check the gates, read the reports
 4. **Decide what's next** — clear the decision queue, re-prioritize
@@ -106,47 +105,51 @@ review.
 
 This is the **vocabulary is the process** insight in action. The skills are
 the vocabulary. The loops are the cadence. The agents are the workers. The
-orchestrator is the human who defines, triggers, reviews, decides.
+orchestrator is the human who directs, triggers, reviews, decides.
 
 ## The human in the loop
 
 The orchestrator is not an agent. The orchestrator is a **human** — the one
-who writes the skills, sets the cron loops, reviews the output, and makes
+who enables the agents, sets the triggers, reviews the output, and makes
 the decisions the oracles cannot. In this factory, the orchestrator is also
 the **owner**: the only human stakeholder. There is no team, no Scrum
 master, no product owner. There is the orchestrator and the agents.
 
-This is not "AI replaces the team." There was no team to replace — the
-orchestrator was always the one writing the code. Now the agents write the
-code, and the orchestrator designs the factory that writes it.
+The pattern is simple: **the human enables, the agents do.** The orchestrator
+does not write skills — they tell the pulseengine.eu agent to write or update
+them based on triggers. The orchestrator does not install tools — the agents
+install `with-device`, configure varve layers, and claim hardware themselves.
+The orchestrator does not write code — the agents do. The orchestrator's job
+is to enable, review, and decide.
 
 What the human actually does, day to day:
 
 | Activity | What it looks like |
 |---|---|
-| **Define skills** | Write the procedures in `pulseengine.eu` — issue-hunt, gate-potency, oracle-gate-a-change, release-planning |
-| **Trigger agents** | "continue with the new pulseengine skills" across gale, relay, jess, ordeal, varve — set up a 6-hour cron loop with a one-week timeout |
+| **Enable agents** | "continue with the new pulseengine skills" across gale, relay, jess, ordeal, varve — set up a 6-hour cron loop with a one-week timeout |
+| **Direct skill work** | Tell the pulseengine.eu agent to write or update skills based on triggers — the agent writes them, not the human |
 | **Review output** | Read the agent reports, check the gates, verify the claims — spawn a clean-room subagent to cross-check |
 | **Decide** | "we need these measurements" — prioritize the decision queue, allocate hardware, plan the next release |
-| **Handle hardware** | Set up the test boards, configure the layers, install `with-device` — the agents claim and release devices themselves |
-| **Build tools** | When a tool is a bottleneck (Z3 too slow, serde_yaml unmaintained), decide: build or work around |
+| **Set up hardware** | Physically set up the test boards, connect cables, power on devices — the agents install `with-device`, configure varve, and claim devices themselves |
+| **Build or replace tools** | When a tool is a bottleneck (Z3 too slow, serde_yaml unmaintained), decide: build or work around — the agents do the building |
 
-The human's leverage is in **designing the factory and verifying the output** —
-not in writing the code. The agents write the code. The human writes the
-skills, sets the loops, and decides what the oracles cannot. One human,
+The human's leverage is in **enabling the agents and verifying the output** —
+not in writing the code, writing the skills, or installing the tools. The
+agents do all of that. The human enables, reviews, and decides. One human,
 many agents. The orchestrator is the owner, the only stakeholder, and the
 only decision-maker.
 
 This is the same pattern as Blog 1's orchestrator role: the coder becomes
-the orchestrator. The person who used to write code now designs the gates,
-verifies the output, and decides what the oracles cannot. The bottleneck
+the orchestrator. The person who used to write code now enables the agents,
+reviews the output, and decides what the oracles cannot. The bottleneck
 moves from code production to decision-making — and the human is the
 decision-maker.
 
 The WIP limit on the decision queue (Blog 1) caps how many decisions can
 wait. The orchestrator prioritizes within that cap. In this factory, the
-team size is one: the orchestrator. The agents do the work; the orchestrator
-owns the factory.
+team size is one: the orchestrator. The agents do the work — writing code,
+writing skills, installing tools, claiming hardware; the orchestrator
+enables, reviews, and owns the factory.
 
 ## Resource constraints and the critical path
 
