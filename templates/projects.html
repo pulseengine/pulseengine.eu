@@ -326,6 +326,18 @@
       {{ section.content | safe }}
     </div>
   </section>
+
+  <!-- What is NOT ours -->
+  <section class="page-section">
+    <h2 class="built__heading">Not ours</h2>
+    <p class="built__lead">
+      The PulseEngine GitHub organisation also hosts forks, dependencies, and
+      vendored copies of third-party projects (z3, wasmtime, wit-bindgen,
+      zephyr, and others). These are <strong>not</strong> PulseEngine projects —
+      they are there for build reproducibility, patching, or experimentation.
+      The projects above are the ones we design, build, and stand behind.
+    </p>
+  </section>
 </div>
 
 <script src="{{ get_url(path='cube.js', cachebust=true) }}"></script>

@@ -9,7 +9,7 @@ PulseEngine is under active development. All tools are pre-1.0.
 
 ## Docs
 
-- [Formal Verification Guide](https://pulseengine.eu/guides/VERIFICATION-GUIDE.md): Verus, Rocq, Lean, Kani patterns — Rust subset intersection, proof tactics, error classification, Bazel rules
+- [Tool Reference](/docs/): per-tool getting-started guides and architecture docs
 
 ## Core Pipeline
 
