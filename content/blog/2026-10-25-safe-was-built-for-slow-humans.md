@@ -106,33 +106,43 @@ Question the ceremonies.
 
 ## Why Scrum and SAFe do not fit
 
+Two operating models, side by side. The arrow shows what happens when agents
+arrive: the SAFe process is **replaced by** Kanban with gates, because agents
+compress weeks of human work into hours.
+
 {% <mermaid> %}
-flowchart TB
-    subgraph safe["SAFe / Scrum"]
+flowchart LR
+    subgraph safe["SAFe / Scrum (before agents)"]
         direction TB
         s1["PI Planning<br/>(quarterly alignment)"] --> s2["Sprints<br/>(2-week boxes)"] --> s3["Ceremonies<br/>(standup, retro, review)"] --> s4["Ship"]
         style s1 fill:#1a1d27,stroke:#f87171,color:#e1e4ed
         style s2 fill:#1a1d27,stroke:#f87171,color:#e1e4ed
         style s3 fill:#1a1d27,stroke:#f87171,color:#e1e4ed
+        style s4 fill:#1a1d27,stroke:#f87171,color:#e1e4ed
     end
-    subgraph kanban["Kanban with gates"]
+
+    subgraph kanban["Kanban with gates (after agents)"]
         direction TB
         k1["Continuous intake"] --> k2{"Oracle exists?"}
         k2 -->|yes| k3["Agents fix<br/>(uncapped)"]
         k2 -->|no| k4["Decision queue<br/>(WIP-limited)"]
         k4 --> k3
         k3 --> k5["Gates<br/>(proven to fail)"] --> k6["Release<br/>(human sign-off)"]
+        style k1 fill:#1a1d27,stroke:#8b90a0,color:#e1e4ed
+        style k2 fill:#1a1d27,stroke:#8b90a0,color:#e1e4ed
         style k3 fill:#1a1d27,stroke:#4ade80,color:#e1e4ed
-        style k5 fill:#1a1d27,stroke:#fbbf24,color:#e1e4ed
         style k4 fill:#1a1d27,stroke:#6c8cff,color:#e1e4ed
+        style k5 fill:#1a1d27,stroke:#fbbf24,color:#e1e4ed
         style k6 fill:#1a1d27,stroke:#6c8cff,color:#e1e4ed
     end
-    safe -.->|"agents compress<br/>weeks to hours"| kanban
+
+    safe ==>|"agents arrive:<br/>weeks → hours"| kanban
 
     classDef auto fill:#1a1d27,stroke:#4ade80,color:#e1e4ed;
     classDef gate fill:#1a1d27,stroke:#fbbf24,color:#e1e4ed;
     classDef human fill:#1a1d27,stroke:#6c8cff,color:#e1e4ed;
     classDef slow fill:#1a1d27,stroke:#f87171,color:#e1e4ed;
+    classDef neutral fill:#1a1d27,stroke:#8b90a0,color:#e1e4ed;
 {% </mermaid> %}
 
 Scrum enforces artificial cycles. Work in an agent-driven line is event-driven:
