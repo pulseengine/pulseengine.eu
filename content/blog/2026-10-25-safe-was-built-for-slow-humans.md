@@ -1,6 +1,6 @@
 +++
 title = "SAFe was built for slow humans. My factory needs Kanban with gates."
-description = "The bottleneck in an AI-agent factory is not code production — it is decisions, verification, and integration. SAFe optimises for slow human cycles. What an agent-driven line needs is flow with gates, WIP limits on the decision queue, and machine-readable contracts between stations."
+description = "The bottleneck in an AI-agent factory is not generation — it is verification and decisions. This holds whether agents produce code, requirements, architecture, or tests. SAFe optimises for slow human cycles. What an agent-driven line needs is flow with gates, WIP limits on the decision queue, and machine-readable contracts between stations."
 date = 2026-10-25
 draft = true
 [taxonomies]
@@ -10,12 +10,13 @@ authors = ["Ralf Anton Beier"]
 
 {% <insight> %}
 SAFe was designed to coordinate large organisations of people who think and
-deliver in months. An AI-agent factory delivers in hours, and its bottleneck is
-no longer writing code — it is deciding, verifying, and integrating. What
-replaces SAFe is not "less process" but a different process: Kanban for the
-flow, gates for the checks, machine-readable contracts between stations, and a
-translation layer to the corporation that must not be called SAFe — because
-the name is the trap.
+deliver in months. An AI-agent factory delivers in hours. The bottleneck is
+not *what* the agents produce — code, requirements, architecture, tests — but
+*who verifies it and who decides*. Make everything code and the bottleneck
+does not move: it is still the human gate. What replaces SAFe is not "less
+process" but a different process: Kanban for the flow, gates for the checks,
+machine-readable contracts between stations, and a translation layer to the
+corporation that must not be called SAFe — because the name is the trap.
 {% </insight> %}
 
 I have spent ten years inside SAFe organisations. PI Planning events where the
@@ -30,34 +31,50 @@ a human decision.
 measured what that looks like in our own repositories. This post is the argument
 for what replaces the process that measured it.
 
-## The bottleneck moved
+## The bottleneck is not the artifact
 
 {% <mermaid> %}
-flowchart LR
-    subgraph before["Before agents"]
-        direction TB
-        b1["Write code"] --> b2["Review"] --> b3["Ship"]
-        style b1 fill:#f87171,stroke:#f87171,color:#fff
+flowchart TB
+    subgraph artifacts["Agent-produced artifacts (all 'code')"]
+        direction LR
+        r["Requirements<br/>(rivet artifacts)"]
+        a["Architecture<br/>(AADL/SysML)"]
+        c["Code<br/>(Rust/Wasm)"]
+        t["Tests<br/>(executable checks)"]
     end
-    subgraph after["After agents"]
+    subgraph bottleneck["The real bottleneck"]
         direction TB
-        a1["Write code<br/>(agents, hours)"] --> a2["Decide<br/>(humans, days)"] --> a3["Verify<br/>(gates)"] --> a4["Integrate"] --> a5["Ship"]
-        style a1 fill:#4ade80,stroke:#4ade80,color:#fff
-        style a2 fill:#f87171,stroke:#f87171,color:#fff
-        style a3 fill:#fbbf24,stroke:#fbbf24,color:#fff
+        d["Decide<br/>(what is correct?)"]
+        v["Verify<br/>(does the gate fail?)"]
+        s["Sign<br/>(human accountability)"]
     end
-    before -.->|"agents arrive"| after
+    artifacts --> bottleneck
+    style r fill:#4ade80,stroke:#4ade80,color:#fff
+    style a fill:#4ade80,stroke:#4ade80,color:#fff
+    style c fill:#4ade80,stroke:#4ade80,color:#fff
+    style t fill:#4ade80,stroke:#4ade80,color:#fff
+    style d fill:#f87171,stroke:#f87171,color:#fff
+    style v fill:#fbbf24,stroke:#fbbf24,color:#fff
+    style s fill:#6c8cff,stroke:#6c8cff,color:#fff
 
-    classDef human fill:#6c8cff,stroke:#6c8cff,color:#fff;
     classDef auto fill:#4ade80,stroke:#4ade80,color:#fff;
     classDef gate fill:#fbbf24,stroke:#fbbf24,color:#fff;
+    classDef human fill:#6c8cff,stroke:#6c8cff,color:#fff;
     classDef slow fill:#f87171,stroke:#f87171,color:#fff;
 {% </mermaid> %}
 
 In a team of humans, the bottleneck is writing the code. When agents write the
 code, the bottleneck moves downstream: to decisions, verification, and
-integration. The queue that matters is no longer "what are we building this
-sprint" but "what are we deciding this week."
+integration. But here is the deeper point: **make everything code and the
+bottleneck does not move.** Requirements as rivet artifacts. Architecture as
+AADL models. Tests as executable checks. Agents can produce all of it — and
+the constraint is still the same: who decides what "correct" means, who
+verifies the output, who signs.
+
+This is what Osmani means by "Generation is a wide mouth; verification is the
+narrow neck."[^osmani-factories] The artifact is not the bottleneck. The gate
+is. The queue that matters is no longer "what are we building this sprint" but
+"what are we deciding this week."
 
 The metrics change with it: not velocity and burndown, but **decision latency**,
 **gate potency**, and the ratio of **agent-closed to human-decided** items.
@@ -78,9 +95,6 @@ Faros calls it "the Acceleration Whiplash: real throughput gains at the top,
 compounding quality costs at every stage below." The Harvard study's summary:
 "AI coding agents are not productivity multipliers — they are throughput
 redistributors."
-
-Addy Osmani puts the constraint in one line: **"Generation is a wide mouth;
-verification is the narrow neck."**[^osmani-factories]
 
 {% <note kind="tip"> %}
 **The test is simple.** If your process has a ceremony that exists to
@@ -158,7 +172,7 @@ analogue in the line:
 |---|---|
 | Visualise the flow | Agent runs, reviews, gates, decision queue — all on one board |
 | Limit WIP | Not "how many agents can run" but "how many decisions can wait" |
-| Manage flow | The bottleneck is the decision queue, not the code queue |
+| Manage flow | The bottleneck is the verification queue, not the generation queue |
 | Improve continuously | Process metrics: files per change, fix share, decision latency |
 
 The WIP limit is the part that matters most. In [The machine arrived before
@@ -298,9 +312,11 @@ pretends to be.**
 
 ## What we would tell you to take from this
 
-**The bottleneck moved. Your process did not.** If your agents write the code
-and your process still optimises for people writing code, you are managing the
-wrong queue. Measure where the wait is. Put the WIP limit there.
+**The bottleneck is not the artifact. Your process still is.** Whether agents
+produce code, requirements, architecture, or tests — the constraint is
+verification and decisions. If your process optimises for producing artifacts,
+you are managing the wrong queue. Measure where the wait is. Put the WIP
+limit there.
 
 **Kanban is the operating model, gates are the safety system.** A board without
 gates moves defects. Gates without a board have no flow. You need both, and the
