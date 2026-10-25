@@ -177,9 +177,9 @@
               <span class="face-tool__name">mcp</span>
               <span class="face-tool__desc">Rust MCP framework</span>
             </a>
-            <a href="https://github.com/pulseengine/spar" class="face-tool" rel="noopener">
-              <span class="face-tool__name">spar wasm</span>
-              <span class="face-tool__desc">in-browser analysis via WASM</span>
+            <a href="https://github.com/pulseengine/warte" class="face-tool" rel="noopener">
+              <span class="face-tool__name">warte</span>
+              <span class="face-tool__desc">control tower · CI dashboard</span>
             </a>
           </div>
           <div class="face-edge">
@@ -329,13 +329,91 @@
 
   <!-- What is NOT ours -->
   <section class="page-section">
-    <h2 class="built__heading">Not ours</h2>
+    <h2 class="built__heading">Forks &amp; dependencies</h2>
     <p class="built__lead">
-      The PulseEngine GitHub organisation also hosts forks, dependencies, and
-      vendored copies of third-party projects (z3, wasmtime, wit-bindgen,
-      zephyr, and others). These are <strong>not</strong> PulseEngine projects —
-      they are there for build reproducibility, patching, or experimentation.
-      The projects above are the ones we design, build, and stand behind.
+      The PulseEngine GitHub organisation also hosts forks and vendored copies
+      of third-party projects. These are <strong>not</strong> PulseEngine
+      projects — they exist for build reproducibility, patching, or
+      experimentation. We do not design, build, or maintain them.
+    </p>
+    <div class="blog-post__content">
+      <table>
+        <thead><tr><th>Repository</th><th>What it is</th><th>Why it's here</th></tr></thead>
+        <tbody>
+          <tr><td><a href="https://github.com/pulseengine/z3">z3</a></td><td>Z3 Theorem Prover</td><td>Vendored for ordeal's build; we replaced it with our own solver</td></tr>
+          <tr><td><a href="https://github.com/pulseengine/z3.rs">z3.rs</a></td><td>Rust bindings for Z3</td><td>Same — vendored for build reproducibility</td></tr>
+          <tr><td><a href="https://github.com/pulseengine/wasmtime">wasmtime</a></td><td>WebAssembly runtime</td><td>Forked for experimentation; kiln is our runtime</td></tr>
+          <tr><td><a href="https://github.com/pulseengine/wit-bindgen">wit-bindgen</a></td><td>WIT binding generator</td><td>Vendored for rules_wasm_component builds</td></tr>
+          <tr><td><a href="https://github.com/pulseengine/walrus">walrus</a></td><td>WASM transformation library</td><td>Forked for loom's optimization passes</td></tr>
+          <tr><td><a href="https://github.com/pulseengine/wasm-tools">wasm-tools</a></td><td>WASM CLI and libraries</td><td>Vendored for component-model tooling</td></tr>
+          <tr><td><a href="https://github.com/pulseengine/zephyr">zephyr</a></td><td>Zephyr RTOS</td><td>Forked as reference for gale's kernel primitives</td></tr>
+          <tr><td><a href="https://github.com/pulseengine/picolibc">picolibc</a></td><td>C library for embedded systems</td><td>Vendored for cross-compilation targets</td></tr>
+          <tr><td><a href="https://github.com/pulseengine/rowan">rowan</a></td><td>Rust parser library</td><td>Vendored for spar's model parsing</td></tr>
+          <tr><td><a href="https://github.com/pulseengine/renode-bazel-rules">renode-bazel-rules</a></td><td>Bazel rules for Renode</td><td>Forked for simulation-in-CI integration</td></tr>
+          <tr><td><a href="https://github.com/pulseengine/bazel-central-registry">bazel-central-registry</a></td><td>Bazel module registry</td><td>Forked for private module publishing</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Supporting projects -->
+  <section class="page-section">
+    <h2 class="built__heading">Supporting projects</h2>
+    <p class="built__lead">
+      PulseEngine projects that support the core toolchain — MCP servers,
+      Bazel rules, examples, and integration tooling.
+    </p>
+    <div class="built__grid">
+      <a class="built__card" href="https://github.com/pulseengine/agora" rel="noopener">
+        <div class="built__name">agora</div>
+        <div class="built__domain">agent coordination</div>
+        <p class="built__desc">Real-time agent-coordination substrate — named agents coordinate on channels, every message a typed/signed/traceable fact.</p>
+      </a>
+      <a class="built__card" href="https://github.com/pulseengine/automator" rel="noopener">
+        <div class="built__name">automator</div>
+        <div class="built__domain">toolchain orchestrator</div>
+        <p class="built__desc">Autonomous AI development, verification gates, functional safety traceability.</p>
+      </a>
+      <a class="built__card" href="https://github.com/pulseengine/thrum" rel="noopener">
+        <div class="built__name">thrum</div>
+        <div class="built__domain">pipeline orchestrator</div>
+        <p class="built__desc">Gate-based pipeline orchestrator for autonomous AI-driven development.</p>
+      </a>
+      <a class="built__card" href="https://github.com/pulseengine/temper" rel="noopener">
+        <div class="built__name">temper</div>
+        <div class="built__domain">repo hardening</div>
+        <p class="built__desc">GitHub App that hardens repositories to organizational standards.</p>
+      </a>
+      <a class="built__card" href="https://github.com/pulseengine/glsp-mcp" rel="noopener">
+        <div class="built__name">glsp-mcp</div>
+        <div class="built__domain">graphical modeling</div>
+        <p class="built__desc">AI-native graphical modeling platform with WebAssembly component architecture and MCP integration.</p>
+      </a>
+      <a class="built__card" href="https://github.com/pulseengine/rules_wasm_component" rel="noopener">
+        <div class="built__name">rules_wasm_component</div>
+        <div class="built__domain">Bazel rules</div>
+        <p class="built__desc">Bazel rules for WebAssembly Component Model development with multi-profile builds.</p>
+      </a>
+    </div>
+    <p class="built__note">
+      Also: <a href="https://github.com/pulseengine/rules_verus">rules_verus</a>,
+      <a href="https://github.com/pulseengine/rules_rocq_rust">rules_rocq_rust</a>,
+      <a href="https://github.com/pulseengine/rules_lean">rules_lean</a>,
+      <a href="https://github.com/pulseengine/rules_ordeal">rules_ordeal</a>,
+      <a href="https://github.com/pulseengine/rules_moonbit">rules_moonbit</a>,
+      <a href="https://github.com/pulseengine/studio-mcp">studio-mcp</a>,
+      <a href="https://github.com/pulseengine/timedate-mcp">timedate-mcp</a>,
+      <a href="https://github.com/pulseengine/wasi-mcp">wasi-mcp</a>,
+      <a href="https://github.com/pulseengine/template-mcp-server">template-mcp-server</a>,
+      <a href="https://github.com/pulseengine/bazel-file-ops-component">bazel-file-ops-component</a>,
+      <a href="https://github.com/pulseengine/covalent-layers">covalent-layers</a>,
+      <a href="https://github.com/pulseengine/pulseengine-layers">pulseengine-layers</a>,
+      <a href="https://github.com/pulseengine/wasm-layers">wasm-layers</a>,
+      <a href="https://github.com/pulseengine/example-kvs">example-kvs</a>,
+      <a href="https://github.com/pulseengine/playground-eclipse-score">playground-eclipse-score</a>,
+      <a href="https://github.com/pulseengine/wasm-component-examples">wasm-component-examples</a>,
+      <a href="https://github.com/pulseengine/temper-ops">temper-ops</a>,
+      <a href="https://github.com/pulseengine/moonbit_checksum_updater">moonbit_checksum_updater</a>
     </p>
   </section>
 </div>
