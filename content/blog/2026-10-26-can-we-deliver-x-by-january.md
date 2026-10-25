@@ -271,21 +271,20 @@ releases." The number is smaller. The leverage is higher.
 | PI commitment (fixed scope, fixed date) | Confidence interval (range, with assumptions) |
 | "We'll try" | "Here's the data, here's the risk, here's what we need from you" |
 
-{% <note kind="warning"> %}
 **Story points are the wrong unit for the question being asked — and SAFe
 doesn't even require them to be comparable.** Legacy SAFe (4.x/5.0) said
-story points "must be normalized" across teams; SAFe 5.1 downgraded this to
-optional ("can be aligned"); SAFe 6 removed the guidance entirely. Scaled
-Agile's own blog says velocity "should never be compared across teams."
+story points "must be normalized" across teams[^safe-normalization-legacy];
+SAFe 5.1 downgraded this to optional ("can be aligned")[^safe-normalization-51];
+SAFe 6 removed the guidance entirely[^safe-normalization-current]. Scaled
+Agile's own blog says velocity "should never be compared across teams"[^safe-velocity-never-compare].
 Cross-team calibration is a **common organizational practice** — driven by
 portfolio management wanting to sum multi-team estimates — not a framework
 requirement. And it's a known anti-pattern: Ron Jeffries, who coined story
-points, calls comparing teams on estimates "harmful."
+points, calls comparing teams on estimates "harmful"[^jeffries-points].
 Story points measure *complexity*, not *time*. The customer asks "when is it
 ready?" — not "how complex is it?" Calibrating points across teams to make
 them comparable answers a question nobody asked, and invites the exact
 behavior SAFe warns against: teams gaming the numbers.
-{% </note> %}
 
 ## The key insight
 
@@ -385,31 +384,6 @@ via secondary attribution and were not independently verified.
 [^safe-wsjf]: Scaled Agile, Inc., *Weighted Shortest Job First (WSJF)*. [scaledagileframework.com](https://scaledagileframework.com/wsjf/). Primary (official documentation). "WSJF is estimated as the relative cost of delay divided by the relative job duration" — deliberately relative, no cross-team point comparability needed.
 
 [^safe-measure-grow]: Scaled Agile, Inc., *Measure and Grow* (updated September 2025). [scaledagileframework.com](https://scaledagileframework.com/measure-and-grow/). Primary (official documentation). "Business agility requires measuring outcomes, flow, and competency... Flow metrics measure delivery efficiency and predictability."
-
-### SAFe sources (live and archived)
-
-The SAFe story points findings rely on official SAFe documentation, both
-live and archived via the Wayback Machine. The normalization guidance was
-removed over time — here are the three versions:
-
-| Version | Status | Live URL | Wayback Machine |
-|---|---|---|---|
-| SAFe 4.x/5.0 (2021–2022) | "must be normalized" | — | [web.archive.org/web/2021id_/https://scaledagileframework.com/iteration-planning/](https://web.archive.org/web/2021id_/https://scaledagileframework.com/iteration-planning/) |
-| SAFe 5.1 (2023) | "can be aligned" (optional) | — | [web.archive.org/web/2023id_/https://scaledagileframework.com/iteration-planning/](https://web.archive.org/web/2023id_/https://scaledagileframework.com/iteration-planning/) |
-| SAFe 6 (current, updated 2026-03-18) | removed entirely | [scaledagileframework.com/iteration-planning/](https://scaledagileframework.com/iteration-planning/) | — |
-
-Additional SAFe sources:
-
-- **Velocity never compared across teams**: [scaledagile.com/blog/safe-metrics-at-the-team-level-sales-ops/](https://scaledagile.com/blog/safe-metrics-at-the-team-level-sales-ops/)
-- **WSJF (relative, not absolute)**: [scaledagileframework.com/wsjf/](https://scaledagileframework.com/wsjf/)
-- **Measure and Grow (flow metrics)**: [scaledagileframework.com/measure-and-grow/](https://scaledagileframework.com/measure-and-grow/)
-
-Practitioner critiques:
-
-- **Ron Jeffries** (coined story points): [ronjeffries.com/articles/019-01ff/story-points/](https://ronjeffries.com/articles/019-01ff/story-points/Index.html)
-- **Densmore Lindenbaum** (dangers of normalization): [densmore.lindenbaum.us/lean-agile/scaling/the-dangers-of-normalized-story-point-estimation/](https://densmore.lindenbaum.us/lean-agile/scaling/the-dangers-of-normalized-story-point-estimation/)
-- **Johanna Rothman** (comparing teams is not useful): [jrothman.com/mpd/management/2013/08/comparing-teams-is-not-useful-exposing-another-management-myth/](https://www.jrothman.com/mpd/management/2013/08/comparing-teams-is-not-useful-exposing-another-management-myth/)
-- **WIBAS** (alignment is optional): [wibas.com/blog/a-tricky-slide-about-story-points-and-capacity-in-safe-and-how-to-get-it-right/](https://www.wibas.com/blog/a-tricky-slide-about-story-points-and-capacity-in-safe-and-how-to-get-it-right/)
 
 ---
 
