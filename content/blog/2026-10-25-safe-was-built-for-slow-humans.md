@@ -2,7 +2,7 @@
 title = "SAFe was built for slow humans. My factory needs Kanban with gates."
 description = "The bottleneck in an AI-agent factory is not generation — it is verification and decisions. This holds whether agents produce code, requirements, architecture, or tests. SAFe optimises for slow human cycles. What an agent-driven line needs is flow with gates, WIP limits on the decision queue, and machine-readable contracts between stations."
 date = 2026-10-25
-draft = true
+draft = false
 [taxonomies]
 tags = ["process", "ai-agents", "kanban", "verification", "deep-dive"]
 authors = ["Ralf Anton Beier"]

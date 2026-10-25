@@ -1,8 +1,9 @@
 +++
 title = "Can we deliver X by January? Estimation from gates and flow history"
 description = "Customers ask for dates. SAFe answers with story points — a complexity measure dressed as a plan. The factory answers with two measurements: gate status for the present, and flow history from past projects for the future. Reference class forecasting, not estimation from scratch."
-date = 2026-10-26
+date = 2026-10-27
 draft = true
+ready = true
 [taxonomies]
 tags = ["process", "ai-agents", "kanban", "estimation", "deep-dive"]
 authors = ["Ralf Anton Beier"]
@@ -59,11 +60,11 @@ flowchart TB
         style g7 fill:#1a1d27,stroke:#6c8cff,color:#e1e4ed
     end
 
-    subgraph future["When will it be done? (flow history from corpus)"]
+    subgraph future["When will it be done? (release history from corpus)"]
         direction TB
-        h1["synth: 432 issues, 12 months, 11.5/week (fast, rudimentary)"]
-        h2["rivet: 264 issues, 8 months, 10/week (mechanical)"]
-        h3["relay: 108 issues, 7 months, 1.75/week, 57 in decision queue"]
+        h1["synth: 156 releases, 6 months, 26/week (fast, rudimentary)"]
+        h2["rivet: 57 releases, 8 months, 1.8/week (mechanical)"]
+        h3["relay: 163 releases, 7 months, ~6/week, 57 in decision queue"]
         h4["X matches relay: 8 gates, 3 need decisions<br/>→ 1–2 weeks mechanical + 2–20 weeks decision-dependent"]
         h1 --> h2 --> h3 --> h4
         style h1 fill:#1a1d27,stroke:#8b90a0,color:#e1e4ed
@@ -87,17 +88,21 @@ flowchart TB
 
 To estimate X, you need history. Every project you've shipped with gates,
 deadlines, and requirements is a reference. Here is the actual corpus from
-our repositories, measured with `scripts/factory-metrics.py` on 26 October
-2026:
+our repositories, measured on 26 October 2026:
 
-| Project | Issues (agent+human) | Months active | Closed | Flow velocity | Decision queue | Notes |
+**The gate is the release, not the issue.** In rivet, `rivet release` cuts a
+release — that is the bound, the thing that ships. The issues are the work
+that goes into the release. One release closes many issues; the release is
+what the customer sees.
+
+| Project | Releases (gates) | Issues (work) | Months active | Release velocity | Issues/release | Decision queue |
 |---|---|---|---|---|---|---|
-| **synth** | 432 | 12 (Nov 2025–Oct 2026) | 367 | **11.5/week** | not yet measured | Rudimentary but fast — compiler pipeline, many small gates |
-| **rivet** | 264 | 8 (Mar–Oct 2026) | 340 | **10/week** | not yet measured | Traceability tool, mostly mechanical gates |
-| **spar** | 132 | 8 (Mar–Oct 2026) | 91 | **2.75/week** | not yet measured | Architecture solver, mixed mechanical + analysis |
-| **relay** | 108 | 7 (Apr–Oct 2026) | 52 | **1.75/week** | **57** | Flight stack, hardware-dependent, slow decisions |
-| **gale** | 89 | 8 (Mar–Oct 2026) | 57 | **1.75/week** | **30** | Formal proofs, verification-heavy |
-| **jess** | 12 | 5 (Jun–Oct 2026) | 3 | **0.15/week** | not yet measured | Hardware integration, blocked on physical access |
+| **synth** | 156 | 432 | 6 (May–Oct 2026) | **26/week** | 2.8 | not yet measured |
+| **rivet** | 57 | 264 | 8 (Mar–Oct 2026) | **1.8/week** | 4.6 | not yet measured |
+| **relay** | 163 (falcon) | 108 | 7 (Apr–Oct 2026) | **~6/week** | 0.7 | **57** |
+| **spar** | 48 | 132 | 8 (Mar–Oct 2026) | **1.6/week** | 2.8 | not yet measured |
+| **gale** | 10 | 89 | 3 (Jul–Oct 2026) | **0.77/week** | 8.9 | **30** |
+| **jess** | 4 | 12 | 3 (Jun–Sep 2026) | **0.31/week** | 3.0 | not yet measured |
 
 The decision queue column is the `needs-decision` floor from
 `scripts/issue-class-floors.json` — the number of issues currently waiting
@@ -107,9 +112,9 @@ set the team size.
 **Cross-repo dependencies.** jess (hardware integration) has open issues
 referencing relay (flight stack) and gale (kernel) — the hardware layer
 cannot close its gates until the software layers pass theirs. synth has
-the highest flow velocity (11.5/week) but is still rudimentary: many
-small gates, fast closure, but the gates themselves need more work. Speed
-of closure is not the same as maturity of the gate.
+the highest release velocity (26/week) but is still rudimentary: many
+small releases, fast cadence, but the releases themselves need more work.
+Speed of release is not the same as maturity of the gate.
 
 X has 8 gates: 5 mechanical (CI, tests, coverage), 3 decision-dependent
 (safety argument, hardware access, sign-off). That matches relay's profile:
@@ -132,13 +137,14 @@ used for railways, bridges, and IT projects that consistently overrun.
 
 Give confidence intervals, not false precision. From the corpus:
 
-- **Mechanical gates** (synth 11.5/week, rivet 10/week, spar 2.75/week):
-  5 gates take **1–2 weeks** (80% confidence).
-- **Decision gates** (relay 1.75/week with 57 in queue, gale 1.75/week
-  with 30 in queue, jess 0.15/week hardware-blocked): 3 gates take
-  **2–20 weeks** depending on hardware access and queue position.
+- **Mechanical gates** (rivet 1.8 releases/week, spar 1.6/week, synth
+  26/week): 5 gates take **3–4 weeks** (80% confidence). Each release
+  closes ~3–5 issues of mechanical work.
+- **Decision gates** (relay ~6/week but 57 in queue, gale 0.77/week with
+  30 in queue, jess 0.31/week hardware-blocked): 3 gates take **2–20 weeks**
+  depending on hardware access and queue position.
 
-> "Based on 6 projects in our corpus, the mechanical gates take 1–2 weeks.
+> "Based on 6 projects in our corpus, the mechanical gates take 3–4 weeks.
 > The decision gates depend on your hardware access. If that's sorted by
 > March, we deliver **May–June 2027** with 80% confidence. With a buffer
 > for queue position, **June–July 2027**. If hardware access slips, add
@@ -202,29 +208,30 @@ does this take?" The answer changes when agents write the code.
 production. Team size scaled with lines of code.
 
 **After agents:** agents write the code. The bottleneck is decisions and
-verification. Team size scales with **decision throughput** — how many
-gates per week can humans decide and verify?
+verification. Team size scales with **release throughput** — how many
+releases per week can humans decide and verify?
 
 The math is simple:
 
 ```
-Team size = (gates per week) / (gates per human per week)
+Team size = (releases per week) / (releases per human per week)
 ```
 
-If your factory passes 20 gates per week, and one human can decide/verify
-2 gates per week, you need **10 humans**. Not 100. Not 50. Ten.
+If your factory ships 6 releases per week (like relay), and one human can
+decide/verify 1 release per week, you need **6 humans**. Not 100. Not 50.
+Six.
 
 The ratio is the insight: **one human can oversee many agents, but the
-limit is decision throughput.** An agent can produce a thousand lines in an
-hour. A human can decide whether those lines are correct in a day. The
+limit is release throughput.** An agent can produce a thousand lines in an
+hour. A human can decide whether a release is correct in a day. The
 factory's throughput is set by the humans, not the agents.
 
 | Before agents | After agents |
 |---|---|
-| 100 humans writing code | 10 humans deciding and verifying |
-| Bottleneck: code production | Bottleneck: decision throughput |
-| Team size scales with KLOC | Team size scales with gates/week |
-| Velocity = story points/sprint | Flow velocity = gates/week |
+| 100 humans writing code | 6 humans deciding and verifying |
+| Bottleneck: code production | Bottleneck: release throughput |
+| Team size scales with KLOC | Team size scales with releases/week |
+| Velocity = story points/sprint | Release velocity = releases/week |
 | Hire more coders to go faster | Add decision capacity to go faster |
 
 The WIP limit on the decision queue is the team size. If you cap the
@@ -232,15 +239,15 @@ decision queue at 10 items, you need roughly 10 humans to clear it. If
 you cap it at 50, you need 50. The cap is the team size.
 
 This is why the vocabulary matters. "Team size" in SAFe means "how many
-people write code." In the factory, it means "how many people make
-decisions." The number is smaller. The leverage is higher.
+people write code." In the factory, it means "how many people ship
+releases." The number is smaller. The leverage is higher.
 
 ## The customer conversation
 
-> "We don't guess. We measure. X has 8 gates. Two are green, one is red
-> (the proof — we need a decision from your team on the safety argument),
-> five haven't started. Based on 6 projects in our corpus, the
-> mechanical gates take 1–2 weeks. The decision gates depend on your
+> "We don't guess. We measure. X has 8 release gates. Two are green, one is
+> red (the proof — we need a decision from your team on the safety
+> argument), five haven't started. Based on 6 projects in our corpus, the
+> mechanical gates take 3–4 weeks. The decision gates depend on your
 > hardware access. If that's sorted by March, we deliver May–June 2027
 > with 80% confidence. Here's the dashboard showing every gate's status,
 > and here's the historical data behind the estimate."
