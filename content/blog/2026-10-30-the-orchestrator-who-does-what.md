@@ -38,115 +38,6 @@ integrate, you watch the release, you own the ladder. "Flight stack" means:
 you fly, you verify, you ship the cascade. "Kernel" means: you provide the
 primitives, you prove them, you're the foundation.
 
-## The full dependency graph
-
-The chain is not just gale → relay → jess. Every repo has dependencies.
-Here is the full picture, measured from the issue trackers and READMEs on
-26 October 2026:
-
-{% <mermaid> %}
-flowchart TB
-    subgraph toolchain["Toolchain (foundation)"]
-        direction LR
-        meld["meld<br/>fuse"]
-        loom["loom<br/>optimize"]
-        synth["synth<br/>AOT compile"]
-        kiln["kiln<br/>runtime"]
-        sigil["sigil<br/>signing"]
-    end
-
-    subgraph verification["Verification & architecture"]
-        direction LR
-        rivet["rivet<br/>traceability"]
-        spar["spar<br/>architecture"]
-        witness["witness<br/>coverage"]
-        ordeal["ordeal<br/>SMT solver"]
-    end
-
-    subgraph app["Application stack"]
-        direction TB
-        gale["gale<br/>kernel"]
-        relay["relay<br/>flight stack"]
-        jess["jess<br/>orchestrator"]
-    end
-
-    %% Toolchain pipeline
-    meld --> loom --> synth --> kiln
-
-    %% Verification chain
-    rivet --> witness --> sigil
-
-    %% gale depends on toolchain + ordeal
-    meld --> gale
-    loom --> gale
-    synth --> gale
-    ordeal --> gale
-
-    %% relay depends on toolchain + gale + rivet
-    meld --> relay
-    synth --> relay
-    gale --> relay
-    rivet --> relay
-
-    %% jess depends on everything
-    relay --> jess
-    meld --> jess
-    loom --> jess
-    synth --> jess
-    gale --> jess
-    rivet --> jess
-    spar --> jess
-    sigil --> jess
-
-    %% Cross-repo issue references
-    loom -.-> ordeal
-    loom -.-> spar
-    loom -.-> synth
-    loom -.-> gale
-    sigil -.-> synth
-    sigil -.-> loom
-    spar -.-> rivet
-    witness -.-> rivet
-    kiln -.-> rivet
-    ordeal -.-> synth
-
-    style meld fill:#1a1d27,stroke:#4ade80,color:#e1e4ed
-    style loom fill:#1a1d27,stroke:#4ade80,color:#e1e4ed
-    style synth fill:#1a1d27,stroke:#4ade80,color:#e1e4ed
-    style kiln fill:#1a1d27,stroke:#4ade80,color:#e1e4ed
-    style sigil fill:#1a1d27,stroke:#4ade80,color:#e1e4ed
-    style rivet fill:#1a1d27,stroke:#22d3ee,color:#e1e4ed
-    style spar fill:#1a1d27,stroke:#22d3ee,color:#e1e4ed
-    style witness fill:#1a1d27,stroke:#22d3ee,color:#e1e4ed
-    style ordeal fill:#1a1d27,stroke:#22d3ee,color:#e1e4ed
-    style gale fill:#1a1d27,stroke:#fbbf24,color:#e1e4ed
-    style relay fill:#1a1d27,stroke:#fbbf24,color:#e1e4ed
-    style jess fill:#1a1d27,stroke:#6c8cff,color:#e1e4ed
-
-    classDef tool fill:#1a1d27,stroke:#4ade80,color:#e1e4ed;
-    classDef verify fill:#1a1d27,stroke:#22d3ee,color:#e1e4ed;
-    classDef app fill:#1a1d27,stroke:#fbbf24,color:#e1e4ed;
-    classDef orch fill:#1a1d27,stroke:#6c8cff,color:#e1e4ed;
-{% </mermaid> %}
-
-**Three layers:**
-
-| Layer | Repos | What they do |
-|---|---|---|
-| **Toolchain** | meld, loom, synth, kiln, sigil | Fuse, optimize, compile, run, sign |
-| **Verification** | rivet, spar, witness, ordeal | Trace, architect, cover, solve |
-| **Application** | gale, relay, jess | Kernel, flight stack, orchestrator |
-
-**The pipeline:** meld → loom → synth → kiln (fuse → optimize → compile → run)
-
-**The verification chain:** rivet → witness → sigil (trace → cover → sign)
-
-**The application stack:** gale → relay → jess (kernel → flight → orchestrator)
-
-jess depends on **everything**. relay depends on the toolchain + gale + rivet.
-gale depends on the toolchain + ordeal. The bottlenecks propagate up the
-chain — and across it.
-
 ## The skills are the process
 
 The agents don't work ad-hoc. They work from **skills** — patterns defined
@@ -346,55 +237,33 @@ big factory" — it is "many small factories, each with its own orchestrator."
 ## The jess dependency tree
 
 jess is the orchestrator for the drone software. It depends on everything.
-Here is the full tree, from jess down:
+Here is the full tree, from jess down, grouped by layer:
 
 {% <mermaid> %}
 flowchart TD
-    jess["jess<br/>orchestrator<br/>drone software"]
+    subgraph app["Layer 3: Application"]
+        direction TB
+        jess["jess<br/>orchestrator<br/>drone software"]
+        relay["relay<br/>flight stack"]
+        gale["gale<br/>kernel"]
+    end
 
-    jess --> relay["relay<br/>flight stack"]
-    jess --> meld["meld<br/>fuse"]
-    jess --> loom["loom<br/>optimize"]
-    jess --> synth["synth<br/>AOT compile"]
-    jess --> gale["gale<br/>kernel"]
-    jess --> rivet["rivet<br/>traceability"]
-    jess --> spar["spar<br/>architecture"]
-    jess --> sigil["sigil<br/>signing"]
+    subgraph verify["Layer 2: Verification & architecture"]
+        direction TB
+        rivet["rivet<br/>traceability"]
+        spar["spar<br/>architecture"]
+        witness["witness<br/>coverage"]
+        ordeal["ordeal<br/>SMT solver"]
+    end
 
-    relay --> meld
-    relay --> synth
-    relay --> gale
-    relay --> rivet
-
-    gale --> meld
-    gale --> loom
-    gale --> synth
-    gale --> ordeal["ordeal<br/>SMT solver"]
-
-    loom --> rivet
-    loom --> ordeal
-    loom --> spar
-    loom --> synth
-
-    synth --> meld
-
-    spar --> rivet
-
-    sigil --> rivet
-    sigil --> synth
-    sigil --> loom
-
-    ordeal --> rivet
-    ordeal --> synth
-
-    rivet --> meld
-
-    kiln["kiln<br/>runtime"]
-    kiln --> rivet
-
-    witness["witness<br/>coverage"]
-    witness --> rivet
-    witness --> sigil
+    subgraph tool["Layer 1: Toolchain"]
+        direction TB
+        meld["meld<br/>fuse"]
+        loom["loom<br/>optimize"]
+        synth["synth<br/>AOT compile"]
+        kiln["kiln<br/>runtime"]
+        sigil["sigil<br/>signing"]
+    end
 
     subgraph agents["Agents (external tools)"]
         direction TB
@@ -407,6 +276,52 @@ flowchart TD
         pe["pulseengine.eu<br/>plugin + skills<br/>issue-hunt · gate-potency<br/>oracle-gate-a-change"]
     end
 
+    %% jess depends on application layer
+    jess --> relay
+    jess --> gale
+
+    %% jess depends on verification layer
+    jess --> rivet
+    jess --> spar
+
+    %% jess depends on toolchain
+    jess --> meld
+    jess --> loom
+    jess --> synth
+    jess --> sigil
+
+    %% relay depends on application + verification + toolchain
+    relay --> gale
+    relay --> rivet
+    relay --> meld
+    relay --> synth
+
+    %% gale depends on toolchain + verification
+    gale --> meld
+    gale --> loom
+    gale --> synth
+    gale --> ordeal
+
+    %% Verification layer dependencies
+    spar --> rivet
+    witness --> rivet
+    witness --> sigil
+    ordeal --> rivet
+    ordeal --> synth
+
+    %% Toolchain layer dependencies
+    loom --> rivet
+    loom --> ordeal
+    loom --> spar
+    loom --> synth
+    synth --> meld
+    sigil --> rivet
+    sigil --> synth
+    sigil --> loom
+    rivet --> meld
+    kiln --> rivet
+
+    %% Repos depend on agents
     jess --> claude
     jess --> vibe
     relay --> claude
@@ -414,6 +329,7 @@ flowchart TD
     gale --> claude
     gale --> vibe
 
+    %% Agents depend on skills
     claude --> pe
     vibe --> pe
 
@@ -652,6 +568,82 @@ orchestrates.
 **Each layer is built by agents.** The agents don't just write code — they
 build the tools, verify the output, ship the releases. The machine is the
 agents, the CI, the gates. The orchestrator oversees all three layers.
+
+## The control tower: the to-be-OSSed dashboard
+
+The patterns in this series are not just theory. They are implemented in a
+**control tower** — a dashboard that shows the whole factory. We are
+planning to open-source it. The pattern is not specific to our stack. Any
+CI system can expose the same data.
+
+{% <mermaid> %}
+flowchart TB
+    subgraph ct["Control Tower (dashboard)"]
+        direction TB
+        overview["Overview<br/>all repos · all gates<br/>green / red / pending"]
+        ask["Ask<br/>when will this PR run?<br/>ETA from measured waits"]
+        queue["Queue<br/>runner pool · waiting jobs<br/>hardware availability"]
+        critical["Critical path<br/>longest chain of<br/>dependent gates"]
+        resources["Resources<br/>who needs what<br/>RAM · disk · runners · boards"]
+        outages["Outages<br/>GitHub status<br/>fleet health"]
+        friction["Friction<br/>tool errors · workarounds<br/>build decisions"]
+    end
+
+    subgraph patterns["Patterns from this series"]
+        direction TB
+        p1["Blog 1: gates, bottlenecks"]
+        p2["Blog 2: estimation, critical path"]
+        p3["Blog 3: orchestrator, resources"]
+    end
+
+    overview --> p1
+    ask --> p2
+    critical --> p2
+    queue --> p3
+    resources --> p3
+    outages --> p3
+    friction --> p3
+
+    style overview fill:#1a1d27,stroke:#6c8cff,color:#e1e4ed
+    style ask fill:#1a1d27,stroke:#6c8cff,color:#e1e4ed
+    style queue fill:#1a1d27,stroke:#4ade80,color:#e1e4ed
+    style critical fill:#1a1d27,stroke:#fbbf24,color:#e1e4ed
+    style resources fill:#1a1d27,stroke:#4ade80,color:#e1e4ed
+    style outages fill:#1a1d27,stroke:#f87171,color:#e1e4ed
+    style friction fill:#1a1d27,stroke:#22d3ee,color:#e1e4ed
+    style p1 fill:#13161f,stroke:#8b90a0,color:#8b90a0
+    style p2 fill:#13161f,stroke:#8b90a0,color:#8b90a0
+    style p3 fill:#13161f,stroke:#8b90a0,color:#8b90a0
+
+    classDef ct fill:#1a1d27,stroke:#6c8cff,color:#e1e4ed;
+    classDef tool fill:#1a1d27,stroke:#4ade80,color:#e1e4ed;
+    classDef warn fill:#1a1d27,stroke:#fbbf24,color:#e1e4ed;
+    classDef danger fill:#1a1d27,stroke:#f87171,color:#e1e4ed;
+    classDef info fill:#1a1d27,stroke:#22d3ee,color:#e1e4ed;
+    classDef pattern fill:#13161f,stroke:#8b90a0,color:#8b90a0;
+{% </mermaid> %}
+
+**The control tower features:**
+
+| Feature | What it shows | Pattern from |
+|---|---|---|
+| **Overview** | All repos, all gates, green/red/pending | Blog 1: gates, bottlenecks |
+| **Ask** | "When will this PR run?" — ETA from measured waits | Blog 2: estimation |
+| **Queue** | Runner pool, waiting jobs, hardware availability | Blog 3: resource constraints |
+| **Critical path** | Longest chain of dependent gates | Blog 2: critical path |
+| **Resources** | Who needs what (RAM, disk, runners, boards) | Blog 3: resource allocation |
+| **Outages** | GitHub status, fleet health | Blog 3: GitHub outages |
+| **Friction** | Tool errors, workarounds, build decisions | Blog 3: building your own tools |
+
+**The orchestrator's cockpit.** The control tower is what the orchestrator
+looks at. Not to do the work — to **see** the work. To see the gates, the
+queue, the critical path, the resources. To decide: who gets what, what
+goes first, what waits.
+
+**To be OSSed.** The control tower is currently internal. We are planning
+to open-source it. The pattern — a CI control tower with an ask feature and
+an API — is not specific to our stack. Any CI system can expose the same
+data.
 
 ## The principle
 
