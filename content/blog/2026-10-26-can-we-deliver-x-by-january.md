@@ -234,6 +234,16 @@ factory's throughput is set by the humans, not the agents.
 | Velocity = story points/sprint | Release velocity = releases/week |
 | Hire more coders to go faster | Add decision capacity to go faster |
 
+{% <note kind="tip"> %}
+**The people stay. The work changes.** This is not about letting people go.
+The question is: *with whom can we do this, and how should they do it?* The
+coders become orchestrators — they design gates, review output, decide what
+the oracles cannot. The reviewers become quality owners — they prove the
+gates can fail. The team leads become decision owners — they clear the
+decision queue. Same people, different leverage. The factory needs fewer
+hands on the line, but more hands on the gates.
+{% </note> %}
+
 The WIP limit on the decision queue is the team size. If you cap the
 decision queue at 10 items, you need roughly 10 humans to clear it. If
 you cap it at 50, you need 50. The cap is the team size.
@@ -375,6 +385,31 @@ via secondary attribution and were not independently verified.
 [^safe-wsjf]: Scaled Agile, Inc., *Weighted Shortest Job First (WSJF)*. [scaledagileframework.com](https://scaledagileframework.com/wsjf/). Primary (official documentation). "WSJF is estimated as the relative cost of delay divided by the relative job duration" — deliberately relative, no cross-team point comparability needed.
 
 [^safe-measure-grow]: Scaled Agile, Inc., *Measure and Grow* (updated September 2025). [scaledagileframework.com](https://scaledagileframework.com/measure-and-grow/). Primary (official documentation). "Business agility requires measuring outcomes, flow, and competency... Flow metrics measure delivery efficiency and predictability."
+
+### SAFe sources (live and archived)
+
+The SAFe story points findings rely on official SAFe documentation, both
+live and archived via the Wayback Machine. The normalization guidance was
+removed over time — here are the three versions:
+
+| Version | Status | Live URL | Wayback Machine |
+|---|---|---|---|
+| SAFe 4.x/5.0 (2021–2022) | "must be normalized" | — | [web.archive.org/web/2021id_/https://scaledagileframework.com/iteration-planning/](https://web.archive.org/web/2021id_/https://scaledagileframework.com/iteration-planning/) |
+| SAFe 5.1 (2023) | "can be aligned" (optional) | — | [web.archive.org/web/2023id_/https://scaledagileframework.com/iteration-planning/](https://web.archive.org/web/2023id_/https://scaledagileframework.com/iteration-planning/) |
+| SAFe 6 (current, updated 2026-03-18) | removed entirely | [scaledagileframework.com/iteration-planning/](https://scaledagileframework.com/iteration-planning/) | — |
+
+Additional SAFe sources:
+
+- **Velocity never compared across teams**: [scaledagile.com/blog/safe-metrics-at-the-team-level-sales-ops/](https://scaledagile.com/blog/safe-metrics-at-the-team-level-sales-ops/)
+- **WSJF (relative, not absolute)**: [scaledagileframework.com/wsjf/](https://scaledagileframework.com/wsjf/)
+- **Measure and Grow (flow metrics)**: [scaledagileframework.com/measure-and-grow/](https://scaledagileframework.com/measure-and-grow/)
+
+Practitioner critiques:
+
+- **Ron Jeffries** (coined story points): [ronjeffries.com/articles/019-01ff/story-points/](https://ronjeffries.com/articles/019-01ff/story-points/Index.html)
+- **Densmore Lindenbaum** (dangers of normalization): [densmore.lindenbaum.us/lean-agile/scaling/the-dangers-of-normalized-story-point-estimation/](https://densmore.lindenbaum.us/lean-agile/scaling/the-dangers-of-normalized-story-point-estimation/)
+- **Johanna Rothman** (comparing teams is not useful): [jrothman.com/mpd/management/2013/08/comparing-teams-is-not-useful-exposing-another-management-myth/](https://www.jrothman.com/mpd/management/2013/08/comparing-teams-is-not-useful-exposing-another-management-myth/)
+- **WIBAS** (alignment is optional): [wibas.com/blog/a-tricky-slide-about-story-points-and-capacity-in-safe-and-how-to-get-it-right/](https://www.wibas.com/blog/a-tricky-slide-about-story-points-and-capacity-in-safe-and-how-to-get-it-right/)
 
 ---
 
