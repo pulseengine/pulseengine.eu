@@ -42,12 +42,12 @@ and **flow history** for the future.
 flowchart TB
     subgraph present["Where are we? (gate status)"]
         direction TB
-        g1["Gate 1: Requirements — rivet validate"]
-        g2["Gate 2: Architecture — spar solver"]
+        g1["Gate 1: Requirements — requirements validation"]
+        g2["Gate 2: Architecture — architecture solver"]
         g3["Gate 3: Code + tests — CI"]
-        g4["Gate 4: Coverage — witness MC/DC"]
-        g5["Gate 5: Proof — Verus/Kani"]
-        g6["Gate 6: Hardware — Renode + silicon"]
+        g4["Gate 4: Coverage — coverage check"]
+        g5["Gate 5: Proof — formal proof"]
+        g6["Gate 6: Hardware — simulation + silicon"]
         g7["Gate 7: Sign-off — human"]
         g1 --> g2 --> g3 --> g4 --> g5 --> g6 --> g7
         style g1 fill:#1a1d27,stroke:#4ade80,color:#e1e4ed
@@ -169,6 +169,48 @@ prescription"[^herrmann-delegation]. Karpathy's "autonomy slider" captures the
 same idea: "we will move the autonomy slider from left to right over time" —
 the human sets how far right the slider sits per task[^karpathy-software3].
 
+## How many humans do we need?
+
+The question everyone asks after "how do we estimate?" is "how many people
+does this take?" The answer changes when agents write the code.
+
+**Before agents:** 100 humans writing code. The bottleneck was code
+production. Team size scaled with lines of code.
+
+**After agents:** agents write the code. The bottleneck is decisions and
+verification. Team size scales with **decision throughput** — how many
+gates per week can humans decide and verify?
+
+The math is simple:
+
+```
+Team size = (gates per week) / (gates per human per week)
+```
+
+If your factory passes 20 gates per week, and one human can decide/verify
+2 gates per week, you need **10 humans**. Not 100. Not 50. Ten.
+
+The ratio is the insight: **one human can oversee many agents, but the
+limit is decision throughput.** An agent can produce a thousand lines in an
+hour. A human can decide whether those lines are correct in a day. The
+factory's throughput is set by the humans, not the agents.
+
+| Before agents | After agents |
+|---|---|
+| 100 humans writing code | 10 humans deciding and verifying |
+| Bottleneck: code production | Bottleneck: decision throughput |
+| Team size scales with KLOC | Team size scales with gates/week |
+| Velocity = story points/sprint | Flow velocity = gates/week |
+| Hire more coders to go faster | Add decision capacity to go faster |
+
+The WIP limit on the decision queue is the team size. If you cap the
+decision queue at 10 items, you need roughly 10 humans to clear it. If
+you cap it at 50, you need 50. The cap is the team size.
+
+This is why the vocabulary matters. "Team size" in SAFe means "how many
+people write code." In the factory, it means "how many people make
+decisions." The number is smaller. The leverage is higher.
+
 ## The customer conversation
 
 > "We don't guess. We measure. X has 8 gates. Two are green, one is red
@@ -270,7 +312,6 @@ via Wayback Machine) plus practitioner blogs and forums; the archived SAFe
 verified on the live site. Some practitioner quotes (Schwaber, Coplien) are
 via secondary attribution and were not independently verified.
 
-*Footnotes render at the bottom of the page, grouped by category.*
 
 [^flyvbjerg]: Bent Flyvbjerg, *Reference Class Forecasting in Planning and Forecasting*, 2021. Primary (book). The method: estimate from the actuals of similar past projects, not from a bottom-up estimate of the current project.
 

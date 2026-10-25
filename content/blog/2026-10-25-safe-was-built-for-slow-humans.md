@@ -40,8 +40,8 @@ for what replaces the process that measured it.
 flowchart TB
     subgraph artifacts["Agent-produced artifacts (all 'code')"]
         direction LR
-        r["Requirements<br/>(rivet artifacts)"]
-        a["Architecture<br/>(AADL/SysML)"]
+        r["Requirements<br/>(machine-readable requirements)"]
+        a["Architecture<br/>(architecture models)"]
         c["Code<br/>(Rust/Wasm)"]
         t["Tests<br/>(executable checks)"]
     end
@@ -72,8 +72,8 @@ flowchart TB
 In a team of humans, the bottleneck is writing the code. When agents write the
 code, the bottleneck moves downstream: to comprehension, decisions,
 verification, and integration. But here is the deeper point: **make everything
-code and the bottleneck does not move.** Requirements as rivet artifacts.
-Architecture as AADL models. Tests as executable checks. Agents can produce
+code and the bottleneck does not move.** Requirements as machine-readable artifacts.
+Architecture as machine-readable models. Tests as executable checks. Agents can produce
 all of it — and the constraint is still the same: a human needs time to
 *comprehend* the concept, *decide* what "correct" means, *verify* the output,
 and *sign*. It is not just code that takes human time. Requirements,
@@ -229,7 +229,7 @@ flowchart TB
     subgraph layers["Coordination layers"]
         direction TB
         l1["<b>Kanban</b> (station)<br/>Board, WIP limits, gates"]
-        l2["<b>Interface contracts</b><br/>AADL, API specs, SLOs, traceability — as code"]
+        l2["<b>Interface contracts</b><br/>Architecture models, API specs, SLOs, traceability — as code"]
         l3["<b>Integration cadence</b><br/>Weekly merge, KPIs generated automatically"]
         l4["<b>Dependency management</b><br/>Shared board, visible blockers"]
         l5["<b>Factory control tower</b><br/>Machine-readable metrics over all teams"]
@@ -282,7 +282,7 @@ Three things the translation layer does:
 - **Translation.** Portfolio management speaks in programme increments; you
   translate. The artifacts are a translation layer, not a process.
 - **Traceability.** ASPICE and ISO 26262 want a structured trail. That comes
-  from rivet artifacts and git history without a single SAFe ceremony. This is
+  from requirements artifacts and git history without a single SAFe ceremony. This is
   the real safety — the kind the name "SAFe" promises but does not deliver.
 - **Synchronisation.** A thin sync — one short meeting per week — keeps teams
   from drifting apart. That is a Scrum shell, not a Scrum process.
@@ -358,7 +358,7 @@ to keep doing SAFe. Call it a portfolio translation layer, a governance
 interface, a corporate compatibility layer.
 
 **Scale through contracts, not ceremonies.** Between stations, the contract is
-the interface: AADL, API specs, traceability links, as code. The cadence is the
+the interface: architecture models, API specs, traceability links, as code. The cadence is the
 integration rhythm. The control tower is the metrics layer. None of it needs a
 meeting to exist.
 
@@ -412,7 +412,6 @@ The metrics "gate potency," "decision latency," and "agent-closed vs
 human-decided ratio" are the author's own terms, coined for this post. A search
 on 25 October 2026 found no prior use in the public literature.
 
-*Footnotes render at the bottom of the page, grouped by category.*
 
 [^faros-2026]: Faros AI, *AI Engineering Report 2026* (22,000 developers, 4,000 teams). Vendor research; correlation across Faros customers, not a controlled study. [faros.ai](https://www.faros.ai/blog/lab-vs-reality-ai-productivity-study-findings). Secondary (vendor telemetry).
 
