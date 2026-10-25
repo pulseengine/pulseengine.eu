@@ -289,6 +289,50 @@ The model is: **Kanban inside, translation outside, and the boundary between
 them is a layer you control — named for what it does, not for what it
 pretends to be.**
 
+## The vocabulary is the process
+
+The translation layer handles the outside. But inside, the vocabulary must
+change too — or nothing changes. The trap is: *"same as SAFe, but with X
+done here."* A team that hears this keeps the SAFe process, keeps the SAFe
+ceremonies, keeps the SAFe vocabulary, and adds agents to one step. The
+result: SAFe with extra steps. The bottleneck does not move.
+
+The words you use shape the process you do. "Sprint" implies a fixed time
+box. "Story point" implies complexity, not time. "PI Planning" implies
+quarterly alignment theater. If you keep the words, you keep the process.
+If you keep the process, you keep the bottleneck.
+
+| Old vocabulary (SAFe) | New vocabulary (factory) | Why |
+|---|---|---|
+| Sprint | Flow | Work is event-driven, not time-boxed |
+| Story point | Gate | A gate is a check that can fail; a point is a guess |
+| PI Planning | Continuous triage | Intake is continuous; triage splits on the oracle axis |
+| Velocity | Flow velocity | Gates per week, measured from history |
+| Epic / Feature | Work item with gates | Decomposed into gates, not estimated in points |
+| Release train | Integration cadence | Weekly merge to an integration stand, not a train |
+| ART sync | Contract check | Machine-readable contracts, not a meeting |
+| Scrum master | Orchestrator | Designs gates, verifies output, decides what oracles cannot |
+| Product owner | Decision owner | Owns the decision queue, not the backlog |
+| Story | Gate-passing work item | Work that passes gates, not work that fits in a sprint |
+
+This is not a renaming exercise. It is a **change of process**. And a change
+of process needs three people:
+
+| Role | What they do | Why they're needed |
+|---|---|---|
+| **Process person** | Designs the new flow, the gates, the WIP limits | Someone who understands process change — not just tools, but how work moves |
+| **Quality person** | Designs the oracles, proves the gates can fail | Someone who understands verification — the gates are the safety system |
+| **User of the vocabulary** | Uses the new words daily, corrects the old ones | Someone who speaks the new language — if nobody uses it, it's dead |
+
+Without all three, the vocabulary change fails. The process person designs a
+flow nobody follows. The quality person designs gates nobody trusts. The
+user speaks words nobody understands. The old vocabulary creeps back in —
+"just this once, for the sprint review" — and the process creeps back with it.
+
+The translation layer is for the corporation outside. The vocabulary change
+is for the team inside. Both are needed. But the inside change is the one
+that moves the bottleneck.
+
 ## What we would tell you to take from this
 
 **The bottleneck is not the artifact. Your process still is.** Whether agents
