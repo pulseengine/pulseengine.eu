@@ -251,7 +251,7 @@ The pattern:
 | Git | Too slow for 30k merges/day, 100 GB monorepo, 600 PB traffic/day | Scion (Anthropic) | Built for their scale, migrated in 5 months |
 | Z3 | Slow build (C++), friction with Rust | ordeal | Pure Rust, fast build, certificate-checked |
 | gcov / llvm-cov | No MC/DC vocabulary | witness | MC/DC truth tables for Wasm |
-| serde_yaml | Slow, unsafe | rivet value model | Rust-native, schema-driven |
+| serde_yaml | Slow, unsafe, unmaintained | rivet value model | Rust-native, schema-driven |
 | Manual traceability | Error-prone, slow | rivet | Git-native, schema-driven, LSP |
 
 **The orchestrator's decision:** when a tool is a bottleneck, do you build
