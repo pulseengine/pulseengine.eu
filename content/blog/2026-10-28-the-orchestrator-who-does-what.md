@@ -17,16 +17,16 @@ gale provides the kernel — the primitives, the proofs, the foundation.
 The names are not labels. They are **principles**. The bottlenecks move —
 hardware, CI, decisions, dependencies. The roles don't.
 
-And behind the agents is a **human** — the orchestrator who owns the
+And behind the agents is the **orchestrator** — the one who owns the
 factory, enables the agents, reviews the output, and makes the decisions
-the oracles cannot. One human. Many agents. The orchestrator is the owner.
+the oracles cannot. One orchestrator. Many agents. The orchestrator is the owner.
 {% </insight> %}
 
 [The first post](/blog/safe-was-built-for-slow-humans/) argued that the
 bottleneck in an agent factory is not generation — it is verification and
 decisions. [The second post](/blog/can-we-deliver-x-by-january/) showed how
 to estimate from gates and flow history. This post is about the roles: who
-does what — the agents, the repos, and the human who orchestrates them —
+does what — the agents, the repos, and the orchestrator who enables them —
 and why the roles are clear even when the bottlenecks are not.
 
 ## The roles
@@ -80,7 +80,7 @@ queue moves. The roles stay. The principles stay.
 
 The agents don't work ad-hoc. They work from **skills** — patterns defined
 in this repository. Each skill is a procedure: when it fires, what steps to
-follow, which gates to pass, when to stop and ask a human.
+follow, which gates to pass, when to stop and ask the orchestrator.
 
 | Skill | Pattern | Loop |
 |---|---|---|
@@ -105,24 +105,22 @@ review.
 
 This is the **vocabulary is the process** insight in action. The skills are
 the vocabulary. The loops are the cadence. The agents are the workers. The
-orchestrator is the human who directs, triggers, reviews, decides.
+orchestrator is the one who directs, triggers, reviews, decides.
 
-## The human in the loop
+## The orchestrator in the loop
 
-The orchestrator is not an agent. The orchestrator is a **human** — the one
-who enables the agents, reviews the output, and makes the decisions the
-oracles cannot. In this factory, the orchestrator is also the **owner**:
-the only human stakeholder. There is no team, no Scrum master, no product
-owner. There is the orchestrator and the agents.
+I am not an agent. I am the **orchestrator** — the one who enables the
+agents, reviews the output, and makes the decisions the oracles cannot.
+In this factory, I am also the **owner**: the only stakeholder. There is
+no team, no Scrum master, no product owner. There are the agents and me.
 
-The pattern is simple: **the human enables, the agents do.** The orchestrator
-does not write skills — they tell the pulseengine.eu agent to write or update
-them based on triggers. The orchestrator does not install tools — the agents
-install `with-device`, configure varve layers, and claim hardware themselves.
-The orchestrator does not write code — the agents do.
+The pattern is simple: **I enable, the agents do.** I do not write skills —
+I tell the pulseengine.eu agent to write or update them based on triggers.
+I do not install tools — the agents install `with-device`, configure varve
+layers, and claim hardware themselves. I do not write code — the agents do.
 
 But enabling is not the main job. The main job is **prioritization** across
-three streams that constantly compete for attention:
+three streams that constantly compete for my attention:
 
 | Stream | What it looks like | Example |
 |---|---|---|
@@ -130,43 +128,41 @@ three streams that constantly compete for attention:
 | **Factory operations** | Keeping the factory running — cron jobs, CI, hardware, queues | "reestablish the cron job — had to restart the agent and it got lost" |
 | **Real decisions** | Architecture direction, what to build next, what to merge | "yes these measurements we need to do" / "plan for the next varve release to support Zephyr, WASI, Yocto SDKs" |
 
-The orchestrator's day is spent moving between these three streams. Friction
-reports pile up from the agents (`report-tool-friction` skill). Factory
-operations need constant nudging — cron jobs die, hardware gets unplugged,
-CI queues back up. Real decisions need the orchestrator's judgment — what
-architecture direction, what to prioritize, what to merge.
+My day is spent moving between these three streams. Friction reports pile
+up from the agents (`report-tool-friction` skill). Factory operations need
+constant nudging — cron jobs die, hardware gets unplugged, CI queues back
+up. Real decisions need my judgment — what architecture direction, what to
+prioritize, what to merge.
 
-What the human actually does, day to day:
+What I actually do, day to day:
 
 | Activity | What it looks like |
 |---|---|
 | **Enable agents** | "continue with the new pulseengine skills" across gale, relay, jess, ordeal, varve — set up a 6-hour cron loop with a one-week timeout |
-| **Direct skill work** | Tell the pulseengine.eu agent to write or update skills based on triggers — the agent writes them, not the human |
+| **Direct skill work** | Tell the pulseengine.eu agent to write or update skills based on triggers — the agent writes them, not me |
 | **Prioritize friction** | Read friction reports, decide: build a new tool, work around, or ignore |
 | **Keep the factory running** | Reestablish cron jobs, check CI queues, ensure hardware is available |
 | **Make real decisions** | "yes these measurements we need to do" — prioritize the decision queue, plan the next release, allocate hardware |
 | **Set up hardware** | Physically set up the test boards, connect cables, power on devices — the agents install `with-device`, configure varve, and claim devices themselves |
 | **Review output** | Read the agent reports, check the gates, verify the claims — spawn a clean-room subagent to cross-check |
 
-The concrete architecture work is small. The orchestrator does not design
-the architecture — they ask "what should I do on pulseengine-layer?" and the
-agents figure it out. The orchestrator's leverage is in **enabling the
-agents, prioritizing across friction/operations/decisions, and verifying
-the output** — not in writing code, writing skills, or designing interfaces.
-The agents do all of that. One human, many agents. The orchestrator is the
-owner, the only stakeholder, and the only decision-maker.
+The concrete architecture work is small. I do not design the architecture —
+I ask "what should I do on pulseengine-layer?" and the agents figure it out.
+My leverage is in **enabling the agents, prioritizing across
+friction/operations/decisions, and verifying the output** — not in writing
+code, writing skills, or designing interfaces. The agents do all of that.
+One orchestrator, many agents. I am the owner, the only stakeholder, and the
+only decision-maker.
 
 This is the same pattern as Blog 1's orchestrator role: the coder becomes
-the orchestrator. The person who used to write code now enables the agents,
-prioritizes across friction/operations/decisions, and verifies the output.
-The bottleneck moves from code production to prioritization — and the human
-is the prioritizer.
+the orchestrator. I used to write code; now I enable the agents, prioritize
+across friction/operations/decisions, and verify the output. The bottleneck
+moves from code production to prioritization — and I am the prioritizer.
 
 The WIP limit on the decision queue (Blog 1) caps how many decisions can
-wait. The orchestrator prioritizes within that cap. In this factory, the
-team size is one: the orchestrator. The agents do the work — writing code,
-writing skills, installing tools, claiming hardware; the orchestrator
-enables, prioritizes, and owns the factory.
+wait. I prioritize within that cap. In this factory, the team size is one:
+me. The agents do the work — writing code, writing skills, installing tools,
+claiming hardware; I enable, prioritize, and own the factory.
 
 ## Resource constraints and the critical path
 
@@ -962,7 +958,7 @@ queue moves. The roles stay. The principle stays.
 ## Limits
 
 This is one factory's structure: three repos, three roles, one dependency
-chain, **one human** — the orchestrator who owns the factory and makes every
+chain, **one orchestrator** — the one who owns the factory and makes every
 decision the oracles cannot. It has not been tested in a larger organisation
 with more layers, more roles, and more complex dependencies. The claim is
 not "this is the only way to structure a factory" but "the roles are clear,
