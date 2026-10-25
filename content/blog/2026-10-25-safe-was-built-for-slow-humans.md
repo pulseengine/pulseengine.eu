@@ -269,7 +269,7 @@ because GitHub does not start jobs in creation order.
 ```
 
 The oracle answers with **measured data**, not queue position — the same
-reference-class method as [the next post](/blog/can-we-deliver-x-by-january/).
+reference-class method as the next post.
 
 There is an API behind it: `GET /api/eta?repo=rivet&pr=511` returns JSON
 with status, running jobs, queued jobs, and scan age. This is one of several
@@ -436,9 +436,9 @@ meeting to exist.
 
 ---
 
-*Next in the arc: [Can we deliver X by January? Estimation from gates and flow
-history](/blog/can-we-deliver-x-by-january/) — how to answer the customer's
-question when the bottleneck is verification, not code.*
+*Next in the arc: Can we deliver X by January? Estimation from gates and flow
+history — how to answer the customer's question when the bottleneck is
+verification, not code.*
 
 ## Limits
 
