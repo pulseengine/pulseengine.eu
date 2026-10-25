@@ -225,10 +225,18 @@ someone is the orchestrator.
 The toolchain is not fixed. It is built as needed. When a tool is a
 bottleneck, you build your own.
 
-**Anthropic wrote their own git replacement.** Git was a bottleneck — slow,
-complex, error-prone. So they built [Jujutsu](https://github.com/jj-vcs/jj)
-(a Git-compatible VCS in Rust). The new tool fits their stack: fast, simple,
-no C++.
+**Anthropic wrote their own source control.** Git was a bottleneck — too
+slow for their scale. In May 2026 they averaged 2,500 merges per day; by
+September, 30,000 per day. Their monorepo history alone is almost 100 GB,
+and they perform 25 million checkouts per day for CI — over 600 PB of git
+traffic per day. Git's decentralized design doesn't fit that scale. So they
+built [Scion](https://www.anthropic.com/research/redesigning-source-control),
+an in-house version control system, and migrated their monorepo in five
+months[^anthropic-scion]. The key insight from their article: *"Claude's
+ability to write code was both what put us in this situation in the first
+place and how we were able to quickly build a high-quality, scalable system
+to deal with it."* The agents created the bottleneck — and built the tool
+to remove it.
 
 **We wrote ordeal.** Z3 was a bottleneck — slow build time (C++), friction
 with our Rust stack, licensing concerns. So we built
@@ -240,7 +248,7 @@ The pattern:
 
 | Existing tool | Bottleneck | Your tool | Why it fits |
 |---|---|---|---|
-| Git | Slow, complex, error-prone | Jujutsu (jj) | Rust, fast, simple |
+| Git | Too slow for 30k merges/day, 100 GB monorepo, 600 PB traffic/day | Scion (Anthropic) | Built for their scale, migrated in 5 months |
 | Z3 | Slow build (C++), friction with Rust | ordeal | Pure Rust, fast build, certificate-checked |
 | gcov / llvm-cov | No MC/DC vocabulary | witness | MC/DC truth tables for Wasm |
 | serde_yaml | Slow, unsafe | rivet value model | Rust-native, schema-driven |
@@ -389,6 +397,8 @@ issues are from the GitHub issue trackers, read on 26 October 2026.
 The issue numbers and titles are real. The interpretation — that the roles
 are clear and the bottlenecks are managed — is the author's view, not a
 measured outcome.
+
+[^anthropic-scion]: Anthropic, *Redesigning source control at Anthropic*, October 2026. [anthropic.com/research/redesigning-source-control](https://www.anthropic.com/research/redesigning-source-control). Primary (company research publication). The article describes building Scion, an in-house version control system, after git became a bottleneck at 30,000 merges/day and 600 PB of daily git traffic. Key quote: "Claude's ability to write code was both what put us in this situation in the first place and how we were able to quickly build a high-quality, scalable system to deal with it."
 
 ---
 
