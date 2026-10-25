@@ -210,7 +210,7 @@ input to the build decision. A workaround you don't report is friction the
 next agent re-hits.
 
 The toolchain layer of the factory — meld, loom, synth, kiln, sigil,
-ordeal, rivet, spar, witness — was built this way. Each one removed a
+varve, warte — was built this way. Each one removed a
 bottleneck. Each one fits the stack. None of them were bought off-the-shelf.
 
 ## Cross-repo issues: the bottlenecks are real
@@ -383,6 +383,7 @@ flowchart TD
         synth["synth<br/>AOT compile"]
         kiln["kiln<br/>runtime"]
         sigil["sigil<br/>signing"]
+        varve["varve<br/>layer manager"]
         warte["warte<br/>control tower"]
     end
 
@@ -467,8 +468,18 @@ flowchart TD
     witness --> vibe
     ordeal --> claude
     ordeal --> vibe
+    varve --> claude
+    varve --> vibe
     warte --> claude
     warte --> vibe
+
+    %% Tools depend on the layer they are in (varve manages layers)
+    meld --> varve
+    loom --> varve
+    synth --> varve
+    kiln --> varve
+    sigil --> varve
+    warte --> varve
 
     %% Agents depend on skills (used by all)
     claude --> pe
@@ -482,6 +493,7 @@ flowchart TD
     style synth fill:#1a1d27,stroke:#4ade80,color:#e1e4ed
     style kiln fill:#1a1d27,stroke:#4ade80,color:#e1e4ed
     style sigil fill:#1a1d27,stroke:#4ade80,color:#e1e4ed
+    style varve fill:#1a1d27,stroke:#c084fc,color:#e1e4ed
     style warte fill:#1a1d27,stroke:#f87171,color:#e1e4ed
     style rivet fill:#1a1d27,stroke:#22d3ee,color:#e1e4ed
     style spar fill:#1a1d27,stroke:#22d3ee,color:#e1e4ed
@@ -521,6 +533,9 @@ tower.
 - **relay** (amber) depends on meld, synth, gale, rivet
 - **gale** (amber) depends on meld, loom, synth, ordeal
 - **Toolchain** (green): meld, loom, synth, kiln, sigil — the pipeline
+- **Layer manager** (purple): varve — pinned, signed, dated toolchain
+  bundles. One layer per release. Each tool relies on the layer it is
+  based upon.
 - **Control tower** (red): warte — the dashboard, a tool like the others
 - **Verification** (cyan): rivet, spar, witness, ordeal — trace, architect,
   cover, solve
@@ -665,6 +680,7 @@ flowchart TB
         synth["synth<br/>AOT compile"]
         kiln["kiln<br/>runtime"]
         sigil["sigil<br/>signing"]
+        varve["varve<br/>layer manager"]
         warte["warte<br/>control tower"]
         tool_machine["⚙️ machine:<br/>agents · CI · gates<br/>skills: release-planning,<br/>release-execution"]
     end
@@ -684,6 +700,7 @@ flowchart TB
     style synth fill:#1a1d27,stroke:#4ade80,color:#e1e4ed
     style kiln fill:#1a1d27,stroke:#4ade80,color:#e1e4ed
     style sigil fill:#1a1d27,stroke:#4ade80,color:#e1e4ed
+    style varve fill:#1a1d27,stroke:#c084fc,color:#e1e4ed
     style warte fill:#1a1d27,stroke:#f87171,color:#e1e4ed
     style app_machine fill:#13161f,stroke:#8b90a0,color:#8b90a0
     style verify_machine fill:#13161f,stroke:#8b90a0,color:#8b90a0
@@ -702,7 +719,7 @@ flowchart TB
 |---|---|---|---|
 | **3: Application** | jess, relay, gale | Agents | CI, gates, skills (issue-hunt, oracle-gate-a-change) |
 | **2: Verification** | rivet, spar, witness, ordeal | Agents | CI, gates, skills (gate-potency, clean-room-verification) |
-| **1: Toolchain** | meld, loom, synth, kiln, sigil, **warte** | Agents | CI, gates, skills (release-planning, release-execution) |
+| **1: Toolchain** | meld, loom, synth, kiln, sigil, **varve**, **warte** | Agents | CI, gates, skills (release-planning, release-execution) |
 
 **Each layer is a station with its own machine.** The application layer has
 its own agents, its own CI, its own gates. The verification layer has its
