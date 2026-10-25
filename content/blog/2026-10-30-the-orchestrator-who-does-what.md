@@ -38,18 +38,114 @@ integrate, you watch the release, you own the ladder. "Flight stack" means:
 you fly, you verify, you ship the cascade. "Kernel" means: you provide the
 primitives, you prove them, you're the foundation.
 
-## The dependency chain
+## The full dependency graph
 
-```
-gale (kernel) → relay (flight stack) → jess (orchestrator)
-```
+The chain is not just gale → relay → jess. Every repo has dependencies.
+Here is the full picture, measured from the issue trackers and READMEs on
+26 October 2026:
 
-gale provides the verified kernel primitives. relay builds the flight stack
-on top of gale. jess integrates relay's flight stack onto hardware.
+{% <mermaid> %}
+flowchart TB
+    subgraph toolchain["Toolchain (foundation)"]
+        direction LR
+        meld["meld<br/>fuse"]
+        loom["loom<br/>optimize"]
+        synth["synth<br/>AOT compile"]
+        kiln["kiln<br/>runtime"]
+        sigil["sigil<br/>signing"]
+    end
 
-Each layer depends on the one below. jess cannot deploy until relay is
-bit-exact. relay cannot fly until gale is proven. The bottlenecks propagate
-up the chain.
+    subgraph verification["Verification & architecture"]
+        direction LR
+        rivet["rivet<br/>traceability"]
+        spar["spar<br/>architecture"]
+        witness["witness<br/>coverage"]
+        ordeal["ordeal<br/>SMT solver"]
+    end
+
+    subgraph app["Application stack"]
+        direction TB
+        gale["gale<br/>kernel"]
+        relay["relay<br/>flight stack"]
+        jess["jess<br/>orchestrator"]
+    end
+
+    %% Toolchain pipeline
+    meld --> loom --> synth --> kiln
+
+    %% Verification chain
+    rivet --> witness --> sigil
+
+    %% gale depends on toolchain + ordeal
+    meld --> gale
+    loom --> gale
+    synth --> gale
+    ordeal --> gale
+
+    %% relay depends on toolchain + gale + rivet
+    meld --> relay
+    synth --> relay
+    gale --> relay
+    rivet --> relay
+
+    %% jess depends on everything
+    relay --> jess
+    meld --> jess
+    loom --> jess
+    synth --> jess
+    gale --> jess
+    rivet --> jess
+    spar --> jess
+    sigil --> jess
+
+    %% Cross-repo issue references
+    loom -.-> ordeal
+    loom -.-> spar
+    loom -.-> synth
+    loom -.-> gale
+    sigil -.-> synth
+    sigil -.-> loom
+    spar -.-> rivet
+    witness -.-> rivet
+    kiln -.-> rivet
+    ordeal -.-> synth
+
+    style meld fill:#1a1d27,stroke:#4ade80,color:#e1e4ed
+    style loom fill:#1a1d27,stroke:#4ade80,color:#e1e4ed
+    style synth fill:#1a1d27,stroke:#4ade80,color:#e1e4ed
+    style kiln fill:#1a1d27,stroke:#4ade80,color:#e1e4ed
+    style sigil fill:#1a1d27,stroke:#4ade80,color:#e1e4ed
+    style rivet fill:#1a1d27,stroke:#22d3ee,color:#e1e4ed
+    style spar fill:#1a1d27,stroke:#22d3ee,color:#e1e4ed
+    style witness fill:#1a1d27,stroke:#22d3ee,color:#e1e4ed
+    style ordeal fill:#1a1d27,stroke:#22d3ee,color:#e1e4ed
+    style gale fill:#1a1d27,stroke:#fbbf24,color:#e1e4ed
+    style relay fill:#1a1d27,stroke:#fbbf24,color:#e1e4ed
+    style jess fill:#1a1d27,stroke:#6c8cff,color:#e1e4ed
+
+    classDef tool fill:#1a1d27,stroke:#4ade80,color:#e1e4ed;
+    classDef verify fill:#1a1d27,stroke:#22d3ee,color:#e1e4ed;
+    classDef app fill:#1a1d27,stroke:#fbbf24,color:#e1e4ed;
+    classDef orch fill:#1a1d27,stroke:#6c8cff,color:#e1e4ed;
+{% </mermaid> %}
+
+**Three layers:**
+
+| Layer | Repos | What they do |
+|---|---|---|
+| **Toolchain** | meld, loom, synth, kiln, sigil | Fuse, optimize, compile, run, sign |
+| **Verification** | rivet, spar, witness, ordeal | Trace, architect, cover, solve |
+| **Application** | gale, relay, jess | Kernel, flight stack, orchestrator |
+
+**The pipeline:** meld → loom → synth → kiln (fuse → optimize → compile → run)
+
+**The verification chain:** rivet → witness → sigil (trace → cover → sign)
+
+**The application stack:** gale → relay → jess (kernel → flight → orchestrator)
+
+jess depends on **everything**. relay depends on the toolchain + gale + rivet.
+gale depends on the toolchain + ordeal. The bottlenecks propagate up the
+chain — and across it.
 
 ## Cross-repo issues: the bottlenecks are real
 
