@@ -107,7 +107,7 @@ This is the **vocabulary is the process** insight in action. The skills are
 the vocabulary. The loops are the cadence. The agents are the workers. The
 orchestrator is the one who directs, triggers, reviews, decides.
 
-## The orchestrator in the loop
+## The human in the loop
 
 I am not an agent. I am the **orchestrator** — the one who enables the
 agents, reviews the output, and makes the decisions the oracles cannot.
@@ -148,11 +148,22 @@ that blue frames everything — you start with the big picture, move through
 the other hats, and return to blue for FIP. My day follows the same
 pattern:
 
-```
-Blue (factory status) → Black (friction reports) → Green (what to build)
-                                                              ↓
-                                              Blue (FIP: what first?)
-```
+{% <mermaid> %}
+flowchart LR
+    blue1["Blue<br/>factory status<br/>big picture"]
+    black["Black<br/>friction reports<br/>what's broken"]
+    green["Green<br/>what to build<br/>new ideas"]
+    blue2["Blue<br/>FIP<br/>what first?"]
+    blue1 --> black --> green --> blue2
+    blue2 -.->|"next cycle"| blue1
+    style blue1 fill:#1a1d27,stroke:#6c8cff,color:#e1e4ed
+    style blue2 fill:#1a1d27,stroke:#6c8cff,color:#e1e4ed
+    style black fill:#1a1d27,stroke:#f87171,color:#e1e4ed
+    style green fill:#1a1d27,stroke:#4ade80,color:#e1e4ed
+    classDef blue fill:#1a1d27,stroke:#6c8cff,color:#e1e4ed;
+    classDef black fill:#1a1d27,stroke:#f87171,color:#e1e4ed;
+    classDef green fill:#1a1d27,stroke:#4ade80,color:#e1e4ed;
+{% </mermaid> %}
 
 Check the factory (blue). Read what's broken (black). Think about what to
 build (green). Prioritize (blue, FIP). Repeat. The blue hat is the one I
