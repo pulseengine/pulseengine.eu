@@ -214,6 +214,150 @@ agent's reach)[^remojansen-tps]. One practitioner's operationalization: a
 "verification-debt budget" where 0 means the agent proceeds freely, 3 means it
 must verify before further actions, and 5 means it is stopped completely.
 
+## Answering the customer: can we deliver X by January?
+
+The gate model answers "where are we" — but customers ask "when will it be
+done." SAFe answers with story points and sprint velocity, which is a guess
+dressed as a plan. The factory answers with **two measurements**: gate status
+for the present, and **flow history** for the future.
+
+{% <mermaid> %}
+flowchart TB
+    subgraph present["Where are we? (measurement)"]
+        direction TB
+        g1["Gate 1: Requirements<br/>rivet validate"]
+        g2["Gate 2: Architecture<br/>spar solver"]
+        g3["Gate 3: Code + tests<br/>CI"]
+        g4["Gate 4: Coverage<br/>witness MC/DC"]
+        g5["Gate 5: Proof<br/>Verus/Kani"]
+        g6["Gate 6: Hardware<br/>Renode + silicon"]
+        g7["Gate 7: Sign-off<br/>human"]
+        style g1 fill:#1a1d27,stroke:#4ade80,color:#e1e4ed
+        style g2 fill:#1a1d27,stroke:#4ade80,color:#e1e4ed
+        style g3 fill:#1a1d27,stroke:#f87171,color:#e1e4ed
+        style g4 fill:#1a1d27,stroke:#8b90a0,color:#e1e4ed
+        style g5 fill:#1a1d27,stroke:#8b90a0,color:#e1e4ed
+        style g6 fill:#1a1d27,stroke:#8b90a0,color:#e1e4ed
+        style g7 fill:#1a1d27,stroke:#6c8cff,color:#e1e4ed
+    end
+
+    subgraph future["When will it be done? (estimation from corpus)"]
+        direction TB
+        h1["Past project A<br/>12 gates, 8 weeks<br/>1.5 gates/week"]
+        h2["Past project B<br/>8 gates, 12 weeks<br/>0.67 gates/week"]
+        h3["Past project C<br/>15 gates, 6 weeks<br/>2.5 gates/week"]
+        h4["X matches B's profile:<br/>8 gates, 3 need decisions<br/>→ 4 weeks mechanical<br/>→ 8 weeks decision-dependent"]
+        style h1 fill:#1a1d27,stroke:#8b90a0,color:#e1e4ed
+        style h2 fill:#1a1d27,stroke:#8b90a0,color:#e1e4ed
+        style h3 fill:#1a1d27,stroke:#8b90a0,color:#e1e4ed
+        style h4 fill:#1a1d27,stroke:#fbbf24,color:#e1e4ed
+    end
+
+    present -->|"gate status"| answer["Answer:<br/>June–July 2027 (80% confidence)<br/>September 2027 (95% confidence)"]
+    future -->|"flow history"| answer
+    style answer fill:#1a1d27,stroke:#6c8cff,color:#e1e4ed
+
+    classDef green fill:#1a1d27,stroke:#4ade80,color:#e1e4ed;
+    classDef red fill:#1a1d27,stroke:#f87171,color:#e1e4ed;
+    classDef neutral fill:#1a1d27,stroke:#8b90a0,color:#e1e4ed;
+    classDef human fill:#1a1d27,stroke:#6c8cff,color:#e1e4ed;
+    classDef estimate fill:#1a1d27,stroke:#fbbf24,color:#e1e4ed;
+{% </mermaid> %}
+
+### The corpus: every past project is a data point
+
+To estimate X, you need history. Every project you've shipped with gates,
+deadlines, and requirements is a reference:
+
+| Project | Gates | Weeks | Flow velocity | Gate types | Similarity to X |
+|---|---|---|---|---|---|
+| rivet v0.9 | 12 | 8 | 1.5/week | mostly mechanical | high (same toolchain) |
+| relay flight stack | 8 | 12 | 0.67/week | 5 mechanical, 3 decision | **matches X** |
+| spar v0.9.x | 15 | 6 | 2.5/week | mostly mechanical | high (same team) |
+| gale kernel | 6 | 10 | 0.6/week | 2 mechanical, 4 proof | low (formal proofs) |
+
+X has 8 gates: 5 mechanical (CI, tests, coverage), 3 decision-dependent
+(safety argument, hardware access, sign-off). That matches relay's profile:
+8 gates, 12 weeks, 0.67 gates/week. The mechanical gates took 4 weeks; the
+decision gates took 8 weeks because hardware access was late.
+
+### Reference class forecasting, not estimation from scratch
+
+Don't estimate X from zero. **Find the similar past project and use its
+actuals.** This is reference class forecasting (Flyvbjerg, *Reference Class
+Forecasting in Planning and Forecasting*, 2021)[^flyvbjerg] — the same method
+used for railways, bridges, and IT projects that consistently overrun.
+
+> "X matches relay's profile. Relay took 12 weeks: 4 for mechanical gates,
+> 8 waiting on decisions. If your hardware access is sorted by March, we're
+> looking at June–July 2027. If not, add 8 weeks."
+
+### Monte Carlo, not a single date
+
+Give confidence intervals, not false precision:
+
+> "Based on 12 similar projects, the mechanical gates take 8–16 weeks
+> (80% confidence). The decision gates take 4–12 weeks depending on your
+> team. So: **June 2027 with 80% confidence, September 2027 with 95%
+> confidence.** The variance is in the decisions, not the code."
+
+This is honest because:
+- You're using **real data** from your corpus
+- You're giving **ranges**, not false precision
+- You're separating **mechanical gates** (predictable) from **decision gates**
+  (unpredictable)
+
+### What you need to collect
+
+To make this work, track per project:
+
+| Field | Why |
+|---|---|
+| Gate ID + type (mechanical / decision / sign-off) | Separate predictable from unpredictable |
+| Date gate entered queue | Flow Time start |
+| Date gate passed | Flow Time end |
+| Blocker reason (if red > 1 week) | Learn what slows you down |
+| Similarity tags (toolchain, hardware, team) | Match future projects to past ones |
+
+This is **Flow Time** from the Flow Framework — the metric that predicts
+delivery, not velocity[^kersten-flow].
+
+### The customer conversation
+
+> "We don't guess. We measure. X has 8 gates. Two are green, one is red
+> (the proof — we need a decision from your team on the safety argument),
+> five haven't started. Based on 12 similar projects in our corpus, the
+> mechanical gates take 8–16 weeks. The decision gates depend on you.
+> If those land by March, we deliver June–July 2027 with 80% confidence.
+> Here's the dashboard showing every gate's status, and here's the
+> historical data behind the estimate."
+
+### Why this beats SAFe estimation
+
+| SAFe | Gate + flow model |
+|---|---|
+| Story points (guessed) | Gate count (measured) |
+| Sprint velocity (throughput) | Flow velocity (gates/week from corpus) |
+| PI commitment (fixed scope, fixed date) | Confidence interval (range, with assumptions) |
+| "We'll try" | "Here's the data, here's the risk, here's what we need from you" |
+
+{% <note kind="warning"> %}
+**Story points are the wrong unit for the question being asked.** In SAFe,
+teams had to calibrate story points — make them synchronous across teams so
+a "5" meant the same thing everywhere. That calibration is busywork: it
+measures *complexity*, not *time*. But the customer never asks "how complex
+is it?" They ask "when is it ready?" Story points answer a question nobody
+asked, and the calibration to make them comparable across teams makes them
+even less useful for the question that matters.
+{% </note> %}
+
+### The key insight
+
+Software is unknown. **Your factory is not.** The factory has a measurable
+throughput. The gates are the units. The corpus is the history. You're not
+estimating software — you're estimating **how fast your factory passes
+gates**, and that's a measurement, not a guess.
+
 ## The work model that makes it real
 
 {% <mermaid> %}
@@ -437,6 +581,8 @@ on 25 October 2026 found no prior use in the public literature.
 [^businessmap-decisions]: BusinessMap/ProofHub, *Using Kanban for Better Decision Making*. [businessmap.io](https://businessmap.io/blog/using-kanban-for-better-decision). Secondary (vendor blog, cites CHAOS Report).
 
 [^kersten-flow]: Mik Kersten, *Project to Product: How to Survive and Thrive in the Age of Digital Disruption with the Flow Framework*, IT Revolution, 2018. Primary (book). Flow Framework: [flowframework.org](https://flowframework.org/).
+
+[^flyvbjerg]: Bent Flyvbjerg, *Reference Class Forecasting in Planning and Forecasting*, 2021. Primary (book). The method: estimate from the actuals of similar past projects, not from a bottom-up estimate of the current project.
 
 [^linearb-flow]: LinearB, *5 Key Flow Metrics*. [linearb.io](https://linearb.io/blog/5-key-flow-metrics). Secondary (vendor blog, cites DeGrandis).
 
