@@ -191,7 +191,7 @@ The pattern:
 | Git | Too slow for 30k merges/day, 100 GB monorepo, 600 PB traffic/day | Scion (Anthropic) | Built for their scale, migrated in 5 months |
 | Z3 | Slow build (C++), friction with Rust | ordeal | Pure Rust, fast build, certificate-checked |
 | gcov / llvm-cov | No MC/DC vocabulary | witness | MC/DC truth tables for Wasm |
-| serde_yaml | Slow, unsafe, unmaintained | rivet-yaml (complete replacement) | Rust-native, schema-driven, fully replaced |
+| serde_yaml | Unsafe, unmaintained | rivet-yaml (complete replacement) | Rust-native, schema-driven, fully replaced |
 | Manual traceability | Error-prone, slow | rivet | Git-native, schema-driven, LSP |
 
 **The orchestrator's decision:** when a tool is a bottleneck, do you build
@@ -203,7 +203,9 @@ your own, or work around it? The orchestrator decides:
   if the tool is not on the critical path
 
 **Friction is data.** When a tool errors, produces wrong output, lacks a
-capability, or forces a workaround — file it. The friction report is the
+capability, or forces a workaround — file it. The agents have a skill for
+this: `report-tool-friction`. It fires the moment an agent notices itself
+working *around* a tool instead of *with* it. The friction report is the
 input to the build decision. A workaround you don't report is friction the
 next agent re-hits.
 
