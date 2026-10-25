@@ -9,12 +9,15 @@ authors = ["Ralf Anton Beier"]
 +++
 
 {% <insight> %}
-The customer asks "can we deliver X by January?" SAFe answers with story
-points — a complexity measure, not a time measure. The factory answers with
-**two measurements**: gate status for where we are, and **flow history** from
-past projects for when we'll be done. Don't estimate from scratch. Find the
-similar past project and use its actuals. Give confidence intervals, not
-false precision. Software is unknown; your factory is not.
+**The customer asks "can we deliver X by January?" SAFe answers with story
+points — a complexity measure, not a time measure.**
+
+The factory answers with **two measurements**: gate status for where we are,
+and **flow history** from past projects for when we'll be done.
+
+Don't estimate from scratch. Find the similar past project and use its
+actuals. Give confidence intervals, not false precision. Software is unknown;
+your factory is not.
 {% </insight> %}
 
 [The previous post](/blog/safe-was-built-for-slow-humans/) argued that the
@@ -194,7 +197,7 @@ Agile's own blog says velocity "should never be compared across teams."
 Cross-team calibration is a **common organizational practice** — driven by
 portfolio management wanting to sum multi-team estimates — not a framework
 requirement. And it's a known anti-pattern: Ron Jeffries, who coined story
-points, calls comparing teams on estimates "harmful."[^jeffries-points]
+points, calls comparing teams on estimates "harmful."
 Story points measure *complexity*, not *time*. The customer asks "when is it
 ready?" — not "how complex is it?" Calibrating points across teams to make
 them comparable answers a question nobody asked, and invites the exact

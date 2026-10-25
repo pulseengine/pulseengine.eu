@@ -9,18 +9,20 @@ authors = ["Ralf Anton Beier"]
 +++
 
 {% <insight> %}
-SAFe was designed in 2011[^safe-history] to coordinate large organisations of
-people who think and deliver in months. Coding agents did not exist. An
-AI-agent factory delivers in hours. The bottleneck is not *what* the agents
-produce — code, requirements, architecture, tests — but *who verifies it and
-who decides*. Make everything code and the bottleneck does not move: it is
-still the human gate. What replaces SAFe is not "less process" but a
-different process: Kanban for the flow, gates for the checks, machine-readable
-contracts between stations, and a translation layer to the corporation that
-must not be called SAFe — because the name is the trap.
+**SAFe was designed in 2011 for people who think and deliver in months.
+Coding agents did not exist. An AI-agent factory delivers in hours.**
+
+The bottleneck is not *what* the agents produce — code, requirements,
+architecture, tests — but *who verifies it and who decides*. Make everything
+code and the bottleneck does not move: it is still the human gate.
+
+What replaces SAFe is not "less process" but a different process: Kanban for
+the flow, gates for the checks, machine-readable contracts between stations,
+and a translation layer to the corporation that must not be called SAFe —
+because the name is the trap.
 {% </insight> %}
 
-I have spent ten years inside SAFe organisations. PI Planning events where the
+I have spent ten years inside SAFe organisations[^safe-history]. PI Planning events where the
 same three stakeholders attended and forty others were represented by a proxy.
 Retrospectives that named the same three impediments for six quarters running.
 None of it was stupid — it was coordination overhead calibrated for teams that
