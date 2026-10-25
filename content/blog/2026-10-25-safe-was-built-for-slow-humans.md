@@ -79,6 +79,21 @@ all of it — and the constraint is still the same: a human needs time to
 and *sign*. It is not just code that takes human time. Requirements,
 architecture, tests — comprehending any of them is slow for a human.
 
+But the bottleneck is not always human. **Any step in the process can be the
+constraint.** Hardware availability is a common one: a flight stack cannot
+pass its hardware gate until a board is free. The fix is simulation first —
+run the gate in Renode, prove the logic, then confirm on silicon when the
+board is available. CI queue is another: 69 jobs waiting on one runner pool
+is a bottleneck even if every human is free. Network, dependencies, external
+services — anything that limits throughput is a bottleneck.
+
+This is the Theory of Constraints: **the bottleneck is whatever limits the
+throughput of the entire system, and it moves as you improve other steps.**
+Fix the human decision queue, and hardware becomes the bottleneck. Add
+simulation, and real hardware becomes the bottleneck. Add more runners, and
+the CI queue moves. The factory is a chain, and the throughput is set by the
+weakest link — which is not always the same link.
+
 This is what Osmani means by "Generation is a wide mouth; verification is the
 narrow neck."[^osmani-factories] The artifact is not the bottleneck. The gate
 is. The queue that matters is no longer "what are we building this sprint" but
