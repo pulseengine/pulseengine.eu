@@ -9,7 +9,7 @@
 
 ```text
 content/          Markdown content (pages, blog posts)
-templates/        Tera templates (layouts, shortcodes)
+templates/        Tera templates (layouts, components)
 sass/             SCSS partials → compiled to main.css
 static/           Static assets (JS, images, fonts)
 ```
@@ -112,17 +112,17 @@ Markdown style (italic text after image):
 *Figure 1: The component fusion pipeline*
 ```
 
-Shortcode style (recommended for important figures):
+Component style (recommended for important figures):
 
 ```markdown
-{{ figure(src="architecture.png", alt="Architecture overview", caption="Figure 1: The component fusion pipeline") }}
+{{< figure src="architecture.png" alt="Architecture overview" caption="Figure 1: The component fusion pipeline" />}}
 ```
 
-The shortcode renders a semantic `<figure>/<figcaption>` with centered caption styling.
+The component renders a semantic `<figure>/<figcaption>` with centered caption styling.
 
 ### Mermaid diagrams
 
-Use the `mermaid` shortcode for inline diagrams. Mermaid JS loads only on pages that use it.
+Use the `mermaid` component for inline diagrams. Mermaid JS loads only on pages that use it.
 
 ```markdown
 {% mermaid() %}
@@ -134,7 +134,7 @@ graph LR
 {% end %}
 ```
 
-The Mermaid theme is pre-configured to match the site's dark palette — no manual styling needed. The shortcode renders as `<pre class="mermaid">` to preserve newlines through Zola's HTML minification.
+The Mermaid theme is pre-configured to match the site's dark palette — no manual styling needed. The component renders as `<pre class="mermaid">` to preserve newlines through Zola's HTML minification.
 
 **Avoid HTML inside Mermaid node labels** — use plain text or Mermaid's native formatting. The content goes through Zola's markdown processor, so raw HTML tags get escaped.
 
@@ -142,7 +142,7 @@ For complex diagrams that don't change often, consider pre-rendering as SVG and 
 
 ### Callout notes
 
-Use the `note` shortcode for callouts:
+Use the `note` component for callouts:
 
 ```markdown
 {% note() %}
@@ -179,25 +179,25 @@ Links and `inline code` work; the body is rendered as Markdown.
 Long or heavily-cited posts also carry the `deep-dive` tag, and close on a takeaway
 section rather than trailing off.
 
-### Every shortcode in `templates/shortcodes/`
+### Every component in `templates/components/`
 
-This table is the full set. If you add or remove a file in `templates/shortcodes/`,
-change this table in the same commit — a shortcode the guide does not mention is a
-shortcode nobody uses, and one the guide invents fails the build.
+This table is the full set. If you add or remove a file in `templates/components/`,
+change this table in the same commit — a component the guide does not mention is a
+component nobody uses, and one the guide invents fails the build.
 
-| Shortcode | Purpose | Usage |
+| Component | Purpose | Usage |
 |---|---|---|
-| `insight()` | Opening thesis block — **required, see above** | `{% insight() %}...{% end %}` |
-| `note(kind="...")` | Callout box (`info`/`tip`/`warning`/`danger`) | `{% note(kind="tip") %}...{% end %}` |
-| `mermaid()` | Mermaid diagram | `{% mermaid() %}...{% end %}` |
-| `figure(src, alt, caption)` | Raster/vector image with semantic caption | `{{ figure(src="img.png", alt="...", caption="...") }}` |
-| `tree(root, parts)` | ASCII-art directory tree | `{{ tree(root="crates", parts=["a", "b"]) }}` |
-| `project_card(name, desc, url, ...)` | Glass card for a project; optional `icon`, `badge`, `label`, `releases`, `vscode` | `{{ project_card(name="meld", desc="...", url="...", icon="🔗", badge="accent") }}` |
-| `compliance_artifact(id, prefix)` | One rivet artifact, resolved from site data | `{{ compliance_artifact(id="REQ-001") }}` |
-| `compliance_stats(type_name)` | Artifact counts by type | `{{ compliance_stats(type_name="requirement") }}` |
-| `factory_views()` | The factory views panel; takes no arguments | `{{ factory_views() }}` |
+| `insight` | Opening thesis block — **required, see above** | `{% <insight> %}...{% </insight> %}` |
+| `note(kind="...")` | Callout box (`info`/`tip`/`warning`/`danger`) | `{% <note kind="tip"> %}...{% </note> %}` |
+| `mermaid` | Mermaid diagram | `{% <mermaid> %}...{% </mermaid> %}` |
+| `figure(src, alt, caption)` | Raster/vector image with semantic caption | `{{< figure src="img.png", alt="...", caption="..." />}}` |
+| `tree(root, parts)` | ASCII-art directory tree | `{% <tree root="crates"> %}...{% </tree> %}` |
+| `project_card(name, desc, url, ...)` | Glass card for a project; optional `icon`, `badge`, `label`, `releases`, `vscode` | `{{< project_card name="meld", desc="...", url="...", icon="🔗", badge="accent" />}}` |
+| `compliance_artifact(id, prefix)` | One rivet artifact, resolved from site data | `{{< compliance_artifact id="REQ-001" />}}` |
+| `compliance_stats(prefix)` | Artifact counts by type | `{{< compliance_stats prefix="requirement" />}}` |
+| `factory_views` | The factory views panel; takes no arguments | `{{< factory_views />}}` |
 
-There is no `pipeline()` shortcode. The pipeline SVG lives in the page templates
+There is no `pipeline` component. The pipeline SVG lives in the page templates
 (`about.html`, `projects.html`, `how-it-works.html`) and is not callable from Markdown.
 
 ### Citations in a heavily-sourced post
@@ -209,7 +209,7 @@ back-references and the `:target` highlight. Give every definition a tier — pr
 secondary, peer-reviewed, or not read — so a reader can weigh it, and open the section
 with a paragraph naming whatever you could not access.
 
-**A footnote reference does not work inside a shortcode body.** Shortcode bodies are
+**A footnote reference does not work inside a component body.** Component bodies are
 rendered through a separate `| markdown` call, so `[^key]` inside `{% note %}` or
 `{% insight %}` will not resolve. Put the reference in the surrounding prose instead.
 

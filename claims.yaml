@@ -172,13 +172,13 @@ claims:
 
   # CONTRIBUTING's shortcode table omitted insight() and tree() and listed a
   # pipeline() with no file, so a post was written without the house opening.
-  - id: CONTRIBUTING-SHORTCODES-MATCH-DISK
+  - id: CONTRIBUTING-COMPONENTS-MATCH-DISK
     doc: CONTRIBUTING.md
-    text: "Every shortcode in `templates/shortcodes/`"
+    text: "Every component in `templates/components/`"
     evidence:
       - kind: set-equal
-        left:  {glob: 'templates/shortcodes/*.html', name: 'shortcodes/([^/]+)\.html$'}
-        right: {file: CONTRIBUTING.md, pattern: '^\| `([a-z_]+)\(', after: '### Every shortcode in', before: '### '}
+        left:  {glob: 'templates/components/*.html', name: 'components/([^/]+)\.html$'}
+        right: {file: CONTRIBUTING.md, pattern: '^\| `([a-z_]+)', after: '### Every component in', before: '### '}
 
   # The claim-verification skill documents the evidence kinds; claim-check.py
   # implements them. They drifted: the skill advertised a `badge` kind the
