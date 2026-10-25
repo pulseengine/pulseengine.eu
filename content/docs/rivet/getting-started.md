@@ -246,7 +246,7 @@ schemas:
   - cybersecurity
 ```
 
-See [schemas.md](schemas.md) for the full schema reference.
+See [/docs/rivet/schemas/](/docs/rivet/schemas/) for the full schema reference.
 
 ### Schema structure
 
@@ -357,7 +357,7 @@ Severity levels: `error` (validation fails), `warning` (reported but passes),
 | `allocated-to`  | `allocated-from`| Source is allocated to the target           |
 | `constrained-by`| `constrains`    | Source is constrained by the target         |
 
-Domain schemas add additional link types. See [schemas.md](schemas.md) for the full list.
+Domain schemas add additional link types. See [/docs/rivet/schemas/](/docs/rivet/schemas/) for the full list.
 
 ---
 
@@ -726,6 +726,6 @@ traceability links added separately to avoid orphans.
 
 ## Next Steps
 
-- Read the [schema reference](schemas.md) for full details on all built-in schemas
+- Read the [schema reference](/docs/rivet/schemas/) for full details on all built-in schemas
 - Browse the `artifacts/` directory in the repo for real-world examples
 - Run `rivet validate` on your own project to see it in action

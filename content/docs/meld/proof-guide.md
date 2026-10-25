@@ -589,13 +589,13 @@ bazel build //proofs/...
 
 ### Meld-Specific Resources
 
-1. **[Meld README](../README.md)**
+1. **[Meld README](https://github.com/pulseengine/meld)**
    - Overview of Meld's architecture and goals
 
-2. **[Proof Decisions](DECISIONS.md)**
+2. **[Proof Decisions](https://github.com/pulseengine/meld/blob/main/DECISIONS.md)**
    - Design decisions and trade-offs in the proof structure
 
-3. **[Rust Implementation](../../meld-core/)**
+3. **[Rust Implementation](https://github.com/pulseengine/meld/tree/main/meld-core/)**
    - The actual fusion engine being verified
 
 ## Glossary
