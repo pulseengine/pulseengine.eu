@@ -61,10 +61,10 @@ flowchart TB
 
     subgraph future["When will it be done? (flow history from corpus)"]
         direction TB
-        h1["Past project A: 12 gates, 8 weeks, 1.5 gates/week"]
-        h2["Past project B: 8 gates, 12 weeks, 0.67 gates/week"]
-        h3["Past project C: 15 gates, 6 weeks, 2.5 gates/week"]
-        h4["X matches B: 8 gates, 3 need decisions<br/>→ 4 weeks mechanical + 8 weeks decision-dependent"]
+        h1["synth: 432 issues, 12 months, 11.5/week (fast, rudimentary)"]
+        h2["rivet: 264 issues, 8 months, 10/week (mechanical)"]
+        h3["relay: 108 issues, 7 months, 1.75/week, 57 in decision queue"]
+        h4["X matches relay: 8 gates, 3 need decisions<br/>→ 1–2 weeks mechanical + 2–20 weeks decision-dependent"]
         h1 --> h2 --> h3 --> h4
         style h1 fill:#1a1d27,stroke:#8b90a0,color:#e1e4ed
         style h2 fill:#1a1d27,stroke:#8b90a0,color:#e1e4ed
@@ -72,7 +72,7 @@ flowchart TB
         style h4 fill:#1a1d27,stroke:#fbbf24,color:#e1e4ed
     end
 
-    present -->|"gate status"| answer["Answer:<br/>June–July 2027 (80% confidence)<br/>September 2027 (95% confidence)"]
+    present -->|"gate status"| answer["Answer:<br/>May–June 2027 (80% confidence)<br/>June–July 2027 (with buffer)"]
     future -->|"flow history"| answer
     style answer fill:#1a1d27,stroke:#6c8cff,color:#e1e4ed
 
@@ -86,19 +86,36 @@ flowchart TB
 ## The corpus: every past project is a data point
 
 To estimate X, you need history. Every project you've shipped with gates,
-deadlines, and requirements is a reference:
+deadlines, and requirements is a reference. Here is the actual corpus from
+our repositories, measured with `scripts/factory-metrics.py` on 26 October
+2026:
 
-| Project | Gates | Weeks | Flow velocity | Gate types | Similarity to X |
-|---|---|---|---|---|---|
-| rivet v0.9 | 12 | 8 | 1.5/week | mostly mechanical | high (same toolchain) |
-| relay flight stack | 8 | 12 | 0.67/week | 5 mechanical, 3 decision | **matches X** |
-| spar v0.9.x | 15 | 6 | 2.5/week | mostly mechanical | high (same team) |
-| gale kernel | 6 | 10 | 0.6/week | 2 mechanical, 4 proof | low (formal proofs) |
+| Project | Issues (agent+human) | Months active | Closed | Flow velocity | Decision queue | Notes |
+|---|---|---|---|---|---|---|
+| **synth** | 432 | 12 (Nov 2025–Oct 2026) | 367 | **11.5/week** | not yet measured | Rudimentary but fast — compiler pipeline, many small gates |
+| **rivet** | 264 | 8 (Mar–Oct 2026) | 340 | **10/week** | not yet measured | Traceability tool, mostly mechanical gates |
+| **spar** | 132 | 8 (Mar–Oct 2026) | 91 | **2.75/week** | not yet measured | Architecture solver, mixed mechanical + analysis |
+| **relay** | 108 | 7 (Apr–Oct 2026) | 52 | **1.75/week** | **57** | Flight stack, hardware-dependent, slow decisions |
+| **gale** | 89 | 8 (Mar–Oct 2026) | 57 | **1.75/week** | **30** | Formal proofs, verification-heavy |
+| **jess** | 12 | 5 (Jun–Oct 2026) | 3 | **0.15/week** | not yet measured | Hardware integration, blocked on physical access |
+
+The decision queue column is the `needs-decision` floor from
+`scripts/issue-class-floors.json` — the number of issues currently waiting
+for a human decision. Relay has 57; gale has 30. These are the queues that
+set the team size.
+
+**Cross-repo dependencies.** jess (hardware integration) has open issues
+referencing relay (flight stack) and gale (kernel) — the hardware layer
+cannot close its gates until the software layers pass theirs. synth has
+the highest flow velocity (11.5/week) but is still rudimentary: many
+small gates, fast closure, but the gates themselves need more work. Speed
+of closure is not the same as maturity of the gate.
 
 X has 8 gates: 5 mechanical (CI, tests, coverage), 3 decision-dependent
 (safety argument, hardware access, sign-off). That matches relay's profile:
-8 gates, 12 weeks, 0.67 gates/week. The mechanical gates took 4 weeks; the
-decision gates took 8 weeks because hardware access was late.
+hardware-dependent, slow decisions, a decision queue of 57. If your
+hardware access is sorted by March, we're looking at June–July 2027. If
+not, add 8 weeks.
 
 ## Reference class forecasting, not estimation from scratch
 
@@ -111,14 +128,21 @@ used for railways, bridges, and IT projects that consistently overrun.
 > 8 waiting on decisions. If your hardware access is sorted by March, we're
 > looking at June–July 2027. If not, add 8 weeks."
 
-## Monte Carlo, not a single date
+## Confidence intervals, not a single date
 
-Give confidence intervals, not false precision:
+Give confidence intervals, not false precision. From the corpus:
 
-> "Based on 12 similar projects, the mechanical gates take 8–16 weeks
-> (80% confidence). The decision gates take 4–12 weeks depending on your
-> team. So: **June 2027 with 80% confidence, September 2027 with 95%
-> confidence.** The variance is in the decisions, not the code."
+- **Mechanical gates** (synth 11.5/week, rivet 10/week, spar 2.75/week):
+  5 gates take **1–2 weeks** (80% confidence).
+- **Decision gates** (relay 1.75/week with 57 in queue, gale 1.75/week
+  with 30 in queue, jess 0.15/week hardware-blocked): 3 gates take
+  **2–20 weeks** depending on hardware access and queue position.
+
+> "Based on 6 projects in our corpus, the mechanical gates take 1–2 weeks.
+> The decision gates depend on your hardware access. If that's sorted by
+> March, we deliver **May–June 2027** with 80% confidence. With a buffer
+> for queue position, **June–July 2027**. If hardware access slips, add
+> the slip."
 
 This is honest because:
 - You're using **real data** from your corpus
@@ -215,11 +239,11 @@ decisions." The number is smaller. The leverage is higher.
 
 > "We don't guess. We measure. X has 8 gates. Two are green, one is red
 > (the proof — we need a decision from your team on the safety argument),
-> five haven't started. Based on 12 similar projects in our corpus, the
-> mechanical gates take 8–16 weeks. The decision gates depend on you.
-> If those land by March, we deliver June–July 2027 with 80% confidence.
-> Here's the dashboard showing every gate's status, and here's the
-> historical data behind the estimate."
+> five haven't started. Based on 6 projects in our corpus, the
+> mechanical gates take 1–2 weeks. The decision gates depend on your
+> hardware access. If that's sorted by March, we deliver May–June 2027
+> with 80% confidence. Here's the dashboard showing every gate's status,
+> and here's the historical data behind the estimate."
 
 ## Why this beats SAFe estimation
 
