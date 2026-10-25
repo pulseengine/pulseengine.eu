@@ -1,7 +1,7 @@
 +++
 title = "The orchestrator: who does what when bottlenecks won't go away"
 description = "Bottlenecks will always exist — hardware contention, CI queues, decision queues, cross-repo dependencies. But the principle is clear: jess orchestrates, relay flies, gale provides the kernel. The roles don't move. The bottlenecks do."
-date = 2026-10-30
+date = 2026-10-28
 draft = true
 ready = true
 [taxonomies]

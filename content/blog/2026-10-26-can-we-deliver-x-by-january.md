@@ -1,7 +1,7 @@
 +++
 title = "Can we deliver X by January? Estimation from gates and flow history"
 description = "Customers ask for dates. SAFe answers with story points — a complexity measure dressed as a plan. The factory answers with two measurements: gate status for the present, and flow history from past projects for the future. Reference class forecasting, not estimation from scratch."
-date = 2026-10-27
+date = 2026-10-26
 draft = true
 ready = true
 [taxonomies]
