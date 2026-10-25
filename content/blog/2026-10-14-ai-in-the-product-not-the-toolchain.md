@@ -9,7 +9,7 @@ tags = ["verification", "process", "traceability", "ai-agents", "deep-dive"]
 authors = ["Ralf Anton Beier"]
 +++
 
-{% insight() %}
+{% <insight> %}
 There are two questions here, and they get run together: certifying a system that
 *contains* machine learning, and using an agent that *writes code for* a certified
 product. The standards bodies have
@@ -19,7 +19,7 @@ rule that asks you to disclose the use rather than establish anything about the 
 The tool-qualification frameworks that already cover an agent all turn on verifying its
 output, and nothing we could read says what that verification has to produce. That is
 the gap, and the measurements below are what is in it.
-{% end %}
+{% </insight> %}
 
 Two questions get confused, and the confusion matters because the standards bodies
 have answered one of them and not the other.
@@ -223,12 +223,12 @@ One scope statement draws the boundary explicitly. ISO/PAS 8800:2024 states that
 
 The EU AI Act does cover agents, and it is worth knowing how.[^aiact]
 
-{% note(kind="tip") %}
+{% <note kind="tip"> %}
 The AI Act Service Desk FAQ states that the rules applicable to AI systems and GPAI
 models also apply to AI agents, and that agents are not a separate category of AI. The
 same page describes the Commission's views as preliminary. That FAQ answer does not
 address an agent used as a software development tool.
-{% end %}
+{% </note> %}
 
 ## The sentence that is the whole problem
 

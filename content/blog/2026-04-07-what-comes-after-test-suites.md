@@ -7,9 +7,9 @@ tags = ["verification", "deep-dive"]
 authors = ["Ralf Anton Beier"]
 +++
 
-{% insight() %}
+{% <insight> %}
 Greenblatt showed that AI excels when verification is cheap — build a test suite, iterate, ship. Beck and Fowler warn that quality is getting dropped. Both are right. In regulated domains, both problems compound: more code needs more verification, and test suites do not satisfy the standards. The question is not whether AI can write the code. It is whether you can prove the code is correct after AI wrote it.
-{% end %}
+{% </insight> %}
 
 ## Two articles in one week
 

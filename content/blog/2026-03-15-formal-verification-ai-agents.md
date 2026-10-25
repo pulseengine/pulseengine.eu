@@ -8,9 +8,9 @@ tags = ["verification", "deep-dive"]
 authors = ["Ralf Anton Beier"]
 +++
 
-{% insight() %}
+{% <insight> %}
 Formal verification was a craft practiced at a handful of universities and research labs. The barrier was never the math — it was the effort. AI agents collapse that effort. The same agents that write code can write proof annotations, and the solver checks them in seconds. The question shifts from "can we afford to prove this" to "what remains to be solved."
-{% end %}
+{% </insight> %}
 
 ## The shift
 

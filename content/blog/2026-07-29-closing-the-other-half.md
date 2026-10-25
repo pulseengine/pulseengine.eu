@@ -9,13 +9,13 @@ tags = ["verification", "floating-point", "embedded", "how-it-works"]
 authors = ["Ralf Anton Beier"]
 +++
 
-{% insight() %}
+{% <insight> %}
 In [One ulp of doubt](/blog/one-ulp-of-doubt/) we ended on a deliberately
 uncomfortable note: the rounding layer of our `f32` sine kernel was
 machine-checked, and the *approximation* layer — whether the polynomial is
 actually close to true sine — was not. We wrote it down as open. This is what
 happened when we went to close it.
-{% end %}
+{% </insight> %}
 
 Publishing "here is what we have **not** proven" creates a small, useful debt.
 Ours came due quickly, and paying it went through three surprises: a tool that
@@ -80,14 +80,14 @@ prove `8e-9` — even when given more computational budget. It stops working jus
 below where we claim it works. A proof that cannot fail is a proof that is not
 checking anything.
 
-{% note(kind="tip") %}
+{% <note kind="tip"> %}
 **A useful cross-check.** The approximation error (`1e-8`) is an order of
 magnitude *below* the total error we measured by exhaustively testing all 2.2
 billion inputs (`1.19e-7`). That is the right relationship: the total is
 dominated by rounding, not by the polynomial fit. If the approximation bound had
 come out *larger* than the measured total, something would be wrong with one of
 them.
-{% end %}
+{% </note> %}
 
 ## The compiler said no
 
@@ -121,13 +121,13 @@ capped in *floating-point*. On this target both forms cost the same, so it had n
 reason to prefer ours. We even deleted the original helper outright to be sure we
 were not chasing a ghost. The instruction stayed.
 
-{% note(kind="warning") %}
+{% <note kind="warning"> %}
 **We reported the negative result the same day.** It would have been easy to
 write "three stages unblocked" — the change was in, the tests were green, the
 reasoning was sound. But the artifact said otherwise, and the artifact wins.
 Telling a colleague their workaround succeeded when it did not would have sent
 them to build on a foundation that was not there.
-{% end %}
+{% </note> %}
 
 The change shipped anyway, on its own merits. Subtracting two large absolute
 `f32` timestamps is a genuinely bad idea: at a million seconds, one `f32` step is
@@ -175,7 +175,7 @@ as "landing", not "landed". We would rather say that than round it up.</small>
 
 And the boundary, stated as carefully as before:
 
-{% note(kind="warning") %}
+{% <note kind="warning"> %}
 **Still open — and worth being precise about.** Having both halves proven is not
 the same as having the *composed* result proven. The triangle inequality that
 chains them into a single statement about the reduced range is a further proof
@@ -183,7 +183,7 @@ obligation, and it is not discharged yet. Neither is the argument-reduction
 cancellation — the step that brings an arbitrary input into the range these
 proofs cover — which remains the hardest piece of the four. Until that lands, we
 have strong bounds on a *reduced range*, not on the whole input domain.
-{% end %}
+{% </note> %}
 
 That distinction is easy to blur and would be the most flattering possible thing
 to blur. Two proofs that could compose are not a composition.

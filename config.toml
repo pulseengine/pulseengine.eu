@@ -27,7 +27,6 @@ smart_punctuation = true
 bottom_footnotes = true
 
 [markdown.highlighting]
-enabled = true
 theme = "material-theme-ocean"
 
 [extra]

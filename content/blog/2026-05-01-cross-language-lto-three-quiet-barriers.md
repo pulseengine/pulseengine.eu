@@ -8,13 +8,13 @@ tags = ["verification", "process", "deep-dive"]
 authors = ["Ralf Anton Beier"]
 +++
 
-{% insight() %}
+{% <insight> %}
 [gale](https://github.com/pulseengine/gale) is our drop-in formally-verified Rust replacement for the kernel primitives in Zephyr RTOS. We turned on cross-language LTO between rustc and clang on Cortex-M expecting a 10–30% handoff speedup from inlining the Rust into the C call sites. The prediction was wrong — the LTO build came out 1.1 percentage points *slower* per handoff than the GCC + Gale build with the FFI calls intact.
 
 What the measurement actually revealed was that the FFI overhead is a rounding error against the surrounding C kernel cost, and that clang's codegen for that C runs a few cycles per handoff slower than GCC's — enough to outweigh what LTO saved by erasing the FFI. The real value of LTO on this stack lives somewhere else: a binary where every verified-Rust function has been inlined into the call site that uses it, with `nm zephyr.elf | grep gale_` returning zero. That is the configuration where an assessor can verify, with one command, that what was proved is what shipped.
 
 Two configurations now satisfy different constraints — GCC + Gale a touch faster, LLVM + LTO a touch smaller and FFI-shim-free — and the choice between them is a real system-design call.
-{% end %}
+{% </insight> %}
 
 ## Why we cared
 
@@ -32,7 +32,7 @@ For this to work as a substitution rather than a research demo, three things hav
 
 Concretely, gale slots in at the layer where Zephyr's `kernel/sem.c` (and friends) used to live. The public API is unchanged, the kernel internals are unchanged, and the middle is rewritten to follow an extract → decide → apply pattern: C reads kernel state and runs side effects (spinlock, wait queue, scheduler), Rust decides the action, C applies the result.
 
-{% mermaid() %}
+{% <mermaid> %}
 flowchart TB
     app["Application<br/>(engine bench: crank_isr → k_sem_give,<br/>worker → k_sem_take)"]
 
@@ -72,11 +72,11 @@ flowchart TB
     class gc,rs ours;
     class verus proved;
     class zapi,gz,ffi,rust,zint grp;
-{% end %}
+{% </mermaid> %}
 
 Cross-language LTO is the toolchain machinery all three converge on. It should make the Rust fast (inlining), the binary smaller (no duplicate shim code), and the binary auditable (verified Rust function bodies emitted directly into the C call sites, no FFI hop visible).
 
-{% mermaid() %}
+{% <mermaid> %}
 flowchart TB
     subgraph noLto["Without cross-language LTO"]
         direction LR
@@ -119,7 +119,7 @@ flowchart TB
     class bin1 before;
     class bin2 after;
     class noLto,yesLto grp;
-{% end %}
+{% </mermaid> %}
 
 That was the bet.
 
@@ -141,7 +141,7 @@ When we first turned the LTO crank, the linked binary had **10 surviving `gale_`
 
 We spent two days finding three independent reasons. The diagnostic flow for each (the exact `file` / `llvm-dis` / `llvm-objdump` commands, the IR snippets that proved the cause, the experiments we ran and reverted) is in the optimization story[^optimization-story] and issue[^gale-issue-10]. The summaries below are enough to recognise the same problem if you hit it.
 
-{% mermaid() %}
+{% <mermaid> %}
 flowchart LR
     s0["LTO flag set<br/>10 surviving<br/>gale_ symbols"]
     b1["Barrier 1<br/>Zephyr's clang<br/>ignores CONFIG_LTO<br/>(no bitcode emitted)"]
@@ -160,7 +160,7 @@ flowchart LR
     class s0,s1,s2 state;
     class b1,b2,b3 wall;
     class s3 done;
-{% end %}
+{% </mermaid> %}
 
 **Barrier 1 — Zephyr's clang doesn't honour `CONFIG_LTO`.** The CMake property that turns `CONFIG_LTO=y` into a `-flto` flag is empty for the clang toolchain — only the GCC path sets it. So the build accepts the config, prints no warning, and silently produces ELF objects instead of LLVM bitcode. lld has nothing to inline against. Fix locally by injecting `-flto=thin` from a downstream module; fix upstream by extending Zephyr's clang and lld CMake paths. Filed upstream[^zephyr-issue].
 
@@ -174,7 +174,7 @@ Two builds, one handoff. Both run the same crank-ISR-signals-worker pattern from
 
 Without LTO (the GCC + Gale build):
 
-{% mermaid() %}
+{% <mermaid> %}
 sequenceDiagram
     participant ISR as crank_isr<br/>(ISR context)
     participant API as Zephyr API
@@ -189,11 +189,11 @@ sequenceDiagram
     Note over R: Verus-proved:<br/>P3 (count capped),<br/>P9 (no overflow)
     R-->>G: ret (packed decision in r0)
     G->>K: apply (z_ready_thread or sem->count = ...)
-{% end %}
+{% </mermaid> %}
 
 With cross-language LTO (the LLVM + Gale + LTO build, after the three barriers were cleared) the verified Rust body is inlined directly into the C call site — the FFI hop disappears from the call trace and the symbol disappears from the ELF:
 
-{% mermaid() %}
+{% <mermaid> %}
 sequenceDiagram
     participant ISR as crank_isr<br/>(ISR context)
     participant API as Zephyr API
@@ -205,7 +205,7 @@ sequenceDiagram
     G->>K: k_spin_lock + z_unpend_first_thread
     Note over G: Verus-proved decision logic<br/>inlined here — no bl/ret,<br/>no symbol in linked ELF
     G->>K: apply (z_ready_thread or sem->count = ...)
-{% end %}
+{% </mermaid> %}
 
 Both builds, run on Renode at 168 MHz, 7,750 samples, all 13 RPM steps with p<1e-100 against baseline[^gale-issue-26]:
 

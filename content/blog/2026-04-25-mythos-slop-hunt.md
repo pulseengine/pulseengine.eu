@@ -8,29 +8,29 @@ tags = ["verification", "process", "deep-dive"]
 authors = ["Ralf Anton Beier"]
 +++
 
-{% note(kind="tip") %}
+{% <note kind="tip"> %}
 **Reading order for this stack** — if you arrived here cold, [*Three patterns colliding*](/blog/three-patterns-colliding/) is the synthesis: why this method belongs alongside Karpathy's LLM Wiki and typed compliance. This post is the method itself. The [v0.1.0 announcement](/blog/rivet-v0-1-0/) covers what rivet is and how to install it.
-{% end %}
+{% </note> %}
 
-{% insight() %}
+{% <insight> %}
 The Anthropic red team's Mythos scaffold is four prompts and one rule: a mechanical oracle either fires or it doesn't, and a fresh-session validator reproves anything before it ships as an artifact. We adapted it to hunt *slop* — typed-but-unwired code, orphan modules, aspirational scaffolding — by pairing two oracles instead of one: excision (primary, ground-truth reachability) and symbol-scoped trace (interpretive, classifies the kind of slop). Round one exposed three bugs in our own oracle design. Round two, with the v2.2 fixes, produced three confirmed findings — DD-064, DD-065, DD-066 — and three approved-but-unrealized requirements newly wired and tested. ~370 LOC of orphan code deleted, traceability coverage 36.9% → 39.5% on a single branch. The audit was the kind of session-length depth that the same scaffold would have produced quarters of work in a manual review.
-{% end %}
+{% </insight> %}
 
 ## The four prompts
 
 `scripts/mythos/` in [rivet](https://github.com/pulseengine/rivet/tree/main/scripts/mythos) ships the pipeline. The shape is the same as the [SDD post](/blog/spec-driven-development-is-half-the-loop/) described in the abstract; this is the concrete oracle-and-prompt pair tuned for slop.
 
-{% tree(root="scripts/mythos/") %}
+{% <tree root="scripts/mythos/"> %}
 HOWTO.md | pipeline overview + oracle design
 rank.md | score every source file 1-5 by slop likelihood
 discover.md | minimal prompt + oracle requirement; one agent per file
 validate.md | fresh-session validator; reruns the oracle
 emit.md | confirmed finding → draft design-decision artifact
-{% end %}
+{% </tree> %}
 
 The flow:
 
-{% mermaid() %}
+{% <mermaid> %}
 flowchart TB
     rank["<b>rank.md</b> · 1 agent · read-only<br/><i>score each file 1-5</i>"]
     subgraph discover_block["<b>discover.md</b> — N agents in parallel · isolated worktrees"]
@@ -61,13 +61,13 @@ flowchart TB
     class excision gate;
     class trace interp;
     class emit good;
-{% end %}
+{% </mermaid> %}
 
 Run order: ranker classifies the corpus → for each rank-5 file, one parallel discover agent in an isolated git worktree → excision must pass before trace runs → validator in a *separate* fresh session re-runs both oracles → emit produces the audit-trail artifact. One agent per file is load-bearing — parallel coverage of independent files finds diverse bugs; one agent across the whole codebase converges on surface issues.
 
 The agent topology is *one supervisor, many workers*. The supervisor holds the plan, dispatches workers, collects their structured outputs; the workers run in fresh contexts with narrow tasks and no awareness of each other. This is what keeps the discipline — a worker that hallucinates a finding cannot influence its peers, and the validator that re-runs the oracle has no exposure to the discovery agent's reasoning.
 
-{% mermaid() %}
+{% <mermaid> %}
 flowchart TB
     human["human curator<br/><i>scopes the run · approves emit drafts</i>"]
     rank_out["rank.md output<br/><i>file scores 1-5</i>"]
@@ -108,7 +108,7 @@ flowchart TB
     class d1,d2,dn,v1,vn worker;
     class artifact artifact;
     class discoverers,validators grp;
-{% end %}
+{% </mermaid> %}
 
 The supervisor is the only agent with full plan visibility. Discoverers have one file each; validators have one finding each. The "fresh session" property is structural — validators can't see what the discoverer hypothesised, only the patch and the claim, so they verify the claim mechanically rather than rationalising it.
 
@@ -116,7 +116,7 @@ The supervisor is the only agent with full plan visibility. Discoverers have one
 
 The original Mythos paper uses one oracle (failing PoC test). Slop hunting needs two because the bug class — *unexercised typed-but-unwired code* — has two distinguishable signatures:
 
-**Excision (primary, ground-truth reachability).** The agent submits a patch that stubs the target symbol with `unimplemented!("slop-hunt excision: {{file}}::{{symbol}}")` or — for whole-module excision — annotates the `mod` declaration with `#[cfg(not(all()))]` (not `#[cfg(never)]`; that one trips `unexpected_cfgs` under `-D warnings` and fabricates a non-baseline lint error, see *pitfalls* below). Then run, on the excised tree:
+**Excision (primary, ground-truth reachability).** The agent submits a patch that stubs the target symbol with `unimplemented!("slop-hunt excision: {% raw %}{{file}}{% endraw %}::{% raw %}{{symbol}}{% endraw %}")` or — for whole-module excision — annotates the `mod` declaration with `#[cfg(not(all()))]` (not `#[cfg(never)]`; that one trips `unexpected_cfgs` under `-D warnings` and fabricates a non-baseline lint error, see *pitfalls* below). Then run, on the excised tree:
 
 ```
 cargo build --workspace --all-targets
@@ -148,7 +148,7 @@ rivet list --format json | jq -r --arg p path/to/file.rs --arg s SYMBOL '
 
 Three queries. All empty → **orphan-slop** — nobody specced it, nobody calls it, propose `delete`. Any non-empty → **aspirational-slop** — somebody specced it, nobody wired it up, propose `add-test` or `document-as-non-goal`. The classification matters because the right disposition is different for each: orphans get cut; aspirations get either built or formally rescinded.
 
-{% mermaid() %}
+{% <mermaid> %}
 flowchart TB
     excise["excision oracle<br/>tests still pass with symbol stubbed?"]
     excise -- "no — symbol is exercised" --> reject["<b>finding rejected</b><br/><i>not slop</i>"]
@@ -168,7 +168,7 @@ flowchart TB
     class reject bad;
     class orphan good;
     class aspir warn;
-{% end %}
+{% </mermaid> %}
 
 ## Three pitfalls v2.2 caught
 

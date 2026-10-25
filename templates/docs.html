@@ -11,7 +11,7 @@
     <!-- Guide -->
     {% set guide = get_section(path="docs/guide/_index.md") %}
     <div class="docs-sidebar__group">
-      <a href="{{ guide.permalink }}" class="docs-sidebar__title{% if page.permalink is starting_with(guide.permalink) %} docs-sidebar__title--active{% endif %}">
+      <a href="{{ guide.permalink }}" class="docs-sidebar__title{% if page.permalink is starting_with(pat=guide.permalink) %} docs-sidebar__title--active{% endif %}">
         Guide
       </a>
     </div>
@@ -21,7 +21,7 @@
       {% set tool = get_section(path=tool_path) %}
       {% if tool.title != "Guide" %}
       <div class="docs-sidebar__group">
-        <a href="{{ tool.permalink }}" class="docs-sidebar__title{% if page.permalink is starting_with(tool.permalink) %} docs-sidebar__title--active{% endif %}">
+        <a href="{{ tool.permalink }}" class="docs-sidebar__title{% if page.permalink is starting_with(pat=tool.permalink) %} docs-sidebar__title--active{% endif %}">
           {{ tool.title }}
         </a>
         {% for doc_page in tool.pages %}

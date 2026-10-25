@@ -9,7 +9,7 @@ tags = ["wasm", "embedded", "verification", "how-it-works"]
 authors = ["Ralf Anton Beier"]
 +++
 
-{% insight() %}
+{% <insight> %}
 `gust` is a small operating system — a cooperative scheduler, the classic RTOS
 primitives (semaphore, mutex, message queue, event), and device drivers — and every
 part of it is a **verified WebAssembly component**. Those components don't run *on* a
@@ -17,7 +17,7 @@ wasm runtime. They **compose at build time into a single native image of about
 3.5 KB**, running bit-identical on a Cortex-M3, a Cortex-M4, and a RISC-V chip. The
 only thing you have to *trust* underneath is a **~77-line native shim**. Here's how it
 fits together.
-{% end %}
+{% </insight> %}
 
 ## The stack
 
@@ -62,7 +62,7 @@ scheduler, IPC, every driver — is verified wasm above the line.
 
 Composition happens at build time — two typed components in, one native image out:
 
-{% mermaid() %}
+{% <mermaid> %}
 flowchart TB
   app["gale-app-demo · ~0.6 KB<br/>imports gale:kernel/*"]
   kiln["gale-kiln · ~1.2 KB<br/>exports gale:kernel/*"]
@@ -79,7 +79,7 @@ flowchart TB
   classDef base fill:#161922,stroke:#4ade80,color:#e1e4ed;
   class app,kiln,fused,opt ours
   class obj,img base
-{% end %}
+{% </mermaid> %}
 
 Upstream of `meld` it's separate components with typed WIT worlds. `meld` resolves the
 app's imports of the `gale:kernel` interfaces against gale-kiln's exports into **one
@@ -122,7 +122,7 @@ its own MPU region (Memory Protection Unit — the hardware that traps out-of-bo
 access), each holding only the capabilities it's granted — all over the same thin TCB.
 Here is that v1.0 target, and how far it is today:
 
-{% mermaid() %}
+{% <mermaid> %}
 flowchart TB
   t["tenants · mutually-distrusting, MPU-isolated"]
   seam["gust:os · one typed syscall seam<br/>time · log · spawn · channel · io"]
@@ -140,7 +140,7 @@ flowchart TB
   classDef planned fill:#161922,stroke:#8b90a0,stroke-dasharray:5 3,color:#b6bac8;
   class os,drv,tcb,hw shipped
   class t,seam planned
-{% end %}
+{% </mermaid> %}
 
 *Green runs today (v0.2 — the composition, uart + dma, the semaphore, on silicon).
 Dashed is planned: the `gust:os` syscall seam (v0.4) and mutually-distrusting tenants
@@ -239,7 +239,7 @@ RAM/stack budget ([sigil#187](https://github.com/pulseengine/sigil/issues/187)).
 payoff is unglamorous and exactly right: a fixed-RAM overrun becomes an **integration
 failure on the bench, not a trap mid-mission.**
 
-{% mermaid() %}
+{% <mermaid> %}
 flowchart TB
   os["OS component"]
   kilnw["kiln interpreter<br/>no_std wasm component · planned"]
@@ -258,7 +258,7 @@ flowchart TB
   classDef planned fill:#161922,stroke:#8b90a0,stroke-dasharray:5 3,color:#b6bac8;
   class os,synth,boot shipped
   class kilnw,onk,tenant,bounds planned
-{% end %}
+{% </mermaid> %}
 
 v0.2 runs and v0.3's drivers are proven; v0.4 and up are typed requirements in
 [rivet](https://github.com/pulseengine/rivet), where readiness is a query over closed

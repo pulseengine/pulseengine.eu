@@ -4,7 +4,7 @@
    in scope (uses page.content to gate the Mermaid import). #}
 <script src="{{ get_url(path='codecopy.js', cachebust=true) }}" defer></script>
 <script src="{{ get_url(path='diagram-zoom.js', cachebust=true) }}" defer></script>
-{% if page.content is containing("mermaid") %}
+{% if page.content is matching(pat="mermaid") %}
 <script type="module">
   import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
 
@@ -110,24 +110,34 @@
   //
   // Replacements only apply to .mermaid svg <style> tags, never the
   // wider page CSS, so this is scoped strictly to mermaid output.
-  function applyMermaidLightFix() {
-    if (resolveTheme() !== 'light') return;
-    var replacements = [
-      ['#1a1d27', '#fbf7ee'],   // surface dark → cream
-      ['#13161f', '#ebe5d6'],   // bg-subtle dark → bg-subtle cream
-      ['#0f1117', '#f4efe4'],   // bg dark → bg cream
-      ['#3d4258', '#b8ac8c'],   // border-subtle → warm beige
-      ['#4a5068', '#8a7e62'],   // border → darker warm beige
-      ['#e1e4ed', '#1a2235'],   // text → deep navy
-      ['#8b90a0', '#44516a'],   // text-dim → medium navy
-      // Node FILLS. Missing these was the bug: the text hex above was being
-      // rewritten to deep navy while the fill it sits on stayed dark navy, so
-      // light mode rendered dark-on-dark and read as washed out rather than
-      // simply dark. Used by how-it-works and 2026-07-18-verified-os-on-silicon.
-      ['#242836', '#fbf7ee'],   // surface-raised → cream card
-      ['#161922', '#ebe5d6'],   // deep fill (gate node) → bg-subtle cream
-      ['#b6bac8', '#44516a'],   // muted light text → medium navy
-    ];
+  //
+  // The patcher is bidirectional: dark→light when switching to light mode,
+  // light→dark when switching back. A MutationObserver on <html>'s
+  // data-theme attribute re-runs the patcher on theme toggle, so diagrams
+  // update live without a page reload.
+  var DARK_TO_LIGHT = [
+    ['#1a1d27', '#fbf7ee'],   // surface dark → cream
+    ['#13161f', '#ebe5d6'],   // bg-subtle dark → bg-subtle cream
+    ['#0f1117', '#f4efe4'],   // bg dark → bg cream
+    ['#3d4258', '#b8ac8c'],   // border-subtle → warm beige
+    ['#4a5068', '#8a7e62'],   // border → darker warm beige
+    ['#e1e4ed', '#1a2235'],   // text → deep navy
+    ['#8b90a0', '#44516a'],   // text-dim → medium navy
+    // Node FILLS. Missing these was the bug: the text hex above was being
+    // rewritten to deep navy while the fill it sits on stayed dark navy, so
+    // light mode rendered dark-on-dark and read as washed out rather than
+    // simply dark. Used by how-it-works and 2026-07-18-verified-os-on-silicon.
+    ['#242836', '#fbf7ee'],   // surface-raised → cream card
+    ['#161922', '#ebe5d6'],   // deep fill (gate node) → bg-subtle cream
+    ['#b6bac8', '#44516a'],   // muted light text → medium navy
+  ];
+  var LIGHT_TO_DARK = DARK_TO_LIGHT.map(function (pair) {
+    return [pair[1], pair[0]];  // reverse each pair
+  });
+
+  function applyMermaidThemeFix() {
+    var theme = resolveTheme();
+    var replacements = theme === 'light' ? DARK_TO_LIGHT : LIGHT_TO_DARK;
     function swap(text) {
       replacements.forEach(function (pair) {
         text = text.split(pair[0]).join(pair[1]);
@@ -156,12 +166,31 @@
   // Mermaid renders asynchronously after `mermaid.initialize` is called.
   // No callback API for "after render" works reliably across versions, so
   // we run the patch on a few delayed timeouts — covers the common timing.
-  // Earlier attempt used a MutationObserver but that created an infinite
-  // loop: rewriting the style tag's textContent triggered more mutations,
-  // which re-triggered the observer, which re-rewrote, ad infinitum →
-  // browser hung. setTimeout fallbacks are bounded and safe.
-  window.setTimeout(applyMermaidLightFix, 300);
-  window.setTimeout(applyMermaidLightFix, 1000);
-  window.setTimeout(applyMermaidLightFix, 2500);
+  // Earlier attempt used a MutationObserver on the whole document but that
+  // created an infinite loop: rewriting the style tag's textContent triggered
+  // more mutations, which re-triggered the observer, which re-rewrote,
+  // ad infinitum → browser hung. setTimeout fallbacks are bounded and safe.
+  window.setTimeout(applyMermaidThemeFix, 300);
+  window.setTimeout(applyMermaidThemeFix, 1000);
+  window.setTimeout(applyMermaidThemeFix, 2500);
+
+  // Re-run the patcher when the theme is toggled. The observer watches only
+  // the data-theme attribute on <html>, so patching the SVG styles does not
+  // re-trigger it (no infinite loop). A re-entrancy guard prevents overlap
+  // if the observer fires while a previous patch is still running.
+  var patching = false;
+  var themeObserver = new MutationObserver(function (mutations) {
+    if (patching) return;
+    patching = true;
+    // Defer to next tick so the attribute change is fully applied.
+    requestAnimationFrame(function () {
+      applyMermaidThemeFix();
+      patching = false;
+    });
+  });
+  themeObserver.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ['data-theme'],
+  });
 </script>
 {% endif %}

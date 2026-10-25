@@ -41,7 +41,7 @@ jobs:
       - name: Install Zola
         uses: taiki-e/install-action@v2.87.21
         with:
-          tool: zola@0.22.1
+          tool: zola@0.23.6
 
       - name: Inject git info into blog posts
         run: python3 scripts/inject-git-info.py

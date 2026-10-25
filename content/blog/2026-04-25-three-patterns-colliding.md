@@ -8,13 +8,13 @@ tags = ["knowledge-base", "process", "deep-dive"]
 authors = ["Ralf Anton Beier"]
 +++
 
-{% note(kind="tip") %}
+{% <note kind="tip"> %}
 **Reading order for this stack** — start here for the synthesis. Then [*Mythos slop-hunt: oracle-gated audits in practice*](/blog/mythos-slop-hunt/) for the audit method that produced PR #205. The [v0.1.0 announcement](/blog/rivet-v0-1-0/) covers what rivet is and how to install it.
-{% end %}
+{% </note> %}
 
-{% insight() %}
+{% <insight> %}
 Karpathy named the missing piece. From most LLM-tooling vantage points his April 2026 LLM Wiki gist is a clean idea about personal knowledge bases. From the desk of someone who has spent fifteen years in cybersecurity and safety-critical engineering, it is the third pillar of a pattern that has been forming since early 2025 — alongside [oracle-gated agent verification](/blog/spec-driven-development-is-half-the-loop/) and [typed compliance traceability in rivet](/blog/rivet-v0-1-0/). Each pillar by itself is incomplete. Knowledge accumulation alone hallucinates over time. Oracle-gated verification alone has nothing to remember. Typed compliance alone has no narrative and no acceleration. Together — agents read sources, run oracles, write typed artifacts, humans curate at the edges, the auditor queries the result — they are a candidate state of the art for AI-assisted engineering on systems that have to be both fast and provable. From where I sit, in my direct experience of both communities, that union is unheard of. This post is why.
-{% end %}
+{% </insight> %}
 
 ## The three patterns
 
@@ -56,7 +56,7 @@ Run any one in isolation and you reproduce one of three failure modes that exper
 
 ## What this looks like, drawn
 
-{% mermaid() %}
+{% <mermaid> %}
 flowchart TB
     src["external sources<br/>papers · clippings · mirrored wikis · transcripts"]
     agent["LLM agent<br/><i>reads · runs the oracle · writes typed artifacts</i>"]
@@ -98,7 +98,7 @@ flowchart TB
     class rivetCli,rivetMcp,rivetLsp inner;
     class blog tcross;
     class dests,rivetBox grp;
-{% end %}
+{% </mermaid> %}
 
 The agent is the verb. The oracle is the gate. The typed corpus is the auditable result. The blog is the cross-project compounding layer that survives session resets and seeds context for the next agent. Karpathy's pattern names the third surface; the SDD post named the second; rivet was already the first.
 

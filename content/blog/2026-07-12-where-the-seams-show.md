@@ -9,13 +9,13 @@ tags = ["verification", "process", "traceability", "how-it-works"]
 authors = ["Ralf Anton Beier"]
 +++
 
-{% insight() %}
+{% <insight> %}
 A pipeline diagram draws every connection the same weight. Reality doesn't work
 that way: some seams are gated in CI on every commit, some have been demonstrated
 once, some are still stitched by hand. We'd rather map our own seams than have
 someone find them — so here's the honest version of *how it all fits together*,
 with the maturity written on each joint.
-{% end %}
+{% </insight> %}
 
 We publish a clean [how-it-works](@/how-it-works.md) page, and it's true — but a
 diagram flattens something important. Every arrow on it looks equally solid. In a
@@ -25,11 +25,11 @@ connection actually is** today.
 
 Three honest states:
 
-{% note(kind="tip") %}
+{% <note kind="tip"> %}
 **Wired** — gated in CI; a break fails the build. **Demonstrated** — shown to work
 end-to-end at least once, not yet a standing gate. **Manual** — real, but a human
 still carries the artifact across the seam.
-{% end %}
+{% </note> %}
 
 ## The chain, joint by joint
 

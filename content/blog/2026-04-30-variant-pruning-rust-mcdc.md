@@ -8,9 +8,9 @@ tags = ["verification", "process", "deep-dive"]
 authors = ["Ralf Anton Beier"]
 +++
 
-{% insight() %}
+{% <insight> %}
 The received wisdom about MC/DC for Rust reads: *"pattern matching makes it harder than C."* That is only true if you look at the runtime-decision layer in isolation. Rust has at least five layers of variant-pruning machinery — requirements variants, cargo features, cfg attributes, the type system, and match arms. Each prunes what the next layer has to reason about. Composed end-to-end under rivet-style variant management, MC/DC-for-Rust is less burdensome at certification scale than MC/DC-for-C ever was. AI-velocity authorship tips the economics further in Rust's favour, not worse.
-{% end %}
+{% </insight> %}
 
 ## The framing this post inverts
 

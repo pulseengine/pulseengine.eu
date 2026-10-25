@@ -8,7 +8,7 @@ tags = ["wasm", "component-model", "verification", "process", "deep-dive"]
 authors = ["Ralf Anton Beier"]
 +++
 
-{% insight() %}
+{% <insight> %}
 The PulseEngine thesis everywhere else in the stack is *compile everything to
 WebAssembly and run it through meld → loom → synth; only the bare-minimum hardware
 is native.* This post applies that to the operating system itself.
@@ -39,14 +39,14 @@ The interesting part isn't the result. It's that getting there meant clearing
 barriers in five different toolchain repos — and that most of those fixes were
 filed, and several *shipped*, through a loop of AI agents handing findings to each
 other.
-{% end %}
+{% </insight> %}
 
-{% note(kind="tip") %}
+{% <note kind="tip"> %}
 **Try it in your browser:** [**gale + gust, live**](https://pulseengine.github.io/gale/)
 runs the *same* verified wasm components this post dissolves to a Cortex-M3 — here
 executing on wasmtime-in-the-browser, so you can poke the kernel and the driver
 before reading how they compile away to native.
-{% end %}
+{% </note> %}
 
 ## Why we cared
 
@@ -78,7 +78,7 @@ registers be native.* An OS that fits in 8 KB and proves what it ships.
 The pipeline is four tools, each doing one job, and the verification boundary
 stays at the wasm/native seam.
 
-{% mermaid() %}
+{% <mermaid> %}
 flowchart TB
     subgraph authored["Authored as Component Model components"]
         app["gale-app-demo<br/>imports gale:kernel"]
@@ -91,7 +91,7 @@ flowchart TB
     loom --> synth["synth compile --target cortex-m3 --relocatable<br/>→ native ARM .o, exports run-demo"]
     synth --> tcb["~4-item native TCB shim<br/>(boot, registers)"]
     tcb --> hw["bare metal · no wasm runtime"]
-{% end %}
+{% </mermaid> %}
 
 The first proof point was small and total: dissolve the fused composition to a
 relocatable object, link it into a bare-metal image, boot it. `run-demo()`
@@ -138,13 +138,13 @@ comes, reuses the already-Verus+Rocq+Kani-proven `gale::msgq` ring rather than a
 fresh buffer — so the CCSDS receive path inherits proofs instead of needing new
 ones.
 
-{% note(kind="tip") %}
+{% <note kind="tip"> %}
 The cleanest design move turned out to also be the correct one: **a driver
 provides protocol primitives; the application owns the payload.** `uart_init` /
 `uart_tx_byte` / `uart_rx` are the driver; the test string lives in the
 demonstrator. That keeps the driver free of any data segment — which both fixed a
 real placement bug (below) and is simply the right layering.
-{% end %}
+{% </note> %}
 
 ## The barriers nobody documents
 
@@ -298,7 +298,7 @@ allocator release" — and we re-measured the shipped default: **−26 bytes on
 step measured on the same body on the same qemu cycle counter. The agent never *said*
 the lever helped; it flipped a byte count and posted the number.
 
-{% note(kind="tip") %}
+{% <note kind="tip"> %}
 That is what "agents talking to agents" actually buys you, and why it is not just
 distributed bug-filing: the loop *converges*. A human maintainer would have taken the
 prologue ask, guessed at scope, and shipped once. The loop shipped a spike, got a
@@ -306,7 +306,7 @@ real number back from a real consumer, matured it, got a better number, and only
 made it default — with a regression gate (`gust_codegen_bench` stays 1.81×,
 correctness identical) standing the whole time. The consumer's measurement is the
 tool's acceptance test.
-{% end %}
+{% </note> %}
 
 This still isn't the whole record — the synth, meld, loom, wit-bindgen, and rivet
 agents each saw a different half of every collision, and their accounts belong here
@@ -368,7 +368,7 @@ the proven range:
 | dissolved today (synth) | 0.83 | 1.65× |
 | **proof-carrying floor** (`add`, clamp elided — *hand-lowered, not yet pipeline-emitted*) | **0.23** | **0.45×** |
 
-{% insight() %}
+{% <insight> %}
 **0.45× native — a hand-lowered lower bound, not a pipeline output.** synth cannot
 emit this yet ([synth#494](https://github.com/pulseengine/synth/issues/494) +
 [loom#240](https://github.com/pulseengine/loom/issues/240) are open); this is the
@@ -383,7 +383,7 @@ crosses a component boundary an external verifier supplies, which a standalone
 compiler never sees. A stack that owns the whole chain — Verus proof → wasm → loom →
 synth — can flow that proof in as an IR premise. That is the leapfrog thesis, and it
 is still ahead of us, not shipped.
-{% end %}
+{% </insight> %}
 
 The honest caveat is the whole reason this is a "floor" and not a shipped result:
 the number is what synth *could* emit with the proof in hand, and synth does not yet
