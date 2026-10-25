@@ -431,6 +431,89 @@ That is the longest chain. If any link in that chain is delayed, jess is
 delayed. The critical path runs through the toolchain and the verification
 chain — not just the application stack.
 
+## The layered factory: each layer built by a machine
+
+The factory is not a flat list of repos. It is **layers**. Each layer is
+built by a **machine** — agents, CI, gates. The layers stack: application
+on top of verification on top of toolchain.
+
+{% <mermaid> %}
+flowchart TB
+    subgraph app["Layer 3: Application (built by agents)"]
+        direction TB
+        jess["jess<br/>orchestrator"]
+        relay["relay<br/>flight stack"]
+        gale["gale<br/>kernel"]
+        app_machine["⚙️ machine:<br/>agents · CI · gates<br/>skills: issue-hunt,<br/>oracle-gate-a-change"]
+    end
+
+    subgraph verify["Layer 2: Verification (built by agents)"]
+        direction TB
+        rivet["rivet<br/>traceability"]
+        spar["spar<br/>architecture"]
+        witness["witness<br/>coverage"]
+        ordeal["ordeal<br/>SMT solver"]
+        verify_machine["⚙️ machine:<br/>agents · CI · gates<br/>skills: gate-potency,<br/>clean-room-verification"]
+    end
+
+    subgraph tool["Layer 1: Toolchain (built by agents)"]
+        direction TB
+        meld["meld<br/>fuse"]
+        loom["loom<br/>optimize"]
+        synth["synth<br/>AOT compile"]
+        kiln["kiln<br/>runtime"]
+        sigil["sigil<br/>signing"]
+        tool_machine["⚙️ machine:<br/>agents · CI · gates<br/>skills: release-planning,<br/>release-execution"]
+    end
+
+    app --> verify
+    verify --> tool
+
+    style jess fill:#1a1d27,stroke:#6c8cff,color:#e1e4ed
+    style relay fill:#1a1d27,stroke:#fbbf24,color:#e1e4ed
+    style gale fill:#1a1d27,stroke:#fbbf24,color:#e1e4ed
+    style rivet fill:#1a1d27,stroke:#22d3ee,color:#e1e4ed
+    style spar fill:#1a1d27,stroke:#22d3ee,color:#e1e4ed
+    style witness fill:#1a1d27,stroke:#22d3ee,color:#e1e4ed
+    style ordeal fill:#1a1d27,stroke:#22d3ee,color:#e1e4ed
+    style meld fill:#1a1d27,stroke:#4ade80,color:#e1e4ed
+    style loom fill:#1a1d27,stroke:#4ade80,color:#e1e4ed
+    style synth fill:#1a1d27,stroke:#4ade80,color:#e1e4ed
+    style kiln fill:#1a1d27,stroke:#4ade80,color:#e1e4ed
+    style sigil fill:#1a1d27,stroke:#4ade80,color:#e1e4ed
+    style app_machine fill:#13161f,stroke:#8b90a0,color:#8b90a0
+    style verify_machine fill:#13161f,stroke:#8b90a0,color:#8b90a0
+    style tool_machine fill:#13161f,stroke:#8b90a0,color:#8b90a0
+
+    classDef orch fill:#1a1d27,stroke:#6c8cff,color:#e1e4ed;
+    classDef app fill:#1a1d27,stroke:#fbbf24,color:#e1e4ed;
+    classDef verify fill:#1a1d27,stroke:#22d3ee,color:#e1e4ed;
+    classDef tool fill:#1a1d27,stroke:#4ade80,color:#e1e4ed;
+    classDef machine fill:#13161f,stroke:#8b90a0,color:#8b90a0;
+{% </mermaid> %}
+
+**Reading the layers:**
+
+| Layer | Repos | Built by | Machine |
+|---|---|---|---|
+| **3: Application** | jess, relay, gale | Agents | CI, gates, skills (issue-hunt, oracle-gate-a-change) |
+| **2: Verification** | rivet, spar, witness, ordeal | Agents | CI, gates, skills (gate-potency, clean-room-verification) |
+| **1: Toolchain** | meld, loom, synth, kiln, sigil | Agents | CI, gates, skills (release-planning, release-execution) |
+
+**Each layer is a station with its own machine.** The application layer has
+its own agents, its own CI, its own gates. The verification layer has its
+own. The toolchain layer has its own. Each layer produces, verifies, ships.
+
+**The layers stack.** Application depends on verification. Verification
+depends on toolchain. The toolchain is the foundation — meld fuses, loom
+optimizes, synth compiles, kiln runs, sigil signs. The verification layer
+traces, architects, covers, solves. The application layer flies, integrates,
+orchestrates.
+
+**Each layer is built by agents.** The agents don't just write code — they
+build the tools, verify the output, ship the releases. The machine is the
+agents, the CI, the gates. The orchestrator oversees all three layers.
+
 ## The principle
 
 > **Who does what is more important than how fast.**
