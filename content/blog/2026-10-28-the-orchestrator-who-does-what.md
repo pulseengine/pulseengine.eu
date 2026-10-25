@@ -192,9 +192,22 @@ One orchestrator, many agents. I am the owner, the only stakeholder, and the
 only decision-maker.
 
 This is the same pattern as Blog 1's orchestrator role: the coder becomes
-the orchestrator. I used to write code; now I enable the agents, prioritize
-across friction/operations/decisions, and verify the output. The bottleneck
-moves from code production to prioritization — and I am the prioritizer.
+the orchestrator. My own path: engineer writing software and coordinating
+work, then software architect, then system architect, then team lead,
+product owner, Scrum master — the SAFe roles. Now I hold the title
+Distinguished Engineer, and I have started to actually orchestrate: down
+to the agents. The title stayed; the work moved.
+
+As a Distinguished Engineer, I help decide how things are done — the
+architecture, the approach, the design. But even that is shifting: the
+amount of architecture I personally have to provide is shrinking. The
+agents produce the first draft; I review, correct, and decide where my
+expertise still matters. I learn along the way — formal methods, new
+toolchains, new verification techniques — to keep my judgment sharp where
+it counts. The agents do the work; I do the deciding. I used to write
+code; now I enable the agents, prioritize across friction/operations/
+decisions, and verify the output. The bottleneck moves from code
+production to prioritization — and I am the prioritizer.
 
 The WIP limit on the decision queue (Blog 1) caps how many decisions can
 wait. I prioritize within that cap. In this factory, the team size is one:
