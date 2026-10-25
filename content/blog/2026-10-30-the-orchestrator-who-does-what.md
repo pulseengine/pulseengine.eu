@@ -301,6 +301,40 @@ The issues don't stay in one repo. They propagate.
 
 The bottlenecks are there. They won't go away. But the roles are clear.
 
+## Multiple factories: one orchestrator per domain
+
+The factory model scales horizontally. Each domain is its own factory, with
+its own stations, its own machines, its own orchestrator.
+
+| Domain | Orchestrator | Stations | Machines |
+|---|---|---|---|
+| **Drone software** | jess | gale (kernel), relay (flight stack) | CI, agents, gates, hardware |
+| **Home automation** | wohl | sensors, hub, matter composition | CI, agents, gates, Thread/STM32 |
+
+**jess is the overarching for the drone software.** It integrates relay's
+flight stack onto hardware. It watches the release. It owns the ladder from
+simulation to silicon.
+
+**wohl is home automation and orchestration as its own.** It is a home
+supervision system built on PulseEngine — sensors, hub, matter composition,
+Thread/STM32 firmware. It has its own issues, its own CI, its own gates.
+And it probably needs its own layer — its own orchestrator, its own control
+tower, its own critical path.
+
+**Each part of the software is a station with its own machine.** gale has
+its own CI, its own agents, its own gates. relay has its own. jess has its
+own. wohl has its own. Each station is a factory cell — it produces, it
+verifies, it ships. The orchestrator coordinates the cells.
+
+**The control tower shows all factories.** The meta-layer. The dashboard
+that shows: drone factory (jess, relay, gale), home automation factory
+(wohl), the toolchain (meld, loom, synth), the verification chain (rivet,
+witness, sigil). One view. All factories. All orchestrators. All stations.
+
+**The principle scales.** One orchestrator per domain. One control tower
+per factory. One meta-layer across all factories. The model is not "one
+big factory" — it is "many small factories, each with its own orchestrator."
+
 ## The principle
 
 > **Who does what is more important than how fast.**
