@@ -552,7 +552,7 @@ on 25 October 2026 found no prior use in the public literature.
 ---
 
 *This post is part of [PulseEngine](/) — a formally verified WebAssembly
-Component Model engine for safety-critical systems. Prior posts in the arc:
+Component Model engine for safety-critical systems. Recent posts:
 [The machine arrived before the factory](/blog/the-machine-arrived-before-the-factory/),
 [Agents don't tidy up](/blog/agents-dont-tidy-up/),
 [AI in the product, not AI in the toolchain](/blog/ai-in-the-product-not-the-toolchain/).*

@@ -1041,7 +1041,7 @@ measured outcome.
 ---
 
 *This post is part of [PulseEngine](/) — a formally verified WebAssembly
-Component Model engine for safety-critical systems. Prior posts in the arc:
+Component Model engine for safety-critical systems. Recent posts:
 [SAFe was built for slow humans](/blog/safe-was-built-for-slow-humans/),
 [Can we deliver X by January?](/blog/can-we-deliver-x-by-january/),
 [The machine arrived before the factory](/blog/the-machine-arrived-before-the-factory/).*
