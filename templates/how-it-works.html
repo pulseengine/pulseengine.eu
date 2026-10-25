@@ -13,7 +13,15 @@
       {% endif %}
     </header>
     <div class="blog-post__content">
-      {{ page.content | safe }}
+      {% set content = page.content | safe %}
+      {% if "<!-- factory-views-component -->" in content %}
+        {% set parts = content | split(pat="<!-- factory-views-component -->") %}
+        {{ parts[0] | safe }}
+        {% <factory_views> %}{% </factory_views> %}
+        {{ parts[1] | safe }}
+      {% else %}
+        {{ content }}
+      {% endif %}
     </div>
   </article>
 </div>

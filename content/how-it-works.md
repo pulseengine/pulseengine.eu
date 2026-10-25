@@ -24,7 +24,7 @@ stage is early, we say so.
 The same four tools, looked at from three angles. Switch between them; the boxes
 do not move, only what is said about them.
 
-{{<factory_views />}}
+<!-- factory-views-component -->
 
 There is no reading key, and that is deliberate. The previous version of this
 picture encoded the component's path as thick arrows and everything else as
