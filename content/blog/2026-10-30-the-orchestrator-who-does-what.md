@@ -173,7 +173,7 @@ The pattern:
 | Git | Too slow for 30k merges/day, 100 GB monorepo, 600 PB traffic/day | Scion (Anthropic) | Built for their scale, migrated in 5 months |
 | Z3 | Slow build (C++), friction with Rust | ordeal | Pure Rust, fast build, certificate-checked |
 | gcov / llvm-cov | No MC/DC vocabulary | witness | MC/DC truth tables for Wasm |
-| serde_yaml | Slow, unsafe, unmaintained | rivet value model | Rust-native, schema-driven |
+| serde_yaml | Slow, unsafe, unmaintained | rivet-yaml (complete replacement) | Rust-native, schema-driven, fully replaced |
 | Manual traceability | Error-prone, slow | rivet | Git-native, schema-driven, LSP |
 
 **The orchestrator's decision:** when a tool is a bottleneck, do you build
@@ -219,6 +219,75 @@ The issues don't stay in one repo. They propagate.
 - gale #356: "Shared bench: jess and gale are about to collide on the same
   STLINK-V3 / G474" — both need the **same physical hardware**. Two agents,
   one debug probe.
+
+## The contracts: what relay provides to jess, what jess provides to relay
+
+The issues propagate because the **contracts** are not clear. A contract is
+the thin agreed interface between two stations. relay can't break it without
+telling jess. jess can't break it without telling relay.
+
+Here are the real contracts, from the issue trackers:
+
+### HAL contract (jess #62)
+
+> **relay owns the hardware ABSTRACTION**: the bus/peripheral seam *traits*
+> (SPI/I2C/UART/PWM/ADC/CAN). **jess owns the BINDING to real silicon**:
+> concrete impls of those seams over the i.MX RT1176 peripherals.
+>
+> Seam in the middle = the thin agreed interface. relay can't break it
+> without telling jess; jess can't break it without telling relay.
+
+| Seam (relay trait) | Status on relay side | jess binds |
+|---|---|---|
+| `RegBus` (read_reg/write_reg/read_burst) | exists — but duplicated | LPSPI/LPI2C bindings + pinmux |
+| `CanBus` (frame tx/rx) + DroneCAN | relay to ADD | CAN peripheral binding |
+
+### Consumption contract (jess #167)
+
+> `falcon-flight` is a published, cosign-signed WASM OCI component. With a
+> **WASM Component Model runtime now on all three cores**, the deployment
+> substrate is settled.
+>
+> **Interface shape at the seam:** per-cycle
+> `step(sensor-sample) -> actuator-cmd` (synchronous).
+>
+> **Seam types:** the `sensor-sample` / `actuator-cmd` WIT will be
+> **spar-generated from the AADL**.
+
+### HITL wire binding (relay #572)
+
+> The seam's `sensor-frame` is a flat **76 B** payload (imu 24 + dt 4 +
+> three ...). Carries no heading, no rotor RPM, and **no battery**.
+>
+> A HITL host can only supply what the wire frame carries, and the frame
+> has no battery element — so a host driving the supervised component over
+> the HITL transport **cannot arm it. Ever.**
+>
+> Predicted by jess #167 six days before #571 existed.
+
+### Interface identity (relay #589)
+
+> `falcon-ekf` (legacy Mahony) and `falcon-iekf` export the **identical**
+> `ekf@0.11.0` interface — a consumer cannot tell the flight estimator from
+> the legacy one.
+>
+> jess has closed it on their side with `tools/deps/check-estimator-identity.sh`
+> (a pin-identity guard). Fix: give it a **distinct identity** — e.g. a
+> `legacy-ekf` interface.
+
+### The pattern
+
+| Contract | relay provides | jess provides | Issue |
+|---|---|---|---|
+| **HAL contract** | Hardware abstraction (seam traits) | Binding to real silicon | jess #62 |
+| **Consumption contract** | Flight stack (WASM components) | Integration, release watch | jess #167 |
+| **HITL wire binding** | HITL protocol (sensor-frame) | HITL host (hardware) | relay #572 |
+| **Interface identity** | Distinct interface per component | Pin-identity guard | relay #589 |
+
+**The contract is the interface.** It is thin, agreed, and bidirectional.
+relay can't break it without telling jess. jess can't break it without
+telling relay. When the contract is clear, the issues don't propagate.
+When the contract is missing, the issues propagate.
 
 ## The pattern
 
