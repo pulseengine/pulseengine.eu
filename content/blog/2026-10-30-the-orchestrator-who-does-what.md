@@ -10,11 +10,11 @@ authors = ["Ralf Anton Beier"]
 +++
 
 {% <insight> %}
-**Bottlenecks will always exist. But the principle — who does what — is
-clear.** jess orchestrates. relay flies. gale provides the kernel. The
-bottlenecks move — hardware contention, CI queues, decision queues,
-cross-repo dependencies. The roles don't. The factory is not a hierarchy.
-It is a set of roles, each with a clear job, connected by contracts.
+**The roles are the factory.** jess orchestrates — integrates, watches the
+release, owns the ladder. relay flies — the control cascade, verified.
+gale provides the kernel — the primitives, the proofs, the foundation.
+The names are not labels. They are **principles**. The bottlenecks move —
+hardware, CI, decisions, dependencies. The roles don't.
 {% </insight> %}
 
 [The first post](/blog/safe-was-built-for-slow-humans/) argued that the
@@ -25,7 +25,30 @@ does what, and why the roles are clear even when the bottlenecks are not.
 
 ## The roles
 
-Three repos, three roles, one factory:
+Three repos, three roles, one factory. The roles are not a hierarchy — they
+are **principles**. Each role has a clear job, a clear bottleneck, and a
+clear connection to the others.
+
+{% <mermaid> %}
+flowchart TB
+    subgraph roles["The roles (principles, not labels)"]
+        direction TB
+        jess["<b>jess</b><br/>ORCHESTRATOR<br/>integrates · watches the release<br/>owns the ladder<br/>sim → silicon"]
+        relay["<b>relay</b><br/>FLIGHT STACK<br/>flies · verifies<br/>ships the cascade<br/>control → motors"]
+        gale["<b>gale</b><br/>KERNEL<br/>provides the primitives<br/>proves them<br/>the foundation"]
+    end
+
+    gale -->|"provides primitives"| relay
+    relay -->|"provides flight stack"| jess
+
+    style jess fill:#1a1d27,stroke:#6c8cff,color:#e1e4ed
+    style relay fill:#1a1d27,stroke:#fbbf24,color:#e1e4ed
+    style gale fill:#1a1d27,stroke:#22d3ee,color:#e1e4ed
+
+    classDef orch fill:#1a1d27,stroke:#6c8cff,color:#e1e4ed;
+    classDef flight fill:#1a1d27,stroke:#fbbf24,color:#e1e4ed;
+    classDef kernel fill:#1a1d27,stroke:#22d3ee,color:#e1e4ed;
+{% </mermaid> %}
 
 | Role | Repo | What they do | The bottleneck they own |
 |---|---|---|---|
@@ -33,10 +56,18 @@ Three repos, three roles, one factory:
 | **Flight stack** | relay | The control cascade, the verified flight software | Simulation fidelity, HITL binding |
 | **Kernel** | gale | The verified OS primitives, the foundation | Formal proofs, silicon bring-up |
 
-The names are not labels. They are **principles**. "Orchestrator" means: you
-integrate, you watch the release, you own the ladder. "Flight stack" means:
-you fly, you verify, you ship the cascade. "Kernel" means: you provide the
-primitives, you prove them, you're the foundation.
+**The names are principles.** "Orchestrator" means: you integrate, you watch
+the release, you own the ladder. "Flight stack" means: you fly, you verify,
+you ship the cascade. "Kernel" means: you provide the primitives, you prove
+them, you're the foundation.
+
+**The roles connect.** gale provides the primitives. relay builds the flight
+stack on top of gale. jess integrates relay's flight stack onto hardware.
+Each role depends on the one below. The bottlenecks propagate up the chain.
+
+**The roles don't move.** The bottlenecks do. Fix the hardware bottleneck,
+and the CI queue becomes the bottleneck. Add more runners, and the decision
+queue moves. The roles stay. The principles stay.
 
 ## The skills are the process
 
