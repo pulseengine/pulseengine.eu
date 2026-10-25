@@ -396,6 +396,27 @@ flowchart TD
     witness --> rivet
     witness --> sigil
 
+    subgraph agents["Agents (external tools)"]
+        direction TB
+        claude["Claude Code<br/>(Anthropic)"]
+        vibe["Vibe<br/>(Mistral)"]
+    end
+
+    subgraph skills["Skills (pulseengine.eu)"]
+        direction TB
+        pe["pulseengine.eu<br/>plugin + skills<br/>issue-hunt · gate-potency<br/>oracle-gate-a-change"]
+    end
+
+    jess --> claude
+    jess --> vibe
+    relay --> claude
+    relay --> vibe
+    gale --> claude
+    gale --> vibe
+
+    claude --> pe
+    vibe --> pe
+
     style jess fill:#1a1d27,stroke:#6c8cff,color:#e1e4ed
     style relay fill:#1a1d27,stroke:#fbbf24,color:#e1e4ed
     style gale fill:#1a1d27,stroke:#fbbf24,color:#e1e4ed
@@ -408,12 +429,32 @@ flowchart TD
     style spar fill:#1a1d27,stroke:#22d3ee,color:#e1e4ed
     style witness fill:#1a1d27,stroke:#22d3ee,color:#e1e4ed
     style ordeal fill:#1a1d27,stroke:#22d3ee,color:#e1e4ed
+    style claude fill:#13161f,stroke:#c084fc,color:#e1e4ed
+    style vibe fill:#13161f,stroke:#c084fc,color:#e1e4ed
+    style pe fill:#13161f,stroke:#fbbf24,color:#e1e4ed
 
     classDef orch fill:#1a1d27,stroke:#6c8cff,color:#e1e4ed;
     classDef app fill:#1a1d27,stroke:#fbbf24,color:#e1e4ed;
     classDef tool fill:#1a1d27,stroke:#4ade80,color:#e1e4ed;
     classDef verify fill:#1a1d27,stroke:#22d3ee,color:#e1e4ed;
+    classDef agent fill:#13161f,stroke:#c084fc,color:#e1e4ed;
+    classDef skill fill:#13161f,stroke:#fbbf24,color:#e1e4ed;
 {% </mermaid> %}
+
+**The full chain:** repos → agents → skills
+
+- **jess, relay, gale** (and all repos) depend on **agents** — Claude Code
+  (Anthropic), Vibe (Mistral). The agents do the work.
+- The **agents** depend on **skills** — defined in **pulseengine.eu** (the
+  plugin). The skills are the patterns: issue-hunt, gate-potency,
+  oracle-gate-a-change, release-planning.
+- The **skills** are the process. The **agents** are the workers. The
+  **repos** are the stations.
+
+**The orchestrator's view:** jess doesn't just depend on relay and gale.
+jess depends on **Claude Code** and **Vibe**. Those agents depend on the
+**skills** in pulseengine.eu. The whole chain is visible in the control
+tower.
 
 **Reading the tree:**
 
@@ -430,6 +471,104 @@ flowchart TD
 That is the longest chain. If any link in that chain is delayed, jess is
 delayed. The critical path runs through the toolchain and the verification
 chain — not just the application stack.
+
+### The issue-level dependency tree
+
+The repos depend on each other. But the **issues** depend on each other too.
+One issue blocks another. That one blocks the next. Downstream.
+
+Here are the real issue-level chains, traced from the issue trackers on
+26 October 2026:
+
+{% <mermaid> %}
+flowchart TD
+    subgraph jess_issues["jess issues (orchestrator)"]
+        j264["jess #264<br/>Ladder: deploy unchanged<br/>Rung 1 (relay) bit-exact"]
+        j167["jess #167<br/>Consumption contract<br/>how jess integrates relay"]
+        j280["jess #280<br/>with-device: EACCES<br/>on lock file"]
+        j266["jess #266<br/>hardware-catalog<br/>name three new boards"]
+    end
+
+    subgraph relay_issues["relay issues (flight stack)"]
+        r202["relay #202<br/>witness MC/DC harness<br/>async-lift exports"]
+        r382["relay #382<br/>wasm seam v0.8<br/>host tick rate"]
+        r380["relay #380<br/>wasm cascade<br/>cannot hold altitude"]
+        r214["relay #214<br/>relay-hal: peripheral<br/>abstraction seams"]
+        r506["relay #506<br/>req: 'largest 192 KB'<br/>premise in question"]
+    end
+
+    subgraph gale_issues["gale issues (kernel)"]
+        g398["gale #398<br/>dissolved objects<br/>address wasm data"]
+        g397["gale #397<br/>bench: four boards<br/>on wohl.local"]
+    end
+
+    subgraph synth_issues["synth issues (toolchain)"]
+        s1301["synth #1301<br/>ARMv6-M target<br/>cortex-m0 profile"]
+    end
+
+    subgraph other_issues["other"]
+        j62["jess #62<br/>(referenced by relay #214)"]
+    end
+
+    j264 --> r202
+    j264 --> r382
+    j264 --> r380
+
+    j167 --> r214
+    r214 --> j62
+
+    j280 --> r506
+    r506 --> g398
+    r506 --> j266
+
+    j266 --> s1301
+    j266 --> g397
+    s1301 --> g397
+
+    style j264 fill:#1a1d27,stroke:#6c8cff,color:#e1e4ed
+    style j167 fill:#1a1d27,stroke:#6c8cff,color:#e1e4ed
+    style j280 fill:#1a1d27,stroke:#6c8cff,color:#e1e4ed
+    style j266 fill:#1a1d27,stroke:#6c8cff,color:#e1e4ed
+    style j62 fill:#1a1d27,stroke:#6c8cff,color:#e1e4ed
+    style r202 fill:#1a1d27,stroke:#fbbf24,color:#e1e4ed
+    style r382 fill:#1a1d27,stroke:#fbbf24,color:#e1e4ed
+    style r380 fill:#1a1d27,stroke:#fbbf24,color:#e1e4ed
+    style r214 fill:#1a1d27,stroke:#fbbf24,color:#e1e4ed
+    style r506 fill:#1a1d27,stroke:#fbbf24,color:#e1e4ed
+    style g398 fill:#1a1d27,stroke:#22d3ee,color:#e1e4ed
+    style g397 fill:#1a1d27,stroke:#22d3ee,color:#e1e4ed
+    style s1301 fill:#1a1d27,stroke:#4ade80,color:#e1e4ed
+
+    classDef orch fill:#1a1d27,stroke:#6c8cff,color:#e1e4ed;
+    classDef app fill:#1a1d27,stroke:#fbbf24,color:#e1e4ed;
+    classDef verify fill:#1a1d27,stroke:#22d3ee,color:#e1e4ed;
+    classDef tool fill:#1a1d27,stroke:#4ade80,color:#e1e4ed;
+{% </mermaid> %}
+
+**Reading the issue tree:**
+
+- **jess #264** (Ladder) depends on **relay #202, #382, #380** — jess can't
+  deploy until relay's wasm is bit-exact. 2 levels.
+- **jess #167** (Consumption contract) depends on **relay #214**, which
+  depends on **jess #62**. 3 levels. The contract goes both ways.
+- **jess #280** (with-device) depends on **relay #506**, which depends on
+  **gale #398** and **jess #266**. 3 levels.
+- **jess #266** (hardware-catalog) depends on **synth #1301** and
+  **gale #397**. synth #1301 depends on **gale #397**. 3 levels.
+
+**The longest chain:** jess #280 → relay #506 → jess #266 → synth #1301 →
+gale #397
+
+That is **5 levels** of issue dependencies. If gale #397 is delayed, synth
+#1301 is delayed, jess #266 is delayed, relay #506 is delayed, jess #280 is
+delayed. The critical path runs through the issues, not just the repos.
+
+**Why this matters:**
+
+- **Estimation** — the critical path of issues determines the minimum time
+- **Bottlenecks** — the issues on the critical path are the bottlenecks
+- **Prioritization** — work on the critical path issues first
+- **Communication** — "jess #280 is blocked on this chain of 5 issues"
 
 ## The layered factory: each layer built by a machine
 
