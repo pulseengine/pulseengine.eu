@@ -343,6 +343,94 @@ witness, sigil). One view. All factories. All orchestrators. All stations.
 per factory. One meta-layer across all factories. The model is not "one
 big factory" — it is "many small factories, each with its own orchestrator."
 
+## The jess dependency tree
+
+jess is the orchestrator for the drone software. It depends on everything.
+Here is the full tree, from jess down:
+
+{% <mermaid> %}
+flowchart TD
+    jess["jess<br/>orchestrator<br/>drone software"]
+
+    jess --> relay["relay<br/>flight stack"]
+    jess --> meld["meld<br/>fuse"]
+    jess --> loom["loom<br/>optimize"]
+    jess --> synth["synth<br/>AOT compile"]
+    jess --> gale["gale<br/>kernel"]
+    jess --> rivet["rivet<br/>traceability"]
+    jess --> spar["spar<br/>architecture"]
+    jess --> sigil["sigil<br/>signing"]
+
+    relay --> meld
+    relay --> synth
+    relay --> gale
+    relay --> rivet
+
+    gale --> meld
+    gale --> loom
+    gale --> synth
+    gale --> ordeal["ordeal<br/>SMT solver"]
+
+    loom --> rivet
+    loom --> ordeal
+    loom --> spar
+    loom --> synth
+
+    synth --> meld
+
+    spar --> rivet
+
+    sigil --> rivet
+    sigil --> synth
+    sigil --> loom
+
+    ordeal --> rivet
+    ordeal --> synth
+
+    rivet --> meld
+
+    kiln["kiln<br/>runtime"]
+    kiln --> rivet
+
+    witness["witness<br/>coverage"]
+    witness --> rivet
+    witness --> sigil
+
+    style jess fill:#1a1d27,stroke:#6c8cff,color:#e1e4ed
+    style relay fill:#1a1d27,stroke:#fbbf24,color:#e1e4ed
+    style gale fill:#1a1d27,stroke:#fbbf24,color:#e1e4ed
+    style meld fill:#1a1d27,stroke:#4ade80,color:#e1e4ed
+    style loom fill:#1a1d27,stroke:#4ade80,color:#e1e4ed
+    style synth fill:#1a1d27,stroke:#4ade80,color:#e1e4ed
+    style kiln fill:#1a1d27,stroke:#4ade80,color:#e1e4ed
+    style sigil fill:#1a1d27,stroke:#4ade80,color:#e1e4ed
+    style rivet fill:#1a1d27,stroke:#22d3ee,color:#e1e4ed
+    style spar fill:#1a1d27,stroke:#22d3ee,color:#e1e4ed
+    style witness fill:#1a1d27,stroke:#22d3ee,color:#e1e4ed
+    style ordeal fill:#1a1d27,stroke:#22d3ee,color:#e1e4ed
+
+    classDef orch fill:#1a1d27,stroke:#6c8cff,color:#e1e4ed;
+    classDef app fill:#1a1d27,stroke:#fbbf24,color:#e1e4ed;
+    classDef tool fill:#1a1d27,stroke:#4ade80,color:#e1e4ed;
+    classDef verify fill:#1a1d27,stroke:#22d3ee,color:#e1e4ed;
+{% </mermaid> %}
+
+**Reading the tree:**
+
+- **jess** (blue) depends on **8 repos** directly: relay, meld, loom, synth,
+  gale, rivet, spar, sigil
+- **relay** (amber) depends on meld, synth, gale, rivet
+- **gale** (amber) depends on meld, loom, synth, ordeal
+- **Toolchain** (green): meld, loom, synth, kiln, sigil — the pipeline
+- **Verification** (cyan): rivet, spar, witness, ordeal — trace, architect,
+  cover, solve
+
+**The critical path from jess:** jess → relay → gale → ordeal → synth → meld
+
+That is the longest chain. If any link in that chain is delayed, jess is
+delayed. The critical path runs through the toolchain and the verification
+chain — not just the application stack.
+
 ## The principle
 
 > **Who does what is more important than how fast.**
