@@ -222,6 +222,54 @@ agent's reach)[^remojansen-tps]. One practitioner's operationalization: a
 "verification-debt budget" where 0 means the agent proceeds freely, 3 means it
 must verify before further actions, and 5 means it is stopped completely.
 
+## The CI gate: a dashboard as oracle
+
+A gate is only useful if you can see it. A CI dashboard is the control tower
+for the CI gate — every required check, every repo, every branch, in one
+view. The overview shows the status of every CI gate across the fleet: which
+repos are green, which are red, which checks are pending. No meetings, no
+status emails — the dashboard is the status.
+
+The ask feature turns the dashboard into an oracle. You ask "when will this
+PR run?" and get an answer from measured data:
+
+```
+When will it run?
+repo: rivet    PR: 511    [ask]
+
+running on runner1: CI · Mutation Testing (rivet-core 00-of-64) for 5m
+queued: 69 job(s) of CI on lean-mem, waiting 5m
+
+Estimated from measured waits: how long jobs in the same pool actually
+waited before starting over the last 3 hours. Not from queue position,
+because GitHub does not start jobs in creation order.
+```
+
+The oracle answers with **measured data**, not queue position — the same
+reference-class method as [the next post](/blog/can-we-deliver-x-by-january/).
+
+There is an API behind it: `GET /api/eta?repo=rivet&pr=511` returns JSON
+with status, running jobs, queued jobs, and scan age. This is one of several
+metrics we now work on:
+
+| Metric | What it measures | Source |
+|---|---|---|
+| CI gate status | green / red / pending per repo | Dashboard overview |
+| CI gate ETA | when will this PR run? | Ask feature + API |
+| CI gate duration | how long did CI take? | API |
+| Release velocity | releases per week | GitHub releases |
+| Decision queue | issues waiting for human decisions | Issue tracker |
+| Flow efficiency | active time / total time | Flow Framework |
+
+The CI gate is the most mechanical gate in the factory. It runs on every
+commit, it fails when it should, and the dashboard makes its status visible
+without a meeting. This is what a gate looks like when it is real: not a
+slide in a review, but a dashboard you can query.
+
+*We are considering open-sourcing this dashboard. The pattern — a CI control
+tower with an ask feature and an API — is not specific to our stack. Any CI
+system can expose the same data.*
+
 ## Scaling beyond one station
 
 {% <mermaid> %}
