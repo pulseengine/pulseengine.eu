@@ -263,6 +263,7 @@ flowchart TD
         synth["synth<br/>AOT compile"]
         kiln["kiln<br/>runtime"]
         sigil["sigil<br/>signing"]
+        warte["warte<br/>control tower"]
     end
 
     subgraph agents["Agents (external tools)"]
@@ -321,15 +322,35 @@ flowchart TD
     rivet --> meld
     kiln --> rivet
 
-    %% Repos depend on agents
+    %% All repos depend on agents (Claude Code, Vibe)
     jess --> claude
     jess --> vibe
     relay --> claude
     relay --> vibe
     gale --> claude
     gale --> vibe
+    meld --> claude
+    meld --> vibe
+    loom --> claude
+    loom --> vibe
+    synth --> claude
+    synth --> vibe
+    kiln --> claude
+    kiln --> vibe
+    sigil --> claude
+    sigil --> vibe
+    rivet --> claude
+    rivet --> vibe
+    spar --> claude
+    spar --> vibe
+    witness --> claude
+    witness --> vibe
+    ordeal --> claude
+    ordeal --> vibe
+    warte --> claude
+    warte --> vibe
 
-    %% Agents depend on skills
+    %% Agents depend on skills (used by all)
     claude --> pe
     vibe --> pe
 
@@ -341,6 +362,7 @@ flowchart TD
     style synth fill:#1a1d27,stroke:#4ade80,color:#e1e4ed
     style kiln fill:#1a1d27,stroke:#4ade80,color:#e1e4ed
     style sigil fill:#1a1d27,stroke:#4ade80,color:#e1e4ed
+    style warte fill:#1a1d27,stroke:#f87171,color:#e1e4ed
     style rivet fill:#1a1d27,stroke:#22d3ee,color:#e1e4ed
     style spar fill:#1a1d27,stroke:#22d3ee,color:#e1e4ed
     style witness fill:#1a1d27,stroke:#22d3ee,color:#e1e4ed
@@ -379,8 +401,13 @@ tower.
 - **relay** (amber) depends on meld, synth, gale, rivet
 - **gale** (amber) depends on meld, loom, synth, ordeal
 - **Toolchain** (green): meld, loom, synth, kiln, sigil — the pipeline
+- **Control tower** (red): warte — the dashboard, a tool like the others
 - **Verification** (cyan): rivet, spar, witness, ordeal — trace, architect,
   cover, solve
+- **All repos** depend on **agents** (Claude Code, Vibe) — the agents do
+  the work on every repo
+- **Agents** depend on **skills** (pulseengine.eu) — the skills are the
+  patterns, used by all agents on all repos
 
 **The critical path from jess:** jess → relay → gale → ordeal → synth → meld
 
@@ -518,6 +545,7 @@ flowchart TB
         synth["synth<br/>AOT compile"]
         kiln["kiln<br/>runtime"]
         sigil["sigil<br/>signing"]
+        warte["warte<br/>control tower"]
         tool_machine["⚙️ machine:<br/>agents · CI · gates<br/>skills: release-planning,<br/>release-execution"]
     end
 
@@ -536,6 +564,7 @@ flowchart TB
     style synth fill:#1a1d27,stroke:#4ade80,color:#e1e4ed
     style kiln fill:#1a1d27,stroke:#4ade80,color:#e1e4ed
     style sigil fill:#1a1d27,stroke:#4ade80,color:#e1e4ed
+    style warte fill:#1a1d27,stroke:#f87171,color:#e1e4ed
     style app_machine fill:#13161f,stroke:#8b90a0,color:#8b90a0
     style verify_machine fill:#13161f,stroke:#8b90a0,color:#8b90a0
     style tool_machine fill:#13161f,stroke:#8b90a0,color:#8b90a0
@@ -553,7 +582,7 @@ flowchart TB
 |---|---|---|---|
 | **3: Application** | jess, relay, gale | Agents | CI, gates, skills (issue-hunt, oracle-gate-a-change) |
 | **2: Verification** | rivet, spar, witness, ordeal | Agents | CI, gates, skills (gate-potency, clean-room-verification) |
-| **1: Toolchain** | meld, loom, synth, kiln, sigil | Agents | CI, gates, skills (release-planning, release-execution) |
+| **1: Toolchain** | meld, loom, synth, kiln, sigil, **warte** | Agents | CI, gates, skills (release-planning, release-execution) |
 
 **Each layer is a station with its own machine.** The application layer has
 its own agents, its own CI, its own gates. The verification layer has its
@@ -649,6 +678,13 @@ queue view, add the critical path, add resource allocation, add outage
 detection, add friction reporting, build the API, prepare for OSS release.
 The pattern — a CI control tower with an ask feature and an API — is not
 specific to our stack. Any CI system can expose the same data.
+
+**warte is a tool like the others.** It sits at the same level as meld,
+loom, synth, kiln, sigil — in the toolchain layer. It is not a dashboard
+on top of the factory. It is a tool in the factory. The skills tell the
+agents how to use it: when to ask for an ETA, when to check the queue,
+when to look at the critical path. And warte itself is built by agents
+using the skills — the same pattern, applied to itself.
 
 ## The principle
 
