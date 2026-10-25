@@ -383,7 +383,7 @@ flowchart TD
         synth["synth<br/>AOT compile"]
         kiln["kiln<br/>runtime"]
         sigil["sigil<br/>signing"]
-        varve["varve<br/>layer manager"]
+        varve["varve<br/>toolchain layer manager"]
         warte["warte<br/>control tower"]
     end
 
@@ -473,7 +473,7 @@ flowchart TD
     warte --> claude
     warte --> vibe
 
-    %% Tools depend on the layer they are in (varve manages layers)
+    %% Tools depend on the toolchain layer they are in (varve manages toolchain layers)
     meld --> varve
     loom --> varve
     synth --> varve
@@ -543,6 +543,16 @@ tower.
   the work on every repo
 - **Agents** depend on **skills** (pulseengine.eu) — the skills are the
   patterns, used by all agents on all repos
+
+{% <note kind="tip"> %}
+**Two kinds of "layer."** varve manages **toolchain layers** — pinned,
+signed, dated bundles of tools (one layer per release). The **architectural
+layers** in this post (toolchain, verification, application) are a
+different concept — they describe what each group of tools *does*, not
+which bundle they ship in. A tool can be in the toolchain architectural
+layer and still ship in a varve layer with other tools. The varve layer
+is the bundle; the architectural layer is the role.
+{% </note> %}
 
 **The critical path from jess:** jess → relay → gale → ordeal → synth → meld
 
@@ -680,7 +690,7 @@ flowchart TB
         synth["synth<br/>AOT compile"]
         kiln["kiln<br/>runtime"]
         sigil["sigil<br/>signing"]
-        varve["varve<br/>layer manager"]
+        varve["varve<br/>toolchain layer manager"]
         warte["warte<br/>control tower"]
         tool_machine["⚙️ machine:<br/>agents · CI · gates<br/>skills: release-planning,<br/>release-execution"]
     end
