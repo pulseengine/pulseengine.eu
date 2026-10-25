@@ -37,15 +37,16 @@ and **flow history** for the future.
 
 {% <mermaid> %}
 flowchart TB
-    subgraph present["Where are we? (measurement)"]
+    subgraph present["Where are we? (gate status)"]
         direction TB
-        g1["Gate 1: Requirements<br/>rivet validate"]
-        g2["Gate 2: Architecture<br/>spar solver"]
-        g3["Gate 3: Code + tests<br/>CI"]
-        g4["Gate 4: Coverage<br/>witness MC/DC"]
-        g5["Gate 5: Proof<br/>Verus/Kani"]
-        g6["Gate 6: Hardware<br/>Renode + silicon"]
-        g7["Gate 7: Sign-off<br/>human"]
+        g1["Gate 1: Requirements — rivet validate"]
+        g2["Gate 2: Architecture — spar solver"]
+        g3["Gate 3: Code + tests — CI"]
+        g4["Gate 4: Coverage — witness MC/DC"]
+        g5["Gate 5: Proof — Verus/Kani"]
+        g6["Gate 6: Hardware — Renode + silicon"]
+        g7["Gate 7: Sign-off — human"]
+        g1 --> g2 --> g3 --> g4 --> g5 --> g6 --> g7
         style g1 fill:#1a1d27,stroke:#4ade80,color:#e1e4ed
         style g2 fill:#1a1d27,stroke:#4ade80,color:#e1e4ed
         style g3 fill:#1a1d27,stroke:#f87171,color:#e1e4ed
@@ -55,12 +56,13 @@ flowchart TB
         style g7 fill:#1a1d27,stroke:#6c8cff,color:#e1e4ed
     end
 
-    subgraph future["When will it be done? (estimation from corpus)"]
+    subgraph future["When will it be done? (flow history from corpus)"]
         direction TB
-        h1["Past project A<br/>12 gates, 8 weeks<br/>1.5 gates/week"]
-        h2["Past project B<br/>8 gates, 12 weeks<br/>0.67 gates/week"]
-        h3["Past project C<br/>15 gates, 6 weeks<br/>2.5 gates/week"]
-        h4["X matches B's profile:<br/>8 gates, 3 need decisions<br/>→ 4 weeks mechanical<br/>→ 8 weeks decision-dependent"]
+        h1["Past project A: 12 gates, 8 weeks, 1.5 gates/week"]
+        h2["Past project B: 8 gates, 12 weeks, 0.67 gates/week"]
+        h3["Past project C: 15 gates, 6 weeks, 2.5 gates/week"]
+        h4["X matches B: 8 gates, 3 need decisions<br/>→ 4 weeks mechanical + 8 weeks decision-dependent"]
+        h1 --> h2 --> h3 --> h4
         style h1 fill:#1a1d27,stroke:#8b90a0,color:#e1e4ed
         style h2 fill:#1a1d27,stroke:#8b90a0,color:#e1e4ed
         style h3 fill:#1a1d27,stroke:#8b90a0,color:#e1e4ed
