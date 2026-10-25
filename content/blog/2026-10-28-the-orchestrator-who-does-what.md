@@ -134,6 +134,32 @@ constant nudging — cron jobs die, hardware gets unplugged, CI queues back
 up. Real decisions need my judgment — what architecture direction, what to
 prioritize, what to merge.
 
+De Bono called this "thinking hats"[^thinking-hats] — different modes of attention for
+different kinds of problems. The three streams map onto three hats:
+
+| Stream | Hat | De Bono's description |
+|---|---|---|
+| **Friction** | **Black** | Negative, evaluation, PMI (Plus, Minus, Interesting) — what's broken, what slows us down |
+| **Factory operations** | **Blue** | The big picture, managing, CAF (Consider All Factors), FIP (First Important Priorities) — keep the factory running, decide what matters most |
+| **Real decisions** | **Green** | New ideas, lateral thinking, concept challenge — what should we build next, what direction |
+
+But it is not just three hats worn independently. De Bono's sequences show
+that blue frames everything — you start with the big picture, move through
+the other hats, and return to blue for FIP. My day follows the same
+pattern:
+
+```
+Blue (factory status) → Black (friction reports) → Green (what to build)
+                                                              ↓
+                                              Blue (FIP: what first?)
+```
+
+Check the factory (blue). Read what's broken (black). Think about what to
+build (green). Prioritize (blue, FIP). Repeat. The blue hat is the one I
+wear most — FIP, First Important Priorities. That is the job. I switch
+between hats so often that I no longer notice which one I'm wearing. The
+prioritization is the thinking; the hats are just the lenses.
+
 What I actually do, day to day:
 
 | Activity | What it looks like |
@@ -980,6 +1006,8 @@ are clear and the bottlenecks are managed — is the author's view, not a
 measured outcome.
 
 [^anthropic-scion]: Anthropic, *Redesigning source control at Anthropic*, October 2026. [anthropic.com/research/redesigning-source-control](https://www.anthropic.com/research/redesigning-source-control). Primary (company research publication). The article describes building Scion, an in-house version control system, after git became a bottleneck at 30,000 merges/day and 600 PB of daily git traffic. Key quote: "Claude's ability to write code was both what put us in this situation in the first place and how we were able to quickly build a high-quality, scalable system to deal with it."
+
+[^thinking-hats]: Edward de Bono, *Six Thinking Hats*, 1985. [Wikipedia](https://en.wikipedia.org/wiki/Six_Thinking_Hats). Primary (encyclopedia summary of the original framework). The six hats: White (facts), Red (emotions), Black (negative/evaluation), Yellow (positive), Green (new ideas), Blue (big picture/managing). Hat sequences for common activities are listed in the Wikipedia article.
 
 ---
 
