@@ -184,12 +184,20 @@ gate C, and so on. Some chains are short (mechanical gates, fast). Some are
 long (decision gates, hardware-blocked). The **critical path** is the longest
 chain — the one that sets the minimum release time.
 
-```
-gale (kernel) → relay (flight stack) → jess (orchestrator)
-   4 weeks         8 weeks                12 weeks
-   └──────────────┬──────────────────────┘
-                  └─ critical path: 24 weeks (application layer)
-```
+{% <mermaid> %}
+flowchart LR
+    gale["gale<br/>kernel<br/>4 weeks"]
+    relay["relay<br/>flight stack<br/>8 weeks"]
+    jess["jess<br/>orchestrator<br/>12 weeks"]
+    gale --> relay --> jess
+    style gale fill:#1a1d27,stroke:#fbbf24,color:#e1e4ed
+    style relay fill:#1a1d27,stroke:#fbbf24,color:#e1e4ed
+    style jess fill:#1a1d27,stroke:#6c8cff,color:#e1e4ed
+    classDef app fill:#1a1d27,stroke:#fbbf24,color:#e1e4ed;
+    classDef orch fill:#1a1d27,stroke:#6c8cff,color:#e1e4ed;
+{% </mermaid> %}
+
+**Critical path: 24 weeks** (application layer). gale (4) + relay (8) + jess (12) = 24 weeks.
 
 If gale takes 4 weeks, relay takes 8 weeks, and jess takes 12 weeks, the
 critical path is **24 weeks** for the application layer. That is the
