@@ -27,7 +27,7 @@
       <div class="grid">
         {% for name, project in report_index.projects %}
           {% if project.kind != "mcdc" %}
-            {% set shown = project.display_versions | slice(end=3) %}
+            {% set shown = project.display_versions[:3] %}
             <div class="glass-card">
               <div class="glass-card__title">{{ name }}</div>
               <div class="glass-card__desc">Latest: v{{ project.latest }} &middot; {{ project.versions | length }} version{{ project.versions | length | pluralize }}</div>
@@ -64,7 +64,7 @@
       <div class="grid">
         {% for name, project in report_index.projects %}
           {% if project.kind == "mcdc" %}
-            {% set shown = project.display_versions | slice(end=3) %}
+            {% set shown = project.display_versions[:3] %}
             <div class="glass-card">
               <div class="glass-card__title">{{ name }}</div>
               <div class="glass-card__desc">Latest: v{{ project.latest }} &middot; {{ project.versions | length }} version{{ project.versions | length | pluralize }}</div>

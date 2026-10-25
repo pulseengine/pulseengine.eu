@@ -7,9 +7,9 @@ tags = ["verification", "process", "deep-dive"]
 authors = ["Ralf Anton Beier"]
 +++
 
-{% insight() %}
+{% <insight> %}
 Spec-driven development sells the intent half of the loop — agents against structured specs. The verification half it ships with is an agent reading the spec back. That is a soft oracle; it cannot find what the spec did not mention, and it cannot resist the politeness drift of long LLM conversations. We replaced it twice in sigil this month, both times with the same pattern: minimal prompt + strong mechanical oracle + parallel agents + fresh-session validator. Anthropic's red team uses the same shape as the scaffold for their vulnerability research — most recently showcased with Claude Mythos, a new model, but the scaffold predates it. We apply it to bug hunting and to V-model traceability gaps. SDD plus an oracle-gated verification phase downstream is a loop. SDD alone is half of one.
-{% end %}
+{% </insight> %}
 
 ## The pattern
 
@@ -24,7 +24,7 @@ The April 2026 Claude Mythos Preview used this scaffold to produce working explo
 
 The shape of one pipeline pass:
 
-{% mermaid() %}
+{% <mermaid> %}
 flowchart LR
     subgraph rank["rank.md"]
         r["score and<br/>prioritize candidates"]
@@ -54,7 +54,7 @@ flowchart LR
     class r,a1,a2,aN,v node;
     class oracle gate;
     class e good;
-{% end %}
+{% </mermaid> %}
 
 The amber box is the hard part. Everything before it is hypothesis generation; the oracle is the first thing that has to say yes. SDD's QA-lens agent sits in the same position — but it is a second LLM with no mechanical check behind it, so the gate is soft. A soft oracle cannot find what the specification did not think to say, and bug classes are almost by definition what the specification did not think to say.
 
@@ -103,7 +103,7 @@ Someone asked me this the first time I showed them rivet, and it is the right qu
 
 The shape of the flow, assuming a GitHub issue or Jira ticket as the starting point — the same structure holds for either:
 
-{% mermaid() %}
+{% <mermaid> %}
 flowchart LR
     issue([issue · ticket])
     req["requirement<br/>rivet validate"]
@@ -127,7 +127,7 @@ flowchart LR
     class req,design,unit,integ node;
     class impl gate;
     class signed good;
-{% end %}
+{% </mermaid> %}
 
 The dotted lines are the V-model's symmetry made concrete: the requirement is *verified-by* the integration result; the design is *verified-by* the unit tests. `rivet validate` checks both directions. The six-step walk-through:
 
@@ -159,7 +159,7 @@ Second, and more load-bearing, in a world where the agent produces most of the c
 
 And the model has to *drive* the build, not sit alongside it. Audit-only models drift and get skipped under pressure. Models that actually select cargo features, emit build files, or configure hardware cannot be skipped, because the build depends on them:
 
-{% mermaid() %}
+{% <mermaid> %}
 flowchart LR
     subgraph mbse["MBSE layer"]
         direction TB
@@ -191,7 +191,7 @@ flowchart LR
     class codegen,build,validate step;
     class signed good;
     class bundle future;
-{% end %}
+{% </mermaid> %}
 
 Two concrete beats from our own stack: [spar](https://github.com/pulseengine/spar) already ships deployment allocation with ASIL decomposition and ARINC 653 partitioning — the integrity-level constraints are first-class in the solver, not bolted-on checks. Next on the roadmap, `spar-codegen` emits Cargo.toml and BUILD.bazel directly from the AADL model, with `#[aadl(period = ...)]` attributes tying Rust functions to the architecture elements they implement. The moment that lands, you cannot produce a binary without the model, because the build files are the model's output. rivet's variant artifacts do the symmetric thing on the requirements side — selecting which requirement set applies at which integrity level, gated by `rivet validate`. `sigil` signs the WASM output and emits in-toto SLSA provenance; as the transformation-attestation types in sigil mature and the upstream tools learn to emit predicates of their own, the signed bundle will carry evidence from each layer alongside the signature. Today, what's real is the signing and the signed build metadata — the cross-layer composition is the roadmap, not the ship. The model is no longer a parallel document. It is the source of truth the build depends on, and that dependency is what makes skipping it impossible rather than merely discouraged.
 

@@ -9,7 +9,7 @@ tags = ["verification", "ai-agents", "lean", "process", "how-it-works"]
 authors = ["Ralf Anton Beier"]
 +++
 
-{% insight() %}
+{% <insight> %}
 We gave **Leanstral 1.5** — Mistral's open-weights Lean 4 theorem-proving model, which
 Mistral reports **scores 100% on the standard miniF2F mathematics benchmark** — two of
 our *real* proofs: the soundness of
@@ -30,7 +30,7 @@ any trial, did it produce a wrong proof that Lean accepted.** Every failure was 
 verification isn't that it discharges your obligations. It's that when you build on an
 untrusted producer and a trusted checker, a brilliant-but-jagged prover *cannot corrupt
 the result* — whether it wins or loses.
-{% end %}
+{% </insight> %}
 
 ## The setup
 
@@ -110,13 +110,13 @@ benchmark score as reliability on your workload** — you have to measure it on 
 surface, because the answer is domain-specific and the two domains sat right next to each
 other.
 
-{% note(kind="tip") %}
+{% <note kind="tip"> %}
 One operational surprise worth flagging: you have to stop the model *cheating*. If the
 real proof's source (or its compiled `.olean`) is reachable on disk, the agent will `grep`
 and copy it. So we ran every trial in a sandbox containing only the target statement
 (proof replaced by `sorry`) and its dependencies — clean-room verification, applied to
 the model itself. A proof it copies is not a proof it found.
-{% end %}
+{% </note> %}
 
 ## Why it's safe either way
 

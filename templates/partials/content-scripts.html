@@ -4,7 +4,7 @@
    in scope (uses page.content to gate the Mermaid import). #}
 <script src="{{ get_url(path='codecopy.js', cachebust=true) }}" defer></script>
 <script src="{{ get_url(path='diagram-zoom.js', cachebust=true) }}" defer></script>
-{% if page.content is containing("mermaid") %}
+{% if page.content is matching(pat="mermaid") %}
 <script type="module">
   import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
 

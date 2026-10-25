@@ -11,20 +11,20 @@ the parts by role. This page shows the **flow**: how one thing travels from a
 system-architecture model, through build and verification, to signed artifacts
 running on a real target.
 
-{% note(kind="tip") %}
+{% <note kind="tip"> %}
 Everything here is **work in progress**, at varying maturity. The tools compose
 in principle and in the worked examples below — this is not a one-button
 production pipeline, and *"verified"* always means **specific properties,
 machine-checked**, never a blanket guarantee. Where a seam is still manual or a
 stage is early, we say so.
-{% end %}
+{% </note> %}
 
 ## Three views of one factory
 
 The same four tools, looked at from three angles. Switch between them; the boxes
 do not move, only what is said about them.
 
-{{ factory_views() }}
+{{<factory_views />}}
 
 There is no reading key, and that is deliberate. The previous version of this
 picture encoded the component's path as thick arrows and everything else as

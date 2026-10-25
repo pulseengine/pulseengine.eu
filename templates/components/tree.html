@@ -1,0 +1,25 @@
+{% component tree(root: string = "") %}
+{%- set lines = body | trim | split(pat="\n") -%}
+<figure class="tree" role="group" aria-label="{{ root | default(value="Directory contents") }}">
+{%- if root %}
+<header class="tree__root">
+<span class="tree__root-icon" aria-hidden="true">▸</span>
+<span class="tree__root-name">{{ root }}</span>
+</header>
+{%- endif %}
+<dl class="tree__items">
+{%- for line in lines -%}
+{%- set entry = line | trim -%}
+{%- if entry %}
+{%- set parts = entry | split(pat=" | ") -%}
+<dt class="tree__name">{{ parts | nth(n=0) }}</dt>
+<dd class="tree__desc">
+{%- if parts | length > 1 -%}
+{{ parts[1:] | join(sep=" | ") }}
+{%- endif -%}
+</dd>
+{%- endif -%}
+{%- endfor %}
+</dl>
+</figure>
+{% endcomponent %}

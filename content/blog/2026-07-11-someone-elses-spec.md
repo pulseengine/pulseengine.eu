@@ -9,14 +9,14 @@ tags = ["traceability", "verification", "process", "how-it-works"]
 authors = ["Ralf Anton Beier"]
 +++
 
-{% insight() %}
+{% <insight> %}
 The honest test of whether a toolchain "works together" is not a demo you built
 to show it off. It's feeding it a real specification you **didn't design and can't
 edit** — and seeing where the seams hold. We ran [Eclipse
 S-CORE](https://github.com/eclipse-score)'s safety corpus through
 [rivet](https://github.com/pulseengine/rivet), and kept a log of every gap it
 surfaced.
-{% end %}
+{% </insight> %}
 
 A pipeline diagram always looks clean. Every arrow connects; every box is the
 right size. The trouble is that the person who drew it also chose the example — so

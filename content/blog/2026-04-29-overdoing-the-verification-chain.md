@@ -8,9 +8,9 @@ tags = ["verification", "deep-dive"]
 authors = ["Ralf Anton Beier"]
 +++
 
-{% insight() %}
+{% <insight> %}
 Proofs cover all inputs. Tests cover realistic inputs. Concurrency checkers cover every interleaving. Mutation testing covers the test suite itself. Sanitizers catch what unsafe code actually does at runtime. Each technique answers a different question. When you do not yet know which question the next assessor cares about — and you will not, because you work across six standards written by six different committees — overdoing is the only honest default.
-{% end %}
+{% </insight> %}
 
 ## The arc so far
 
@@ -32,7 +32,7 @@ The cost of overdoing is CI budget. The cost of undercommitting is a certificati
 
 Ten layers, each answering a different question. No project names in this table — this is the technique picture, not the adoption picture.
 
-{% mermaid() %}
+{% <mermaid> %}
 flowchart TB
     subgraph allIn["proves for all inputs"]
         direction TB
@@ -65,7 +65,7 @@ flowchart TB
     class allIn,manyIn,runtimeObs grp;
     class lean,verus,kani,ztv,prop,loom,mut,crit,miri,san tool;
     class rivet trace;
-{% end %}
+{% </mermaid> %}
 
 | Layer | Answers | Techniques |
 |---|---|---|
@@ -82,7 +82,7 @@ flowchart TB
 
 Operationally, those layers run through **four gates** on every push:
 
-{% mermaid() %}
+{% <mermaid> %}
 flowchart LR
     push([developer push])
     pc["pre-commit<br/>rivet 21-hook template"]
@@ -97,7 +97,7 @@ flowchart LR
     classDef gate fill:#1a1d27,stroke:#6c8cff,color:#e1e4ed;
     class push,hw endpoint;
     class pc,bz,gh,kv gate;
-{% end %}
+{% </mermaid> %}
 
 1. **Pre-commit** — shift-left. rivet's 21-hook template is the reference: formatting, clippy, cargo-test, cargo-audit, cargo-deny, cargo-bench-check, cargo-mutants, rivet-validate.
 2. **Bazel `test //...`** — the hermetic gate. Compiles and runs verus_test, kani_test, rocq_proof_test, lean_proof_test alongside rust_test.
@@ -108,13 +108,13 @@ Hardware comes after criterion benchmarks have cleared their regression budget. 
 
 ## Where we stand — honest assessment
 
-{% note(kind="warning") %}
+{% <note kind="warning"> %}
 **Corrected 2026-10-06.** This table originally read `proptest / tokio-rs/loom / sanitizer — ✅ present but unevenly adopted across the estate`. Measured across the thirteen Rust repos, that was too generous on two of the three: sanitizers run in two repos, and the concurrency-permutation layer runs nowhere. `loom` is declared in gale as a `cfg(loom)` dev-dependency and no workflow sets the flag, so the tests it would gate are never built.
 
 A post arguing for overdoing rather than undercommitting should not overstate its own chain. The rows below are counts, re-derivable from the workflow files. The correction runs both ways: the mutation-testing row *understated* — cargo-mutants runs in five repos, not one.
 
 One caveat on the loom row: the dependency is declared, and I sampled 60 of gale's 391 `.rs` files without finding a `cfg(loom)` use. Absence of CI wiring is measured; absence of tests is a sample, not a sweep.
-{% end %}
+{% </note> %}
 
 Traffic-light at the chain-layer level, not the project level. The project-level matrix lives in the tracking issue[^rivet-184].
 
@@ -319,7 +319,7 @@ The plan: prototype with MIRAI this quarter to confirm which property classes ac
 
 **The Check-It pattern.** NASA's own tool-qualification research[^nasa-cr-2017] describes the shape: untrusted prover emits a checkable proof certificate, tiny trusted checker validates it, only the checker is qualified under DO-330. Rocq and Lean work this way by construction. Verus, Kani, and the WASM-IR translation validator do not yet. Building certificate emitters and independent checkers collapses the DO-330 problem from "qualify Z3" (infeasible) to "qualify a small checker" (tractable). This is likely the next post's topic.
 
-{% mermaid() %}
+{% <mermaid> %}
 flowchart LR
     untrusted["untrusted prover<br/>Verus · Kani · Z3"]
     cert["proof certificate<br/>SMT unsat core<br/>CBMC trace<br/>checkable artifact"]
@@ -338,7 +338,7 @@ flowchart LR
     class cert transit;
     class checker trusted;
     class ok endpoint;
-{% end %}
+{% </mermaid> %}
 
 **Aeneas end-to-end.** The rules_lean Bazel wiring is scaffolded but not yet running; hermetic Charon is the missing piece. Tracked at rules_lean#1[^rules-lean-1]. The rules_verus sysroot-handling pattern transfers almost directly.
 

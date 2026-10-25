@@ -9,14 +9,14 @@ tags = ["verification", "floating-point", "embedded", "how-it-works"]
 authors = ["Ralf Anton Beier"]
 +++
 
-{% insight() %}
+{% <insight> %}
 A colleague, looking at the flight core, asked the obvious and correct question:
 *are we sure these floats should be `f32` and not `f64`? Have we actually
 checked?* The honest first answer was that we hadn't **proven** it — we'd
 **assumed** it. And an assumption you can't point at isn't engineering, it's
 habit. So we went and checked, and the checking turned into a small story about
 the three different things "we verified it" can mean.
-{% end %}
+{% </insight> %}
 
 ## The question: 32 or 64?
 
@@ -142,18 +142,18 @@ check on every pull request, so it cannot quietly rot.
 Here is the honest boundary, because a proof described past its actual reach is
 worse than no proof — it's a false one wearing a certificate.
 
-{% note(kind="tip") %}
+{% <note kind="tip"> %}
 **Proven — the rounding layer.** Gappa proved that our floating-point computation
 is faithful to the polynomial it implements. That's real, and it's half the story.
-{% end %}
+{% </note> %}
 
-{% note(kind="warning") %}
+{% <note kind="warning"> %}
 **Not yet proven — the approximation layer.** That the polynomial itself is close
 to *true* sine — the minimax remainder `|P(r) − sin r|` — is a different proof, in
 a different tool (Coq-Interval), and it is a scoped follow-on, not something this
 proof establishes. So is the argument-reduction cancellation. We know these are
 open, and we say so.
-{% end %}
+{% </note> %}
 
 There was a second piece of honesty the work forced on us. Swapping the trig
 kernels — a change of at most 2 ulp — flipped a hover in one closed-loop test. It

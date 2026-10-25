@@ -7,9 +7,9 @@ tags = ["announcement"]
 authors = ["Ralf Anton Beier"]
 +++
 
-{% insight() %}
+{% <insight> %}
 PulseEngine is building a formally verified WebAssembly pipeline for safety-critical embedded systems — automotive, aerospace, medical. Components are developed with modern tooling, then compiled to native firmware with mathematical proof that each transformation is correct. The pipeline is qualified once; every product that uses it inherits that qualification.
-{% end %}
+{% </insight> %}
 
 Welcome to the PulseEngine blog.
 
@@ -27,7 +27,7 @@ This site fills that gap.
 
 ## The engine at a glance
 
-{% mermaid() %}
+{% <mermaid> %}
 graph LR
     W(.wasm) --> M(meld)
     M --> L(loom)
@@ -37,7 +37,7 @@ graph LR
     SG -.->|sign| L
     SG -.->|verify| S
     SG -.->|seal| K
-{% end %}
+{% </mermaid> %}
 
 kiln interprets and executes components directly. synth transcodes them to native ARM when you need bare metal. meld fuses multiple components into one before any of that happens, and loom optimizes at every level. sigil attests every transformation — the full chain is verifiable end-to-end.
 

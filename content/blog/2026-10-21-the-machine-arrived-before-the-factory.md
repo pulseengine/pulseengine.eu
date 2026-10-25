@@ -9,13 +9,13 @@ tags = ["verification", "process", "ai-agents", "deep-dive"]
 authors = ["Ralf Anton Beier"]
 +++
 
-{% insight() %}
+{% <insight> %}
 **Agents are the machine. The factory is everything that checks them, and it has not been built yet.**
 
 - Manufacturing built its standards before its machines. Software got the machine first.
 - In PulseEngine's own repositories the gaps are concrete: checks that pass without checking, the same fact computed in several places, and a backlog that outruns the decisions.
 - Each gap has a mechanical answer older than software. Four things stay human: deciding what correct means, deciding what no oracle can, acting on an alarm, and the signature.
-{% end %}
+{% </insight> %}
 
 ## Three positions
 
@@ -183,7 +183,7 @@ Manufacturing has a name for each of these, older than software. **Jidoka**, Toy
 
 **Statistical process control** measures the process instead of the product. The figure above was produced by hand on one morning. Run monthly, the same script becomes a control chart, with the erosion signature defined in advance: a rising fix share together with a falling line-level fix age, or a rising number of files per change. The line-level qualifier is load-bearing. The file-level cadence number falls whenever fixes cluster in the same files, so an alert built on it would fire on a concentrated fix wave and call it erosion.
 
-{% mermaid() %}
+{% <mermaid> %}
 flowchart TB
     subgraph intake["intake"]
         direction LR
@@ -211,7 +211,7 @@ flowchart TB
     class sil hand;
     class dec,rel human;
     class intake,line phase;
-{% end %}
+{% </mermaid> %}
 
 The line as it stands. Green stations run without a person, amber ones exist in part, the red one is done by hand, and blue marks the places where a person is meant to stay. The triage split is built and merged; it is amber because it has not yet run a pass.
 
@@ -233,7 +233,7 @@ Two differences matter for software. A lights-out plant repeats one fixed design
 
 The target that follows is dark production with a lit release, which is Osmani's light factory with the light concentrated where the standard requires it. Agents produce and check everything for which an oracle exists, around the clock. People set the standards, decide what the oracles cannot, and sign.
 
-{% mermaid() %}
+{% <mermaid> %}
 flowchart LR
     subgraph first["1. build these first"]
         direction TB
@@ -271,7 +271,7 @@ flowchart LR
     class disc,fix,gate,spc,sil auto;
     class std,dec,alarm,rel human;
     class first,dark,lit phase;
-{% end %}
+{% </mermaid> %}
 
 Read as a plan, the order is the one manufacturing followed. The amber column has to exist before anything goes dark: gates whose ability to fail has been measured, one evaluation core per fact, and an oracle for every item the agents are trusted to close. With those in place, discovery, fixing, gating, process measurement and the silicon runs can go unattended. Four things stay white however far the rest goes: deciding what correct means, deciding what no oracle can, deciding what to do when the process alarm fires, and the independent review and signature a safety case names a person for.
 

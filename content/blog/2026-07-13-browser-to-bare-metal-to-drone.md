@@ -9,13 +9,13 @@ tags = ["wasm", "embedded", "verification", "how-it-works"]
 authors = ["Ralf Anton Beier"]
 +++
 
-{% insight() %}
+{% <insight> %}
 One component set; four places it runs — a **browser tab**, a **fused wasm
 module**, **native ARM**, and, the arc we're climbing now, a **drone's flight
 controller**. The interesting part isn't portability for its own sake. It's being
 honest about the *boundaries*: which crossing is backed by a proof, which by
 differential testing, and which is still ahead of us.
-{% end %}
+{% </insight> %}
 
 Most software is written for one substrate and stuck there. A kernel primitive is
 kernel code; a browser demo is browser code; flight software is flight software. The

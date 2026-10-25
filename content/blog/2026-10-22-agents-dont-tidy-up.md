@@ -9,13 +9,13 @@ tags = ["verification", "process", "ai-agents", "deep-dive"]
 authors = ["Ralf Anton Beier"]
 +++
 
-{% insight() %}
+{% <insight> %}
 **Agents work on what a gate checks. Nothing checks structure, so nobody tidies.**
 
 - Judged from the diffs, Hubris and Cranelift spend 25 and 30% of their commits on refactoring. The six projects written mostly by agents spend 3 to 13%, rivet 9% and spar 3%.
 - Fix share, bugs caused by earlier fixes, coupling and bug lifetime counted in commits do not separate the groups.
 - Redesign from insight still happens when a person has the idea. The everyday tidying that teams do because the code resists them does not, because an agent feels no resistance. PulseEngine will add a gate that asks for it, in rivet first, with spar unchanged as the comparison.
-{% end %}
+{% </insight> %}
 
 ## What the first post could not say
 
@@ -41,9 +41,9 @@ A commit counts when it touches a source file. Each history is cut into buckets 
 
 **The classifier is checked before it is used.** A small model, Claude Haiku, reads each full commit message with any conventional prefix (`feat:`, `fix:`) stripped from every line and labels it feature, fix, refactor or maintenance. It was scored against two references before any project was labelled. On 160 rivet and spar commits, where the stripped prefix is the answer, fix precision was 0.84 and recall 0.89, and four-class agreement 86%. On 400 human-written commits from Levin and Yehudai's labelled dataset[^levin], fix precision was 0.92 and recall 0.89. Re-running the same commits gave the same label 91 to 96% of the time. Both references test fix and not refactor: the agent reference holds only two refactor commits and Levin's labels do not separate refactoring, so refactor gets a second instrument below. A keyword rule that looks for "fix" in the subject mostly reads the author's own prefix: on unstripped rivet and spar subjects it scores precision 0.90 and recall 1.00, which shows only that those authors label consistently. It cannot compare projects that write differently, so no result below uses it.
 
-{% note(kind="tip") %}
+{% <note kind="tip"> %}
 **Can a small local model do this?** Three downloadable classifiers were run on the same references on a laptop. LiquidAI's d1-3B, a 2026 decision model, passed on human messages (fix precision 0.78, recall 0.86) and failed on agent messages (precision 0.69), so it would inflate the agent fix share relative to the human one, which is the comparison this post makes. fastino's GLiNER2.5-Decide scored precision 0.43 on agent subjects, and a GPT-2 fine-tuned for commit intent did not separate fixes from other commits. Haiku stays the instrument until a local model passes the same bar.
-{% end %}
+{% </note> %}
 
 ## What separates the groups: refactoring
 

@@ -27,7 +27,7 @@
   {% if blog.pages | length > 0 %}
   <section class="landing__blog">
     <div class="grid">
-      {% for page in blog.pages | slice(end=2) %}
+      {% for page in blog.pages[:2] %}
       <a href="{{ page.permalink }}" class="glass-card glass-card--link">
         <div class="blog-card__date">{{ page.date | date(format="%B %d, %Y") }}</div>
         <div class="glass-card__title">{{ page.title }}</div>

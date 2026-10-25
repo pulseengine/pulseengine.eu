@@ -1,0 +1,5 @@
+{% component note(kind: string = "info") %}
+<aside class="note note--{{ kind }}">
+{{ body | markdown | safe }}
+</aside>
+{% endcomponent %}

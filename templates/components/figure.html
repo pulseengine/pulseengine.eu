@@ -1,0 +1,8 @@
+{% component figure(src: string, alt: string = "", caption: string = "") %}
+<figure class="figure">
+<img src="{{ src }}" alt="{{ alt }}" loading="lazy">
+{% if caption %}
+<figcaption>{{ caption }}</figcaption>
+{% endif %}
+</figure>
+{% endcomponent %}

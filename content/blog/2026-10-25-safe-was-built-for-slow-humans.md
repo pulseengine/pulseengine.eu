@@ -8,7 +8,7 @@ tags = ["process", "ai-agents", "kanban", "verification", "deep-dive"]
 authors = ["Ralf Anton Beier"]
 +++
 
-{% insight() %}
+{% <insight> %}
 SAFe was designed to coordinate large organisations of people who think and
 deliver in months. An AI-agent factory delivers in hours, and its bottleneck is
 no longer writing code — it is deciding, verifying, and integrating. The
@@ -17,7 +17,7 @@ exactly where the flow needs to be fastest. What replaces it is not "less
 process" but a different process: Kanban for the flow, gates for the checks,
 machine-readable contracts between stations, and a translation layer to the
 corporation that must not be called SAFe — because the name is the trap.
-{% end %}
+{% </insight> %}
 
 I have spent the last ten years inside SAFe organisations. PI Planning events
 where the same three stakeholders attended and forty others were represented by
@@ -103,13 +103,13 @@ verification is the narrow neck"[^osmani-factories]. And on what that means
 for process: "Verification, not generation, is the real constraint on a
 factory"[^osmani-factories].
 
-{% note(kind="tip") %}
+{% <note kind="tip"> %}
 **The test is simple.** If your process has a ceremony that exists to
 coordinate people writing code, and your agents write the code, the ceremony
 is now overhead. If your process has a gate that exists to catch a defect
 before it ships, and your agents pass through it, the gate is now load-bearing.
 Keep the gates. Question the ceremonies.
-{% end %}
+{% </note> %}
 
 ## Why Scrum and SAFe do not fit
 
