@@ -640,10 +640,15 @@ looks at. Not to do the work — to **see** the work. To see the gates, the
 queue, the critical path, the resources. To decide: who gets what, what
 goes first, what waits.
 
-**To be OSSed.** The control tower is currently internal. We are planning
-to open-source it. The pattern — a CI control tower with an ask feature and
-an API — is not specific to our stack. Any CI system can expose the same
-data.
+**To be OSSed.** The control tower is currently internal. We are building
+the open-source version as [**warte**](https://github.com/pulseengine/warte)
+(German: "watchtower" — and "bitte warte auf mich", "please wait for me").
+The repo is public, with issues in order: migrate from the existing
+internal dashboard, build the overview, add the ask feature, add the
+queue view, add the critical path, add resource allocation, add outage
+detection, add friction reporting, build the API, prepare for OSS release.
+The pattern — a CI control tower with an ask feature and an API — is not
+specific to our stack. Any CI system can expose the same data.
 
 ## The principle
 
