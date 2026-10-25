@@ -1,6 +1,6 @@
 +++
 title = "The orchestrator: who does what when bottlenecks won't go away"
-description = "Bottlenecks will always exist — hardware contention, CI queues, decision queues, cross-repo dependencies. But the principle is clear: jess orchestrates, relay flies, gale provides the kernel. The roles don't move. The bottlenecks do."
+description = "Bottlenecks will always exist — hardware contention, CI queues, decision queues, cross-repo dependencies. But the principle is clear: jess integrates, relay flies, gale provides the kernel. The roles don't move. The bottlenecks do."
 date = 2026-10-28
 draft = true
 ready = true
@@ -10,7 +10,7 @@ authors = ["Ralf Anton Beier"]
 +++
 
 {% <insight> %}
-**The roles are the factory.** jess orchestrates — integrates, watches the
+**The roles are the factory.** jess integrates — watches the
 release, owns the ladder. relay flies — the control cascade, verified.
 gale provides the kernel — the primitives, the proofs, the foundation.
 
@@ -39,7 +39,7 @@ clear connection to the others.
 flowchart TB
     subgraph roles["The roles (principles, not labels)"]
         direction TB
-        jess["<b>jess</b><br/>ORCHESTRATOR<br/>integrates · watches the release<br/>owns the ladder<br/>sim → silicon"]
+        jess["<b>jess</b><br/>INTEGRATOR<br/>integrates · watches the release<br/>owns the ladder<br/>sim → silicon"]
         relay["<b>relay</b><br/>FLIGHT STACK<br/>flies · verifies<br/>ships the cascade<br/>control → motors"]
         gale["<b>gale</b><br/>KERNEL<br/>provides the primitives<br/>proves them<br/>the foundation"]
     end
@@ -58,11 +58,11 @@ flowchart TB
 
 | Role | Repo | What they do | The bottleneck they own |
 |---|---|---|---|
-| **Orchestrator** | jess | Hardware integration, release watch, the **ladder** from sim to silicon | Hardware availability, release timing |
+| **Integrator** | jess | Hardware integration, release watch, the **ladder** from sim to silicon | Hardware availability, release timing |
 | **Flight stack** | relay | The control cascade, the verified flight software | Simulation fidelity, HITL binding |
 | **Kernel** | gale | The verified OS primitives, the foundation | Formal proofs, silicon bring-up |
 
-**The names are principles.** "Orchestrator" means: you integrate, you watch
+**The names are principles.** "Integrator" means: you integrate, you watch
 the release, you own the **ladder** — the deployment path from simulation to
 silicon, rung by rung. "Flight stack" means: you fly, you verify,
 you ship the cascade. "Kernel" means: you provide the primitives, you prove
@@ -429,52 +429,52 @@ When the contract is missing, the issues propagate.
 
 The bottlenecks are there. They won't go away. But the roles are clear.
 
-## Multiple factories: one orchestrator per domain
+## Multiple factories: one integrator per domain
 
 The factory model scales horizontally. Each domain is its own factory, with
-its own stations, its own machines, its own orchestrator.
+its own stations, its own machines, its own integrator.
 
-| Domain | Orchestrator | Stations | Machines |
+| Domain | Integrator | Stations | Machines |
 |---|---|---|---|
 | **Drone software** | jess | gale (kernel), relay (flight stack) | CI, agents, gates, hardware |
 | **Home automation** | wohl | sensors, hub, matter composition | CI, agents, gates, Thread/STM32 |
 
-**jess is the overarching for the drone software.** It integrates relay's
+**jess is the integrator for the drone software.** It integrates relay's
 flight stack onto hardware. It watches the release. It owns the ladder from
 simulation to silicon.
 
 **wohl is home automation and orchestration as its own.** It is a home
 supervision system built on PulseEngine — sensors, hub, matter composition,
 Thread/STM32 firmware. It has its own issues, its own CI, its own gates.
-And it probably needs its own layer — its own orchestrator, its own control
+And it probably needs its own layer — its own integrator, its own control
 tower, its own critical path.
 
 **Each part of the software is a station with its own machine.** gale has
 its own CI, its own agents, its own gates. relay has its own. jess has its
 own. wohl has its own. Each station produces, verifies, ships. The
-orchestrator coordinates the stations.
+integrator coordinates the stations.
 
 **The control tower shows all factories.** The **meta-layer** — the
 cross-factory view that shows all control towers in one dashboard. The
 dashboard that shows: drone factory (jess, relay, gale), home automation
 factory (wohl), the toolchain (meld, loom, synth), the verification chain
-(rivet, witness, sigil). One view. All factories. All orchestrators. All
+(rivet, witness, sigil). One view. All factories. All integrators. All
 stations.
 
-**The principle scales.** One orchestrator per domain. One control tower
+**The principle scales.** One integrator per domain. One control tower
 per factory. One meta-layer across all factories. The model is not "one
-big factory" — it is "many small factories, each with its own orchestrator."
+big factory" — it is "many small factories, each with its own integrator."
 
 ## The jess dependency tree
 
-jess is the orchestrator for the drone software. It depends on everything.
+jess is the integrator for the drone software. It depends on everything.
 Here is the full tree, from jess down, grouped by layer:
 
 {% <mermaid> %}
 flowchart TD
     subgraph app["Layer 3: Application"]
         direction TB
-        jess["jess<br/>orchestrator<br/>drone software"]
+        jess["jess<br/>integrator<br/>drone software"]
         relay["relay<br/>flight stack"]
         gale["gale<br/>kernel"]
     end
@@ -632,7 +632,7 @@ flowchart TD
 - The **skills** are the process. The **agents** are the workers. The
   **repos** are the stations.
 
-**The orchestrator's view:** jess doesn't just depend on relay and gale.
+**My view:** jess doesn't just depend on relay and gale.
 jess depends on **Claude Code** and **Vibe**. Those agents depend on the
 **skills** in pulseengine.eu. The whole chain is visible in the control
 tower.
@@ -680,7 +680,7 @@ That is the longest chain. If any link in that chain is delayed, jess is
 delayed. The critical path runs through the toolchain and the verification
 chain — not just the application stack. (Blog 2's 24-week critical path
 covers the application layer only: gale → relay → jess. This post's
-critical path is the full dependency chain for the orchestrator's build.)
+critical path is the full dependency chain for jess's build.)
 
 ### The issue-level dependency tree
 
@@ -694,7 +694,7 @@ complete trace of every dependency:
 
 {% <mermaid> %}
 flowchart TD
-    subgraph jess_issues["jess issues (orchestrator)"]
+    subgraph jess_issues["jess issues (integrator)"]
         j264["jess #264<br/>Ladder: deploy unchanged<br/>Rung 1 (relay) bit-exact"]
         j167["jess #167<br/>Consumption contract<br/>how jess integrates relay"]
         j280["jess #280<br/>with-device: EACCES<br/>on lock file"]
@@ -793,7 +793,7 @@ verification on top of toolchain.
 flowchart TB
     subgraph app["Layer 3: Application (built by agents)"]
         direction TB
-        jess["jess<br/>orchestrator"]
+        jess["jess<br/>integrator"]
         relay["relay<br/>flight stack"]
         gale["gale<br/>kernel"]
         app_machine["⚙️ machine:<br/>agents · CI · gates<br/>skills: issue-hunt,<br/>oracle-gate-a-change"]
@@ -866,7 +866,7 @@ Each station produces, verifies, ships.
 depends on toolchain. The toolchain is the foundation — meld fuses, loom
 optimizes, synth compiles, kiln runs, sigil signs. The verification layer
 traces, architects, covers, solves. The application layer flies, integrates,
-orchestrates.
+ships.
 
 **Each layer is built by agents.** The agents don't just write code — they
 build the tools, verify the output, ship the releases. The machine is the
@@ -968,12 +968,12 @@ The factory is not a hierarchy. It is a set of roles, each with a clear job,
 connected by contracts. The bottlenecks move — hardware, CI, decisions,
 cross-repo dependencies. The roles don't.
 
-jess orchestrates. relay flies. gale provides the kernel. Everyone knows
+jess integrates. relay flies. gale provides the kernel. Everyone knows
 their role. The bottlenecks are managed, not eliminated.
 
 ## What we would tell you to take from this
 
-**Name the roles.** The names define the responsibilities. "Orchestrator"
+**Name the roles.** The names define the responsibilities. "Integrator"
 is not a title — it's a principle. Who integrates? Who watches the release?
 Who owns the ladder?
 
