@@ -49,18 +49,18 @@ flowchart TB
         s["Sign<br/>(human accountability)"]
     end
     artifacts --> bottleneck
-    style r fill:#4ade80,stroke:#4ade80,color:#fff
-    style a fill:#4ade80,stroke:#4ade80,color:#fff
-    style c fill:#4ade80,stroke:#4ade80,color:#fff
-    style t fill:#4ade80,stroke:#4ade80,color:#fff
-    style d fill:#f87171,stroke:#f87171,color:#fff
-    style v fill:#fbbf24,stroke:#fbbf24,color:#fff
-    style s fill:#6c8cff,stroke:#6c8cff,color:#fff
+    style r fill:#1a1d27,stroke:#4ade80,color:#e1e4ed
+    style a fill:#1a1d27,stroke:#4ade80,color:#e1e4ed
+    style c fill:#1a1d27,stroke:#4ade80,color:#e1e4ed
+    style t fill:#1a1d27,stroke:#4ade80,color:#e1e4ed
+    style d fill:#1a1d27,stroke:#f87171,color:#e1e4ed
+    style v fill:#1a1d27,stroke:#fbbf24,color:#e1e4ed
+    style s fill:#1a1d27,stroke:#6c8cff,color:#e1e4ed
 
-    classDef auto fill:#4ade80,stroke:#4ade80,color:#fff;
-    classDef gate fill:#fbbf24,stroke:#fbbf24,color:#fff;
-    classDef human fill:#6c8cff,stroke:#6c8cff,color:#fff;
-    classDef slow fill:#f87171,stroke:#f87171,color:#fff;
+    classDef auto fill:#1a1d27,stroke:#4ade80,color:#e1e4ed;
+    classDef gate fill:#1a1d27,stroke:#fbbf24,color:#e1e4ed;
+    classDef human fill:#1a1d27,stroke:#6c8cff,color:#e1e4ed;
+    classDef slow fill:#1a1d27,stroke:#f87171,color:#e1e4ed;
 {% </mermaid> %}
 
 In a team of humans, the bottleneck is writing the code. When agents write the
@@ -111,9 +111,9 @@ flowchart TB
     subgraph safe["SAFe / Scrum"]
         direction TB
         s1["PI Planning<br/>(quarterly alignment)"] --> s2["Sprints<br/>(2-week boxes)"] --> s3["Ceremonies<br/>(standup, retro, review)"] --> s4["Ship"]
-        style s1 fill:#f87171,stroke:#f87171,color:#fff
-        style s2 fill:#f87171,stroke:#f87171,color:#fff
-        style s3 fill:#f87171,stroke:#f87171,color:#fff
+        style s1 fill:#1a1d27,stroke:#f87171,color:#e1e4ed
+        style s2 fill:#1a1d27,stroke:#f87171,color:#e1e4ed
+        style s3 fill:#1a1d27,stroke:#f87171,color:#e1e4ed
     end
     subgraph kanban["Kanban with gates"]
         direction TB
@@ -122,17 +122,17 @@ flowchart TB
         k2 -->|no| k4["Decision queue<br/>(WIP-limited)"]
         k4 --> k3
         k3 --> k5["Gates<br/>(proven to fail)"] --> k6["Release<br/>(human sign-off)"]
-        style k3 fill:#4ade80,stroke:#4ade80,color:#fff
-        style k5 fill:#fbbf24,stroke:#fbbf24,color:#fff
-        style k4 fill:#6c8cff,stroke:#6c8cff,color:#fff
-        style k6 fill:#6c8cff,stroke:#6c8cff,color:#fff
+        style k3 fill:#1a1d27,stroke:#4ade80,color:#e1e4ed
+        style k5 fill:#1a1d27,stroke:#fbbf24,color:#e1e4ed
+        style k4 fill:#1a1d27,stroke:#6c8cff,color:#e1e4ed
+        style k6 fill:#1a1d27,stroke:#6c8cff,color:#e1e4ed
     end
     safe -.->|"agents compress<br/>weeks to hours"| kanban
 
-    classDef auto fill:#4ade80,stroke:#4ade80,color:#fff;
-    classDef gate fill:#fbbf24,stroke:#fbbf24,color:#fff;
-    classDef human fill:#6c8cff,stroke:#6c8cff,color:#fff;
-    classDef slow fill:#f87171,stroke:#f87171,color:#fff;
+    classDef auto fill:#1a1d27,stroke:#4ade80,color:#e1e4ed;
+    classDef gate fill:#1a1d27,stroke:#fbbf24,color:#e1e4ed;
+    classDef human fill:#1a1d27,stroke:#6c8cff,color:#e1e4ed;
+    classDef slow fill:#1a1d27,stroke:#f87171,color:#e1e4ed;
 {% </mermaid> %}
 
 Scrum enforces artificial cycles. Work in an agent-driven line is event-driven:
@@ -219,9 +219,9 @@ flowchart TB
     coll -.->|"unblocks"| orch
     team -.->|"productionises"| orch
 
-    style orch fill:#6c8cff,stroke:#6c8cff,color:#fff
-    style coll fill:#4ade80,stroke:#4ade80,color:#fff
-    style team fill:#fbbf24,stroke:#fbbf24,color:#fff
+    style orch fill:#1a1d27,stroke:#6c8cff,color:#e1e4ed
+    style coll fill:#1a1d27,stroke:#4ade80,color:#e1e4ed
+    style team fill:#1a1d27,stroke:#fbbf24,color:#e1e4ed
 {% </mermaid> %}
 
 A process on paper does not run a line. What runs it is a division of labour
@@ -255,11 +255,11 @@ flowchart TB
     end
     l1 --> l2 --> l3 --> l4 --> l5
 
-    style l1 fill:#4ade80,stroke:#4ade80,color:#fff
-    style l2 fill:#6c8cff,stroke:#6c8cff,color:#fff
-    style l3 fill:#fbbf24,stroke:#fbbf24,color:#fff
-    style l4 fill:#22d3ee,stroke:#22d3ee,color:#fff
-    style l5 fill:#c084fc,stroke:#c084fc,color:#fff
+    style l1 fill:#1a1d27,stroke:#4ade80,color:#e1e4ed
+    style l2 fill:#1a1d27,stroke:#6c8cff,color:#e1e4ed
+    style l3 fill:#1a1d27,stroke:#fbbf24,color:#e1e4ed
+    style l4 fill:#1a1d27,stroke:#22d3ee,color:#e1e4ed
+    style l5 fill:#1a1d27,stroke:#c084fc,color:#e1e4ed
 {% </mermaid> %}
 
 Kanban alone does not scale to a large organisation. Between stations you need

@@ -29,7 +29,7 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 CONTENT = ROOT / "content"
 SCRIPTS = ROOT / "templates" / "partials" / "content-scripts.html"
 
-MERMAID_BLOCK = re.compile(r"\{%\s*mermaid\(\)\s*%\}(.*?)\{%\s*end\s*%\}", re.S)
+MERMAID_BLOCK = re.compile(r"\{%\s*<mermaid>\s*%\}(.*?)\{%\s*</mermaid>\s*%\}", re.S)
 HEX = re.compile(r"#[0-9a-fA-F]{6}")
 # The left-hand column of the patcher's `replacements` array.
 MAPPED = re.compile(r"\[\s*'(#[0-9a-fA-F]{6})'\s*,\s*'#[0-9a-fA-F]{6}'\s*\]")
