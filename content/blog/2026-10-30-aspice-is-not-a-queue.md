@@ -54,6 +54,12 @@ approvals. An assessor reads them and nods. But nothing in the system can
 rub against them. They are dead weight — worse than dead weight, because
 they create the illusion of coverage.
 
+And you cannot estimate a wish. [The second post](/blog/can-we-deliver-x-by-january/)
+showed how to estimate from gates and flow history — but a wish has no gate.
+There is nothing to measure. The factory's throughput is measured in gates
+passed per week. A wish passes no gates. It is invisible to the estimation
+model. It is a hole in the corpus.
+
 We measured this in our own work. gale has 491 requirements across the
 stakeholder → system → software hierarchy (111 stakeholder, 51 system, 329
 software). Running `rivet coverage --tests` shows 485 design elements and
@@ -731,10 +737,21 @@ factory operations. The factory's output is not code — it is verified
 behavior. A requirement without a gate is not verified behavior. It is a
 wish.
 
+In the dark factory — agents running autonomously on cron loops, producing
+artifacts, opening PRs — the orchestrator is the one who ensures the gates
+exist. The agents produce the artifacts. The oracles check them. The
+orchestrator reviews the diff and decides what's next. The agents do not
+decide which requirements are real. The orchestrator does.
+
 The orchestrator does not write the tests or the proofs. The agents do. The
 orchestrator ensures that every requirement has something that can challenge
 it. The agents produce the artifacts. The oracles check them. The
 orchestrator reviews the diff and decides what's next.
+
+This is the same pattern as Blog 3's orchestrator: the human enables the
+agents, prioritizes across friction/operations/decisions, and verifies the
+output. Here, the "output" is not code — it is verified behavior. The
+orchestrator's leverage is in designing the gates, not in writing the tests.
 
 ## What we would tell you to take from this
 
