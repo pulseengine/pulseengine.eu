@@ -148,6 +148,77 @@ pattern (compliance theater). You can have the pattern without the process
 (a two-person startup with rivet and a CI gate). The pattern is what makes
 the intent verifiable. The process is what makes it auditable.
 
+## The V-model is not the point
+
+The V-model is the most recognizable picture in ASPICE. Left side descends
+from requirements to code. Right side ascends from tests to system
+verification. The lines meet at the bottom.
+
+Most companies see the V-model and think: "That's our process. We do a
+V-model. We just need to add ASPICE labels to the boxes."
+
+This is backwards.
+
+The PAM 4.1 says so explicitly, in a section most people skip:
+
+> **"Why a PRM and PAM are not a lifecycle model or development process
+> blueprint"**
+>
+> "A PRM/PAM groups a set of coherent and related characteristics of a
+> particular technical topic and calls it 'process'. In different terms, a
+> process in a PRM represents a 'distinct conceptual silo'. In this respect,
+> a PRM/PAM **neither predefines, nor discourages, any order** in which PRM
+> processes or Base Practices are to be performed."
+> — ASPICE PAM 4.1, Section 3.3.4
+
+The V-model is a **visualization**, not a **requirement**. It is one way to
+draw the conceptual silos. It is not the only way. And it is not the point.
+
+The point is **consistency through traceability**. The order is up to you.
+Kanban, waterfall, V-model, spiral — ASPICE doesn't care. What ASPICE cares
+about is that your intent is traceable to verified behavior.
+
+## The SAFe trap, again
+
+This is the same trap as [the first post](/blog/safe-was-built-for-slow-humans/).
+
+In SAFe, the trap is: *"same as our process, but with SAFe ceremonies."* The
+team keeps their process, adds standups and retrospectives, and calls it
+SAFe. The bottleneck doesn't move.
+
+In ASPICE, the trap is: *"same as our V-model, but with ASPICE labels."* The
+team keeps their V-model, adds traceability links between the boxes, and
+calls it ASPICE. The wishes don't become real.
+
+Most companies do this. They take their existing process — waterfall,
+V-model, SAFe, whatever they have — and try to **map ASPICE onto it**. They
+assign SYS.2 to the "requirements phase," SWE.1 to the "software
+requirements phase," SWE.4 to the "unit test phase." They produce a
+compliance matrix: "our phase X satisfies ASPICE process Y." The assessor
+nods. The process maturity level goes up.
+
+And nothing changes. The requirements are still wishes. The tests still
+can't fail. The traceability is still just links.
+
+## Map your work, not your process
+
+The right direction is the opposite. Don't map ASPICE onto your process.
+Map your **work** into what ASPICE describes.
+
+| Instead of... | Do this... |
+|---|---|
+| "Our requirements phase satisfies SYS.2" | "Our requirements are information items with verification criteria in the text" |
+| "Our architecture phase satisfies SYS.3" | "Our architecture allocates requirements to components, and the allocation is traceable" |
+| "Our unit test phase satisfies SWE.4" | "Our tests have pass/fail criteria and can fail against the requirements they verify" |
+| "Our review phase satisfies the review BP" | "Our reviews are the weakest oracle; our tests, proofs, and simulations are the strong ones" |
+| "We have a traceability matrix" | "We have bidirectional links, and the links are consistent — not just present" |
+
+The question is not "which ASPICE process does our phase satisfy?" The
+question is "can something challenge this requirement?"
+
+If the answer is no, it doesn't matter which phase you're in, which process
+area you mapped, or what capability level you scored. It is a wish.
+
 ## ASPICE reframed
 
 ASPICE (Automotive SPICE, VDA PAM 4.1) is usually read as a process. The
