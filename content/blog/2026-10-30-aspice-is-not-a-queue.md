@@ -52,6 +52,102 @@ stakeholder → system → software hierarchy. Running `rivet coverage --tests`
 shows 485 design elements and requirements with **no test markers found**.
 Nothing challenges them. They are wishes.
 
+## Why people think ASPICE is a process
+
+ASPICE is almost always introduced as a process. The V-model diagram. The
+process areas (SYS.1 through SYS.5, SWE.1 through SWE.6). The capability
+levels (0 through 5). The assessments. The training courses. The consultants.
+The tool vendors selling "ASPICE compliance platforms." The whole industry
+is built around the idea that ASPICE is a process you implement.
+
+This is understandable. ASPICE grew out of SPICE (Software Process
+Improvement and Capability dEtermination, ISO/IEC 15504), which was
+explicitly a **process assessment** framework. The name itself says "process."
+The capability levels measure process maturity. The assessors judge process
+performance. The training teaches process implementation. The tools manage
+process workflows. Everything points to "process."
+
+And the process interpretation is not wrong — it is just incomplete. It
+answers "how mature is our process?" but not "is our intent verified?"
+
+A process-mature organization can produce garbage. A process-immature
+organization can produce verified behavior. The process is the HOW. The
+traceability is the WHAT.
+
+## The standard itself moved away from "process"
+
+Read the PAM 4.1 carefully and the standard has been moving away from the
+process interpretation for years.
+
+**3.1 → 4.0 (2023):** "Work products" were renamed "information items."
+A work product is an artifact of a process — a document, a file, a
+deliverable. An information item is a "separately identifiable body of
+information that is produced, stored, and delivered for human use." The
+rename is not cosmetic. It shifts the focus from the process output (the
+document) to the information itself (the intent). The information item is
+what matters. The work product is just one container for it.
+
+**4.0 → 4.1 (2026):** The traceability and consistency base practices were
+merged. In 3.1, traceability and consistency were separate BPs. In 4.0/4.1,
+they are one BP: "Ensure consistency and establish bidirectional
+traceability." The standard now treats them as one thing — you cannot have
+consistency without traceability, and traceability without consistency is
+just links.
+
+And the standard added a section that most people skip:
+
+> **"Why a PRM and PAM are not a lifecycle model or development process
+> blueprint"**
+>
+> "A PRM/PAM groups a set of coherent and related characteristics of a
+> particular technical topic and calls it 'process'. In different terms, a
+> process in a PRM represents a 'distinct conceptual silo'. In this respect,
+> a PRM/PAM **neither predefines, nor discourages, any order** in which PRM
+> processes or Base Practices are to be performed. Ultimately, in Automotive
+> SPICE® **consistency must be fulfilled** as required by the
+> traceability/consistency Base Practices."
+> — ASPICE PAM 4.1, Section 3.3.4
+
+The standard **explicitly says** it is not a process blueprint. A "process"
+in ASPICE is not a sequence of steps. It is a "conceptual silo" — a topic
+area. The order is up to you. What matters is **consistency** — and
+consistency is only demonstrable through traceability.
+
+The standard also says:
+
+> **"Traceability alone, e.g., the existence of links, does not necessarily
+> mean that the information is consistent."**
+> — ASPICE PAM 4.1, SYS.3.BP4 Note 7
+
+Links are not enough. The information must be consistent. And consistency
+is only demonstrable when something can fail.
+
+## The challenge
+
+If ASPICE is not a process, what is it?
+
+It is a **design pattern for making intent traceable to verified behavior**.
+
+The pattern is:
+
+1. **Intent** — a requirement with verification criteria in its text
+   (verifiability, SYS.2.BP1 Note 2)
+2. **Traceability** — bidirectional links from intent to architecture, code,
+   verification measures (SYS.2.BP5, SWE.4.BP4)
+3. **Verification** — measures with pass/fail criteria that can challenge the
+   intent (SWE.4.BP1, SWE.6.BP1)
+4. **Consistency** — the links are not just links; the information is
+   consistent (SYS.3.BP4 Note 7)
+
+A requirement that follows this pattern is real. A requirement that doesn't
+is a wish.
+
+The process — the V-model, the reviews, the approvals, the assessments — is
+the HOW. The pattern is the WHAT. You can have the process without the
+pattern (compliance theater). You can have the pattern without the process
+(a two-person startup with rivet and a CI gate). The pattern is what makes
+the intent verifiable. The process is what makes it auditable.
+
 ## ASPICE reframed
 
 ASPICE (Automotive SPICE, VDA PAM 4.1) is usually read as a process. The
