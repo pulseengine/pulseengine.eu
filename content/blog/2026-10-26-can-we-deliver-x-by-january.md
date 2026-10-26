@@ -124,7 +124,7 @@ to keep the decision queue from growing.
 referencing relay (flight stack) and gale (kernel) — the hardware layer
 cannot close its gates until the software layers pass theirs. These
 dependencies are managed through **contracts** — the thin agreed
-interfaces between stations (see [the next post](/blog/the-orchestrator-who-does-what/)).
+interfaces between stations (see the next post).
 synth and relay tie for the highest release velocity (~6/week) but synth
 is still rudimentary: many small releases, fast cadence, but the
 releases themselves need more work. Speed of release is not the same as
@@ -234,7 +234,7 @@ free, landing delivery in May–July 2027.
 
 This 24-week critical path covers the **application layer** (gale → relay
 → jess). The full dependency chain — including the toolchain and
-verification layers — is longer and is traced in [the next post](/blog/the-orchestrator-who-does-what/).
+verification layers — is longer and is traced in the next post.
 
 **How to find the critical path:**
 
@@ -523,7 +523,7 @@ are via secondary attribution and were not independently verified.
 
 ---
 
-*Next in the arc: [The orchestrator: who does what when bottlenecks won't go away](/blog/the-orchestrator-who-does-what/) — the roles, the contracts, and the human who defines the skills, triggers the agents, and clears the decision queue.*
+*Next in the arc: The orchestrator: who does what when bottlenecks won't go away — the roles, the contracts, and the human who defines the skills, triggers the agents, and clears the decision queue.*
 
 ---
 
