@@ -54,7 +54,7 @@ Nothing challenges them. They are wishes.
 
 ## ASPICE reframed
 
-ASPICE (Automotive SPICE, ISO 29110) is usually read as a process. The
+ASPICE (Automotive SPICE, VDA PAM 4.1) is usually read as a process. The
 V-model. The process areas (SYS.1 through SYS.5, SWE.1 through SWE.6). The
 capability levels. The assessments. The queue of approvals: requirements
 review, architecture review, code review, test review, sign-off, sign-off,
@@ -62,14 +62,47 @@ sign-off.
 
 But read the standard carefully and the core idea is different. ASPICE is
 about **bidirectional traceability**: every requirement must be traceable to
-architecture, to code, to tests — and back again. The traceability is not
-bureaucracy. It is the mechanism that makes intent verifiable.
+architecture, to code, to verification measures — and back again. The
+traceability is not bureaucracy. It is the mechanism that makes intent
+verifiable.
 
-The standard says: "test cases shall be derived from and traceable to
-requirements" (SWE.4.BP2, SWE.6.BP2). "Verification measures" — not just
-tests, but reviews, static analysis, formal verification, simulation. The
-point is not that a human approved something. The point is that **something
-can fail against the requirement**.
+And the standard says something sharper than most people notice:
+
+> **"Traceability alone, e.g., the existence of links, does not necessarily
+> mean that the information is consistent."**
+> — ASPICE PAM 4.1, SYS.3.BP4 Note 7 (also SYS.4.BP4 Note 5, SWE.4.BP4 Note 4)
+
+Links are not enough. A link says "related." Consistency says "correct."
+And consistency is only demonstrable when something can fail.
+
+The standard also says requirements must be **verifiable**:
+
+> **"verifiability (i.e., verification criteria being inherent in the
+> requirements text)"**
+> — ASPICE PAM 4.1, SYS.2.BP1 Note 2 (also SWE.1.BP1 Note 2)
+
+A requirement without verification criteria in its text is not verifiable.
+It is a wish.
+
+And verification measures must have **pass/fail criteria**:
+
+> **"Specify verification measures for each software unit... including
+> pass/fail criteria for verification measures"**
+> — ASPICE PAM 4.1, SWE.4.BP1
+
+A verification measure without pass/fail criteria cannot fail. It is not a
+gate. It is a wish.
+
+The standard lists what a verification measure can be:
+
+> **"Verification measure can be: Test cases, Measurements, Calculations,
+> Simulations, Reviews, Analyses"**
+> — ASPICE PAM 4.1, Table 1 — Terminology
+
+Reviews are on the list — but they are the weakest oracle. A review can
+fail, but humans miss things. The stronger oracles — tests, simulations,
+analyses, calculations — are mechanical. They fail when the artifact is
+wrong, not when the human is tired.
 
 This is the oracle axis from [the first post](/blog/safe-was-built-for-slow-humans/),
 applied to requirements. A requirement is real if an oracle can challenge it.
@@ -322,12 +355,16 @@ The ASPICE interpretation is the author's. The standard (ISO 29110 / VDA
 PAM 4.0) requires bidirectional traceability; the reframe from "process" to
 "design pattern" is ours. An assessor might read it differently.
 
-[^aspice-pam]: VDA Automotive SPICE PAM 4.0. Primary (standard). The process
-assessment model: SYS.1-SYS.5, SWE.1-SWE.6, MAN.3, and supporting processes.
+[^aspice-pam]: VDA QMC, *Automotive SPICE® Process Assessment Model (PAM) 4.1*,
+preview release, April 2026. Primary (standard, preview). Downloaded from
+[vda-qmc.de](https://vda-qmc.de/wp-content/uploads/2026/04/Automotive-SPICE-PAM-4.1_Preview.pdf).
+Quotes from SYS.2.BP1, SYS.3.BP4, SYS.4.BP4, SWE.1.BP1, SWE.4.BP1, SWE.6.BP1,
+and Table 1 (Terminology). The final release may differ from the preview.
 
-[^iso-29110]: ISO/IEC 29110 — Software engineering — Lifecycle profiles for
-Very Small Entities (VSEs). Related but not identical to ASPICE; ASPICE is
-the automotive adaptation.
+[^iso-29148]: ISO/IEC/IEEE 29148:2018, *Systems and software engineering —
+Lifecycle processes — Requirements engineering*. Referenced by ASPICE PAM 4.1
+as the standard for "defined characteristics for requirements" including
+verifiability. Primary (standard, paywalled).
 
 [^rivet]: PulseEngine, *rivet* — typed knowledge graph + oracle-gated agents.
 [github.com/pulseengine/rivet](https://github.com/pulseengine/rivet). Primary
