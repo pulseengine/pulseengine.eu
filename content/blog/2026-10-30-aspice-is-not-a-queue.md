@@ -13,14 +13,21 @@ authors = ["Ralf Anton Beier"]
 **ASPICE is not a queue of human approvals. It is a design pattern for making
 intent traceable to verified behavior.**
 
-A requirement matters only if architecture, code, tests, simulation, or
-hardware can rub against it. If nothing can challenge it, it is not an
+A requirement matters only if architecture, code, tests, proofs, simulations,
+or hardware can rub against it. If nothing can challenge it, it is not an
 artifact — it is a wish.
 
-We measured this in our own repositories. gale has 288 requirements. 485
-design elements and requirements have no test markers — nothing challenges
-them. They are wishes. The ones with verification measures are real: tests,
-proofs, static analysis. Only 2 are human reviews.
+We measured this in our own repositories. gale has 491 requirements across
+the stakeholder → system → software hierarchy. 53 software requirements (16%)
+have no verification criteria in their text — nothing can challenge them.
+They are wishes. 47 of the 57 requirements scheduled for a release are
+wishes. The release gate catches them: `rivet release status` says NOT
+cuttable.
+
+Of 234 verification measures with a recorded method, only 2 are human
+reviews. The rest are mechanical oracles: 126 automated tests, 64 formal
+verifications, 42 static analyses. The oracles do the verification. The
+human orchestrates.
 {% </insight> %}
 
 [The first post](/blog/safe-was-built-for-slow-humans/) argued that the
@@ -47,10 +54,59 @@ approvals. An assessor reads them and nods. But nothing in the system can
 rub against them. They are dead weight — worse than dead weight, because
 they create the illusion of coverage.
 
-We measured this in our own work. gale has 288 requirements across the
-stakeholder → system → software hierarchy. Running `rivet coverage --tests`
-shows 485 design elements and requirements with **no test markers found**.
-Nothing challenges them. They are wishes.
+We measured this in our own work. gale has 491 requirements across the
+stakeholder → system → software hierarchy (111 stakeholder, 51 system, 329
+software). Running `rivet coverage --tests` shows 485 design elements and
+requirements with **no test markers found**. Nothing challenges them. They
+are wishes.
+
+## What the numbers mean
+
+The numbers measure different things. Here is the reconciliation:
+
+| Number | What it counts | Source | Denominator |
+|---|---|---|---|
+| 491 | Total requirements (stakeholder + system + software) | `rivet stats` across all artifact files | — |
+| 329 | Software requirements only (`sw-req`) | `rivet stats` | — |
+| 276 | SW requirements with `verification-criteria` in text | Manual count of `fields.verification-criteria` | 329 sw-req |
+| 53 | SW requirements WITHOUT verification criteria (wishes) | 329 − 276 | 329 sw-req |
+| 57 | SW requirements scheduled for a release (`release:` field) | Manual count | 329 sw-req |
+| 47 | SW requirements with release but NO criteria (wishes scheduled to ship) | Manual count | 57 with release |
+| 276 | Total verification measure artifacts (unit + SW + system + integration) | `rivet stats` | — |
+| 234 | Verification measures with a `method:` field | `grep method: verification.yaml` | 276 verification artifacts |
+| 126 | Automated tests | `grep method: automated-test` | 234 with method |
+| 64 | Formal verifications (Verus, Rocq, Kani) | `grep method: formal-verification` | 234 with method |
+| 42 | Static analyses (Miri, etc.) | `grep method: static-analysis` | 234 with method |
+| 2 | Human reviews | `grep method: review` | 234 with method |
+| 91.8% | SW requirements with a linked verification measure | `rivet coverage` (rule: swe1-has-verification) | 329 sw-req |
+| 485 | Artifacts with no test markers (design elements + requirements) | `rivet coverage --tests` | 1067 total artifacts |
+| 207 | relay: artifacts with no test markers | `rivet coverage --tests` in relay | relay total artifacts |
+| 24 | jess: uncovered requirements (all hardware REQ-PIX-*) | `rivet coverage --tests` in jess | jess total artifacts |
+
+**What the numbers do not prove:**
+
+- 91.8% link coverage does not mean 91.8% verified. The links exist, but
+  `rivet trace-results` shows "no test evidence" — the tests have not run
+  or their results are not recorded.
+- 83% with verification criteria does not mean 83% verified. Criteria in
+  text is necessary but not sufficient — the verification measure must
+  exist, run, and pass.
+- 485 uncovered includes design elements (DD-*), not just requirements.
+  Design elements are verified through code tests, not their own tests.
+- 2 human reviews out of 234 measures is a snapshot of gale's
+  verification.yaml. Other repos may differ.
+
+**The distinction that matters:**
+
+| Stage | What it means | rivet command |
+|---|---|---|
+| Criteria in text | Requirement is verifiable | `fields.verification-criteria` |
+| Measure linked | A verification measure claims to verify it | `rivet coverage` (91.8%) |
+| Measure executed | The test/proof/analysis has run | `rivet trace-results` (shows "no test evidence") |
+| Evidence recorded | Pass/fail result is in rivet | (not yet implemented — rivet#1129) |
+| Release ready | All artifacts in the release are verified | `rivet release status` (NOT cuttable) |
+
+A requirement can be at any stage. Only at the last stage is it real.
 
 ## Why people think ASPICE is a process
 
@@ -356,13 +412,19 @@ Not all verification is equal. Some oracles are stronger than others.
 
 In gale, the verification methods break down as: 126 automated tests, 64
 formal verifications (Verus, Rocq, Kani), 42 static analyses (Miri), and **2
-reviews**. Two. Out of 234 verification measures, two are human approvals.
-The rest are mechanical oracles that can fail.
+reviews**. Two. Out of 234 verification measures with a recorded method,
+two are human approvals. The rest are mechanical oracles that can fail.
 
 This is not an accident. It is the design. The human reviews the diff in the
 pull request. The oracles do the verification. The human is the orchestrator
 ([the third post](/blog/the-orchestrator-who-does-what/)); the oracles are
 the gates.
+
+A note on "weak": human review is not worthless. It is essential for intent,
+hazard analysis, safety argumentation, and verification adequacy — the things
+mechanical oracles cannot check. But as a **repeated oracle** for routine
+correctness, it is weak. Humans miss things, get tired, rubber-stamp. The
+mechanical oracles do not.
 
 ## What "rubbing against" looks like
 
@@ -433,6 +495,20 @@ test fails. The simulation rubs against the requirements.
 
 The hardware is the real thing. If the hardware fails — if the silicon doesn't
 behave, if the board doesn't boot — the requirement is not verified.
+
+But hardware is not automatically the **strongest** oracle. It is the most
+**reality-grounded** oracle — no model gap, no simulation fidelity question.
+But it is the least **exhaustive** oracle. You cannot test every input on
+silicon. You cannot test every failure mode. Hardware has limited
+observability — you see the output, not the internal state. A passing
+hardware test does not prove the requirement; it proves the requirement
+held for the cases you tested.
+
+Hardware does not replace proofs, tests, or simulation. It is the final
+reality check — the last rung on the ladder. The earlier rungs (proof,
+simulation, unit test) are cheaper and more exhaustive. Hardware is the
+most expensive and least exhaustive. Use it when the earlier rungs have
+narrowed the risk to what only silicon can answer.
 
 In our work: jess carries relay's flight stack from simulation to hardware.
 The ladder (sim → HITL → silicon) is the path from model to reality. Each
@@ -563,11 +639,13 @@ traceability git-native — the history is the audit trail.
 
 We are honest about where we fall short.
 
-**Most of our work items are not set up as ASPICE.** gale has 329 software
-requirements. 276 (83%) have verification criteria in their text. 53 (16%)
-do not. Those 53 are wishes — they have no `verification-criteria` field,
-nothing can challenge them. And 47 of the 57 requirements scheduled for a
-release have no verification criteria. They are wishes scheduled to ship.
+**Most of our work items are not fully set up as ASPICE.** gale has 329
+software requirements. 276 (83%) have verification criteria in their text.
+53 (16%) do not. Those 53 are wishes — they have no `verification-criteria`
+field, nothing can challenge them. And 47 of the 57 requirements scheduled
+for a release have no verification criteria. They are wishes scheduled to
+ship. The release gate catches them — `rivet release status` says NOT
+cuttable — but they should not be there in the first place.
 
 **The links exist, but the evidence does not.** `rivet trace-results` shows
 verification measures linked to requirements, but reports "no test
@@ -579,10 +657,68 @@ v0.1.0` shows 11 artifacts approved but not verified. The release cannot be
 cut. The gate is doing its job — but the artifacts need test results
 recorded.
 
+**Coverage is link coverage, not verification coverage.** `rivet coverage`
+shows 91.8% of SW requirements have a linked verification measure. But
+`rivet trace-results` shows "no test evidence" for those same requirements.
+The links exist. The tests have not run — or their results are not
+recorded. 91.8% linked is not 91.8% verified.
+
 These are the gaps we are filing issues for. The wish detector (rivet#1127),
-hardware verification markers (rivet#1128), the triage of uncovered
-artifacts (gale#461, relay#605, jess#298). The pattern is the same: make
-the wishes visible, then decide — add a gate, or remove the wish.
+hardware verification markers (rivet#1128), recording test results
+(rivet#1129), link statistics (rivet#1130), the triage of uncovered
+artifacts (gale#461, relay#605, jess#298), adding verification criteria
+(gale#462), adding rivet validate to CI where it is missing (relay#606,
+spar#523, meld#528, kiln#600, witness#327), and cross-repo drift
+monitoring (warte#20). The pattern is the same: make the wishes visible,
+then decide — add a gate, or remove the wish.
+
+## Counterarguments we take seriously
+
+**"A requirement may be verifiable through analysis or review even if it
+has no automated test."** Yes. ASPICE PAM 4.1 lists reviews and analyses as
+verification measures. A human can challenge a requirement. But the human
+is a weak *repeated* oracle — essential for intent and adequacy, weak for
+routine correctness. Our data: 2 of 234 measures are reviews. The other
+232 are mechanical. That is not because reviews are worthless. It is
+because mechanical oracles scale.
+
+**"Coverage is not correctness."** Correct. 91.8% link coverage does not
+mean 91.8% verified. The links exist; the evidence does not. This is why
+we filed rivet#1129 (record test results) — the gap between linked and
+verified is exactly what we are working to close.
+
+**"A test marker is not proof that the requirement is verified."** Correct.
+A test marker says a test exists. It does not say the test is valid, does
+not say the test covers the requirement, does not say the test passed. This
+is why we need rivet#1129 — recording pass/fail evidence, not just markers.
+
+**"Your system may optimize for producing links and markers rather than
+meaningful verification."** This is the real risk. An agent could satisfy a
+weak oracle — write a test that technically challenges a requirement but
+does not meaningfully verify it. The defense is gate potency (Blog 1): the
+gates must be proven to fail. A gate that cannot fail is not a gate. The
+`gate-potency` skill audits this. And the orchestrator reviews — not every
+diff, but the gates themselves.
+
+**"What happens when an agent satisfies a weak oracle?"** The gate passes,
+but the requirement is not verified. This is why the orchestrator's job is
+not just to add gates, but to add *appropriate* gates. The orchestrator
+decides: is this test strong enough? Is this proof sound? Is this
+simulation faithful enough? The mechanical oracles do the checking. The
+human does the judging.
+
+**"What prevents an agent from deleting or weakening a requirement to make
+a gate pass?"** Nothing mechanical. This is why the orchestrator reviews
+the diff. The agent can propose; the human disposes. The release gate
+(`rivet release status`) shows what changed. The commit trailers tie every
+commit to an artifact. The audit trail is the defense.
+
+**"What is the escalation path when all mechanical gates pass but the
+result is still unsafe?"** The orchestrator. The human in the loop. The
+mechanical oracles check correctness against the specification. The human
+checks whether the specification is right. If all gates pass but the result
+is unsafe, the specification was wrong — and that is a human decision, not
+a mechanical one.
 
 ## The orchestrator's job
 
