@@ -189,18 +189,50 @@ this requirement." The difference is everything.
 A V-model with links is a wish factory. A V-model with gates is a
 verification system.
 
-```
-Stakeholder req ──derives-from──→ System req ──derives-from──→ SW req
-     │                                │                           │
-     │         ┌── gate ──┐          │         ┌── gate ──┐        │
-     │         │ architecture│        │         │    code     │       │
-     │         └─────┬─────┘          │         └─────┬─────┘       │
-     │               │                  │               │             │
-     │         ┌─────┴─────┐    ┌─────┴─────┐   ┌─────┴─────┐       │
-     └────────→│   test    │←───│   proof   │←──│   sim     │←──────┘
-               │  (can fail)│    │ (can fail)│   │ (can fail)│
-               └───────────┘    └───────────┘   └───────────┘
-```
+{% <mermaid> %}
+flowchart TB
+    subgraph left["Left side of V (specification)"]
+        direction TB
+        stk["Stakeholder req"]
+        sys["System req"]
+        sw["SW req"]
+        arch["Architecture"]
+        code["Code"]
+        stk -->|"derives-from"| sys
+        sys -->|"derives-from"| sw
+        sw -->|"allocated-to"| arch
+        arch -->|"implements"| code
+    end
+
+    subgraph right["Right side of V (verification — gates)"]
+        direction TB
+        test["Test<br/>(can fail)"]
+        proof["Proof<br/>(can fail)"]
+        sim["Simulation<br/>(can fail)"]
+        hw["Hardware<br/>(can fail)"]
+    end
+
+    code -->|"verified by"| test
+    code -->|"verified by"| proof
+    arch -->|"verified by"| sim
+    sys -->|"verified by"| hw
+
+    style stk fill:#1a1d27,stroke:#8b90a0,color:#e1e4ed
+    style sys fill:#1a1d27,stroke:#8b90a0,color:#e1e4ed
+    style sw fill:#1a1d27,stroke:#8b90a0,color:#e1e4ed
+    style arch fill:#1a1d27,stroke:#6c8cff,color:#e1e4ed
+    style code fill:#1a1d27,stroke:#6c8cff,color:#e1e4ed
+    style test fill:#1a1d27,stroke:#4ade80,color:#e1e4ed
+    style proof fill:#1a1d27,stroke:#4ade80,color:#e1e4ed
+    style sim fill:#1a1d27,stroke:#22d3ee,color:#e1e4ed
+    style hw fill:#1a1d27,stroke:#fbbf24,color:#e1e4ed
+
+    classDef spec fill:#1a1d27,stroke:#8b90a0,color:#e1e4ed;
+    classDef design fill:#1a1d27,stroke:#6c8cff,color:#e1e4ed;
+    classDef gate fill:#1a1d27,stroke:#4ade80,color:#e1e4ed;
+    classDef verify fill:#1a1d27,stroke:#22d3ee,color:#e1e4ed;
+    classDef hw fill:#1a1d27,stroke:#fbbf24,color:#e1e4ed;
+{% </mermaid> %}
 
 Every link in the V must be a gate. If a link is just a link — if nothing
 can fail — it is a wish.
