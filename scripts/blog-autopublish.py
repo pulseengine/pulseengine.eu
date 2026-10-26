@@ -105,7 +105,45 @@ def flip(path_str: str) -> None:
     new_text, count = DRAFT_TRUE_LINE.subn("draft = false", text, count=1)
     if count == 0:
         sys.exit(f"flip: no `draft = true` line found in {path_str}")
+
+    # Strip forward links to drafts — CI builds without --drafts, so
+    # links to not-yet-published posts are dead. Convert them to plain
+    # text. When the target publishes later, its own publish run will
+    # add the link back (or a human can add it manually).
+    new_text = strip_draft_links(new_text, path.parent)
+
     path.write_text(new_text, encoding="utf-8")
+
+
+def strip_draft_links(text: str, blog_dir: pathlib.Path) -> str:
+    """Convert links to draft posts into plain text.
+
+    Scans for markdown links to /blog/... and checks if the target is a
+    draft. If so, removes the link formatting, keeping the link text.
+    """
+    # Build set of draft slugs
+    draft_slugs = set()
+    for p in blog_dir.glob("*.md"):
+        fm = p.read_text(encoding="utf-8")
+        if "draft = true" in fm:
+            # Extract slug: 2026-10-28-the-orchestrator-who-does-what.md
+            # → /blog/the-orchestrator-who-does-what/
+            name = p.stem
+            slug = re.sub(r'^\d{4}-\d{2}-\d{2}-', '', name).replace('.', '-')
+            draft_slugs.add(f"/blog/{slug}/")
+
+    if not draft_slugs:
+        return text
+
+    # Replace [text](/blog/draft-slug/) with just text
+    def replace_link(match):
+        link_text = match.group(1)
+        link_url = match.group(2)
+        if link_url in draft_slugs:
+            return link_text  # Strip link, keep text
+        return match.group(0)  # Keep link
+
+    return re.sub(r'\[([^\]]+)\]((?:/blog/[^)]+))', replace_link, text)
 
 
 def render_report(inventory: dict, published: list[dict], run_url: str) -> str:

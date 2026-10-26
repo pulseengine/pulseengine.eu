@@ -146,11 +146,29 @@ jobs:
             git branch -D "$branch" 2>/dev/null || true
             git push origin --delete "$branch" 2>/dev/null || true
 
-            git checkout -b "$branch"
+            # Create the branch and commit via the GitHub API — commits
+            # created through the API are automatically signed by GitHub,
+            # which satisfies the "require signed commits" branch rule.
+            # A local `git commit` from the bot is NOT signed and gets
+            # blocked at merge time.
+            main_sha=$(gh api "repos/${REPO}/git/ref/heads/main" --jq '.object.sha')
+            gh api "repos/${REPO}/git/refs" \
+              --method POST \
+              --field ref="refs/heads/${branch}" \
+              --field sha="${main_sha}" \
+              || true  # branch may already exist
+
             python3 scripts/blog-autopublish.py --mode flip --file "$path"
-            git add "$path"
-            git commit -m "publish: ${slug}"
-            git push -u origin "$branch"
+            file_sha=$(gh api "repos/${REPO}/contents/${path}?ref=main" --jq '.sha')
+            content_b64=$(base64 -w0 "$path")
+
+            gh api "repos/${REPO}/contents/${path}" \
+              --method PUT \
+              --field message="publish: ${slug}" \
+              --field content="${content_b64}" \
+              --field branch="${branch}" \
+              --field sha="${file_sha}" \
+              --jq '.commit.sha'
 
             pr_url=$(gh pr create \
               --base main \
@@ -183,8 +201,8 @@ jobs:
               stuck=$(echo "$stuck" | jq --arg s "$slug" --arg p "$pr_num" '. + [{slug: $s, pr: $p}]')
             fi
 
-            git checkout main
-            git pull --ff-only origin main
+            # No git checkout needed — commits are created via API.
+            # The local checkout stays on main; the API works on the branch.
           done < <(jq -r '.ready[] | [.path, .slug] | @tsv' /tmp/inventory.json)
 
           echo "$published" > /tmp/published.json

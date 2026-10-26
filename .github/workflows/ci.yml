@@ -31,6 +31,13 @@ jobs:
       - name: Check internal links
         run: python3 scripts/check-internal-links.py
 
+      # A published post must not link to a draft — CI builds without
+      # --drafts, so the link is dead. The auto-publish cron flips draft
+      # to false one post at a time; this gate catches forward links
+      # before they reach production.
+      - name: Check no links to draft posts
+        run: python3 scripts/check-draft-links.py
+
       # The marketplace manifest is the storefront an outsider's `/plugin
       # install` reads, and nothing else validates it. Measured 2026-08-26: it
       # advertised v0.12.0 / "fourteen procedural skills" while the plugin was
