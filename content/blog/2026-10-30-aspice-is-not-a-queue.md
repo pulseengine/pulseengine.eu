@@ -219,6 +219,69 @@ question is "can something challenge this requirement?"
 If the answer is no, it doesn't matter which phase you're in, which process
 area you mapped, or what capability level you scored. It is a wish.
 
+## CMMI: the same trap, one level up
+
+The same critique applies to CMMI — and it is sharper there, because CMMI
+Level 5 is the highest rating, and companies brag about it.
+
+CMMI (Capability Maturity Model Integration) is the general process
+maturity model. ASPICE is the automotive adaptation of SPICE (ISO/IEC
+15504), which was itself inspired by CMMI. They measure the same thing:
+**process maturity**. How well-defined, managed, measured, and optimized are
+your processes?
+
+CMMI Level 5 is "Optimizing" — quantitatively managed, continuously
+improving, statistically predictable. It is the top of the pyramid. Companies
+spend years and millions to get there. They put the rating on their
+website. They win contracts because of it.
+
+And they still produce wishes.
+
+A CMMI Level 5 organization has mature processes for requirements
+management. The process says: "requirements shall be documented, reviewed,
+and traced." The process is followed. The documentation exists. The
+reviews happen. The traceability matrix is maintained.
+
+And the requirements are still wishes. No verification criteria in the
+text. No tests that can fail. No proofs. No simulation. The process is
+mature. The artifacts are not real.
+
+This is not a bug in CMMI. It is the same design gap as ASPICE. Both
+models measure **process maturity** (the HOW). Neither measures **artifact
+quality** (the WHAT). A mature process for producing wishes is still a
+mature process for producing wishes.
+
+The Stack Overflow question says it plainly: *"The Model is losing its
+credibility, first because the companies adopt the model not looking for a
+maturer software development model, but to be appraised to a CMMI level."*
+
+The appraisal is the goal. The rating is the product. The actual work —
+verified behavior, challenged requirements, passing gates — is incidental.
+
+## The pattern
+
+The pattern is the same across all three:
+
+| Framework | Measures | Can be gamed by | The real question |
+|---|---|---|---|
+| **SAFe** | Team velocity, sprint throughput | Story points, ceremony theater | Can we deliver verified behavior? |
+| **ASPICE** | Process capability, traceability links | V-model with labels, compliance matrix | Can something challenge this requirement? |
+| **CMMI** | Process maturity level | Documented processes, appraisal evidence | Is the intent traceable to verified behavior? |
+
+All three are process frameworks. All three can be implemented as
+theater. All three answer "how mature is our process?" but not "is our
+intent verified?"
+
+The fix is the same for all three: **map your work, not your process.**
+Don't ask "which CMMI process area does our phase satisfy?" Ask "can
+something challenge this requirement?" Don't ask "what ASPICE level are
+we?" Ask "is this artifact real?" Don't ask "what's our sprint velocity?"
+Ask "what gates did we pass?"
+
+The maturity level, the capability rating, the velocity — these are
+measurements of the process. The verified behavior is the measurement of
+the work. Measure the work.
+
 ## ASPICE reframed
 
 ASPICE (Automotive SPICE, VDA PAM 4.1) is usually read as a process. The
@@ -444,10 +507,47 @@ artifact store. Every artifact is typed (requirement, architecture, code,
 test, proof, simulation result, hardware result). Every artifact has links
 to other artifacts. Every link is bidirectional.
 
-The key command is `rivet coverage --tests`. It scans the codebase for test
-markers and reports which artifacts have no test coverage. In gale, it
-reports 485 uncovered artifacts. Those are wishes. The orchestrator's job is
-to either add a gate (a test, a proof, a simulation) or remove the wish.
+**The release is the gate.** In our work, we plan in rivet releases. Each
+release is a bound — a set of artifacts scoped to ship together. `rivet
+release status v0.1.0` shows the readiness burn-down: which artifacts are
+approved, which are verified, which are blocking. The release cannot be cut
+until the artifacts are verified. The release is the gate, not the issue.
+
+```
+$ rivet release status v0.1.0
+Release v0.1.0 — 11 artifact(s)
+  approved     11
+
+✗ NOT cuttable — 11 artifact(s) not yet verified.
+```
+
+The key command is `rivet coverage`. It shows rule-based coverage: which
+artifacts satisfy which traceability rules. In gale:
+
+```
+Rule                           Source Type           Covered    Total        %
+swe1-has-verification          sw-req                    302      329    91.8%
+sys2-has-verification          system-req                 47       51    92.2%
+```
+
+91.8% of software requirements have a verification measure linked. 8.2%
+do not. Those 8.2% are wishes — they have no `verifies` link, nothing
+challenges them.
+
+But link coverage is not the same as test evidence. `rivet trace-results
+SWREQ-SEM-P01` shows the forward trace — the verification measures that
+claim to verify it — but reports **"no test evidence"**. The links exist.
+The tests have not run. Or their results are not recorded. The requirement
+has a gate, but the gate has not been exercised.
+
+This is the gap we are working on. The links are there. The evidence is
+not. A link without evidence is still a wish — just a wish with better
+paperwork.
+
+`rivet coverage --tests` scans the codebase for test markers and reports
+which artifacts have no test coverage. In gale, it reports 485 uncovered
+artifacts. Those are wishes. The orchestrator's job is to either add a gate
+(a test, a proof, a simulation) or remove the wish.
 
 The other key command is `rivet validate`. It checks that all links resolve,
 that all artifacts are well-formed, that the traceability graph is complete.
@@ -458,6 +558,31 @@ can be queried, validated, and gated.
 rivet also enforces commit trailers. Every commit must carry a typed trailer
 that ties it back to an artifact (`rivet-artifact: REQ-001`). This makes the
 traceability git-native — the history is the audit trail.
+
+## What we get wrong
+
+We are honest about where we fall short.
+
+**Most of our work items are not set up as ASPICE.** gale has 329 software
+requirements. 276 (83%) have verification criteria in their text. 53 (16%)
+do not. Those 53 are wishes — they have no `verification-criteria` field,
+nothing can challenge them. And 47 of the 57 requirements scheduled for a
+release have no verification criteria. They are wishes scheduled to ship.
+
+**The links exist, but the evidence does not.** `rivet trace-results` shows
+verification measures linked to requirements, but reports "no test
+evidence." The tests exist in the codebase. Their results are not recorded
+in rivet. A link without evidence is a wish with better paperwork.
+
+**The release gate works, but it is blocking.** `rivet release status
+v0.1.0` shows 11 artifacts approved but not verified. The release cannot be
+cut. The gate is doing its job — but the artifacts need test results
+recorded.
+
+These are the gaps we are filing issues for. The wish detector (rivet#1127),
+hardware verification markers (rivet#1128), the triage of uncovered
+artifacts (gale#461, relay#605, jess#298). The pattern is the same: make
+the wishes visible, then decide — add a gate, or remove the wish.
 
 ## The orchestrator's job
 
