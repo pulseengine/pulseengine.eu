@@ -1,6 +1,6 @@
 +++
 title = "ASPICE is not a queue of approvals. A requirement is only real if something can challenge it."
-description = "ASPICE is usually read as a process — a V-model, a checklist, a queue of human sign-offs. But the standard's core idea is simpler and sharper: traceability from intent to verified behavior. A requirement matters only if architecture, code, tests, simulation, or hardware can rub against it. If nothing can challenge it, it is not an artifact — it is a wish."
+description = "ASPICE is usually read as a process — a V-model, a checklist, a queue of human sign-offs. But the standard's core idea is sharper: traceability from intent to verified behavior. A requirement matters only if architecture, code, tests, proofs, simulations, or hardware can rub against it. If nothing can challenge it, it is not an artifact — it is a wish. Measured in our own repos: 53 of 329 software requirements are wishes. 47 of them are scheduled for release."
 date = 2026-10-30
 draft = true
 ready = true
@@ -47,6 +47,16 @@ safe." "The software shall be maintainable." "The kernel shall support
 priority inheritance." These are not requirements — they are hopes. No test
 can fail against them. No proof can refute them. No simulation can falsify
 them. They sit in the document, approved, signed off, and forgotten.
+
+We use "wish" as shorthand. A more precise taxonomy: a **deferred intention**
+is a requirement for future scope, marked `status: planned`. An
+**unimplemented obligation** is a requirement with verification criteria but
+no verification measure yet. An **unverified artifact** is a requirement with
+a linked measure that has not run or has no recorded evidence. All three
+are wishes in the sense that matters here: nothing currently challenges
+them. The distinction matters for triage — a deferred intention might
+become real next quarter; an unimplemented obligation needs a gate now;
+an unverified artifact needs its test to run.
 
 The problem is not that wishes are bad. The problem is that wishes look like
 requirements. They have IDs. They have traceability links. They have
@@ -403,6 +413,10 @@ that fails when the code is wrong, a proof that fails when the property
 doesn't hold, a simulation that fails when the model diverges from reality,
 hardware that fails when the silicon doesn't behave.
 
+**Gate potency** is the property that a gate can still fail. A gate that
+always passes is not a gate — it is a wish with a green badge. The
+`gate-potency` skill audits whether CI checks can still go red.
+
 ## The oracle axis for requirements
 
 Not all verification is equal. Some oracles are stronger than others.
@@ -584,10 +598,12 @@ can fail — it is a wish.
 
 ## rivet's implementation
 
-rivet is our implementation of this idea. It is a git-native, schema-driven
-artifact store. Every artifact is typed (requirement, architecture, code,
-test, proof, simulation result, hardware result). Every artifact has links
-to other artifacts. Every link is bidirectional.
+rivet is our implementation of this idea. It is a **typed knowledge graph**
+with a **release gate**: a git-native, schema-driven artifact store where
+every artifact is typed (requirement, architecture, code, test, proof,
+simulation result, hardware result), every artifact has bidirectional links
+to other artifacts, and every release is a gate that cannot be cut until
+its artifacts are verified.
 
 **The release is the gate.** In our work, we plan in rivet releases. Each
 release is a bound — a set of artifacts scoped to ship together. `rivet
