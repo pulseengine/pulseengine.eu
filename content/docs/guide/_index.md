@@ -37,7 +37,7 @@ The proof-to-code ratio is 1.62× — more lines of proof than implementation. T
 - **Verus** — SMT/Z3 contracts on every public function. Preconditions, postconditions, invariants. All inputs, not a sample.
 - **Rocq** — machine-checked proofs of abstract invariants that hold regardless of implementation.
 - **Lean 4** — mathematical proofs for scheduling theory, priority ceiling, ring buffer correctness.
-- **Kani** — bounded model checking that exhaustively explores reachable state spaces.
+- **Kani** — bounded model checking that explores every reachable state within the harness's stated bounds.
 - **Differential testing** — the C FFI shims produce identical results to the Verus-verified Rust model. Every module.
 - **Property-based testing** — proptest generates random operation sequences and verifies invariants hold.
 - **Fuzzing** — adversarial inputs thrown at every kernel primitive.
@@ -53,7 +53,7 @@ Each layer catches different classes of bugs. Formal proofs catch logical errors
 
 ## How gale uses this
 
-[gale](https://github.com/pulseengine/gale) is the first project built entirely within this ecosystem. It replaces the C kernel primitives of Zephyr RTOS with formally verified Rust — semaphores, mutexes, scheduler, message queues, memory slabs, pipes, condition variables, event flags, polling, timeslicing, and more.
+[gale](https://github.com/pulseengine/gale) is the first project built entirely within this ecosystem. It replaces the C kernel primitives of Zephyr RTOS with Rust whose source carries Verus contracts — semaphores, mutexes, scheduler, message queues, memory slabs, pipes, condition variables, event flags, polling, timeslicing, and more.
 
 The Zephyr kernel has 51 source files. Gale replaces 19 of them completely, provides verified decision helpers for 4 more, and documents why the remaining 28 are excluded (boot glue, debug infrastructure, hardware drivers — no kernel state mutation, no safety impact).
 
@@ -79,20 +79,20 @@ rivet tracks every requirement, design decision, and verification result. The ST
 
 **The honest status:**
 
-The formal verification tools (Verus, Rocq, Lean, Kani, Miri) do not yet run in CI — they require Bazel + Nix toolchains. The functional tests (cargo test, Zephyr integration, Renode) run on every commit. The [verification honesty assessment](/docs/gale/verification/) documents exactly what is proven, what is tested, and where the gaps are. This is closer to seL4's approach — build the proofs, then build the CI to enforce them — than to claiming everything is continuously verified when it is not.
+Verus, Kani, Rocq and Lean run in gale's Formal Verification workflow on pull requests that touch proof-relevant paths, on pushes, and weekly; Miri does not. A green run is not "all proven". Rocq accepts `Admitted`, and three modules are still stubs, while Verus runs with a declared trusted base of `external_body` functions. The proofs are about the source, and the native code synth produces from it is differentially tested, not proven equivalent. The functional tests (cargo test, Zephyr integration, Renode) run on every commit. The [verification honesty assessment](/docs/gale/verification/) documents exactly what is proven, what is tested, and where the gaps are.
 
 gale is targeting ASIL-D. The verification infrastructure exists because it has to.
 
 ## How relay uses this
 
-[relay](https://github.com/pulseengine/relay) is formally verified flight software inspired by NASA's cFS, reimagined as generic WebAssembly components. It uses the same ecosystem:
+[relay](https://github.com/pulseengine/relay) is a set of flight-software components for WebAssembly, inspired by NASA's cFS. It carries formal proofs of specific safety properties, not of the whole system. Verus checks contracts on the cFS mission-layer crates, Kani model-checks the per-cycle output bounds and error handling of their engines, Rocq proves properties of models of five of those engines, and Lean proves the attitude controller's Lyapunov algebra and the WCET composition. The estimator in the control cascade is property-tested, not proven, and MC/DC on the composed flight pipeline is 0 of 2713 branches until the coverage harness can drive its stream export ([relay#202](https://github.com/pulseengine/relay/issues/202)). It uses the same ecosystem:
 
 - spar models the flight software architecture
 - The pipeline builds and signs the components
-- Verification runs on every commit
+- Verus, Rocq and Lean run as CI checks on pull requests that touch the crates or proofs, and Kani runs in the merge queue
 - rivet traces requirements to implementation
 
-relay proves the ecosystem works beyond automotive — the same tools, the same traceability, applied to aerospace.
+relay applies the same tools and the same traceability to aerospace that gale applies to automotive.
 
 ## Next steps
 

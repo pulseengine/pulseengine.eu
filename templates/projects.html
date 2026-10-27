@@ -247,7 +247,7 @@
       <div class="cube-detail__panel" data-detail="run" style="display:none">
         <h3 style="color:#f87171">Run — platforms &amp; applications</h3>
         <p><strong>kiln</strong> is a WebAssembly Component Model runtime with a WASI 0.2 and no_std architecture for embedded targets — in active early development. <strong>gale</strong>'s North Star is <strong>gust</strong> — a general, multi-tenant verified OS composed from verified parts, MPU-isolated over a tiny Rust trusted base. It began as a Rust replacement for Zephyr RTOS kernel primitives (39 modules) and still provides those — machine-checked across Verus, Rocq, and Lean, ASIL-D targeted, with an honest claims ledger (some proofs are over abstract models; parts of the scheduler are still admitted stubs). The same components <a href="https://pulseengine.github.io/gale/" rel="noopener">run live in your browser</a> and dissolve to a bare-metal (emulated) Cortex-M3.</p>
-        <p>Built on top: <strong>relay</strong> — formally verified flight software inspired by NASA's cFS, reimagined as generic WebAssembly components. <strong>wohl</strong> — safety-critical home supervision. Real applications proving the ecosystem works end-to-end.</p>
+        <p>Built on top: <strong>relay</strong> — flight-software components for WebAssembly, inspired by NASA's cFS, with formal proofs of specific safety properties: Verus contracts on the cFS mission-layer crates, Kani bounded model checking of their engines, and Lean for the attitude controller's Lyapunov algebra. <strong>wohl</strong> is safety-critical home supervision. Both are applications where the methodology has to hold up in a real domain.</p>
         <div class="cube-detail__links">
           <a href="https://github.com/pulseengine/kiln" rel="noopener">kiln</a>
           <a href="https://github.com/pulseengine/gale" rel="noopener">gale</a>
@@ -287,9 +287,10 @@
         <div class="built__name">relay</div>
         <div class="built__domain">flight software</div>
         <p class="built__desc">
-          Formally verified flight-software components for WebAssembly, inspired by
-          NASA's cFS and reimagined as generic components. Mission-layer engines
-          proven with Verus.
+          Flight-software components for WebAssembly, inspired by NASA's cFS and
+          reimagined as generic components. Formal proofs of specific safety
+          properties: Verus contracts on the mission-layer crates, Kani bounded
+          model checking, Lean for the controller's Lyapunov algebra.
         </p>
       </a>
       <a class="built__card" href="https://github.com/pulseengine/wohl" rel="noopener">
