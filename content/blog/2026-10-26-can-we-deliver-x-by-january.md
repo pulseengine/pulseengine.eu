@@ -75,7 +75,7 @@ flowchart TB
         style h4 fill:#1a1d27,stroke:#fbbf24,color:#e1e4ed
     end
 
-    present -->|"gate status"| answer["Answer:<br/>May–June 2027 (80% confidence)<br/>June–July 2027 (with buffer)"]
+    present -->|"gate status"| answer["Answer:<br/>May–June 2027 (likely range)<br/>June–July 2027 (with buffer)"]
     future -->|"flow history"| answer
     style answer fill:#1a1d27,stroke:#6c8cff,color:#e1e4ed
 
@@ -104,21 +104,21 @@ argument, hardware access, sign-off) need a human.
 | Project | Releases (gates) | Issues (work)[^issues-prs] | Months active | Release velocity | Issues/release | Decision queue floor |
 |---|---|---|---|---|---|---|
 | **synth** | 156 | 432 | 6 (May–Oct 2026) | **~6/week** | 2.8 | not yet measured |
-| **rivet** | 57 | 264 | 8 (Mar–Oct 2026) | **1.8/week** | 4.6 | not yet measured |
-| **relay** | 163 (falcon)[^falcon] | 108 | 7 (Apr–Oct 2026) | **~6/week** | 0.7 | **57** |
-| **spar** | 48 | 132 | 8 (Mar–Oct 2026) | **1.6/week** | 2.8 | not yet measured |
-| **gale** | 10 | 89 | 3 (Jul–Sep 2026) | **0.77/week** | 8.9 | **30** |
-| **jess** | 4 | 12 | 4 (Jun–Sep 2026) | **0.24/week** | 3.0 | not yet measured |
-| **loom** | 36 | — | 8 (Jan–Aug 2026) | **1.1/week** | — | **26** |
+| **rivet** | 57 | 380 | 8 (Mar–Oct 2026) | **1.8/week** | 6.7 | not yet measured |
+| **relay** | 163 (falcon)[^falcon] | 115 | 7 (Apr–Oct 2026) | **~6/week** | 0.7 | **57** |
+| **spar** | 48 | 133 | 8 (Mar–Oct 2026) | **1.6/week** | 2.8 | not yet measured |
+| **gale** | 10 | 90 | 3 (Jul–Sep 2026) | **0.77/week** | 9.0 | **30** |
+| **jess** | 4 | 14 | 4 (Jun–Sep 2026) | **0.24/week** | 3.5 | not yet measured |
+| **loom** | 36 | 120 | 8 (Jan–Aug 2026) | **1.1/week** | 3.3 | **26** |
 
 The decision queue column is the `needs-decision` **floor** from
 `scripts/issue-class-floors.json` — a ratchet measured at the first fully
 classified pass. It can only tighten, never loosen. It is the brake
 threshold: when the queue of undecided issues exceeds this floor, the
-issue-hunt skill stops filing new agent-closable work until a human
-clears decisions. Relay's floor is 57; gale's is 30; loom's is 26.
-These floors set the minimum team size — the number of humans needed
-to keep the decision queue from growing.
+issue-hunt pass goes close-only. It works existing items and files
+nothing new; agent-closable work is never capped. Relay's floor is 57;
+gale's is 30; loom's is 26. These floors are one input to the team-size
+estimate below.
 
 **Cross-repo dependencies.** jess (hardware integration) has open issues
 referencing relay (flight stack) and gale (kernel) — the hardware layer
@@ -130,25 +130,28 @@ is still rudimentary: many small releases, fast cadence, but the
 releases themselves need more work. Speed of release is not the same as
 maturity of the gate.
 
-X has 8 gates: 5 mechanical (requirements validation, architecture solver,
+X is a hypothetical project, and the durations from here on are
+illustrative: the corpus measures release cadence, not end-to-end
+durations, so the weeks below are assumptions to show the method, not
+history. X has 8 gates: 5 mechanical (requirements validation, architecture solver,
 CI, tests, coverage), 3 decision-dependent (safety argument, hardware
 access, sign-off). That matches relay's profile: hardware-dependent, slow
 decisions, a decision queue of 57. If your hardware access is sorted by
-March, we're looking at May–June 2027 with 80% confidence, June–July 2027
+March, we're looking at May–June 2027 as the likely range, June–July 2027
 with a buffer. If not, add 8 weeks.
 
 ## Reference class forecasting, not estimation from scratch
 
 Don't estimate X from zero. **Find the similar past project and use its
-actuals.** This is reference class forecasting (Flyvbjerg, *Reference Class
-Forecasting in Planning and Forecasting*, 2021)[^flyvbjerg] — the same method
+actuals.** This is reference class forecasting (Flyvbjerg, "From Nobel Prize to Project Management: Getting Risks
+Right", *Project Management Journal*, 2006)[^flyvbjerg] — the same method
 used for railways, bridges, and IT projects that consistently overrun.
 
-> "X matches relay's profile. Relay took 12 weeks end-to-end: 4 weeks of
-> mechanical gates, 8 weeks waiting on decisions. The critical path allocates
+> "X matches relay's profile. Suppose relay took 12 weeks end-to-end: 4 weeks
+> of mechanical gates, 8 weeks waiting on decisions. The critical path allocates
 > 8 weeks to relay's portion — the mechanical work plus the decision wait
 > that runs in parallel with gale's and jess's work. If your hardware access
-> is sorted by March, we're looking at May–June 2027 with 80% confidence,
+> is sorted by March, we're looking at May–June 2027 as the likely range,
 > June–July 2027 with a buffer. If not, add 8 weeks."
 
 ## Confidence intervals, not a single date
@@ -156,7 +159,7 @@ used for railways, bridges, and IT projects that consistently overrun.
 Give confidence intervals, not false precision. From the corpus:
 
 - **Mechanical gates** (rivet 1.8 releases/week, spar 1.6/week, synth
-  ~6/week): 5 gates take **3–4 weeks** (80% confidence). Each release
+  ~6/week): 5 gates take **3–4 weeks**. Each release
   closes ~3–5 issues of mechanical work.
 - **Decision gates** (relay ~6/week but 57 in queue, gale 0.77/week with
   30 in queue, jess 0.24/week hardware-blocked): 3 gates take **2–20 weeks**
@@ -164,12 +167,13 @@ Give confidence intervals, not false precision. From the corpus:
 
 > "Based on 7 projects in our corpus, the mechanical gates take 3–4 weeks.
 > The decision gates depend on your hardware access. If that's sorted by
-> March, we deliver **May–June 2027** with 80% confidence. With a buffer
+> March, we deliver **May–June 2027** as the likely range. With a buffer
 > for queue position, **June–July 2027**. If hardware access slips, add
 > the slip."
 
-This is honest because:
-- You're using **real data** from your corpus
+This is honest when the durations come from your corpus, as they would in
+practice; here they are illustrative. It also:
+- Starts from **history**, not from a bottom-up guess
 - You're giving **ranges**, not false precision
 - You're separating **mechanical gates** (predictable) from **decision gates**
   (unpredictable)
@@ -271,8 +275,7 @@ To make this work, track per project:
 | Blocker reason (if red > 1 week) | Learn what slows you down |
 | Similarity tags (toolchain, hardware, team) | Match future projects to past ones |
 
-This is **Flow Time** from the Flow Framework — the metric that predicts
-delivery, not velocity[^kersten-flow].
+This is **Flow Time** from the Flow Framework[^kersten-flow].
 
 ## Who does the estimation
 
@@ -292,15 +295,15 @@ matching to history. Hardware setup, final production tests, the nitty-gritty
 that needs physical access — hand those to the roles whose leverage starts
 where yours ends.
 
-Osmani defines the orchestrator role: "You're orchestrating AI agents — while
+Osmani defines the orchestrator role: "You're orchestrating AI agents … while
 you act as architect, reviewer, and decision-maker… You own the codebase"[^osmani-agentic].
 O'Reilly Radar traces the arc: "from coder to conductor and ultimately
 orchestrator… Our jobs are shifting from 'How do I code this?' to 'How do I get
-the right code built?'"[^oreilly-orchestrator]. Herrmann & Schmidt frame
+the right code built?'"[^oreilly-orchestrator]. Thomas Herrmann and Albrecht Schmidt frame
 delegation as "management by objectives" replacing "step-by-step task
 prescription"[^herrmann-delegation]. Karpathy's "autonomy slider" captures the
-same idea: "we will move the autonomy slider from left to right over time" —
-the human sets how far right the slider sits per task[^karpathy-software3].
+same idea: "we're going to take the slider from left to right", and the
+human sets how far right the slider sits per task[^karpathy-software3].
 
 ## How many humans do we need?
 
@@ -335,12 +338,13 @@ must be large enough to clear the queue within that limit.
 | Measure | Formula | Relay example |
 |---|---|---|
 | Steady-state team size | releases/week ÷ releases/human/week | 6 ÷ 1 = **6 humans** |
-| Queue capacity | decision queue floor ÷ decisions/human/day × target days | 57 ÷ 5 × 5 = **~6 humans** |
+| Queue capacity | decision queue floor ÷ (decisions/human/day × target days) | 57 ÷ (1 × 5) ≈ **11 humans** |
 
-Both formulas converge on the same answer when the WIP limit is set
-correctly: the team size is the number of humans needed to keep the
-decision queue from growing. The WIP limit is the brake; the team size
-is the engine that keeps the brake from firing.
+The two formulas answer different questions. The first sizes the team
+for the rate at which releases arrive, the second for the backlog already
+waiting. Staff for the larger number until the backlog is drained, then
+for the rate. The WIP limit is the brake; the team size is the engine
+that keeps the brake from firing.
 
 The ratio is the insight: **one human can oversee many agents, but the
 limit is release throughput.** An agent can produce a thousand lines in an
@@ -366,10 +370,10 @@ hands on the line, but more hands on the gates.
 {% </note> %}
 
 The WIP limit on the decision queue is the brake. If you cap the
-decision queue at 10 items, you need roughly 10 humans to clear it
-within a week (at 1 decision per human per day, 5 working days). If
-you cap it at 50, you need 50. The cap is the team size — but only
-if the cap matches the throughput. A cap of 50 with 6 releases per
+decision queue at 10 items, 2 humans clear it within a week (at 1
+decision per human per day, 5 working days). If you cap it at 50, you
+need 10. The cap divided by five is the team size at that rate, but
+only if the cap matches the throughput. A cap of 50 with 6 releases per
 week means the queue grows faster than humans can drain it. Set the
 cap to match the throughput, and the team size follows.
 
@@ -379,12 +383,12 @@ releases." The number is smaller. The leverage is higher.
 
 ## The customer conversation
 
-> "We don't guess. We measure. X has 8 release gates. Two are green, one is
-> red (the proof — we need a decision from your team on the safety
-> argument), five haven't started. Based on 7 projects in our corpus, the
+> "We don't estimate from scratch. We start from history. X has 8 release
+> gates. Three are green, one is red (CI), four haven't started, and the
+> proof gate needs a decision from your team on the safety argument. Based on 7 projects in our corpus, the
 > mechanical gates take 3–4 weeks. The decision gates depend on your
 > hardware access. If that's sorted by March, we deliver May–June 2027
-> with 80% confidence, June–July 2027 with a buffer. Here's the dashboard
+> as the likely range, June–July 2027 with a buffer. Here's the dashboard
 > showing every gate's status, and here's the historical data behind the
 > estimate."
 
@@ -398,15 +402,15 @@ releases." The number is smaller. The leverage is higher.
 | "We'll try" | "Here's the data, here's the risk, here's what we need from you" |
 
 **Story points are the wrong unit for the question being asked — and SAFe
-doesn't even require them to be comparable.** Legacy SAFe (4.x/5.0) said
-story points "must be normalized" across teams[^safe-normalization-legacy];
-SAFe 5.1 downgraded this to optional ("can be aligned")[^safe-normalization-51];
-SAFe 6 removed the guidance entirely[^safe-normalization-current]. Scaled
+doesn't even require them to be comparable.** SAFe 5.1 said story points
+"must be normalized" across teams[^safe-normalization-legacy]; SAFe 6.0
+(March 2023) softened this to "can be aligned"[^safe-normalization-51]; the
+current page, updated in March 2026, no longer mentions it[^safe-normalization-current]. Scaled
 Agile's own blog says velocity "should never be compared across teams"[^safe-velocity-never-compare].
 Cross-team calibration is a **common organizational practice** — driven by
 portfolio management wanting to sum multi-team estimates — not a framework
-requirement. And it's a known anti-pattern: Ron Jeffries, who coined story
-points, calls comparing teams on estimates "harmful"[^jeffries-points].
+requirement. And it's a known anti-pattern: Ron Jeffries, who says he may have invented story
+points, calls comparing teams on quality of estimates or velocity "harmful"[^jeffries-points].
 Story points measure *complexity*, not *time*. The customer asks "when is it
 ready?" — not "how complex is it?" Calibrating points across teams to make
 them comparable answers a question nobody asked, and invites the exact
@@ -425,8 +429,7 @@ gates**, and that's a measurement, not a guess.
 with gates, deadlines, and requirements is a data point. Find the similar
 one and use its actuals.
 
-**Give confidence intervals, not single dates.** "May–June 2027 at 80%
-confidence, June–July 2027 with a buffer" is more honest than "January
+**Give confidence intervals, not single dates.** "May–June 2027 as the likely range, June–July 2027 with a buffer" is more honest than "January
 2027" — and it separates the predictable (mechanical gates) from the
 unpredictable (decision gates).
 
@@ -467,7 +470,7 @@ new gate types), the corpus may not predict the future.
 The estimation model is grounded in the author's own practice and in the
 measurements from [The machine arrived before the factory](/blog/the-machine-arrived-before-the-factory/)
 and [SAFe was built for slow humans](/blog/safe-was-built-for-slow-humans/).
-The reference class forecasting method is from Flyvbjerg (2021). The Flow
+The reference class forecasting method is from Flyvbjerg (2006). The Flow
 Framework metrics are from Kersten (2018). The SAFe story points research
 is from archived and current scaledagileframework.com documentation plus
 practitioner sources; each is cited with its tier below.
@@ -476,8 +479,8 @@ practitioner sources; each is cited with its tier below.
 author's own repositories, measured on 26 October 2026. The similarity
 matching is qualitative — "X matches relay's profile" is a judgment, not
 a measurement. A larger corpus with more similarity tags would improve
-the match. The confidence intervals are derived from the corpus
-statistics, not from a Monte Carlo simulation. The SAFe story points
+the match. The weeks in the worked example are illustrative assumptions, not values
+derived from the corpus, and no Monte Carlo simulation was run. The SAFe story points
 findings are from official SAFe documentation (live and archived via
 Wayback Machine) plus practitioner blogs and forums; the archived SAFe
 4.x/5.0 text is from web.archive.org, and the current SAFe 6 text was
@@ -485,50 +488,49 @@ verified on the live site. Some practitioner quotes (Schwaber, Coplien)
 are via secondary attribution and were not independently verified.
 
 
-[^flyvbjerg]: Bent Flyvbjerg, *Reference Class Forecasting in Planning and Forecasting*, 2021. Primary (book). The method: estimate from the actuals of similar past projects, not from a bottom-up estimate of the current project.
+[^flyvbjerg]: Bent Flyvbjerg, "From Nobel Prize to Project Management: Getting Risks Right", *Project Management Journal* 37(3), 2006. Primary (journal article). [pmi.org](https://www.pmi.org/learning/library/nobel-project-management-reference-class-forecasting-8068). The method: estimate from the actuals of similar past projects, not from a bottom-up estimate of the current project.
 
-[^kersten-flow]: Mik Kersten, *Project to Product: How to Survive and Thrive in the Age of Digital Disruption with the Flow Framework*, IT Revolution, 2018. Primary (book). Flow Framework: [flowframework.org](https://flowframework.org/).
+[^kersten-flow]: Mik Kersten, *Project to Product: How to Survive and Thrive in the Age of Digital Disruption with the Flow Framework*, IT Revolution, 2018. Primary (book).
 
 [^osmani-agentic]: Addy Osmani, *Agentic Engineering*. [addyosmani.com](https://addyosmani.com/blog/agentic-engineering/). Primary (practitioner essay).
 
-[^oreilly-orchestrator]: O'Reilly Radar, *Conductors to Orchestrators: The Future of Agentic Coding*. [oreilly.com](https://www.oreilly.com/radar/conductors-to-orchestrators-the-future-of-agentic-coding/). Secondary (interview/essay).
+[^oreilly-orchestrator]: Addy Osmani, *Conductors to Orchestrators: The Future of Agentic Coding*, O'Reilly Radar, 13 February 2026. [oreilly.com](https://www.oreilly.com/radar/conductors-to-orchestrators-the-future-of-agentic-coding/). Primary (practitioner essay).
 
-[^herrmann-delegation]: Werner Herrmann and Maximilian Schmidt, *Delegation Interaction: A Paradigm Shift in Human-AI Collaboration*, AutomationXP 2026. [matthiasbaldauf.com](https://matthiasbaldauf.com/automationxp26/papers/AutomationXP26_paper_8866.pdf). Primary (workshop paper).
+[^herrmann-delegation]: Thomas Herrmann and Albrecht Schmidt, *Delegation Interaction: A Paradigm for Human Oversight of Agentic AI*, AutomationXP 2026. [matthiasbaldauf.com](https://matthiasbaldauf.com/automationxp26/papers/AutomationXP26_paper_8866.pdf). Primary (workshop paper).
 
-[^karpathy-software3]: Andrej Karpathy, *Software Is Changing (Again)*, YC Startup Library, February 2026. Primary (talk transcript). [ycombinator.com](https://www.ycombinator.com/library/MW-andrej-karpathy-software-is-changing-again).
+[^karpathy-software3]: Andrej Karpathy, *Software Is Changing (Again)*, keynote at YC AI Startup School, June 2025. Primary (talk transcript). [ycombinator.com](https://www.ycombinator.com/library/MW-andrej-karpathy-software-is-changing-again).
 
-[^jeffries-points]: Ron Jeffries, *Story Points*, 2019. [ronjeffries.com](https://ronjeffries.com/articles/019-01ff/story-points/Index.html). Primary (practitioner critique, coined the term). "Some approaches to 'Agile' actually recommend normalizing story points across teams... it's too easy to fall into the trap of comparing teams... I think comparing teams on quality of estimates or velocity is harmful."
+[^jeffries-points]: Ron Jeffries, *Story Points*, 2019. [ronjeffries.com](https://ronjeffries.com/articles/019-01ff/story-points/Index.html). Primary (practitioner critique, coined the term). "I think comparing teams on quality of estimates or velocity is harmful."
 
-[^safe-normalization-legacy]: Scaled Agile, Inc., *Iteration Planning* (SAFe 4.x/5.0, archived 2021–2022). [web.archive.org](https://web.archive.org/web/2021id_/https://scaledagileframework.com/iteration-planning/). Primary (archived official documentation). "In SAFe, however, story point estimation must be normalized, so that estimates for features or epics that require the support of multiple teams, are based on the same story point definition."
+[^safe-normalization-legacy]: Scaled Agile, Inc., *Iteration Planning* (SAFe 5.1, archived October 2021). [web.archive.org](https://web.archive.org/web/2021id_/https://scaledagileframework.com/iteration-planning/). Primary (archived official documentation). "In SAFe, however, story point estimation must be normalized, so that estimates for features or epics that require the support of multiple teams, are based on the same story point definition."
 
-[^safe-normalization-51]: Scaled Agile, Inc., *Iteration Planning* (SAFe 5.1, archived 2023). [web.archive.org](https://web.archive.org/web/2023id_/https://scaledagileframework.com/iteration-planning/). Primary (archived official documentation). "Story points can be aligned (approximately normalized) by teams in the ART" — modal verb "can be," optional.
+[^safe-normalization-51]: Scaled Agile, Inc., *Iteration Planning* (SAFe 6.0, archived June 2023, page updated 14 March 2023). [web.archive.org](https://web.archive.org/web/2023id_/https://scaledagileframework.com/iteration-planning/). Primary (archived official documentation). "Story points can be aligned (approximately normalized) by teams in the ART" — modal verb "can be," optional.
 
-[^safe-normalization-current]: Scaled Agile, Inc., *Iteration Planning* (SAFe 6, current). [scaledagileframework.com](https://scaledagileframework.com/iteration-planning/). Primary (current official documentation). Normalization guidance removed entirely; zero occurrences of "normalized," "aligned," or "shared basis."
+[^safe-normalization-current]: Scaled Agile, Inc., *Iteration Planning* (current page, updated 18 March 2026). [scaledagileframework.com](https://scaledagileframework.com/iteration-planning/). Primary (current official documentation). Normalization guidance no longer present; zero occurrences of "normalized," "aligned," or "shared basis."
 
-[^safe-velocity-never-compare]: Scaled Agile, Inc., *SAFe Metrics at the Team Level: Sales Ops*, August 2024. [scaledagile.com](https://scaledagile.com/blog/safe-metrics-at-the-team-level-sales-ops/). Primary (official blog). "Velocity metrics should never be compared across teams or used as a productivity measurement."
+[^safe-velocity-never-compare]: Scaled Agile, Inc., *SAFe Metrics at the Team Level: Sales Ops*, 2 December 2022. [scaledagile.com](https://scaledagile.com/blog/safe-metrics-at-the-team-level-sales-ops/). Primary (official blog). "Velocity metrics should never be compared across teams or used as a productivity measurement."
 
-[^wibas-alignment-optional]: WIBAS, *A tricky slide about Story Points and Capacity in SAFe* and *Agile Estimation in SAFe: Debunking Myths*. [wibas.com](https://www.wibas.com/blog/a-tricky-slide-about-story-points-and-capacity-in-safe-and-how-to-get-it-right/). Secondary (training/consulting firm). "Aligning is an option in SAFe, but not a requirement ('can be')."
 
-[^lindenbaum-dangers]: Densmore Lindenbaum, *The Dangers of Normalized Story Point Estimation*. [densmore.lindenbaum.us](https://densmore.lindenbaum.us/lean-agile/scaling/the-dangers-of-normalized-story-point-estimation/). Primary (practitioner paper). "The Scaled Agile Framework® (SAFe) contains a method for initializing and normalizing an Agile team's effort and/or complexity estimates, the use of which can result in poor behavior by Agile teams."
 
-[^rothman-comparing-teams]: Johanna Rothman, *Comparing Teams is Not Useful: Exposing Another Management Myth*, 2013. [jrothman.com](https://www.jrothman.com/mpd/management/2013/08/comparing-teams-is-not-useful-exposing-another-management-myth/). Primary (practitioner blog). "Managers want to compare teams to see which teams are more productive. This is even crazier... The teams will start to game the measurements if you try."
 
-[^safe-wsjf]: Scaled Agile, Inc., *Weighted Shortest Job First (WSJF)*. [scaledagileframework.com](https://scaledagileframework.com/wsjf/). Primary (official documentation). "WSJF is estimated as the relative cost of delay divided by the relative job duration" — deliberately relative, no cross-team point comparability needed.
 
-[^safe-measure-grow]: Scaled Agile, Inc., *Measure and Grow* (updated September 2025). [scaledagileframework.com](https://scaledagileframework.com/measure-and-grow/). Primary (official documentation). "Business agility requires measuring outcomes, flow, and competency... Flow metrics measure delivery efficiency and predictability."
 
 [^falcon]: relay's releases are tagged under the `falcon-` prefix — the flight stack component family within the relay repository. All 163 releases are falcon-component releases.
 
-[^issues-prs]: The "Issues (work)" column counts GitHub issues only (excluding pull requests). GitHub shares the number space between issues and PRs, so the highest issue/PR number in a repo is much larger than the issue count — e.g. jess has 12 issues but the highest number is #297 because PRs occupy the intervening numbers.
+[^issues-prs]: The "Issues (work)" column counts GitHub issues only (excluding pull requests). GitHub shares the number space between issues and PRs, so the highest issue/PR number in a repo is much larger than the issue count — e.g. jess has 14 issues but the highest number is #297 because PRs occupy the intervening numbers.
 
 ---
 
 *Next in the arc: The orchestrator: who does what when bottlenecks won't go away — the roles, the contracts, and the human who defines the skills, triggers the agents, and clears the decision queue.*
 
+
+*Corrected on 27 October 2026: the worked example is now marked as illustrative and no longer claims 80% confidence, the team-size arithmetic and issue counts are fixed, the SAFe version history and the brake mechanism are corrected, and the Flyvbjerg, Herrmann and Schmidt, Karpathy, Osmani and Scaled Agile citations are fixed.*
+
 ---
 
-*This post is part of [PulseEngine](/) — a formally verified WebAssembly
-Component Model engine for safety-critical systems. Recent posts:
+*This post is part of [PulseEngine](/) — a WebAssembly Component Model engine
+for safety-critical systems, with formally verified components (work in
+progress). Recent posts:
 [SAFe was built for slow humans](/blog/safe-was-built-for-slow-humans/),
 [The machine arrived before the factory](/blog/the-machine-arrived-before-the-factory/),
 [Agents don't tidy up](/blog/agents-dont-tidy-up/).*
