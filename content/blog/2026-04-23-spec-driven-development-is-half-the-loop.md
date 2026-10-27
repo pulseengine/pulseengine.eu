@@ -241,4 +241,6 @@ We published the four-prompt pipeline skeletons in `scripts/mythos/` and `script
 
 ---
 
-*This post is part of [PulseEngine](/) — a formally verified WebAssembly Component Model engine for safety-critical systems. Prior posts in the arc: [Formal verification just became practical](/blog/formal-verification-ai-agents/), [What comes after test suites](/blog/what-comes-after-test-suites/), [rivet v0.1.0](/blog/rivet-v0-1-0/).*
+*This post is part of [PulseEngine](/) — a WebAssembly Component Model engine
+for safety-critical systems, with machine-checked proofs for parts of it
+(work in progress). Prior posts in the arc: [Formal verification just became practical](/blog/formal-verification-ai-agents/), [What comes after test suites](/blog/what-comes-after-test-suites/), [rivet v0.1.0](/blog/rivet-v0-1-0/).*

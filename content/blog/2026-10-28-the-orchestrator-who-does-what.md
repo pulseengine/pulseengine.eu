@@ -325,5 +325,5 @@ manageable, is the author's view, not a measured outcome.
 ---
 
 *This post is part of [PulseEngine](/) — a WebAssembly Component Model engine
-for safety-critical systems, with formally verified components (work in
-progress).*
+for safety-critical systems, with machine-checked proofs for parts of it
+(work in progress).*

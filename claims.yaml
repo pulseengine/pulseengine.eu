@@ -283,3 +283,22 @@ claims:
                'claude-tooling/plugins/pulseengine-claude/skills/pulseengine-feature-loop/SKILL.md',
                'claude-tooling/plugins/pulseengine-claude/memory/pulseengine-operating-contract.md']
         min: 3
+
+  # ── The org tagline is scoped to what is proven ─────────────────────────────
+  # "a formally verified WebAssembly Component Model engine" was in ten post
+  # footers, the homepage, config.toml and the social-card titles. What is
+  # machine-checked is parts of it; the 2026-10-30 ASPICE post measured gale
+  # with no verification result recorded. The tagline now says so, single-
+  # sourced in wording, and this fails if the flat claim comes back.
+  - id: SITE-TAGLINE-SCOPED-TO-PROVEN-PARTS
+    doc: content/_index.md
+    text: "with machine-checked proofs for parts of it"
+    evidence:
+      - kind: count-max
+        pattern: '(?i)formally\s+verified\s+WebAssembly\s+(Component|pipeline)|with\s+formally\s+verified\s+components|—\s+Formally\s+Verified\s+WebAssembly'
+        glob: ['content/blog/*.md', 'content/_index.md', 'config.toml', 'templates/*.html']
+        max: 0
+      - kind: count-min
+        pattern: 'with machine-checked proofs for parts of it'
+        glob: ['config.toml']
+        min: 1

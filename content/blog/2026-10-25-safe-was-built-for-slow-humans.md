@@ -549,8 +549,8 @@ application to an agent factory is ours.
 ---
 
 *This post is part of [PulseEngine](/) — a WebAssembly Component Model engine
-for safety-critical systems, with formally verified components (work in
-progress). Recent posts:
+for safety-critical systems, with machine-checked proofs for parts of it
+(work in progress). Recent posts:
 [The machine arrived before the factory](/blog/the-machine-arrived-before-the-factory/),
 [Agents don't tidy up](/blog/agents-dont-tidy-up/),
 [AI in the product, not AI in the toolchain](/blog/ai-in-the-product-not-the-toolchain/).*

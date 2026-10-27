@@ -8,7 +8,8 @@ authors = ["Ralf Anton Beier"]
 +++
 
 {% <insight> %}
-PulseEngine is building a formally verified WebAssembly pipeline for safety-critical embedded systems — automotive, aerospace, medical. Components are developed with modern tooling, then compiled to native firmware with mathematical proof that each transformation is correct. The pipeline is qualified once; every product that uses it inherits that qualification.
+PulseEngine is building a WebAssembly pipeline, with machine-checked proofs for
+parts of it, for safety-critical embedded systems — automotive, aerospace, medical. Components are developed with modern tooling, then compiled to native firmware with mathematical proof that each transformation is correct. The pipeline is qualified once; every product that uses it inherits that qualification.
 {% </insight> %}
 
 Welcome to the PulseEngine blog.

@@ -110,4 +110,6 @@ The infrastructure has to exist before the velocity makes it impossible to retro
 
 ---
 
-*[PulseEngine](/) is a formally verified WebAssembly Component Model engine for safety-critical systems. Code at [github.com/pulseengine](https://github.com/pulseengine). All tools are open source under Apache-2.0 or MIT.*
+*[PulseEngine](/) is a WebAssembly Component Model engine
+for safety-critical systems, with machine-checked proofs for parts of it
+(work in progress). Code at [github.com/pulseengine](https://github.com/pulseengine). All tools are open source under Apache-2.0 or MIT.*

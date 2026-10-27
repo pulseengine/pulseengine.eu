@@ -316,4 +316,6 @@ That sequence is the load-bearing thing — not the cycle count, not even the in
 
 ---
 
-*This post is part of [PulseEngine](/) — a formally verified WebAssembly Component Model engine for safety-critical systems. Prior posts in the verification arc: [Formal verification just became practical](/blog/formal-verification-ai-agents/), [What comes after test suites](/blog/what-comes-after-test-suites/), [Spec-driven development is half the loop](/blog/spec-driven-development-is-half-the-loop/).*
+*This post is part of [PulseEngine](/) — a WebAssembly Component Model engine
+for safety-critical systems, with machine-checked proofs for parts of it
+(work in progress). Prior posts in the verification arc: [Formal verification just became practical](/blog/formal-verification-ai-agents/), [What comes after test suites](/blog/what-comes-after-test-suites/), [Spec-driven development is half the loop](/blog/spec-driven-development-is-half-the-loop/).*
