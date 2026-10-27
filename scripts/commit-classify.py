@@ -7,7 +7,7 @@ trusted on its own word.
 
     commit-classify.py sample  <clone> --ext .rs [...] --name N [--until D] [--per-bucket 15]
         writes cls/N-input.txt (subject only) and cls/N-full.json (full message)
-    commit-classify.py oracle  <clone> [<clone> ...] --ext .rs --n 160
+    commit-classify.py oracle  <clone> [<clone> ...] --ext .rs --n 160 [--until D]
         conventional-commit repos only: strips the prefix (blinding) and writes
         cls/oracle-input.txt plus cls/oracle-truth.json
     commit-classify.py score
@@ -108,7 +108,7 @@ def cmd_oracle(a):
     random.seed(7)
     truth = []
     for clone in a.clones:
-        for i, (h, s, _) in enumerate(steps(clone, tuple(a.ext))):
+        for i, (h, s, _) in enumerate(steps(clone, tuple(a.ext), a.until)):
             m = PRE.match(s)
             if m:
                 kind = {"feat": "feature", "fix": "fix", "refactor": "refactor"}.get(
@@ -160,14 +160,26 @@ def load_labels(path, ids):
     return lab
 
 
-def cmd_score(a):
-    truth = json.loads((OUT / f"{a.oracle}-truth.json").read_text())
-    ids = [t["id"] for t in truth]
-    lab = load_labels(a.labels, ids)
+def fix_scores(truth, lab):
+    """Fix precision and recall of labels against a truth list. Pure, so the
+    monthly report's instrument gate (factory-report.py) scores with exactly
+    this code. No predicted fix at all is precision 0, not undefined: an
+    instrument that never says "fix" has not been shown to find one."""
     is_fix = lambda v: v["primary"] == "fix"
     tp = sum(t["truth"] == "fix" and is_fix(lab[t["id"]]) for t in truth)
     fp = sum(t["truth"] != "fix" and is_fix(lab[t["id"]]) for t in truth)
     fn = sum(t["truth"] == "fix" and not is_fix(lab[t["id"]]) for t in truth)
+    return {"n": len(truth), "tp": tp, "fp": fp, "fn": fn,
+            "precision": tp / (tp + fp) if tp + fp else 0.0,
+            "recall": tp / (tp + fn) if tp + fn else 0.0}
+
+
+def cmd_score(a):
+    truth = json.loads((OUT / f"{a.oracle}-truth.json").read_text())
+    ids = [t["id"] for t in truth]
+    lab = load_labels(a.labels, ids)
+    sc = fix_scores(truth, lab)
+    tp, fp, fn = sc["tp"], sc["fp"], sc["fn"]
     pl, ph = wilson(tp, tp + fp)
     rl, rh = wilson(tp, tp + fn)
     print(f"{a.oracle} vs {pathlib.Path(a.labels).name}: n={len(truth)}  fixes in truth={tp + fn}")
@@ -226,6 +238,7 @@ def main():
     o.add_argument("clones", nargs="+")
     o.add_argument("--ext", nargs="+", required=True)
     o.add_argument("--n", type=int, default=160)
+    o.add_argument("--until", help="history cut-off; the frozen reference uses 2026-10-22T10:13:00+02:00")
     lv = sub.add_parser("levin")
     lv.add_argument("csv")
     lv.add_argument("--n", type=int, default=400)

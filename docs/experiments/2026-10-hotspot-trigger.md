@@ -46,3 +46,22 @@ decide anything at this sample size.
 Every monthly run first re-scores the classifier on its frozen references and
 withholds the report if fix precision falls below 0.75 or recall below 0.70.
 Haiku is the checker; it does not produce training data.
+
+## Where the reports land
+
+`.github/workflows/factory-report.yml` runs on the 1st of each month and opens
+a pull request adding `data/factory-report/YYYY-MM.json` for the previous
+calendar month (UTC). The job is `scripts/factory-report.py`. It rebuilds both
+references and compares their sha256 with pinned values, scores the classifier
+with `commit-classify.py`'s own scoring, and stops with nothing published when
+fix precision is below 0.75 or recall below 0.70 on either reference. The
+agent reference is regenerated with `commit-classify.py oracle --until
+2026-10-22T10:13:00+02:00`; the human reference is downloaded from Zenodo and
+checksum-checked on every run.
+
+Each file records counts as well as shares (PR commits by prefix, `fix:`
+commits on `rivet-cli/src/main.rs` and whether the file still exists, and
+message-labelled and diff-judged shares on a seeded sample of up to 45
+commits per repository), so the window's verdict is computed from summed
+counts, never from one month. Until the trigger ships, each file is marked
+`pre-window`. The job is inert until the `ANTHROPIC_API_KEY` secret exists.

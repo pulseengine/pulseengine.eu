@@ -341,3 +341,32 @@ claims:
         pattern: 'run the `publication-review` skill'
         glob: ['CONTRIBUTING.md']
         min: 1
+  # ── The monthly report withholds itself when its instrument drifts ──────────
+  # The pre-registration says every monthly run re-scores the classifier and
+  # withholds the report below 0.75 precision or 0.70 recall. The thresholds now
+  # live in two places, the experiment doc and factory-report.py, so both sides
+  # are bound: changing one without the other fails here. The decision table
+  # that proves the gate can fail runs in ci.yml's required `build` job.
+  - id: FACTORY-REPORT-WITHHOLDS-ON-INSTRUMENT-DRIFT
+    doc: docs/experiments/2026-10-hotspot-trigger.md
+    text: "withholds the report if fix precision falls below 0.75 or recall below 0.70"
+    evidence:
+      - kind: count-min
+        pattern: '\bPRECISION_MIN = 0\.75\b'
+        glob: ['scripts/factory-report.py']
+        min: 1
+      - kind: count-min
+        pattern: '\bRECALL_MIN = 0\.70\b'
+        glob: ['scripts/factory-report.py']
+        min: 1
+      - kind: count-min
+        pattern: 'python3 scripts/factory-report\.py --self-test'
+        glob: ['.github/workflows/ci.yml']
+        min: 1
+      # The frozen agent reference is cut at the pre-registration time.
+      - kind: count-min
+        pattern: 'ORACLE_UNTIL = "2026-10-22T10:13:00\+02:00"'
+        glob: ['scripts/factory-report.py']
+        min: 1
+      - kind: verbatim
+        text: "reports land"
