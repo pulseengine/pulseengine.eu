@@ -11,33 +11,28 @@ authors = ["Ralf Anton Beier"]
 
 {% <insight> %}
 **The customer asks "can we deliver X by January?" SAFe answers with story
-points — a complexity measure, not a time measure.**
+points, which measure complexity rather than time.**
 
 The factory answers with **two measurements**: gate status for where we are,
-and **flow history** from past projects for when we'll be done.
-
-Don't estimate from scratch. Find the similar past project and use its
-actuals. Give confidence intervals, not false precision. Software is unknown;
-your factory is not.
+and **flow history** from past projects for when we'll be done. Instead of estimating from scratch, find the similar past project and use
+its actuals, and give confidence intervals instead of false precision.
+Software is unknown; your factory is not.
 {% </insight> %}
 
 [The previous post](/blog/safe-was-built-for-slow-humans/) argued that the
-bottleneck in an agent factory is not generation — it is verification and
-decisions. This holds whether agents produce code, requirements, architecture,
-or tests. But that raises the next question: if the bottleneck is the gate,
-how do we answer the customer who asks for a date?
+bottleneck in an agent factory is verification and decisions, whether agents
+produce code, requirements, architecture or tests. If the bottleneck is the
+gate, how do we answer the customer who asks for a date?
 
 ## The customer question
 
 > "Can we deliver X in January 2027?"
 
 SAFe answers with story points and sprint velocity. Story points measure
-*complexity* — how hard is this? Sprint velocity measures *throughput* — how
+*complexity*: how hard is this? Sprint velocity measures *throughput*: how
 many points per sprint? Neither answers the question the customer actually
-asks: **when will it be ready?**
-
-The factory answers with **two measurements**: gate status for the present,
-and **flow history** for the future.
+asks: **when will it be ready?** The factory answers with gate status for the
+present and **flow history** for the future.
 
 {% <mermaid> %}
 flowchart TB
@@ -90,16 +85,16 @@ flowchart TB
 
 To estimate X, you need history. Every project you've shipped with gates,
 deadlines, and requirements is a reference. Here is the actual corpus from
-our repositories, measured on 26 October 2026 — seven projects spanning
-application, verification, and toolchain layers:
+our repositories, measured on 26 October 2026: seven projects spanning the
+application, verification and toolchain layers.
 
-**The gate is the release, not the issue.** In rivet, `rivet release` cuts a
-release — that is the bound, the thing that ships. The issues are the work
-that goes into the release. One release closes many issues; the release is
-what the customer sees. Each gate passage is a release: the mechanical gates
-(requirements, architecture, CI, tests, coverage) are **oracle-gated** — a
-machine can check them (Blog 1's "oracle axis"). The decision gates (safety
-argument, hardware access, sign-off) need a human.
+**The gate is the release, and the issues are the work that goes into it.**
+In rivet, `rivet release` cuts a release, which is the thing that ships and
+what the customer sees; one release closes many issues. Each gate passage is a
+release. The mechanical gates (requirements, architecture, CI, tests,
+coverage) are **oracle-gated**, meaning a machine can check them (Blog 1's
+"oracle axis"). The decision gates (safety argument, hardware access,
+sign-off) need a human.
 
 | Project | Releases (gates) | Issues (work)[^issues-prs] | Months active | Release velocity | Issues/release | Decision queue floor |
 |---|---|---|---|---|---|---|
@@ -112,22 +107,22 @@ argument, hardware access, sign-off) need a human.
 | **loom** | 36 | 120 | 8 (Jan–Aug 2026) | **1.1/week** | 3.3 | **26** |
 
 The decision queue column is the `needs-decision` **floor** from
-`scripts/issue-class-floors.json` — a ratchet measured at the first fully
-classified pass. It can only tighten, never loosen. It is the brake
+`scripts/issue-class-floors.json`, a ratchet measured at the first fully
+classified pass that can only tighten, never loosen. It is the brake
 threshold: when the queue of undecided issues exceeds this floor, the
-issue-hunt pass goes close-only. It works existing items and files
-nothing new; agent-closable work is never capped. Relay's floor is 57;
-gale's is 30; loom's is 26. These floors are one input to the team-size
-estimate below.
+issue-hunt pass goes close-only, working existing items and filing nothing
+new. Agent-closable work is never capped. These floors are one input to the
+team-size estimate below.
 
 **Cross-repo dependencies.** jess (hardware integration) has open issues
-referencing relay (flight stack) and gale (kernel) — the hardware layer
+referencing relay (flight stack) and gale (kernel): the hardware layer
 cannot close its gates until the software layers pass theirs. These
-dependencies are managed through **contracts** — the thin agreed
+dependencies are managed through **contracts**, the thin agreed
 interfaces between stations (see the next post).
-synth and relay tie for the highest release velocity (~6/week) but synth
-is still rudimentary: many small releases, fast cadence, but the
-releases themselves need more work. Speed of release is not the same as
+
+synth and relay tie for the highest release velocity (~6/week), but synth
+is still rudimentary: many small releases at a fast cadence, and the
+releases themselves need more work. Release speed does not measure the
 maturity of the gate.
 
 X is a hypothetical project, and the durations from here on are
@@ -142,10 +137,10 @@ with a buffer. If not, add 8 weeks.
 
 ## Reference class forecasting, not estimation from scratch
 
-Don't estimate X from zero. **Find the similar past project and use its
-actuals.** This is reference class forecasting (Flyvbjerg, "From Nobel Prize to Project Management: Getting Risks
-Right", *Project Management Journal*, 2006)[^flyvbjerg] — the same method
-used for railways, bridges, and IT projects that consistently overrun.
+Instead of estimating X from zero, **find the similar past project and use
+its actuals.** This is reference class forecasting (Flyvbjerg, "From Nobel Prize to Project Management: Getting Risks
+Right", *Project Management Journal*, 2006)[^flyvbjerg], the method used for
+railways, bridges and IT projects that consistently overrun.
 
 > "X matches relay's profile. Suppose relay took 12 weeks end-to-end: 4 weeks
 > of mechanical gates, 8 weeks waiting on decisions. The critical path allocates
@@ -156,7 +151,7 @@ used for railways, bridges, and IT projects that consistently overrun.
 
 ## Confidence intervals, not a single date
 
-Give confidence intervals, not false precision. From the corpus:
+From the corpus:
 
 - **Mechanical gates** (rivet 1.8 releases/week, spar 1.6/week, synth
   ~6/week): 5 gates take **3–4 weeks**. Each release
@@ -173,20 +168,19 @@ Give confidence intervals, not false precision. From the corpus:
 
 This is honest when the durations come from your corpus, as they would in
 practice; here they are illustrative. It also:
-- Starts from **history**, not from a bottom-up guess
-- You're giving **ranges**, not false precision
-- You're separating **mechanical gates** (predictable) from **decision gates**
+- starts from **history** instead of a bottom-up guess
+- gives **ranges** instead of false precision
+- separates **mechanical gates** (predictable) from **decision gates**
   (unpredictable)
 
 ## The critical path
 
-Confidence intervals give you a range. But what determines the **minimum**
-time? The **critical path** — the longest chain of dependent gates.
-
-A release is a chain: gate A must pass before gate B can start, gate B before
-gate C, and so on. Some chains are short (mechanical gates, fast). Some are
-long (decision gates, hardware-blocked). The **critical path** is the longest
-chain — the one that sets the minimum release time.
+Confidence intervals give a range, and the **critical path** sets the
+**minimum** time. A release is a chain: gate A must pass before gate B can
+start, gate B before gate C, and so on. Some chains are short (mechanical
+gates, fast) and some are long (decision gates, hardware-blocked). The
+critical path is the longest chain of dependent gates, and it sets the
+minimum release time.
 
 {% <mermaid> %}
 flowchart TB
@@ -220,54 +214,52 @@ flowchart TB
 {% </mermaid> %}
 
 **Critical path: 24 weeks** (application layer). gale (4) + relay (8) + jess (12) = 24 weeks.
-But the work runs in parallel — agents are active in all three repos at the
+The work runs in parallel: agents are active in all three repos at the
 same time. The critical path is the **dependency chain**: jess cannot ship
 until relay's components have been carried down the remaining rungs of the
 ladder to the hardware (rung 1, relay's wasm-versus-native comparison, was
-measured bit-identical on 10 September), relay cannot ship until gale provides its
+measured bit-identical on 10 September), and relay cannot ship until gale provides its
 primitives. Meanwhile, jess notices issues in relay and gale (downstream
-finds upstream bugs) and feeds them back. The 24 weeks is the minimum time
-for the chain, not a waterfall — the parallel work fills the gaps.
+finds upstream bugs) and feeds them back. The parallel work fills the gaps,
+so the chain does not run as a waterfall.
 
-If gale takes 4 weeks, relay takes 8 weeks, and jess takes 12 weeks, the
-critical path is **24 weeks** for the application layer. That is the
-minimum time to release the software chain. But the delivery estimate of
-May–July 2027 includes the hardware constraint: the hardware gate cannot
+The 24 weeks is the minimum time to release the software chain. The
+delivery estimate adds the hardware constraint: the hardware gate cannot
 start until boards are available (sorted by March 2027). The 24-week
 critical path runs from now (October 2026) to ~April 2027 for the
-software; the hardware gate adds the remaining wait until boards are
-free, landing delivery in May–July 2027.
-
-This 24-week critical path covers the **application layer** (gale → relay
-→ jess). The full dependency chain — including the toolchain and
-verification layers — is longer and is traced in the next post.
+software, and the hardware gate adds the remaining wait until boards are
+free, landing delivery in May–July 2027. This path covers the **application
+layer** (gale → relay → jess); the full dependency chain, including the
+toolchain and verification layers, is longer and is traced in the next
+post.
 
 **How to find the critical path:**
 
-1. **List the gates** — every gate in the release, with its duration
-2. **List the dependencies** — which gates must pass before each gate can start
-3. **Trace the chains** — follow the dependencies from start to finish
-4. **Find the longest chain** — that's the critical path
+1. **List the gates**: every gate in the release, with its duration
+2. **List the dependencies**: which gates must pass before each gate can start
+3. **Trace the chains**: follow the dependencies from start to finish
+4. **Find the longest chain**: that's the critical path
 5. **The critical path duration is the minimum release time**
 
 **Why it matters:**
 
-- **Estimation** — the critical path duration is the minimum estimate. Add
+- **Estimation**: the critical path duration is the minimum estimate. Add
   buffer for the non-critical paths.
-- **Bottlenecks** — the critical path is where the bottlenecks are. Fix the
+- **Bottlenecks**: the critical path is where the bottlenecks are. Fix the
   critical path, and the release gets faster.
-- **Prioritization** — work on the critical path first. Work on non-critical
+- **Prioritization**: work on the critical path first. Work on non-critical
   paths can wait.
-- **Communication** — tell the customer the critical path. "We can deliver
+- **Communication**: tell the customer the critical path. "We can deliver
   in 24 weeks minimum, because this chain of dependencies takes 24 weeks."
 
-**The critical path moves.** Fix the hardware bottleneck, and the decision
-queue becomes the critical path. Add more runners, and the CI queue moves.
-The critical path is not fixed — it moves as you improve other steps.
+**The critical path moves as you improve other steps.** Fix the hardware
+bottleneck, and the decision queue becomes the critical path. Add more
+runners, and the CI queue moves.
 
 ## What you need to collect
 
-To make this work, track per project:
+To make this work, track these fields per project. The two dates give
+**Flow Time** from the Flow Framework[^kersten-flow].
 
 | Field | Why |
 |---|---|
@@ -277,12 +269,10 @@ To make this work, track per project:
 | Blocker reason (if red > 1 week) | Learn what slows you down |
 | Similarity tags (toolchain, hardware, team) | Match future projects to past ones |
 
-This is **Flow Time** from the Flow Framework[^kersten-flow].
-
 ## Who does the estimation
 
-Estimation is not a solo guess. It is a **collaborative measurement** across
-the roles from [the previous post](/blog/safe-was-built-for-slow-humans/):
+Estimation is a **collaborative measurement** across the roles from
+[the previous post](/blog/safe-was-built-for-slow-humans/):
 
 | Role | Contribution to the estimate |
 |---|---|
@@ -293,8 +283,8 @@ the roles from [the previous post](/blog/safe-was-built-for-slow-humans/):
 
 The pattern: **give away the work that blocks you, keep the work that
 multiplies you.** The orchestrator's leverage is in designing gates and
-matching to history. Hardware setup, final production tests, the nitty-gritty
-that needs physical access — hand those to the roles whose leverage starts
+matching to history. Hand hardware setup, final production tests and the rest
+of the work that needs physical access to the roles whose leverage starts
 where yours ends.
 
 Osmani defines the orchestrator role: "You're orchestrating AI agents … while
@@ -316,22 +306,19 @@ does this take?" The answer changes when agents write the code.
 production. Team size scaled with lines of code.
 
 **After agents:** agents write the code. The bottleneck is decisions and
-verification. Team size scales with **release throughput** — how many
-releases per week can humans decide and verify?
+verification. Team size scales with **release throughput**: how many
+releases per week humans can decide and verify.
 
-The math is simple:
+As a formula:
 
 ```
 Steady-state team size = (releases per week) / (releases per human per week)
 ```
 
 If your factory ships 6 releases per week (like relay), and one human can
-decide/verify 1 release per week, you need **6 humans** to keep up. Not
-100. Not 50. Six.
-
-But there is a second number: the **queue capacity**. The decision queue
-floor (the ratchet from Blog 1) sets a minimum. Relay's floor is 57 —
-meaning at the first classified pass, 57 issues were waiting for human
+decide/verify 1 release per week, you need **6 humans** to keep up. The second number is the **queue capacity**. The decision queue
+floor (the ratchet from Blog 1) sets a minimum. Relay's floor of 57 means
+that at the first classified pass, 57 issues were waiting for human
 decisions. To clear that backlog at 1 decision per human per day, you
 need enough humans to drain it within your target cycle time. The WIP
 limit on the decision queue caps how many items can wait; the team size
@@ -348,10 +335,10 @@ waiting. Staff for the larger number until the backlog is drained, then
 for the rate. The WIP limit is the brake; the team size is the engine
 that keeps the brake from firing.
 
-The ratio is the insight: **one human can oversee many agents, but the
-limit is release throughput.** An agent can produce a thousand lines in an
-hour. A human can decide whether a release is correct in a day. The
-factory's throughput is set by the humans, not the agents.
+**One human can oversee many agents, and the limit is release
+throughput.** An agent can produce a thousand lines in an hour; a human can
+decide whether a release is correct in a day. The humans set the factory's
+throughput.
 
 | Before agents | After agents |
 |---|---|
@@ -362,17 +349,15 @@ factory's throughput is set by the humans, not the agents.
 | Hire more coders to go faster | Add decision capacity to go faster |
 
 {% <note kind="tip"> %}
-**The people stay. The work changes.** This is not about letting people go.
-The question is: *with whom can we do this, and how should they do it?* The
-coders become orchestrators — they design gates, review output, decide what
-the oracles cannot. The reviewers become quality owners — they prove the
-gates can fail. The team leads become decision owners — they clear the
-decision queue. Same people, different leverage. The factory needs fewer
-hands on the line, but more hands on the gates.
+**The people stay and the work changes.** This is not about letting people
+go. The question is *with whom can we do this, and how should they do it?* The
+coders become orchestrators who design gates, review output and decide what
+the oracles cannot. The reviewers become quality owners who prove the gates
+can fail. The team leads become decision owners who clear the decision queue.
+The factory needs fewer hands on the line and more hands on the gates.
 {% </note> %}
 
-The WIP limit on the decision queue is the brake. If you cap the
-decision queue at 10 items, 2 humans clear it within a week (at 1
+If you cap the decision queue at 10 items, 2 humans clear it within a week (at 1
 decision per human per day, 5 working days). If you cap it at 50, you
 need 10. The cap divided by five is the team size at that rate, but
 only if the cap matches the throughput. A cap of 50 with 6 releases per
@@ -381,7 +366,7 @@ cap to match the throughput, and the team size follows.
 
 This is why the vocabulary matters. "Team size" in SAFe means "how many
 people write code." In the factory, it means "how many people ship
-releases." The number is smaller. The leverage is higher.
+releases." That number is smaller, and each person's leverage is higher.
 
 ## The customer conversation
 
@@ -403,27 +388,27 @@ releases." The number is smaller. The leverage is higher.
 | PI commitment (fixed scope, fixed date) | Confidence interval (range, with assumptions) |
 | "We'll try" | "Here's the data, here's the risk, here's what we need from you" |
 
-**Story points are the wrong unit for the question being asked — and SAFe
+**Story points are the wrong unit for the question being asked, and SAFe
 doesn't even require them to be comparable.** SAFe 5.1 said story points
 "must be normalized" across teams[^safe-normalization-legacy]; SAFe 6.0
 (March 2023) softened this to "can be aligned"[^safe-normalization-51]; the
 current page, updated in March 2026, no longer mentions it[^safe-normalization-current]. Scaled
 Agile's own blog says velocity "should never be compared across teams"[^safe-velocity-never-compare].
-Cross-team calibration is a **common organizational practice** — driven by
-portfolio management wanting to sum multi-team estimates — not a framework
-requirement. And it's a known anti-pattern: Ron Jeffries, who says he may have invented story
+Cross-team calibration is a **common organizational practice**, driven by
+portfolio management wanting to sum multi-team estimates, rather than a
+framework requirement. It is also a known anti-pattern: Ron Jeffries, who says he may have invented story
 points, calls comparing teams on quality of estimates or velocity "harmful"[^jeffries-points].
-Story points measure *complexity*, not *time*. The customer asks "when is it
-ready?" — not "how complex is it?" Calibrating points across teams to make
+Story points measure *complexity*, and the customer asks "when is it
+ready?" rather than "how complex is it?" Calibrating points across teams to make
 them comparable answers a question nobody asked, and invites the exact
 behavior SAFe warns against: teams gaming the numbers.
 
 ## The key insight
 
-Software is unknown. **Your factory is not.** The factory has a measurable
-throughput. The gates are the units. The corpus is the history. You're not
-estimating software — you're estimating **how fast your factory passes
-gates**, and that's a measurement, not a guess.
+Software is unknown, but **your factory is not**: it has a measurable
+throughput, the gates are its units and the corpus is its history. What you
+estimate is **how fast your factory passes gates**, and that is a
+measurement.
 
 ## What we would tell you to take from this
 
@@ -432,20 +417,19 @@ with gates, deadlines, and requirements is a data point. Find the similar
 one and use its actuals.
 
 **Give confidence intervals, not single dates.** "May–June 2027 as the likely range, June–July 2027 with a buffer" is more honest than "January
-2027" — and it separates the predictable (mechanical gates) from the
+2027", and it separates the predictable (mechanical gates) from the
 unpredictable (decision gates).
 
 **Story points measure complexity, not time.** SAFe doesn't require
-cross-team calibration — it's an organizational practice, and a known
+cross-team calibration; it is an organizational practice and a known
 anti-pattern. The customer asks "when," not "how complex."
 
 **Estimation is a collaborative measurement.** The orchestrator decomposes
-and matches. The team measures flow. The colleague runs hardware gates. The
-customer provides decisions. Nobody guesses alone.
+and matches, the team measures flow, the colleague runs hardware gates, and
+the customer provides decisions.
 
-**Software is unknown. Your factory is not.** You're not estimating software
-— you're estimating how fast your factory passes gates. That's a
-measurement, not a guess.
+**Software is unknown; your factory is not.** How fast it passes gates can be
+measured, and that measurement is the estimate.
 
 ## Limits
 
@@ -459,7 +443,7 @@ to the flow model.
 
 The corpus in this post is real data from the author's repositories,
 measured on 26 October 2026. Real flow velocity varies by team,
-toolchain, and hardware access. The similarity matching is qualitative —
+toolchain, and hardware access. The similarity matching is qualitative:
 "X matches relay's profile" is a judgment, not a measurement. A larger
 corpus with more similarity tags would improve the match.
 
@@ -477,11 +461,8 @@ Framework metrics are from Kersten (2018). The SAFe story points research
 is from archived and current scaledagileframework.com documentation plus
 practitioner sources; each is cited with its tier below.
 
-**Caveats on the evidence.** The corpus table is real data from the
-author's own repositories, measured on 26 October 2026. The similarity
-matching is qualitative — "X matches relay's profile" is a judgment, not
-a measurement. A larger corpus with more similarity tags would improve
-the match. The weeks in the worked example are illustrative assumptions, not values
+**Caveats on the evidence.** The corpus table and the similarity matching
+carry the limits stated above. The weeks in the worked example are illustrative assumptions, not values
 derived from the corpus, and no Monte Carlo simulation was run. The SAFe story points
 findings are from official SAFe documentation (live and archived via
 Wayback Machine) plus practitioner blogs and forums; the archived SAFe

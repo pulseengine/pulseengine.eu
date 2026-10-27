@@ -9,30 +9,30 @@ authors = ["Ralf Anton Beier"]
 +++
 
 {% <insight> %}
-**SAFe was designed in 2011 for people who think and deliver in months.
-Coding agents did not exist. An AI-agent factory delivers in hours.**
+**SAFe was designed in 2011, before coding agents existed, for people who
+think and deliver in months. An AI-agent factory delivers in hours.**
 
-The bottleneck is not *what* the agents produce — code, requirements,
-architecture, tests — but *who verifies it and who decides*. Make everything
-code and the bottleneck does not move: it is still the human gate.
+Whatever the agents produce, whether code, requirements, architecture or
+tests, the bottleneck is *who verifies it and who decides*. Making everything
+code leaves it at the human gate.
 
-What replaces SAFe is not "less process" but a different process: Kanban for
-the flow, gates for the checks, machine-readable contracts between stations,
-and a translation layer to the corporation that must not be called SAFe —
-because the name is the trap.
+What replaces SAFe is a different process rather than "less process": Kanban
+for the flow, gates for the checks, machine-readable contracts between
+stations, and a translation layer to the corporation. That layer must not be
+called SAFe, because the name is the trap.
 {% </insight> %}
 
-I have spent ten years inside SAFe organisations[^safe-history]. PI Planning events where the
-same three stakeholders attended and forty others were represented by a proxy.
-Retrospectives that named the same three impediments for six quarters running.
-None of it was stupid — it was coordination overhead calibrated for teams that
-ship in sprints. What it was not calibrated for is a line where agents produce
-reviewed, gated changes in hours and the queue that grows is the one waiting for
-a human decision.
+I have spent ten years inside SAFe organisations[^safe-history], with PI Planning
+events where the same three stakeholders attended and forty others were
+represented by a proxy, and retrospectives that named the same three
+impediments for six quarters running. That coordination overhead was
+calibrated, sensibly, for teams that ship in sprints. It fits badly on a line
+where agents produce reviewed, gated changes in hours and the queue that grows
+is the one waiting for a human decision.
 
 [The machine arrived before the factory](/blog/the-machine-arrived-before-the-factory/)
-measured what that looks like in our own repositories. This post is the argument
-for what replaces the process that measured it.
+measured what that looks like in our own repositories. This post argues for
+what should replace that process.
 
 ## The bottleneck is not the artifact
 
@@ -70,37 +70,36 @@ flowchart TB
 {% </mermaid> %}
 
 In a team of humans, the bottleneck is writing the code. When agents write the
-code, the bottleneck moves downstream: to comprehension, decisions,
-verification, and integration. But here is the deeper point: **make everything
-code and the bottleneck does not move.** Requirements as machine-readable artifacts.
-Architecture as machine-readable models. Tests as executable checks. Agents can produce
-all of it — and the constraint is still the same: a human needs time to
-*comprehend* the concept, *decide* what "correct" means, *verify* the output,
-and *sign*. It is not just code that takes human time. Requirements,
-architecture, tests — comprehending any of them is slow for a human.
+code, the bottleneck moves downstream to comprehension, decisions,
+verification and integration. **Making everything code does not move it any
+further.** Requirements become machine-readable artifacts, architecture becomes
+machine-readable models, tests become executable checks, and agents can produce
+all of it. A human still needs time to *comprehend* the concept, *decide* what
+"correct" means, *verify* the output, and *sign*, and comprehending
+requirements, architecture or tests is as slow for a human as comprehending
+code.
 
-But the bottleneck is not always human. **Any step in the process can be the
-constraint.** Hardware availability is a common one: a flight stack cannot
+**Any step in the process can be the constraint, including steps no human
+touches.** Hardware availability is a common one: a flight stack cannot
 pass its hardware gate until a board is free. The fix is simulation first:
 run the gate in Renode, check the logic, then confirm on silicon when the
-board is available. CI queue is another: 69 jobs waiting on one runner pool
-is a bottleneck even if every human is free. Network, dependencies, external
-services — anything that limits throughput is a bottleneck.
+board is available. The CI queue is another: 69 jobs waiting on one runner
+pool is a bottleneck even if every human is free. The network, dependencies
+and external services become bottlenecks whenever they limit throughput.
 
 This is the Theory of Constraints: **the bottleneck is whatever limits the
 throughput of the entire system, and it moves as you improve other steps.**
 Fix the human decision queue, and hardware becomes the bottleneck. Add
 simulation, and real hardware becomes the bottleneck. Add more runners, and
-the CI queue moves. The factory is a chain, and the throughput is set by the
-weakest link — which is not always the same link.
+the CI queue moves. The factory is a chain whose throughput is set by the
+weakest link, and that link changes.
 
-This is what Osmani means by "Generation is a wide mouth; verification is the
-narrow neck."[^osmani-factories] The artifact is not the bottleneck. The gate
-is. The queue that matters is no longer "what are we building this sprint" but
-"what are we deciding this week."
-
-The metrics change with it: not velocity and burndown, but **decision latency**,
-**gate potency**, and the ratio of **agent-closed to human-decided** items.
+Osmani puts it as "Generation is a wide mouth; verification is the
+narrow neck."[^osmani-factories] The gate is the bottleneck, and the queue that
+matters has changed from "what are we building this sprint" to
+"what are we deciding this week." The metrics change with it, from velocity and
+burndown to **decision latency**, **gate potency**, and the ratio of
+**agent-closed to human-decided** items.
 
 ## What the research says
 
@@ -115,7 +114,8 @@ The shift is measured, and the measurements converge from three directions:
 | **Background Agents Summit** (Stripe, Uber, Monzo, Cloudflare and others) | Converged on sandboxed environments, context connectivity, triggers, fleet orchestration and governance[^ona-summit] |
 
 Faros calls the pattern "the Acceleration Whiplash". The Harvard paper finds
-more code and more commits without a measurable increase in shipped software.
+the same shape: more code and more commits without a measurable increase in
+shipped software.
 
 {% <note kind="tip"> %}
 **The test is simple.** If your process has a ceremony that exists to
@@ -127,9 +127,9 @@ Question the ceremonies.
 
 ## Why Scrum and SAFe do not fit
 
-Two operating models, side by side. The arrow shows what happens when agents
-arrive: the SAFe process is **replaced by** Kanban with gates, because agents
-compress weeks of human work into hours.
+The diagram puts the two operating models side by side. When agents arrive,
+Kanban with gates **replaces** the SAFe process, because agents compress weeks
+of human work into hours.
 
 {% <mermaid> %}
 flowchart LR
@@ -233,15 +233,15 @@ forward"[^businessmap-decisions].
 
 For metrics, the Flow Framework (Kersten, *Project to Product*, 2018) gives
 five: Flow Time, Flow Velocity, Flow Efficiency, Flow Load, Flow Distribution[^kersten-flow].
-Flow Efficiency — active time divided by total flow time — is the headline
+Flow Efficiency, active time divided by total flow time, is the headline
 number. LinearB reports teams typically measure 15–25%: "75–85% of the time,
 work items are simply waiting"[^linearb-flow]. In an agent factory, that
 waiting is almost always at the human gate.
 
 The gates are the other half. A Kanban board without gates is a conveyor belt
 that moves defects as fast as features. The Toyota Production System has names
-for this: **jidoka** (the andon cord — a machine stops itself when it detects a
-defect) and **poka-yoke** (error-proofing — design the mistake out of the
+for this: **jidoka** (the andon cord: a machine stops itself when it detects a
+defect) and **poka-yoke** (error-proofing: design the mistake out of the
 agent's reach)[^remojansen-tps]. One practitioner's operationalization: a
 "verification-debt budget" where 0 means the agent proceeds freely, 3 means it
 must verify before further actions, and 5 means it is stopped completely.
@@ -249,10 +249,10 @@ must verify before further actions, and 5 means it is stopped completely.
 ## The CI gate: a dashboard as oracle
 
 A gate is only useful if you can see it. A CI dashboard is the control tower
-for the CI gate — every required check, every repo, every branch, in one
-view. The overview shows the status of every CI gate across the fleet: which
-repos are green, which are red, which checks are pending. No meetings, no
-status emails — the dashboard is the status.
+for the CI gate: every required check, every repo and every branch in one
+view. The overview shows the status of every CI gate across the fleet, which
+repos are green or red and which checks are pending, so status needs no
+meeting and no email.
 
 The ask feature turns the dashboard into an oracle. You ask "when will this
 PR run?" and get an answer from measured data (an edited sample; the job and
@@ -270,10 +270,8 @@ waited before starting over the last 3 hours. Not from queue position,
 because GitHub does not start jobs in creation order.
 ```
 
-The oracle answers with **measured data**, not queue position — the same
-reference-class method as the next post.
-
-There is an API behind it: `GET /api/eta?repo=rivet&pr=511` returns JSON
+The answer uses **measured data**, the same reference-class method as the
+next post. There is an API behind it: `GET /api/eta?repo=rivet&pr=511` returns JSON
 with status, running jobs, queued jobs, and scan age. This is one of several
 metrics we now work on:
 
@@ -288,12 +286,11 @@ metrics we now work on:
 
 The CI gate is the most mechanical gate in the factory. It runs on every
 commit, its ability to fail is proven in spar and not yet in rivet, and the
-dashboard makes its status visible without a meeting. This is what a gate looks like when it is real: not a
-slide in a review, but a dashboard you can query.
+dashboard makes its status visible without a meeting.
 
-*We are considering open-sourcing this dashboard. The pattern — a CI control
-tower with an ask feature and an API — is not specific to our stack. Any CI
-system can expose the same data.*
+*We are considering open-sourcing this dashboard. A CI control tower with an
+ask feature and an API is not specific to our stack, and any CI system can
+expose the same data.*
 
 ## Scaling beyond one station
 
@@ -316,16 +313,16 @@ flowchart TB
     style l5 fill:#1a1d27,stroke:#c084fc,color:#e1e4ed
 {% </mermaid> %}
 
-Kanban alone does not scale to a large organisation. Between **stations**
-— self-contained units with their own board, WIP limits, and gates — you
-need **contracts, not meetings**. The Bezos API Mandate (2002) is the canonical
+Kanban alone does not scale to a large organisation. Between **stations**,
+the self-contained units with their own board, WIP limits and gates, you
+need **contracts instead of meetings**. The Bezos API Mandate (2002) is the canonical
 example: "Teams must communicate with each other through these interfaces.
 There will be no other form of interprocess communication allowed"[^bezos-mandate].
 Team Topologies formalizes this as **X-as-a-service**, where "one team provides
 and one team consumes something 'as a Service'"[^team-topologies].
 
-In automotive and aerospace — the domains closest to a hardware-software
-factory — the pattern is industry standard. AUTOSAR's main deliverable is
+In automotive and aerospace, the domains closest to a hardware-software
+factory, the pattern is industry standard. AUTOSAR's main deliverable is
 specifications: the layered architecture decouples application software from
 hardware, so teams integrate against the **RTE contract**, not against each
 other[^autosar]. ISO 26262 formalizes the **Hardware-Software Interface (HSI)**
@@ -338,45 +335,42 @@ ceremonies." The factory says "coordinate through artifacts and cadence."
 
 ## The translation layer — and why it must not be called SAFe
 
-**"SAFe" is not safe.** The name implies safety — security, reliability,
-predictability. What it delivers is coordination overhead. A team that hears
-"we are keeping a thin SAFe shell" hears "we are still doing SAFe, just less
-of it" — and keeps doing the ceremonies. The name launders the framework.
+**"SAFe" is not safe.** The name implies safety: security, reliability,
+predictability. What the framework delivers is coordination overhead. A team
+that hears "we are keeping a thin SAFe shell" hears "we are still doing SAFe, just less
+of it", and keeps doing the ceremonies.
 
-So do not call it SAFe. Call it a **portfolio translation layer**, a
-**governance interface**, a **corporate compatibility layer**. Produce the
-artifacts the corporation expects — programme board, PI objectives, epic
-breakdowns — from your machine-readable data, on demand. Keep the names where
-they match. But the framework name stays out. When someone asks "are you
+Call it a **portfolio translation layer**, a **governance interface** or a
+**corporate compatibility layer** instead. Produce the artifacts the
+corporation expects (programme board, PI objectives, epic breakdowns) from
+your machine-readable data, on demand. Keep the artifact names where they
+match and leave the framework name out. When someone asks "are you
 doing SAFe?", the answer is "no — we produce the artifacts your portfolio
 tooling reads, from the same data our gates already generate."
 
-Three things the translation layer does:
+The model is **Kanban inside, translation outside, and a boundary layer you
+control, named for what it does.** The translation layer does three things:
 
-- **Translation.** Portfolio management speaks in programme increments; you
-  translate. The artifacts are a translation layer, not a process.
+- **Translation.** Portfolio management speaks in programme increments, and
+  the layer translates into them without becoming a process of its own.
 - **Traceability.** ASPICE and ISO 26262 want a structured trail. That comes
-  from requirements artifacts and git history without a single SAFe ceremony. This is
-  the real safety — the kind the name "SAFe" promises but does not deliver.
-- **Synchronisation.** A thin sync — one short meeting per week — keeps teams
-  from drifting apart. That is a Scrum shell, not a Scrum process.
-
-The model is: **Kanban inside, translation outside, and the boundary between
-them is a layer you control — named for what it does, not for what it
-pretends to be.**
+  from requirements artifacts and git history without a single SAFe ceremony,
+  and it is the safety that the name "SAFe" promises and does not deliver.
+- **Synchronisation.** A thin sync of one short meeting per week keeps teams
+  from drifting apart: a Scrum shell, without the Scrum process.
 
 ## The vocabulary is the process
 
-The translation layer handles the outside. But inside, the vocabulary must
-change too — or nothing changes. The trap is: *"same as SAFe, but with X
-done here."* A team that hears this keeps the SAFe process, keeps the SAFe
-ceremonies, keeps the SAFe vocabulary, and adds agents to one step. The
-result: SAFe with extra steps. The bottleneck does not move.
+The translation layer handles the outside. Inside, the vocabulary has to
+change as well. The trap is *"same as SAFe, but with X
+done here."* A team that hears this keeps the SAFe process, ceremonies and
+vocabulary, adds agents to one step, and ends up with SAFe plus extra steps
+and a bottleneck that has not moved.
 
 The words you use shape the process you do. "Sprint" implies a fixed time
 box. "Story point" implies complexity, not time. "PI Planning" implies
-quarterly alignment theater. If you keep the words, you keep the process.
-If you keep the process, you keep the bottleneck.
+quarterly alignment theater. Keep the words and you keep the process, and
+with it the bottleneck.
 
 | Old vocabulary (SAFe) | New vocabulary (factory) | Why |
 |---|---|---|
@@ -391,8 +385,8 @@ If you keep the process, you keep the bottleneck.
 | Product owner | Decision owner | Owns the decision queue, not the backlog |
 | Story | Gate-passing work item | Work that passes gates, not work that fits in a sprint |
 
-This is not a renaming exercise. It is a **change of process**. And a change
-of process needs three people:
+The table describes a **change of process**, and a change of process needs
+three people:
 
 | Role | What they do | Why they're needed |
 |---|---|---|
@@ -402,39 +396,39 @@ of process needs three people:
 
 Without all three, the vocabulary change fails. The process person designs a
 flow nobody follows. The quality person designs gates nobody trusts. The
-user speaks words nobody understands. The old vocabulary creeps back in —
-"just this once, for the sprint review" — and the process creeps back with it.
+user speaks words nobody understands. The old vocabulary creeps back in with
+"just this once, for the sprint review", and the process creeps back with it.
 
-The translation layer is for the corporation outside. The vocabulary change
-is for the team inside. Both are needed. But the inside change is the one
-that moves the bottleneck.
+The translation layer serves the corporation outside and the vocabulary change
+serves the team inside. The team needs both, and only the inside change moves
+the bottleneck.
 
 ## What we would tell you to take from this
 
-**The bottleneck is not the artifact. Your process still is.** Whether agents
-produce code, requirements, architecture, or tests — the constraint is
+**Your process is the bottleneck when it optimises for artifacts.** Whether
+agents produce code, requirements, architecture or tests, the constraint is
 verification and decisions. If your process optimises for producing artifacts,
-you are managing the wrong queue. Measure where the wait is. Put the WIP
+you are managing the wrong queue. Measure where the wait is and put the WIP
 limit there.
 
 **Kanban is the operating model, gates are the safety system.** A board without
-gates moves defects. Gates without a board have no flow. You need both, and the
-gates need to be proven to fail — not just present.
+gates moves defects, and gates without a board have no flow. You need both,
+and each gate must be proven able to fail.
 
 **Delegate what blocks you, keep what multiplies you.** The orchestrator's
-leverage is in designing gates and verifying output. Hardware setup, final
-production tests, the nitty-gritty that needs physical access — hand those to
+leverage is in designing gates and verifying output. Hand hardware setup,
+final production tests and the rest of the work that needs physical access to
 the roles whose leverage starts where yours ends.
 
-**Do not call the translation layer SAFe.** The name implies safety; the
-framework delivers coordination overhead. A "thin SAFe shell" invites people
+**Do not call the translation layer SAFe.** The name implies safety and the
+framework delivers coordination overhead, so a "thin SAFe shell" invites people
 to keep doing SAFe. Call it a portfolio translation layer, a governance
 interface, a corporate compatibility layer.
 
-**Scale through contracts, not ceremonies.** Between stations, the contract is
-the interface: architecture models, API specs, traceability links, as code. The cadence is the
-integration rhythm. The control tower is the metrics layer. None of it needs a
-meeting to exist.
+**Scale through contracts instead of ceremonies.** Between stations, the
+contract is the interface (architecture models, API specs, traceability links,
+as code), the cadence is the integration rhythm, and the control tower is the
+metrics layer.
 
 ---
 
@@ -450,15 +444,15 @@ with agents that produce gated, reviewed changes. It has not been tested in a
 large corporation with hundreds of engineers, regulatory auditors, and a
 portfolio layer that genuinely needs PI Planning to function.
 
-The metrics I cite — decision latency, gate potency, agent-closed vs
-human-decided ratio — are the ones I track. They are not industry-standard
+The metrics I cite (decision latency, gate potency, agent-closed vs
+human-decided ratio) are the ones I track. They are not industry-standard
 metrics, and I have not benchmarked them against a SAFe organisation running
-the same workload. The comparison is theoretical, grounded in the shape of the
-work, not in a controlled experiment.
+the same workload. The comparison is theoretical: it rests on the shape of the
+work, and no controlled experiment backs it.
 
-The "portfolio translation layer" is a design, not a tested implementation.
-And the naming discipline — refusing to call it SAFe — is a communication
-choice I have not yet tested at scale. It may confuse more than it clarifies.
+The "portfolio translation layer" is an untested design. The naming discipline
+of refusing to call it SAFe is a communication choice I have not yet tested at
+scale, and it may confuse more than it clarifies.
 
 ## Sources and caveats
 
