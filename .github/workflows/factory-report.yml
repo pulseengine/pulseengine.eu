@@ -1,0 +1,106 @@
+name: Factory report
+
+# Monthly measurement for the fix-hotspot experiment
+# (docs/experiments/2026-10-hotspot-trigger.md, REQ-FACTORY-REPORT-INSTRUMENT-GATE).
+#
+# Order: re-score the classifier on its two frozen references, and stop with
+# nothing published if fix precision < 0.75 or recall < 0.70 on either; only
+# then measure rivet and spar for the previous calendar month (UTC) and open a
+# PR adding data/factory-report/YYYY-MM.json. main is protected, so the job
+# never pushes to it.
+#
+# INERT UNTIL THE OWNER ADDS THE ANTHROPIC_API_KEY SECRET. Without it the run
+# exits 0 with a "not configured" notice in the job summary and does nothing.
+# This deliberately differs from issue-classes.yml, whose check exits 2 and goes
+# red on a missing token: that script is a gate, and a gate that cannot reach
+# its evidence must say so. This job produces a report; a skipped run publishes
+# nothing that could be misread, and a schedule that is red every month for a
+# known reason trains people to ignore red.
+#
+# Owner prerequisites for the PR step (see the PR that added this file):
+#   - Settings > Actions > General: "Allow GitHub Actions to create and approve
+#     pull requests", or POST /pulls returns 403.
+#   - A PR opened with GITHUB_TOKEN does not trigger pull_request workflows, so
+#     ci.yml's required `build` check will not report on it on its own. Close
+#     and reopen the PR, or push to its branch, to run CI.
+#
+# ubuntu-latest, as issue-classes.yml uses: the job needs a Python venv for the
+# Anthropic SDK, which the self-hosted `light` pool is not known to provide.
+# No `gh` is used anywhere; every GitHub call is REST over urllib.
+on:
+  schedule:
+    - cron: "23 6 1 * *"   # 06:23 UTC on the 1st, for the previous month
+  workflow_dispatch:
+    inputs:
+      month:
+        description: "YYYY-MM to measure (default: the previous calendar month, UTC)"
+        required: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: factory-report
+  cancel-in-progress: false
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Decision table (no key, no network)
+        run: python3 scripts/factory-report.py --self-test
+
+      - name: Configured?
+        id: cfg
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: python3 scripts/factory-report.py configured
+
+      - name: Install the Anthropic SDK
+        if: steps.cfg.outputs.configured == 'true'
+        run: |
+          set -euo pipefail
+          python3 -m venv "$RUNNER_TEMP/venv"
+          "$RUNNER_TEMP/venv/bin/pip" install --quiet anthropic==2.3.0
+          echo "$RUNNER_TEMP/venv/bin" >> "$GITHUB_PATH"
+
+      # Same table again, now with the SDK, so the request shape a paid run
+      # sends (model id, no sampling parameters, effort, json_schema) is checked
+      # against the real client before any money is spent.
+      - name: Decision table with the SDK
+        if: steps.cfg.outputs.configured == 'true'
+        run: python scripts/factory-report.py --self-test
+
+      - name: Clone rivet and spar
+        if: steps.cfg.outputs.configured == 'true'
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/clones"
+          for r in rivet spar; do
+            git clone --quiet --filter=blob:none "https://github.com/pulseengine/$r.git" "$RUNNER_TEMP/clones/$r"
+          done
+
+      - name: Instrument check, then measure
+        id: run
+        if: steps.cfg.outputs.configured == 'true'
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MONTH: ${{ inputs.month }}
+        run: |
+          set -euo pipefail
+          python scripts/factory-report.py run ${MONTH:+--month "$MONTH"} \
+            --clones "$RUNNER_TEMP/clones" --work "$RUNNER_TEMP/work" --out data/factory-report
+
+      # `run` writes file=<path> to GITHUB_OUTPUT only after the instrument
+      # check passed and the report was written; a failed check exits 1 above.
+      - name: Open a PR with the report
+        if: steps.cfg.outputs.configured == 'true' && steps.run.outputs.file != ''
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPORT: ${{ steps.run.outputs.file }}
+        run: python scripts/factory-report.py publish --file "$REPORT" --repo "$GITHUB_REPOSITORY"

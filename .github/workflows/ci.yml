@@ -152,6 +152,15 @@ jobs:
       - name: Check the backlog brake can still fail
         run: python3 scripts/check-issue-classes.py --self-test
 
+      # The monthly factory report's instrument gate (REQ-FACTORY-REPORT-
+      # INSTRUMENT-GATE). The report job is scheduled and needs a secret, so its
+      # gating logic would otherwise only ever be exercised once a month, by a
+      # paid run. Here, on every PR: low precision or recall fails, nothing is
+      # written on a failure, and a missing key skips with exit 0. Offline; the
+      # SDK request-shape cases skip without the SDK and run in the job itself.
+      - name: Check the factory report's instrument gate can still fail
+        run: python3 scripts/factory-report.py --self-test
+
       # External review of #232 found a compiled .pyc in that PR and a second
       # one tracked for longer, with all ten gates green over both: each asked
       # whether a claim matched the tree, none asked what was in it.
