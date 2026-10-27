@@ -140,4 +140,6 @@ The proof is not in a paper. It is in the CI log.
 
 ---
 
-*This post is part of [PulseEngine](/) — a formally verified WebAssembly Component Model engine for safety-critical systems.*
+*This post is part of [PulseEngine](/) — a WebAssembly Component Model engine
+for safety-critical systems, with machine-checked proofs for parts of it
+(work in progress).*

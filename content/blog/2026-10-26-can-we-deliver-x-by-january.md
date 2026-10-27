@@ -531,8 +531,8 @@ are via secondary attribution and were not independently verified.
 ---
 
 *This post is part of [PulseEngine](/) — a WebAssembly Component Model engine
-for safety-critical systems, with formally verified components (work in
-progress). Recent posts:
+for safety-critical systems, with machine-checked proofs for parts of it
+(work in progress). Recent posts:
 [SAFe was built for slow humans](/blog/safe-was-built-for-slow-humans/),
 [The machine arrived before the factory](/blog/the-machine-arrived-before-the-factory/),
 [Agents don't tidy up](/blog/agents-dont-tidy-up/).*
