@@ -817,10 +817,14 @@ PAM 4.0) requires bidirectional traceability; the reframe from "process" to
 "design pattern" is ours. An assessor might read it differently.
 
 [^aspice-pam]: VDA QMC, *Automotive SPICE® Process Assessment Model (PAM) 4.1*,
-preview release, April 2026. Primary (standard, preview). Downloaded from
+preview release, April 2026. Primary (standard, preview). The full document is
+copyrighted by VDA QMC and available at
 [vda-qmc.de](https://vda-qmc.de/wp-content/uploads/2026/04/Automotive-SPICE-PAM-4.1_Preview.pdf).
-Quotes from SYS.2.BP1, SYS.3.BP4, SYS.4.BP4, SWE.1.BP1, SWE.4.BP1, SWE.6.BP1,
-and Table 1 (Terminology). The final release may differ from the preview.
+Short excerpts quoted in this post are collected in
+[`docs/research/aspice-pam-4.1-quotes.md`](https://github.com/pulseengine/pulseengine.eu/blob/main/docs/research/aspice-pam-4.1-quotes.md)
+under fair use for criticism and commentary. Quotes from Section 3.3.4,
+SYS.2.BP1, SYS.3.BP4, SYS.4.BP4, SWE.4.BP1, SWE.6.BP1, and Table 1
+(Terminology). The final release may differ from the preview.
 
 [^iso-29148]: ISO/IEC/IEEE 29148:2018, *Systems and software engineering —
 Lifecycle processes — Requirements engineering*. Referenced by ASPICE PAM 4.1
