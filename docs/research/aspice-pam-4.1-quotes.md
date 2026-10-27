@@ -6,7 +6,7 @@ download from the [VDA QMC Automotive SPICE page](https://vda-qmc.de/en/automoti
 copyright remains with VDA QMC. Read the passages there.
 
 This index lists where each passage cited in
-[the ASPICE post](../../content/blog/2026-10-30-aspice-is-not-a-queue.md)
+[the ASPICE post](../../content/blog/2026-10-29-aspice-is-not-a-queue.md)
 sits in the PAM, with a short paraphrase, so each citation can be checked
 against its location. It reproduces no text beyond the few words needed to
 find the passage.

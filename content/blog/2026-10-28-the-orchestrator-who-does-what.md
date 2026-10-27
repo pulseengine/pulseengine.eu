@@ -4,8 +4,6 @@ description = "Hardware contention, CI queues, decision queues and cross-repo se
 date = 2026-10-28
 draft = true
 ready = true
-# held 2026-10-27: quotes and tool output need correcting before publication
-hold = true
 [taxonomies]
 tags = ["process", "ai-agents", "orchestration", "deep-dive"]
 authors = ["Ralf Anton Beier"]
