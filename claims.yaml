@@ -302,3 +302,42 @@ claims:
         pattern: 'with machine-checked proofs for parts of it'
         glob: ['config.toml']
         min: 1
+
+  # ── Publication review: what blocks a post, and the hold line ───────────────
+  # Four model-drafted posts shipped or were scheduled 2026-10-25..27 with an
+  # invented quotation clause, invented CLI output, a non-existent book, wrong
+  # arithmetic, assumptions stated as measurements and wrong ASPICE IDs, under a
+  # green build. The publication-review skill gates on a cold panel; these are
+  # its blocking rules, held verbatim so a rewrite cannot quietly drop one.
+  # The last evidence binds the skill's hold-line advice to the regex it
+  # describes: if blog-autopublish.py starts accepting a trailing comment, this
+  # fails and the advice is updated rather than left stale.
+  - id: PUBLICATION-REVIEW-BLOCKING-RULES
+    doc: claude-tooling/plugins/pulseengine-claude/skills/publication-review/SKILL.md
+    text: "**Any refuted quote, number or citation blocks publication.**"
+    evidence:
+      - kind: verbatim
+        text: "**Any overclaim about verification or proof blocks publication.**"
+      - kind: verbatim
+        text: "**Any private infrastructure detail blocks publication.**"
+      - kind: verbatim
+        text: "**Any `cannot-verify` still stated at full strength blocks publication.**"
+      - kind: verbatim
+        text: "**\"cannot-verify beats a guess.\"**"
+      - kind: verbatim
+        text: "**Give files and rules, not reasoning.**"
+      - kind: verbatim
+        text: "3. Add no new claims."
+      - kind: verbatim
+        text: "If round three still has blockers, stop"
+      - kind: verbatim
+        text: "**`hold = true`\nmust be on its own line.**"
+      - kind: count-min
+        pattern: 'HOLD_RE = re\.compile\(r"\^hold\\s\*=\\s\*\(true\|false\)\\s\*\$", re\.M\)'
+        glob: ['scripts/blog-autopublish.py']
+        min: 1
+      # The publishing guide points authors here before they opt a post in.
+      - kind: count-min
+        pattern: 'run the `publication-review` skill'
+        glob: ['CONTRIBUTING.md']
+        min: 1
