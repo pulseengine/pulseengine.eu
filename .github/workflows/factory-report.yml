@@ -17,12 +17,11 @@ name: Factory report
 # nothing that could be misread, and a schedule that is red every month for a
 # known reason trains people to ignore red.
 #
-# Owner prerequisites for the PR step (see the PR that added this file):
-#   - Settings > Actions > General: "Allow GitHub Actions to create and approve
-#     pull requests", or POST /pulls returns 403.
-#   - A PR opened with GITHUB_TOKEN does not trigger pull_request workflows, so
-#     ci.yml's required `build` check will not report on it on its own. Close
-#     and reopen the PR, or push to its branch, to run CI.
+# The PR is opened with the Actions Helper App token (ACTIONS_BOT_APP_ID /
+# ACTIONS_BOT_PRIVATE_KEY, the secrets blog-autopublish.yml already uses),
+# because the org disables PR creation for GITHUB_TOKEN. The report commit is
+# made through the contents API, which GitHub is expected to sign; check that
+# the first report PR's commit shows Verified, since main requires it.
 #
 # ubuntu-latest, as issue-classes.yml uses: the job needs a Python venv for the
 # Anthropic SDK, which the self-hosted `light` pool is not known to provide.
@@ -36,9 +35,9 @@ on:
         description: "YYYY-MM to measure (default: the previous calendar month, UTC)"
         required: false
 
+# The default token only reads; the App token opens the PR.
 permissions:
-  contents: write
-  pull-requests: write
+  contents: read
 
 concurrency:
   group: factory-report
@@ -96,11 +95,32 @@ jobs:
           python scripts/factory-report.py run ${MONTH:+--month "$MONTH"} \
             --clones "$RUNNER_TEMP/clones" --work "$RUNNER_TEMP/work" --out data/factory-report
 
+      # Kept for 90 days whatever happens next, so a failed publish does not
+      # lose a month that has already been paid for.
+      - name: Keep the report as a run artifact
+        if: steps.cfg.outputs.configured == 'true' && steps.run.outputs.file != ''
+        uses: actions/upload-artifact@v7
+        with:
+          name: factory-report
+          path: ${{ steps.run.outputs.file }}
+
       # `run` writes file=<path> to GITHUB_OUTPUT only after the instrument
       # check passed and the report was written; a failed check exits 1 above.
+      # The org policy disables PR creation for the default GITHUB_TOKEN, so
+      # the PR is opened with the PulseEngine Actions Helper App, exactly as
+      # blog-autopublish.yml does. A PR opened by an App token also triggers
+      # ci.yml, where one opened by GITHUB_TOKEN would not.
+      - name: Mint App token
+        id: app_token
+        if: steps.cfg.outputs.configured == 'true' && steps.run.outputs.file != ''
+        uses: actions/create-github-app-token@v3
+        with:
+          app-id: ${{ secrets.ACTIONS_BOT_APP_ID }}
+          private-key: ${{ secrets.ACTIONS_BOT_PRIVATE_KEY }}
+
       - name: Open a PR with the report
         if: steps.cfg.outputs.configured == 'true' && steps.run.outputs.file != ''
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.app_token.outputs.token }}
           REPORT: ${{ steps.run.outputs.file }}
         run: python scripts/factory-report.py publish --file "$REPORT" --repo "$GITHUB_REPOSITORY"

@@ -37,8 +37,9 @@ Instruments:
   Code's "haiku" alias, which may not be the same snapshot; the instrument
   check, not the name, is what qualifies the model each month.
 - Diff judgement (criterion 3): Claude Sonnet reading message plus diff
-  truncated at 3,500 characters, as judge-batches.py did for the baseline.
-  It has no labelled refactor reference, so it is reported as uncalibrated.
+  truncated at 3,500 characters, both repositories shuffled together under
+  opaque ids, as judge-batches.py did for the baseline. It has no labelled
+  refactor reference, so it is reported as uncalibrated.
   No server-side refusal fallback is enabled on either model: a fallback
   would swap the instrument silently, so a refusal is a missing label and the
   run fails closed.
@@ -409,26 +410,39 @@ def shares(labels, key="primary"):
             "share": {k: round(c[k] / n, 4) if n else None for k in cc.CATS}}
 
 
+def blind_judge(client, usage, samples, month):
+    """Judge every repo's sample in one shuffled list under opaque ids, as
+    judge-batches.py did for the baseline, so no request tells the judge
+    which project or month a diff came from. Returns {real id: label}."""
+    items = [i for name in samples for i in samples[name]]
+    random.Random(f"judge-{month}").shuffle(items)
+    key = {f"j{k:04d}": it["id"] for k, it in enumerate(items)}
+    pub = [{"id": f"j{k:04d}", "message": it["text"], "diff": it["diff"]} for k, it in enumerate(items)]
+    got = judge(client, usage, pub)
+    return {key[j]: lab for j, lab in got.items() if j in key}
+
+
 def measure(month, clones, client, usage, token, work):
-    repos = {}
+    repos, samples = {}, {}
     for name, slug in REPOS.items():
-        clone = clones / name
-        pool, items = month_sample(name, clone, month)
-        ids = [it["id"] for it in items]
+        pool, items = month_sample(name, clones / name, month)
+        samples[name] = items
         lab_path = work / "cls" / f"{name}-{month}-labels.json"
         lab_path.write_text(json.dumps(classify(client, usage, [{"id": i["id"], "text": i["text"]} for i in items])))
-        msg = cc.load_labels(lab_path, ids)
-        jud = judge(client, usage, [{"id": i["id"], "message": i["text"], "diff": i["diff"]} for i in items])
-        missing = set(ids) - set(jud)
-        if missing:
-            raise SystemExit(f"judge labels: {len(missing)} missing for {name} — refusing to report")
+        msg = cc.load_labels(lab_path, [it["id"] for it in items])
         m = shares(msg)
         m["hidden_fix"] = sum(v["contains_fix"] and v["primary"] != "fix" for v in msg.values())
         repos[name] = {
             "pr_commits": pr_commit_counts(slug, month, token),
             "sample": {"pool": pool, "n": len(items), "seed": f"{name}-{month}",
-                       "shas": [i["h"] for i in items],
-                       "message_labels": m, "diff_labels": shares(jud)}}
+                       "shas": [i["h"] for i in items], "message_labels": m}}
+    jud = blind_judge(client, usage, samples, month)
+    for name, items in samples.items():
+        ids = [it["id"] for it in items]
+        missing = [i for i in ids if i not in jud]
+        if missing:
+            raise SystemExit(f"judge labels: {len(missing)} missing for {name}, refusing to report")
+        repos[name]["sample"]["diff_labels"] = shares({i: jud[i] for i in ids})
     hn, hp = HOTSPOT
     repos[hn]["hotspot"] = hotspot_fixes(clones / hn, hp, month)
     return repos
@@ -519,9 +533,17 @@ def cmd_run(a):
                          refs_fn=lambda: build_references(clones, work),
                          label_fn=lambda items: classify(client, usage, items),
                          measure_fn=lambda: measure(month, clones, client, usage, token, work))
-    except CouldNotRun as e:
+    except (CouldNotRun, subprocess.CalledProcessError) as e:
         print(f"could not run: {e}", file=sys.stderr)
         return 2
+    except Exception as e:
+        # An API error is "could not run", not "the instrument failed": the
+        # exit code is how the log tells the two apart.
+        import anthropic
+        if isinstance(e, anthropic.APIError):
+            print(f"could not run: Anthropic API error: {e}", file=sys.stderr)
+            return 2
+        raise
     finally:
         print("usage:", json.dumps(usage.report()))
     if path:
@@ -547,38 +569,48 @@ def gh(method, url, token, body=None):
         raise CouldNotRun(f"{method} {url}: HTTP {e.code} {e.read()[:300]!r}")
 
 
+def pr_body(rep):
+    refs = ", ".join(f"{n} precision {s['precision']} recall {s['recall']}"
+                     for n, s in rep["instrument"]["references"].items())
+    lines = [f"Monthly measurement for the fix-hotspot experiment, {rep['month']} (UTC). "
+             f"Instrument check passed: {refs} (classifier `{rep['instrument']['classifier_model']}`, "
+             f"judge `{rep['instrument']['judge_model']}`).", "",
+             "| criterion | this month |", "|---|---|"]
+    for k, v in rep["criteria"].items():
+        lines.append(f"| {k} | `{json.dumps({x: y for x, y in v.items() if x != 'window_threshold'})}` |")
+    cost = sum(u.get("cost_usd", 0) for u in rep.get("usage", {}).values())
+    lines += ["", f"Window: {rep['window']['status']}. The verdict is computed over the window's summed "
+              f"counts, never from one month. API cost of this run: ${cost:.2f}. "
+              "Opened by `.github/workflows/factory-report.yml`."]
+    return "\n".join(lines)
+
+
+def publish(path, repo, token, call=None):
+    """Branch, file and PR through the REST API, never a push to main. A commit
+    made through the contents API with an App token is expected to be signed by
+    GitHub, which main's signed-commit rule needs; a `git push` from the runner
+    would not be. Unverified until the first report PR: check that its commit
+    shows Verified."""
+    call = call or gh
+    rep = json.loads(pathlib.Path(path).read_text())
+    month, api = rep["month"], f"https://api.github.com/repos/{repo}"
+    branch = f"factory-report/{month}"
+    base = call("GET", f"{api}/git/ref/heads/main", token)["object"]["sha"]
+    call("POST", f"{api}/git/refs", token, {"ref": f"refs/heads/{branch}", "sha": base})
+    call("PUT", f"{api}/contents/data/factory-report/{month}.json", token, {
+        "message": f"data: factory report for {month}", "branch": branch,
+        "content": base64.b64encode(pathlib.Path(path).read_bytes()).decode()})
+    return call("POST", f"{api}/pulls", token, {"title": f"data: factory report for {month}",
+                                                 "head": branch, "base": "main", "body": pr_body(rep)})
+
+
 def cmd_publish(a):
-    """Branch, file and PR through the REST API. A commit made through the
-    contents API is signed by GitHub, which main's signed-commit rule needs;
-    a `git push` from the runner would not be."""
     token = os.environ.get("GITHUB_TOKEN", "")
     if not token:
         print("could not run: GITHUB_TOKEN is not set", file=sys.stderr)
         return 2
-    path = pathlib.Path(a.file)
-    rep = json.loads(path.read_text())
-    month, api = rep["month"], f"https://api.github.com/repos/{a.repo}"
-    branch = f"factory-report/{month}"
     try:
-        base = gh("GET", f"{api}/git/ref/heads/main", token)["object"]["sha"]
-        gh("POST", f"{api}/git/refs", token, {"ref": f"refs/heads/{branch}", "sha": base})
-        rel = f"data/factory-report/{month}.json"
-        gh("PUT", f"{api}/contents/{rel}", token, {
-            "message": f"data: factory report for {month}", "branch": branch,
-            "content": base64.b64encode(path.read_bytes()).decode()})
-        c = rep["criteria"]
-        lines = [f"Monthly measurement for the fix-hotspot experiment, {month} (UTC).", "",
-                 f"Instrument check passed: " + ", ".join(
-                     f"{n} precision {s['precision']} recall {s['recall']}"
-                     for n, s in rep["instrument"]["references"].items()) +
-                 f" (classifier `{rep['instrument']['classifier_model']}`).", "",
-                 "| criterion | this month |", "|---|---|"]
-        for k, v in c.items():
-            lines.append(f"| {k} | `{json.dumps({x: y for x, y in v.items() if x != 'window_threshold'})}` |")
-        lines += ["", f"Window: {rep['window']['status']}. The verdict is over the window's summed counts, "
-                  "not one month.", "", "Opened by `.github/workflows/factory-report.yml`."]
-        pr = gh("POST", f"{api}/pulls", token, {"title": f"data: factory report for {month}",
-                                                "head": branch, "base": "main", "body": "\n".join(lines)})
+        pr = publish(a.file, a.repo, token)
     except CouldNotRun as e:
         print(f"could not publish: {e}", file=sys.stderr)
         return 2
@@ -657,6 +689,24 @@ def _table():
         code, files = pipeline(lambda items: {i["id"]: perfect[i["id"]] for i in items})
         check("a passing instrument measures and writes YYYY-MM.json", code == 0 and files == ["2026-11.json"]
               and calls == ["measured"])
+        reqs = []
+
+        def fake_gh(method, url, token, body=None):
+            reqs.append((method, url.split("/repos/o/r")[1], body))
+            return {"object": {"sha": "abc"}, "html_url": "https://example.invalid/pr/1"}
+
+        pr = publish(td / "out" / "2026-11.json", "o/r", "t", call=fake_gh)
+        steps = [(m, u) for m, u, _ in reqs]
+        check("publish: branch, file and PR via REST, never a ref update on main",
+              steps == [("GET", "/git/ref/heads/main"), ("POST", "/git/refs"),
+                        ("PUT", "/contents/data/factory-report/2026-11.json"), ("POST", "/pulls")]
+              and reqs[1][2]["ref"] == "refs/heads/factory-report/2026-11"
+              and reqs[2][2]["branch"] == "factory-report/2026-11"
+              and reqs[3][2]["head"] == "factory-report/2026-11"
+              and reqs[3][2]["base"] == "main" and pr["html_url"].endswith("/pr/1"))
+        check("publish: the PR body names the instrument and every criterion",
+              "claude-haiku-5-5" in reqs[3][2]["body"]
+              and all(k in reqs[3][2]["body"] for k in criteria(fake_repos())))
         code, files = pipeline(lambda items: {i["id"]: never[i["id"]] for i in items})
         check("a failing instrument exits 1, never measures, writes nothing",
               code == 1 and files == [] and calls == [])
@@ -714,9 +764,14 @@ def sdk_shape_test(check):
     def handler(request):
         body = json.loads(request.content)
         sent.append(body)
-        ids = [i["id"] for i in json.loads(body["messages"][0]["content"])]
+        sent_items = json.loads(body["messages"][0]["content"])
+        ids = [i["id"] for i in sent_items]
         stop = "refusal" if "refuse-me" in ids else "end_turn"
-        text = json.dumps({"labels": [{"id": i, "primary": "fix", "contains_fix": True} for i in ids]})
+        if body["model"] == JUDGE_MODEL:   # label each diff by what its message says, to check the mapping
+            rows = [{"id": i["id"], "primary": i["message"], "refactor": False} for i in sent_items]
+        else:
+            rows = [{"id": i, "primary": "fix", "contains_fix": True} for i in ids]
+        text = json.dumps({"labels": rows})
         return httpx.Response(200, json={
             "id": "msg_test", "type": "message", "role": "assistant", "model": body["model"],
             "content": [{"type": "thinking", "thinking": "", "signature": "x"}, {"type": "text", "text": text}],
@@ -738,6 +793,24 @@ def sdk_shape_test(check):
     check("SDK: usage is accumulated", usage.report()[CLASSIFIER_MODEL]["input_tokens"] == 200)
     got = classify(client, usage, [{"id": "refuse-me", "text": "msg"}])
     check("SDK: a refusal leaves the batch unlabelled", got == {})
+
+    sent.clear()
+    samples = {name: [{"id": f"{name}-2026-11-{k}", "h": "x", "diff": f"d{p}",
+                       "text": ["feature", "fix", "refactor", "maintenance"][k % 4]} for k in range(12)]
+               for p, name in enumerate(REPOS)}
+    jud = blind_judge(client, usage, samples, "2026-11")
+    jb = sent[0] if sent else {}
+    seen_ids = [i["id"] for b in sent for i in json.loads(b["messages"][0]["content"])]
+    check("SDK judge: model is the pinned Sonnet id, no sampling parameters, json_schema format",
+          jb.get("model") == JUDGE_MODEL and not any(k in jb for k in ("temperature", "top_p", "top_k"))
+          and jb.get("output_config", {}).get("format", {}).get("type") == "json_schema")
+    check("SDK judge: ids are opaque, so no request names a project or month",
+          seen_ids and all(re.fullmatch(r"j\d{4}", i) for i in seen_ids)
+          and not any(n in json.dumps(sent) for n in REPOS))
+    check("SDK judge: 24 diffs in 3 batches, projects mixed within the first",
+          len(sent) == 3 and {i["diff"] for i in json.loads(jb["messages"][0]["content"])} == {"d0", "d1"})
+    check("SDK judge: every label maps back to its own commit",
+          len(jud) == 24 and all(jud[i["id"]]["primary"] == i["text"] for n in samples for i in samples[n]))
 
 
 def month_arg(v):
