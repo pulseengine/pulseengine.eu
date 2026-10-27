@@ -169,7 +169,7 @@ Between triggers the agents file issues, fix bugs, run the gates and open PRs.
 My main job is **prioritization** across three streams that compete for my
 attention:
 
-| Stream | What it looks like | Example (my own instructions to the agents) |
+| Stream | What it looks like | Example (my instructions to the agents, typing errors and wording tidied) |
 |---|---|---|
 | **Friction** | Tools that don't work, workarounds, things that slow agents down | "I did not intend to create these layers to have to maintain them manually — either automated or I get an email with direct approval" |
 | **Factory operations** | Cron jobs, CI, hardware, queues | "reestablish the cron job — had to restart the agent and it got lost" |
@@ -177,9 +177,9 @@ attention:
 
 In de Bono's terms these are the black, blue and green hats, and like his
 sequences my cycle starts and ends with blue, deciding what comes
-first[^thinking-hats]. The architecture work I do myself is small: I ask "what
-should I do on pulseengine-layers?", the agents work out the options, and I
-review, correct and choose. The decision-queue ratchet is merged but not yet
+first[^thinking-hats]. The architecture work I do myself is small: I ask the agents what to do next
+on pulseengine-layers, they work out the options, and I review, correct and
+choose. The decision-queue ratchet is merged but not yet
 armed; until it is, I enforce the cap by hand.
 
 {% <note kind="tip"> %}
