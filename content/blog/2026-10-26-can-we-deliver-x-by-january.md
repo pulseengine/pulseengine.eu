@@ -194,7 +194,7 @@ flowchart TB
         direction LR
         gale["gale<br/>kernel<br/>4 weeks"]
         relay["relay<br/>flight stack<br/>8 weeks"]
-        jess["jess<br/>orchestrator<br/>12 weeks"]
+        jess["jess<br/>integrator<br/>12 weeks"]
     end
 
     subgraph chain["Critical path (dependency chain)"]
@@ -222,7 +222,9 @@ flowchart TB
 **Critical path: 24 weeks** (application layer). gale (4) + relay (8) + jess (12) = 24 weeks.
 But the work runs in parallel — agents are active in all three repos at the
 same time. The critical path is the **dependency chain**: jess cannot ship
-until relay is bit-exact, relay cannot ship until gale provides its
+until relay's components have been carried down the remaining rungs of the
+ladder to the hardware (rung 1, relay's wasm-versus-native comparison, was
+measured bit-identical on 10 September), relay cannot ship until gale provides its
 primitives. Meanwhile, jess notices issues in relay and gale (downstream
 finds upstream bugs) and feeds them back. The 24 weeks is the minimum time
 for the chain, not a waterfall — the parallel work fills the gaps.
@@ -524,7 +526,7 @@ are via secondary attribution and were not independently verified.
 *Next in the arc: The orchestrator: who does what when bottlenecks won't go away — the roles, the contracts, and the human who defines the skills, triggers the agents, and clears the decision queue.*
 
 
-*Corrected on 27 October 2026: the worked example is now marked as illustrative and no longer claims 80% confidence, the team-size arithmetic and issue counts are fixed, the SAFe version history and the brake mechanism are corrected, and the Flyvbjerg, Herrmann and Schmidt, Karpathy, Osmani and Scaled Agile citations are fixed.*
+*Corrected on 27 October 2026: the worked example is now marked as illustrative and no longer claims 80% confidence, the team-size arithmetic and issue counts are fixed, the SAFe version history and the brake mechanism are corrected, and the Flyvbjerg, Herrmann and Schmidt, Karpathy, Osmani and Scaled Agile citations are fixed. The critical-path diagram now labels jess as the integrator rather than the orchestrator, and the dependency chain no longer says jess waits for relay to become bit-exact, since rung 1 was measured bit-identical on 10 September.*
 
 ---
 
