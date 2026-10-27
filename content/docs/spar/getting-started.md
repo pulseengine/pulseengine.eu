@@ -147,6 +147,6 @@ MIT License -- see [LICENSE](https://github.com/pulseengine/spar/blob/main/LICEN
 
 <div align="center">
 
-<sub>Part of <a href="https://github.com/pulseengine">PulseEngine</a> -- formally verified WebAssembly toolchain for safety-critical systems</sub>
+<sub>Part of <a href="https://github.com/pulseengine">PulseEngine</a> -- a WebAssembly Component Model engine for safety-critical systems, with machine-checked proofs for parts of it</sub>
 
 </div>

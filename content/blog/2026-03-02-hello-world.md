@@ -9,7 +9,7 @@ authors = ["Ralf Anton Beier"]
 
 {% <insight> %}
 PulseEngine is building a WebAssembly pipeline, with machine-checked proofs for
-parts of it, for safety-critical embedded systems — automotive, aerospace, medical. Components are developed with modern tooling, then compiled to native firmware with mathematical proof that each transformation is correct. The pipeline is qualified once; every product that uses it inherits that qualification.
+parts of it, for safety-critical embedded systems — automotive, aerospace, medical. Components are developed with modern tooling, then transcoded to native firmware. Today, loom's optimizations are translation-validated on each run, and synth's native output is differentially tested against a reference wasm runtime, not proven equivalent. The aim is a pipeline qualified once, so that every product using it inherits the qualification; nothing is qualified yet.
 {% </insight> %}
 
 Welcome to the PulseEngine blog.
@@ -40,8 +40,10 @@ graph LR
     SG -.->|seal| K
 {% </mermaid> %}
 
-kiln interprets and executes components directly. synth transcodes them to native ARM when you need bare metal. meld fuses multiple components into one before any of that happens, and loom optimizes at every level. sigil attests every transformation — the full chain is verifiable end-to-end.
+kiln interprets and executes components directly. synth transcodes them to native ARM when you need bare metal. meld fuses multiple components into one before any of that happens, and loom optimizes at every level. sigil signs the artifacts the pipeline produces. Attestations for each transformation, and a chain a reader can verify end to end, are still being built.
 
 ## Stay in the loop
 
 Subscribe to the [Atom feed](/atom.xml) to get new posts in your reader. Or check back here — we will keep things moving.
+
+*Corrected on 27 October 2026: the opening no longer claims a mathematical proof that each transformation is correct or a qualification products inherit today, and the engine paragraph no longer says sigil attests every transformation end to end.*

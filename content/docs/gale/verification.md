@@ -9,6 +9,8 @@ weight = 2
 
 **Date:** 2026-03-22
 
+> The 2026-03-22 assessment below is kept as written. Its statements that the formal tools do not run in CI are out of date: see [Current status](#current-status) at the end of this page, which follows gale's own [claims ledger](https://github.com/pulseengine/gale/blob/main/docs/safety/verification-honesty.md).
+
 ## What Runs on Every Commit (CI-Enforced)
 
 | Check | Tool | What It Proves |
@@ -55,3 +57,18 @@ Option B: Add a nightly/weekly cron job for formal verification (less frequent b
 Option C: Add individual verification tools to GitHub Actions without Bazel (simpler but more workflows)
 
 The seL4 team spent a decade on their proofs. This is honest about where we are.
+
+## Current status
+
+gale's claims ledger supersedes the "does not run in CI" statements above. `.github/workflows/formal-verification.yml` in gale runs Verus (`bazel test //:verus_test`), Kani (185 harnesses), Rocq and Lean on pull requests that touch proof-relevant paths, on pushes, and on a weekly cron. Miri is not part of that workflow.
+
+A green run of that workflow certifies less than "all proven", and the ledger names each gap:
+
+| Tool | What a green run means | What it does not mean |
+|------|------------------------|-----------------------|
+| Verus | The bodies Verus checked satisfy their requires/ensures contracts | That every line is checked: 133 `external_body` functions and 2 `assume_specification` calls are trusted, and CI does not pass `--no-cheating` |
+| Rocq | Every file elaborates; 10 modules are fully proven with `Qed` | That `poll`, `sched` and `thread_lifecycle` are proven: their 74 theorems are `Admitted` stubs, which Rocq accepts. All Rocq proofs are over hand-written models, not the Rust |
+| Lean | The scheduling-theory theorems check | Anything about the implementation |
+| Kani | The harnesses hold within their bounds | That kernel properties hold for all inputs: most kernel harnesses assume a bound such as `count <= 20`. The uart-thin and gpio-thin driver decision cores are the exception, checked over the full input type; dma-own is bounded to a four-slot ring |
+
+Every proof above is about the Rust or wasm **source**. For the wasm line, the shipped artifact is native code produced by meld, loom and synth. That code is differentially tested against a reference wasm semantics over sampled or finite input ranges. It is not proven equivalent to the source, and no end-to-end verified pipeline is claimed.
