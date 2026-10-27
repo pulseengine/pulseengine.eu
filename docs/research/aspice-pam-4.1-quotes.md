@@ -1,23 +1,28 @@
-# ASPICE PAM 4.1: passages quoted in the blog post
+# ASPICE PAM 4.1: citation index for the blog post
 
 Source: VDA QMC, *Automotive SPICE® Process Assessment / Reference Model*,
-version 4.1, 24 August 2026. The document may only be obtained by download
-from the [VDA QMC Automotive SPICE page](https://vda-qmc.de/en/automotive-spice/);
-copyright remains with VDA QMC. Read it there.
+version 4.1, dated 24 August 2026. The document may only be obtained by
+download from the [VDA QMC Automotive SPICE page](https://vda-qmc.de/en/automotive-spice/);
+copyright remains with VDA QMC. Read the passages there.
 
-This file lists only the short passages quoted, for commentary, in
-[ASPICE is not a queue of approvals](../../content/blog/2026-10-30-aspice-is-not-a-queue.md),
-so that each quotation can be checked against its location. The passages
-from the body read the same in the April 2026 preview; the document-history
-row exists only in the 24 August 2026 release.
+This index lists where each passage cited in
+[the ASPICE post](../../content/blog/2026-10-30-aspice-is-not-a-queue.md)
+sits in the PAM, with a short paraphrase, so each citation can be checked
+against its location. It reproduces no text beyond the few words needed to
+find the passage.
 
-| Location | Quoted passage |
+| Location | What it says (paraphrase) |
 |---|---|
-| §3.3.4 | "distinct conceptual silo" |
-| §3.3.4 | "In this respect, a PRM/PAM neither predefines, nor discourages, any order in which PRM processes or Base Practices are to be performed. Ultimately, in Automotive SPICE® consistency must be fulfilled as required by the traceability/consistency Base Practices [...]" |
-| §3.3.4 | MAN.3 BP2 "Define the project lifecycle" |
-| SYS.2.BP5 Note 7 (recurs in SYS.3.BP4 Note 7 and later traceability BPs) | "Traceability alone, e.g., the existence of links, does not necessarily mean that the information is consistent." |
-| SYS.2.BP1 Note 2 | "verification criteria being inherent in the requirements text" |
-| SWE.4.BP1 | "pass/fail criteria for verification measures" |
-| Table 1, verification measure | "software units generally cannot be verified by means of calculations or analyses" |
-| Document history, 4.1 | "Removal of MLE.2 BP5; editorial changes based on feedback from community" (paraphrased in the post) |
+| §3.3.4, title | States that a PRM and PAM are not a lifecycle model or development process blueprint. |
+| §3.3.4 | A process is a "distinct conceptual silo"; the PAM prescribes no order of processes or base practices; consistency is required by the traceability/consistency base practices in MAN.3, SYS, SWE and HWE. |
+| §3.3.4, last paragraph | The assessor maps the organisation's HOW-level elements to the PAM's assessment indicators. |
+| MAN.3.BP2 | Define a project lifecycle appropriate to the project's scope, context and complexity. |
+| MAN.3.BP9 | Keep estimates, resources, work packages, schedules and plans consistent with the scope of work. |
+| SYS.2.BP1 Note 2, SWE.1.BP1 Note 2 | Informative examples of requirement characteristics, including verifiability (criteria inherent in the requirement text). |
+| SYS.2.BP1 Note 1, SWE.1.BP1 Note 1 | ISO/IEC/IEEE 29148, ISO 26262-8 and the INCOSE guide as examples of where such characteristics are defined. |
+| SWE.4.BP1 Note 1 | Static analysis, code reviews and unit tests as examples of unit verification measures. |
+| SWE.6.BP1 | Software verification measures include pass/fail criteria. |
+| SWE.6 outcomes 3 and 5 | Verification results are recorded, and traced to the verification measures. |
+| SWE.6.BP4 Note 4 (recurs in other traceability BPs, e.g. SYS.2.BP5 Note 7) | Links alone do not show that the information is consistent. |
+| Table 1, "verification measure" | Lists test cases, measurements, calculations, simulations, reviews and analyses; notes that software units generally cannot be verified by calculations or analyses. |
+| §3.2, measurement framework | Automotive SPICE defines its own measurement framework, an adaption of ISO/IEC 33020:2019. |
