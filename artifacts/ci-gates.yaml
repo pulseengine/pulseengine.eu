@@ -55,6 +55,8 @@ artifacts:
 
       - type: satisfies
         target: REQ-CI-STATUS-SKILL
+      - type: satisfies
+        target: REQ-PUBLICATION-REVIEW-SKILL
   - id: REQ-LINKS
     type: requirement
     title: Every internal link in the built site resolves
@@ -424,3 +426,28 @@ artifacts:
     links:
       - type: verifies
         target: REQ-CI-STATUS-SKILL
+
+  - id: REQ-PUBLICATION-REVIEW-SKILL
+    type: requirement
+    title: Public prose is gated on a role-split clean-room review before it ships
+    description: >-
+      Between 2026-10-25 and 2026-10-27 four blog posts drafted with another model were published or scheduled with an invented clause inside a quotation that carried the post's thesis, invented CLI output, wrong author names and a non-existent book in citations, wrong arithmetic, assumptions presented as measurements, and wrongly cited ASPICE process IDs, all under a green build. The publication-review skill gates ready = true on a post, and any public claim-heavy page, on cold domain-expert, fact-checker and editor reviewers briefed with files and rules only, a fixer applying confirmed findings, and a fresh second round, stopping after three rounds. Any refuted quote, number or citation, any overclaim about verification or proof, any private infrastructure detail, and any cannot-verify left at full strength blocks publication. hold = true must sit on its own line, because the autopublish regex does not see it with a trailing comment.
+    status: verified
+    release: 0.41.0
+    category: functional
+    priority: should
+    fields:
+      category: functional
+
+  - id: VER-PUBLICATION-REVIEW-SKILL
+    type: verification
+    title: claim PUBLICATION-REVIEW-BLOCKING-RULES
+    description: >-
+      claim-check requires the skill's four blocking rules, the cold-briefing rules, the fixer's no-new-claims rule, the three-round stop rule and the hold-on-its-own-line rule verbatim, requires blog-autopublish.py's HOLD_RE to still be line-anchored with no comment allowance, and requires CONTRIBUTING.md to point authors at the skill before ready = true. Negative-controlled: dropping a blocking rule from the skill, letting HOLD_RE accept a trailing comment, or removing the CONTRIBUTING pointer each makes the check exit 1.
+    status: verified
+    release: 0.41.0
+    method: automated-test
+    test-location: claims.yaml
+    links:
+      - type: verifies
+        target: REQ-PUBLICATION-REVIEW-SKILL

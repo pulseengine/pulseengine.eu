@@ -71,8 +71,9 @@ A post is in exactly one of these states. The key property: **a draft never auto
 
 1. Write it with `draft = true` (and no `ready`) — it's a private draft.
 2. Preview locally: `zola serve --drafts`.
-3. When you genuinely want it to go live, add `ready = true` and set `date` to the intended publish day. The daily cron publishes it on/after that date.
-4. To publish immediately by hand instead, just set `draft = false`, commit, push — deploy is automatic.
+3. Before adding `ready = true` (or setting `draft = false` by hand), run the `publication-review` skill from the pulseengine-claude plugin: a cold domain-expert, fact-checker and editor panel. Any refuted quote, number or citation blocks publication. If you hold a post with `hold = true`, put it on its own line: the cron's regex does not see it with a trailing comment.
+4. When you genuinely want it to go live, add `ready = true` and set `date` to the intended publish day. The daily cron publishes it on/after that date.
+5. To publish immediately by hand instead, just set `draft = false`, commit, push — deploy is automatic.
 
 ### What you get automatically
 

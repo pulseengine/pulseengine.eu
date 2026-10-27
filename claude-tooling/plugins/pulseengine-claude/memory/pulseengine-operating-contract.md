@@ -206,7 +206,7 @@ skill is in exactly one class.)
   is the boundary + minimal-scope blocks above — they hold at any effort; the
   effort knob alone does not.
 - **Hybrids** — `release-planning`, `issue-hunt`, `release-artifact-pipeline`,
-  `repo-hygiene`, `gate-potency`, `claim-verification`.
+  `repo-hygiene`, `gate-potency`, `claim-verification`, `publication-review`.
   Their *judgment* half (scope a release, triage/evaluate an issue "measure don't
   guess", audit a repo's deltas) is explorer work — capable model, scope, higher
   effort; their *deliver* half (land, gate, ship) routes through the driver
