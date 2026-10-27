@@ -81,8 +81,8 @@ architecture, tests — comprehending any of them is slow for a human.
 
 But the bottleneck is not always human. **Any step in the process can be the
 constraint.** Hardware availability is a common one: a flight stack cannot
-pass its hardware gate until a board is free. The fix is simulation first —
-run the gate in Renode, prove the logic, then confirm on silicon when the
+pass its hardware gate until a board is free. The fix is simulation first:
+run the gate in Renode, check the logic, then confirm on silicon when the
 board is available. CI queue is another: 69 jobs waiting on one runner pool
 is a bottleneck even if every human is free. Network, dependencies, external
 services — anything that limits throughput is a bottleneck.
@@ -108,16 +108,14 @@ The shift is measured, and the measurements converge from three directions:
 
 | Source | Finding |
 |---|---|
-| **Faros AI 2026** (22k devs, 4k teams) | +33.7% tasks, +66.2% epics — but **+441% review time**, +54% bugs, +242.7% incidents[^faros-2026] |
-| **Harvard** (Chen & Stratton, 718 firms) | +30% code, +20% commits — **zero** additional shipped software[^harvard-2026] |
+| **Faros AI 2026** (22k devs, 4k teams) | +33.7% tasks, +66% epics, but **+441.5% review time**, +54% bugs, and incidents per pull request up 242.7%[^faros-2026] |
+| **Harvard** (Chen & Stratton, 718 firms) | +30% lines of code, +20% commits, and **no statistically significant increase** in shipped software (an increase above 12% is ruled out)[^harvard-2026] |
 | **METR RCT** (16 experienced devs) | **19% slower** with AI while believing 20% faster[^metr-2025] |
-| **DORA 2025** | "AI doesn't fix a team; it amplifies what's already there"[^dora-2025] |
-| **Stripe, OpenAI, Cursor, mabl** | Independently converged on: sandboxed environments, triggers, fleet orchestration, governance, human gates[^ona-summit] |
+| **DORA 2025** | "AI's primary role is as an amplifier, magnifying an organization's existing strengths and weaknesses"[^dora-2025] |
+| **Background Agents Summit** (Stripe, Uber, Monzo, Cloudflare and others) | Converged on sandboxed environments, context connectivity, triggers, fleet orchestration and governance[^ona-summit] |
 
-Faros calls it "the Acceleration Whiplash: real throughput gains at the top,
-compounding quality costs at every stage below." The Harvard study's summary:
-"AI coding agents are not productivity multipliers — they are throughput
-redistributors."
+Faros calls the pattern "the Acceleration Whiplash". The Harvard paper finds
+more code and more commits without a measurable increase in shipped software.
 
 {% <note kind="tip"> %}
 **The test is simple.** If your process has a ceremony that exists to
@@ -175,17 +173,17 @@ means either waiting for the box to open or padding the work to fill it.
 
 The practitioners who built Scrum and the Agile Manifesto say so themselves.
 Ron Jeffries, XP co-creator: "SAFe gives some lip service to [continuous
-delivery] but its training and focus push toward synchronizing, not continuous
-delivery"[^jeffries]. Ten Agile Manifesto co-authors: they "all advise against
-adopting SAFe"[^safe-delusion]. CMU SEI measured the overhead: developers
+delivery] … but its training and focus push toward synchronizing, not continuous
+delivery"[^jeffries]. Eight Agile Manifesto signatories are among the critics
+collected at safedelusion.com[^safe-delusion]. CMU SEI measured the overhead: developers
 average 10.3 direct hours per week; "limiting time spent in meetings can be
 worth a 15–25% productivity boost"[^sei-meetings].
 
 doubleSlash puts the mismatch directly: "AI coding agents deliver features in
 hours instead of weeks. If code is ready at any time — why do we still plan in
-two-week sprints?"[^doubleslash]. Even Scrum.org published an "AI Augmented
-Scrum Framework" conceding that bot tasks "should be measured by... the human
-validation time required"[^scrum-org-ai] — an admission that story points stop
+two-week sprints?"[^doubleslash]. A community post on Scrum.org, "AI Augmented
+Scrum Framework", argues that bot tasks "should be measured by... the human
+validation time required"[^scrum-org-ai], which concedes that story points stop
 proxying for effort once agents write the code.
 
 | SAFe element | What it optimises for | What an agent factory needs |
@@ -205,26 +203,29 @@ can verify (agents handle it, uncapped) and what needs a human decision
 
 ## What fits: Kanban with gates
 
-Kanban was built for flow, not for cycles. Four principles, each with a direct
-analogue in the line:
+Kanban was built for flow. Four of the five core practices in David
+Anderson's method have a direct analogue in the line:
 
-| Kanban principle | In the agent factory |
+| Kanban practice | In the agent factory |
 |---|---|
 | Visualise the flow | Agent runs, reviews, gates, decision queue — all on one board |
 | Limit WIP | Not "how many agents can run" but "how many decisions can wait" |
 | Manage flow | The bottleneck is the verification queue, not the generation queue |
-| Improve continuously | Process metrics: files per change, fix share, decision latency |
+| Improve collaboratively | Process metrics: files per change, fix share, decision latency |
 
 The WIP limit is the part that matters most. In [The machine arrived before
 the factory](/blog/the-machine-arrived-before-the-factory/) we split the
 backlog on the oracle axis: issues whose fix a mechanical check can confirm go
 to the agents without a cap, and only issues that need a scope, architecture
-or priority decision count against a **ratchet** — a WIP limit that only
+or priority decision count against a **ratchet**: a WIP limit that only
 counts issues needing human decisions, and can only tighten, never loosen.
+The ratchet is merged but not yet armed on a schedule, and floors are
+recorded for three of five repositories.
 
-Yuval Yeret puts it precisely: "WIP limits should still mainly reflect human
-capacity and attention… Human attention for steering, review, integration, and
-deciding what matters is usually more scarce than agent runtime"[^yeret-wip].
+Yuval Yeret puts it precisely: "Human attention for steering, review,
+integration, and deciding what matters is usually more scarce than agent
+runtime." And further on: "WIP limits should still mainly reflect human
+capacity and attention"[^yeret-wip].
 BusinessMap adds the missing piece: "WIP limits controlled the number of active
 tasks — not the number of pending decisions. Cards could sit neatly within our
 WIP boundaries yet remain frozen because no one had moved the decision
@@ -254,7 +255,8 @@ repos are green, which are red, which checks are pending. No meetings, no
 status emails — the dashboard is the status.
 
 The ask feature turns the dashboard into an oracle. You ask "when will this
-PR run?" and get an answer from measured data:
+PR run?" and get an answer from measured data (an edited sample; the job and
+pool names are real, the PR number is illustrative):
 
 ```
 When will it run?
@@ -285,8 +287,8 @@ metrics we now work on:
 | Flow efficiency | active time / total time | Flow Framework |
 
 The CI gate is the most mechanical gate in the factory. It runs on every
-commit, it fails when it should, and the dashboard makes its status visible
-without a meeting. This is what a gate looks like when it is real: not a
+commit, its ability to fail is proven in spar and not yet in rivet, and the
+dashboard makes its status visible without a meeting. This is what a gate looks like when it is real: not a
 slide in a review, but a dashboard you can query.
 
 *We are considering open-sourcing this dashboard. The pattern — a CI control
@@ -319,8 +321,8 @@ Kanban alone does not scale to a large organisation. Between **stations**
 need **contracts, not meetings**. The Bezos API Mandate (2002) is the canonical
 example: "Teams must communicate with each other through these interfaces.
 There will be no other form of interprocess communication allowed"[^bezos-mandate].
-Team Topologies formalizes this as **X-as-a-service**: "one team provides a
-service to another team with an API and service level expectations"[^team-topologies].
+Team Topologies formalizes this as **X-as-a-service**, where "one team provides
+and one team consumes something 'as a Service'"[^team-topologies].
 
 In automotive and aerospace — the domains closest to a hardware-software
 factory — the pattern is industry standard. AUTOSAR's main deliverable is
@@ -328,8 +330,8 @@ specifications: the layered architecture decouples application software from
 hardware, so teams integrate against the **RTE contract**, not against each
 other[^autosar]. ISO 26262 formalizes the **Hardware-Software Interface (HSI)**
 as the safety contract between HW and SW teams[^iso26262-hsi]. COVESA's
-Vehicle Signal Specification is "a common language independent of the protocol
-or serialisation format"[^covesa-vss].
+Vehicle Signal Specification describes vehicle data independently of the
+protocol that carries it[^covesa-vss].
 
 This is SAFe's idea without SAFe's bureaucracy. SAFe says "coordinate through
 ceremonies." The factory says "coordinate through artifacts and cadence."
@@ -436,9 +438,9 @@ meeting to exist.
 
 ---
 
-*Next in the arc: Can we deliver X by January? Estimation from gates and flow
-history — how to answer the customer's question when the bottleneck is
-verification, not code.*
+*Next in the arc: [Can we deliver X by January?](/blog/can-we-deliver-x-by-january/)
+Estimation from gates and flow history, for when the bottleneck is
+verification.*
 
 ## Limits
 
@@ -474,22 +476,21 @@ research. The company figures (Stripe, OpenAI, Cursor, mabl) are self-reported.
 The SAFe critiques from Agile Manifesto signatories are curated collections of
 quotes, not systematic reviews.
 
-The Kanban principles are from Anderson, *Kanban: Successful Evolutionary
-Change for Your Technology Business*, 2010 (quoted from memory). The Flow
-Framework metrics are from Kersten, *Project to Product* (2018); the Flow
-Efficiency baselines are from DeGrandis, *Making Work Visible* (2012), as
-reported by LinearB.
+The Kanban practices are from Anderson, *Kanban: Successful Evolutionary
+Change for Your Technology Business*, 2010, which lists five core practices;
+four are used here. The Flow Framework metrics are from Kersten, *Project to
+Product* (2018); the Flow Efficiency range is LinearB's.
 
-The metrics "gate potency," "decision latency," and "agent-closed vs
-human-decided ratio" are the author's own terms, coined for this post. A search
-on 25 October 2026 found no prior use in the public literature.
+"Decision latency" is an established management term. "Gate potency" is
+PulseEngine's own term, introduced with the `gate-potency` skill in August
+2026, and "agent-closed vs human-decided ratio" is the author's. Their
+application to an agent factory is ours.
 
 
-[^faros-2026]: Faros AI, *AI Engineering Report 2026* (22,000 developers, 4,000 teams). Vendor research; correlation across Faros customers, not a controlled study. [faros.ai](https://www.faros.ai/blog/lab-vs-reality-ai-productivity-study-findings). Secondary (vendor telemetry).
+[^faros-2026]: Faros AI, *AI Engineering Report 2026* (22,000 developers, 4,000 teams). Vendor research; correlation across Faros customers, not a controlled study. [faros.ai](https://www.faros.ai/blog/ai-acceleration-whiplash-takeaways). Secondary (vendor telemetry).
 
-[^faros-2025]: Faros AI, *The AI Productivity Paradox Report 2025* (10,000+ developers, 1,255 teams). Vendor research. [faros.ai](https://www.faros.ai/blog/key-takeaways-from-the-dora-report-2025). Secondary (vendor telemetry).
 
-[^harvard-2026]: Mark Chen and Alex Stratton, *Artificial Intelligence in the Firm: Bottlenecks in Software Production*, Harvard working paper, August 2026. ~300M work events across 718 firms. Primary (working paper, not yet peer-reviewed). [fion.ac/jellyfish.pdf](https://fion.ac/jellyfish.pdf). Coverage: [Ars Technica](https://arstechnica.com/ai/2026/10/ai-coding-agents-generate-more-code-but-not-more-software/).
+[^harvard-2026]: Fiona Chen and James Stratton, *Artificial Intelligence in the Firm: Bottlenecks in Software Production*, Harvard working paper, August 2026. ~300M work events across 718 firms. Primary (working paper, not yet peer-reviewed). [fion.ac/jellyfish.pdf](https://fion.ac/jellyfish.pdf). Coverage: [Ars Technica](https://arstechnica.com/ai/2026/10/ai-coding-agents-generate-more-code-but-not-more-software/).
 
 [^metr-2025]: Joel Becker, Nate Rush, Beth Barnes, David Rein (METR), *Measuring the Impact of Early-2025 AI on Experienced Open-Source Developer Productivity*, arXiv:2507.09089, July 2025. Primary (RCT, 16 developers, 246 tasks). [arxiv.org/abs/2507.09089](https://arxiv.org/abs/2507.09089). METR's Feb 2026 update [metr.org](https://metr.org/blog/2026-02-24-uplift-update/) revises the methodology; the 19% figure is restated, not withdrawn.
 
@@ -498,17 +499,11 @@ on 25 October 2026 found no prior use in the public literature.
 
 [^osmani-factories]: Addy Osmani, *Software Factories, Light and Dark*, 20 July 2026. [addyosmani.com](https://addyosmani.com/blog/software-factories/). Primary (practitioner essay).
 
-[^osmani-agentic]: Addy Osmani, *Agentic Engineering*. [addyosmani.com](https://addyosmani.com/blog/agentic-engineering/). Primary (practitioner essay).
 
-[^oreilly-orchestrator]: O'Reilly Radar, *Conductors to Orchestrators: The Future of Agentic Coding*. [oreilly.com](https://www.oreilly.com/radar/conductors-to-orchestrators-the-future-of-agentic-coding/). Secondary (interview/essay).
 
-[^herrmann-delegation]: Werner Herrmann and Maximilian Schmidt, *Delegation Interaction: A Paradigm Shift in Human-AI Collaboration*, AutomationXP 2026. [matthiasbaldauf.com](https://matthiasbaldauf.com/automationxp26/papers/AutomationXP26_paper_8866.pdf). Primary (workshop paper).
 
-[^karpathy-software3]: Andrej Karpathy, *Software Is Changing (Again)*, YC Startup Library, February 2026. Primary (talk transcript). [ycombinator.com](https://www.ycombinator.com/library/MW-andrej-karpathy-software-is-changing-again).
 
-[^stripe-minions]: Stripe, *Minions: Stripe's one-shot end-to-end coding agents* (part 2). [stripe.dev](https://stripe.dev/blog/minions-stripes-one-shot-end-to-end-coding-agents-part-2). Primary (engineering blog, self-reported figures).
 
-[^openai-harness]: OpenAI, *Harness Engineering: Leveraging Codex in an Agent-First World*. [openai.com](https://openai.com/index/harness-engineering/). Primary (engineering blog, self-reported figures).
 
 [^ona-summit]: Ona, *Background Agents Summit* recap (Stripe, Uber, Monzo, Cloudflare, Harvey, AWS, Genentech). [ona.com](https://ona.com/stories/background-agents-summit). Secondary (event recap).
 
@@ -517,22 +512,21 @@ on 25 October 2026 found no prior use in the public literature.
 
 [^safe-history]: Dean Leffingwell, *Scaling Software Agility: Best Practices for Large Enterprises*, Addison-Wesley, 2007 (first formal description); SAFe 1.0 released 2011; SAFe 6.0 released March 2023. [Wikipedia](https://en.wikipedia.org/wiki/Scaled_agile_framework). Secondary (encyclopedia). The framework was designed in 2011, before coding agents existed, for organisations where humans wrote code in months.
 
-[^safe-delusion]: SAFe Delusion, *A Collection of Comments from Leading Experts* (10 Agile Manifesto co-authors, 74 sources). [safedelusion.com](https://safedelusion.com/). Secondary (curated collection).
+[^safe-delusion]: SAFe Delusion, *A Collection of Comments from Leading Experts* (8 Agile Manifesto signatories among 74 cited sources). [safedelusion.com](https://safedelusion.com/). Secondary (curated collection).
 
 [^doubleslash]: doubleSlash, *Sprints in the AI Age: Why AI Coding Agents Break the Two-Week Cycle*. [blog.doubleslash.de](https://blog.doubleslash.de/en/software-technologien/devops/sprints-in-the-ai-age-ai-coding-agents/). Primary (practitioner blog).
 
 [^sei-meetings]: Bill Nichols, CMU Software Engineering Institute, *Stop Wasting Time: Manage Time as the Limiting Resource* (study of 111 teams). [sei.cmu.edu](https://www.sei.cmu.edu/blog/stop-wasting-time-manage-time-as-the-limiting-resource/). Primary (research blog).
 
-[^scrum-org-ai]: Scrum.org, *AI Augmented Scrum Framework: When Half Your Team is Autonomous Agents*, 2026. [scrum.org](https://www.scrum.org/resources/blog/ai-augmented-scrum-framework-when-half-your-team-autonomous-agents). Primary (framework vendor publication).
+[^scrum-org-ai]: Sanjay Saini, *AI Augmented Scrum Framework: When Half Your Team is Autonomous Agents*, community post on Scrum.org, 2026. [scrum.org](https://www.scrum.org/resources/blog/ai-augmented-scrum-framework-when-half-your-team-autonomous-agents). Secondary (community post).
 
 
 [^yeret-wip]: Yuval Yeret, *Calculate Kanban WIP Limits in the AI Age* and *Limiting Work-in-Progress (WIP) in Scrum with Kanban*. [yuvalyeret.com](https://yuvalyeret.com/blog/calculate-kanban-wip-limits-ai-age/). Primary (practitioner blog).
 
 [^businessmap-decisions]: BusinessMap/ProofHub, *Using Kanban for Better Decision Making*. [businessmap.io](https://businessmap.io/blog/using-kanban-for-better-decision). Secondary (vendor blog, cites CHAOS Report).
 
-[^kersten-flow]: Mik Kersten, *Project to Product: How to Survive and Thrive in the Age of Digital Disruption with the Flow Framework*, IT Revolution, 2018. Primary (book). Flow Framework: [flowframework.org](https://flowframework.org/).
+[^kersten-flow]: Mik Kersten, *Project to Product: How to Survive and Thrive in the Age of Digital Disruption with the Flow Framework*, IT Revolution, 2018. Primary (book).
 
-[^flyvbjerg]: Bent Flyvbjerg, *Reference Class Forecasting in Planning and Forecasting*, 2021. Primary (book). The method: estimate from the actuals of similar past projects, not from a bottom-up estimate of the current project.
 
 [^linearb-flow]: LinearB, *5 Key Flow Metrics*. [linearb.io](https://linearb.io/blog/5-key-flow-metrics). Secondary (vendor blog, cites DeGrandis).
 
@@ -549,10 +543,14 @@ on 25 October 2026 found no prior use in the public literature.
 
 [^covesa-vss]: COVESA, *Vehicle Signal Specification (VSS)*. [covesa.github.io](https://covesa.github.io/vehicle_signal_specification/). Primary (open standard).
 
+
+*Corrected on 27 October 2026: the Harvard authors' names and findings, the DORA, Team Topologies, COVESA and Yeret quotes, the Faros figures and link, the Background Agents Summit participants, the safedelusion.com count, the Kanban practices, the ratchet's status, the CI gate's proven potency, and the claim that "gate potency" and "decision latency" were coined here.*
+
 ---
 
-*This post is part of [PulseEngine](/) — a formally verified WebAssembly
-Component Model engine for safety-critical systems. Recent posts:
+*This post is part of [PulseEngine](/) — a WebAssembly Component Model engine
+for safety-critical systems, with formally verified components (work in
+progress). Recent posts:
 [The machine arrived before the factory](/blog/the-machine-arrived-before-the-factory/),
 [Agents don't tidy up](/blog/agents-dont-tidy-up/),
 [AI in the product, not AI in the toolchain](/blog/ai-in-the-product-not-the-toolchain/).*

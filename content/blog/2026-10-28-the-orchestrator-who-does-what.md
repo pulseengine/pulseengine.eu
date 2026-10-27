@@ -4,6 +4,8 @@ description = "Bottlenecks will always exist — hardware contention, CI queues,
 date = 2026-10-28
 draft = true
 ready = true
+# held 2026-10-27: quotes and tool output need correcting before publication
+hold = true
 [taxonomies]
 tags = ["process", "ai-agents", "orchestration", "deep-dive"]
 authors = ["Ralf Anton Beier"]
@@ -1040,8 +1042,9 @@ measured outcome.
 
 ---
 
-*This post is part of [PulseEngine](/) — a formally verified WebAssembly
-Component Model engine for safety-critical systems. Recent posts:
+*This post is part of [PulseEngine](/) — a WebAssembly Component Model engine
+for safety-critical systems, with formally verified components (work in
+progress). Recent posts:
 [SAFe was built for slow humans](/blog/safe-was-built-for-slow-humans/),
 [Can we deliver X by January?](/blog/can-we-deliver-x-by-january/),
 [The machine arrived before the factory](/blog/the-machine-arrived-before-the-factory/).*
