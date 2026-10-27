@@ -1,6 +1,6 @@
 +++
 title = "ASPICE is not a queue of approvals. A requirement is only real if something can challenge it."
-description = "Read ASPICE as a design pattern for tracing intent to verified behavior, and a requirement matters only if a test, proof, simulation or hardware run can fail against it. Measured in gale on 26 October 2026: 53 of 329 software requirements lack a verification-criteria field, 11 have neither criteria nor a verification link, and no test results are recorded yet."
+description = "Read ASPICE as a design pattern for tracing intent to verified behavior, and a requirement matters only if a test, proof, simulation or hardware run can fail against it. Measured in gale on 26 October 2026: 27 of 329 software requirements have no verification measure linked, and none of the 302 that do has a recorded result yet."
 date = 2026-10-30
 draft = true
 [taxonomies]
@@ -17,11 +17,11 @@ to fail against a requirement. A requirement nothing can fail against is a
 wish, however many approvals it carries.
 
 We measured our own repositories against that bar. gale has 491
-requirements, 329 of them software requirements. 53 of the 329 have no
-`verification-criteria` field. Most of those still have a verification
-measure linked, but 11 have neither criteria nor a link. Of 276
-verification artifacts, 252 declare a method and only 2 of those declare
-human review. None of them has a recorded result in rivet yet.
+requirements, 329 of them software requirements. 27 of the 329 have no
+verification measure linked, so nothing currently challenges them. The
+other 302 have a measure linked, and none has a recorded result in rivet
+yet. Of 276 verification artifacts, 252 declare a method, and 2 of those
+declare human review.
 {% </insight> %}
 
 [The first post](/blog/safe-was-built-for-slow-humans/) argued that the
@@ -42,14 +42,13 @@ either of them as written. Wishes are expensive because they look like
 requirements. An assessor reads them, the traceability matrix lists them,
 and they count toward coverage while constraining nothing.
 
-Three nearby states are often lumped in with wishes, and each needs a
-different triage. A **deferred intention** is scoped for later and marked
-`proposed` or `draft`. An **unimplemented obligation** states its criteria
-but has no verification measure yet, so it needs a gate. An **unverified
-artifact** has a measure linked but no result recorded against it: it can
-be challenged and has not been yet, so its test needs to run and report.
-Below, "wish" means the strict case, a requirement with neither criteria nor
-a linked measure.
+Wishes come in two kinds that need different triage. A **deferred
+intention** is scoped for later, marked `proposed` or `draft`, and may not
+state its criteria yet. An **unimplemented obligation** states its criteria
+but has no verification measure, so it needs a gate. A third state is close
+to both and is not a wish: an **unverified artifact** has a measure linked
+but no result recorded against it. It can be challenged and has not been
+yet, so its test needs to run and report.
 
 A wish also cannot be estimated. The [estimation
 post](/blog/can-we-deliver-x-by-january/) counts gates passed per week, and a
@@ -85,8 +84,8 @@ a V-model and a spiral are all acceptable lifecycles, as long as the
 project defines the one it uses.
 
 None of this is new in 4.1. The 4.0 release of October 2023 was the
-complete revision: it replaced "work products" with "information items",
-already merged traceability and consistency into a single base practice
+complete revision: it introduced "information items" as the
+result-oriented assessment indicators, already merged traceability and consistency into a single base practice
 ("Ensure consistency and establish bidirectional traceability"), and
 already contained §3.3.4. PAM 4.1, released on 24 August 2026, describes
 itself in its own document history as the removal of MLE.2 BP5 plus
@@ -134,7 +133,8 @@ wishes, because nothing in the mapping asks whether a test can fail against
 them. This is the same trap [the SAFe post](/blog/safe-was-built-for-slow-humans/)
 described: the existing process with new labels.
 
-The other direction maps the work into what the PAM describes:
+The other direction maps the work into what the PAM describes, as in this
+table:
 
 | Instead of... | Do this... |
 |---|---|
@@ -267,33 +267,41 @@ releases as scoped sets of artifacts. Here is gale measured with it on
 | 53 of 329 | Software requirements without that field | same |
 | 42 of 53 | ...of which have an incoming `verifies` link | same, plus the four verification types |
 | 27 of 53 | ...of which have status `verified` | same |
-| 11 of 329 | Software requirements with neither criteria nor a `verifies` link, all `proposed` | same |
+| 27 of 329 | Software requirements with no `verifies` link | same; matches `rivet coverage` |
+| 11 of 27 | ...with no criteria field either, all `proposed` | same |
+| 16 of 27 | ...with a criteria field, all `draft` or `proposed`, none with a release | same |
 | 302 of 329 | Software requirements with a `verifies` link (91.8%) | `rivet coverage`, rule `swe1-has-verification` |
 | 47 of 51 | System requirements with a `verifies` link (92.2%) | `rivet coverage`, rule `sys2-has-verification` |
 | 252 of 276 | Verification artifacts that declare a `method` | `rivet list ... --format json --full` |
 | 135 / 73 / 42 / 2 | ...declaring automated-test / formal-verification / static-analysis / review | same |
 | 0 of 485 | Artifacts with a source test marker | `rivet coverage --tests` |
 
-Calling all 53 wishes would overstate the problem. The metric is a
-missing field, and a missing field is a proxy. 42 of the 53 have a
-verification measure linked, 27 have status `verified`, and some state
-their criteria in the description instead of the field. `REQ-DRV-BREADTH-001`, for example, requires that a four-driver
-image "SHALL fit the F100 8 KiB SRAM budget" and add no trusted native
-atoms, which a build can check. The requirements that meet the definition
-of a wish are the 11 with neither criteria nor a link. All 11 are
-`proposed`; 9 are scoped to releases v0.11.0 to v1.0.0 and 2 to no release.
+A missing `verification-criteria` field is a weak proxy for a wish. 42 of
+the 53 requirements without the field have a verification measure linked,
+27 have status `verified`, and some state their criteria in the
+description. `REQ-DRV-BREADTH-001`, for example, requires that a
+four-driver image "SHALL fit the F100 8 KiB SRAM budget" and add no
+trusted-native atoms "beyond the existing four", which a build can check.
+The better count is the 27 with no linked measure. The 11 of them without a
+criteria field are all `proposed`, and 9 are scheduled for v0.11.0 to
+v1.0.0, where the gate holds them until they are verified. Several are
+concrete enough to test as written: `REQ-OS-MPU-001` requires that an
+out-of-bounds access by one tenant "faults rather than silently corrupting
+a sibling". They are deferred intentions. The other 16 state criteria and
+have no measure; all are `draft` or `proposed` with no release. They are
+the unimplemented obligations.
 
 The `0 of 485` line measures the instrument. `rivet coverage --tests`
 counts source markers such as `// rivet: verifies ...` in source and test
-files. gale records verification as separate artifacts with `verifies`
-links, so the scanner finds nothing and reports every requirement and
-design element as uncovered. relay (0 of 340) and jess (0 of 24) show the
+files. gale has no such markers and records verification as separate
+artifacts with `verifies` links, so the scanner reports all 485 system
+requirements, software requirements and detailed-design artifacts it
+checks as uncovered. relay (0 of 340) and jess (0 of 24) show the
 same. In relay#605 a maintainer re-measured with the link-based census and
 put relay's real gap at 15 artifacts rather than the 207 the issue was
 opened with; `rivet coverage` on relay gives 267 of 279 software
-requirements linked.
-
-The stages a requirement passes through, and where gale stands at each:
+requirements linked. The stages a requirement passes through, and where
+gale stands at each, are these:
 
 | Stage | What it means | gale on 26 October 2026 |
 |---|---|---|
@@ -304,8 +312,8 @@ The stages a requirement passes through, and where gale stands at each:
 
 rivet can already record results. It ships `rivet import-results --format
 junit` and `rivet verify`, which advances a requirement to `verified` when
-it has verifying test evidence. gale has not wired its CI to either, and
-its `results/` directory does not exist yet.
+it has verifying test evidence. gale's workflows call neither, and the
+`results/` directory its `rivet.yaml` names does not exist yet.
 
 ## What we get wrong
 
@@ -316,17 +324,19 @@ field. 25 of those 47 sit in eight releases (v0.3.0, v0.4.0, v0.5.0,
 v0.6.0, v0.7.0, v0.8.0, v0.9.0, v0.10.0) that `rivet release status`
 reports as "Cuttable". v0.1.0, which is not cuttable, contains none of the
 47; it is blocked because the ten semaphore requirements and their system
-requirement are `approved` and not yet `verified`. The 9 of the 11 wishes
-that carry a release sit in not-cuttable releases, and they are blocked by
-their `proposed` status, not by the missing criteria.
+requirement are `approved` and not yet `verified`. The 9 requirements with
+neither criteria nor a measure that carry a release sit in not-cuttable
+releases, and they are blocked by their `proposed` status, not by the
+missing criteria.
 rivet#1127 proposes a wish detector that would report requirements without
 criteria, so the gap is visible at the gate.
 
 **The links exist, the evidence does not.** 302 software requirements have
 a verification measure linked, and none has a recorded result. 91.8% linked
-is not 91.8% verified. rivet#1129 tracks connecting recorded results to
-`trace-results` and the release gate; the import path itself already
-exists.
+is not 91.8% verified. rivet#1129 proposes dedicated result artifacts and
+a release check that tells "no results" from "passing results". The import
+and verify commands already exist, so most of this gap is on gale's
+side.
 
 **A method field is a declaration.** 252 verification artifacts say how
 they verify, and 73 say formal verification. That is a statement about
@@ -384,8 +394,8 @@ requirement.
 
 Measure your wishes with an instrument that matches how you record
 verification. In gale, the missing-field count gives 53, the marker scanner
-gives 485, and the strict definition (no criteria and no linked measure)
-gives 11. The 11 are the wishes; the other two numbers describe the
+gives 485, and the link census gives 27. Only the 27 counts requirements
+that nothing currently challenges; the other two numbers describe the
 instruments.
 
 Treat links as the start of the trace. The trace closes when a result is
@@ -400,7 +410,8 @@ not claim compliance. All of it is work in progress.
 Measurements used rivet 0.39.0 (the version our CI pins), on gale at
 `463b3a3` (26 October 2026), relay at `21c9472` and jess at `1f93f98`. The
 commands were `rivet stats`, `rivet coverage`, `rivet coverage --tests`,
-`rivet release status <version>` for every release in gale, `rivet
+`rivet release status <version>` for every release a gale software
+requirement names, `rivet
 trace-results SWREQ-SEM-P01`, and `rivet list --type <type> --format json
 --full` for `sw-req` and the four verification types. Criteria, status,
 release and method counts come from the JSON fields; `verifies` links are
@@ -413,8 +424,8 @@ differently.
 Model*, version 4.1, 24 August 2026. Available only by download from the
 [VDA QMC Automotive SPICE page](https://vda-qmc.de/en/automotive-spice/).
 This post quotes short passages from §3.3.4, SYS.2.BP1, SYS.2.BP5, SWE.4.BP1
-and Table 1 for the purpose of commentary; the copyright remains with VDA
-QMC. The quoted passages are collected in
+and Table 1 as short quotations for commentary (quotation right); the
+copyright remains with VDA QMC. The quoted passages are collected in
 [`docs/research/aspice-pam-4.1-quotes.md`](https://github.com/pulseengine/pulseengine.eu/blob/main/docs/research/aspice-pam-4.1-quotes.md).
 
 [^iso-29148]: ISO/IEC/IEEE 29148:2018, *Systems and software engineering:
