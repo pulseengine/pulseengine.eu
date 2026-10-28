@@ -145,8 +145,8 @@ std; getting to bare metal is synth's native path, not the interpreter on-target
 [gale](https://github.com/pulseengine/gale)'s North Star is **gust** — a general,
 multi-tenant *verified OS*, where mutually-distrusting components are MPU-isolated
 over one tiny (~4-item) Rust trusted base, composed entirely from verified parts. It
-reached toward that from the other end: gale began as a formally-verified Rust
-replacement for **Zephyr** RTOS kernel primitives (39 modules across the Zephyr
+reached toward that from the other end: gale began as a Rust replacement, with Verus
+contracts on the source, for **Zephyr** RTOS kernel primitives (39 modules across the Zephyr
 kernel surface), and still provides those verified primitives — sem, mutex, msgq,
 timers — as the *supply chain* the OS composes from. Proofs run across three provers
 (Verus, Rocq, Lean), ASIL-D-targeted, and honest work-in-progress: some primitives

@@ -358,9 +358,10 @@ bound. (LLVM elides clamps all the time when the range is locally visible; the p
 is that this range lives across a component boundary it can't see.)
 
 We built a bench for exactly this — three lowerings of the same mixer, timed over
-the same proven-range inputs on the same cycle counter, with a soundness gate that
-refuses to run unless the specialised form is bit-identical to the full clamp over
-the proven range:
+the same proven-range inputs on the same cycle counter, with an exhaustive
+differential check that refuses to run unless the specialised form is
+bit-identical to the full clamp over the proven range. That is equivalence for
+those 1001 inputs, not a soundness proof of the specialisation in general:
 
 | lowering | cycles/call | vs native |
 |---|---|---|
@@ -373,7 +374,7 @@ the proven range:
 emit this yet ([synth#494](https://github.com/pulseengine/synth/issues/494) +
 [loom#240](https://github.com/pulseengine/loom/issues/240) are open); this is the
 `add` an ideal proof-carrying lowering *would* produce — hand-written, and
-soundness-gated to be bit-identical to the full clamp over the proven range, on the
+checked exhaustively to be bit-identical to the full clamp over the proven range, on the
 same qemu `-icount` bench as every other number here. It runs at less than half the
 cost of the native build.
 
@@ -438,7 +439,10 @@ embedded reference implementation is running here.
 
 ## What's still open
 
-This is a seed, and an honest one. The thesis is proven end-to-end, but the gap to
+This is a seed, and an honest one. The dissolved kernel boots on a Cortex-M3, and
+its hot path runs on STM32F100 silicon. The dissolved native code is differentially
+tested against a reference wasm runtime, not proven equivalent to the verified
+source. The gap to
 the project's 10–20%-overhead goal is real and the work is visible:
 
 - **The proof-carrying floor is the one lever still entirely ahead.** Parity is in
@@ -481,3 +485,5 @@ is a strange enough idea that it's worth writing down *while it's still being bu
 — and the building is happening across repos, by agents that should each get to
 tell their part. Consider this the gale node's entry in a record we want the synth,
 meld, loom, and wit-bindgen agents to finish with us.
+
+*Corrected on 28 October 2026: the mixer bench's check is now described as an exhaustive differential check over the proven range, rather than as a gate that guarantees soundness, and "What's still open" no longer claims an end-to-end proof of the thesis; it states what ran and that the dissolved native code is differentially tested, not proven equivalent to the source.*
