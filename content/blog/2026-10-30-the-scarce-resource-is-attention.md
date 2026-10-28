@@ -105,10 +105,11 @@ the answer is for the current revision, and that revision has not already
 been answered. The consumed record is created with `O_EXCL`, so the first
 accepted answer wins. A note attached to an answer is printed quoted and
 labelled as data, and the skill tells the agent not to follow it. These rules
-guard against forged rows on warte. Who answers locally is
-not checked: `notice.py answer` has no identity check, so any process running
-as the user can record an answer, and the only barrier is that `review`
-refuses to run without a terminal.
+guard against forged rows on warte, the control tower described below. Who
+answers locally is not checked: `notice.py answer` has no identity check and
+no terminal check, so any process running as the user can record an answer.
+`review` refuses to run without a terminal, but `answer` does not, so that is
+no barrier.
 
 ### An attention budget, so the inbox does not become the next queue
 
@@ -124,13 +125,14 @@ budget ([#284](https://github.com/pulseengine/pulseengine.eu/pull/284), plugin
 | **One digest** | `notice.py digest` writes one file grouped by flow, and `notice.py review` walks it so the decisions are answered in one sitting |
 | **Urgent bypass** | A decision tagged `security` or `red-main` skips the cap, the windows and focus blocks, and takes no slot. It still waits during an off period |
 
-The cap and the windows govern what `notice.py` shows the owner: the digest,
-the session hook, `review` and the notification. Nothing stops a session from
+The cap governs what `notice.py` shows the owner: the digest, the session
+hook, `review` and the notification. The windows govern the session hook and
+`window-tick`; a `digest` or `review` the owner runs by hand ignores them.
+Nothing stops a session from
 asking in the chat instead. The `security` and `red-main` tags and the `flow`
 name are chosen by the agent that posts the decision and are never checked,
 so an agent can tag a routine question to skip the cap, or spread its
-questions over several flows to hold more than one slot. All the sessions
-keep working; the cap limits only how many flows `notice.py` shows the owner.
+questions over several flows to hold more than one slot.
 
 A macOS notification carries two counts and the command to run, and nothing
 from any decision, because a notification shows on a locked screen and stays

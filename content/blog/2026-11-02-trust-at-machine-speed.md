@@ -69,8 +69,9 @@ product, including "a software bill of materials in a commonly used and
 machine-readable format" covering at least the top-level
 dependencies[^cra-annex]. Manufacturers must draw up the SBOM, but Annex II
 point 9 makes giving it to users optional, and Recital 77 says they should not
-be obliged to make it public. Where applicable, Annex VII point 8 has the
-manufacturer hand it to market surveillance authorities on reasoned request.
+be obliged to make it public. Where applicable, Annex VII point 8 lists the SBOM in
+the technical documentation, provided to a market surveillance authority on
+reasoned request where needed to check compliance.
 An SBOM a tool can read is one a pipeline can produce and, where the
 manufacturer shares it, a buyer's tool can parse.
 
@@ -146,7 +147,7 @@ workflow did, or that the coverage numbers are right.
 
 **Let the buyer check without you.** A signature tied to a public build
 identity shows where the bytes came from without the vendor's key and without
-the vendor's word. Re-running a claims file lets a reader re-derive the claims
+the vendor's word, trusting GitHub and Sigstore instead. Re-running a claims file lets a reader re-derive the claims
 against the repository's evidence instead of reading them. A PDF signed off by
 the vendor offers neither.
 
