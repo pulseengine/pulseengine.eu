@@ -1,6 +1,6 @@
 +++
 title = "The scarce resource is the orchestrator's attention"
-description = "On 28 October one machine ran about 22 agent sessions in parallel, and survey research published in March 2026 identifies overseeing AI agents as the strongest driver of the strain. We built a decision inbox with an attention budget: three flows may ask at a time, and questions wait for a decision window and one digest. It is days old and unmeasured; this post says what we will measure."
+description = "On 28 October one machine ran about 22 agent sessions in parallel, and survey research published in March 2026, as reported, identifies overseeing AI agents as the strongest driver of cognitive strain. We built a decision inbox with an attention budget: it shows the owner at most three asking flows at a time, and questions wait for a decision window and one digest. It is days old and unmeasured; this post says what we will measure."
 date = 2026-10-30
 draft = true
 [taxonomies]
@@ -11,17 +11,18 @@ authors = ["Ralf Anton Beier"]
 {% <insight> %}
 **With about 22 agent sessions running, the bottleneck is the one person they ask.**
 
-- On 28 October this machine had about 22 agent sessions open in parallel,
-  with meetings on top, by the owner's own count.
+- By the owner's own count, this machine had about 22 agent sessions open in
+  parallel on 28 October, with meetings on top.
 - A BCG survey of 1,488 US workers was published in HBR in March 2026. As
   reported by The Decoder, it identifies overseeing AI agents as the strongest
-  driver of the strain, and self-rated productivity peaks at three
-  simultaneous AI tools.
+  driver of what the authors call AI brain fry, and self-rated productivity
+  peaks at three simultaneous AI tools.
 - In response we shipped a decision inbox (plugin 0.44.0) and an attention
-  budget (0.45.0): at most three flows ask at a time, questions wait for a
-  decision window, one digest collects them, and security or red-`main`
-  decisions skip the queue. All of it is days old and nothing about it has
-  been measured yet.
+  budget (0.45.0): the inbox shows the owner at most three asking flows at a
+  time, questions wait for a decision window, one digest collects them, and
+  security or red-`main` decisions skip the queue. Three is a starting value
+  suggested by the study's peak; the study did not test a cap on asking
+  flows. All of it is days old and nothing about it has been measured yet.
 {% </insight> %}
 
 [SAFe was built for slow humans](/blog/safe-was-built-for-slow-humans/)
@@ -39,39 +40,42 @@ In March 2026 six authors working with BCG published "When Using AI Leads to
 paywalled, so the figures below are as reported by The Decoder and The
 Register, not read from the article itself. The survey covered 1,488
 full-time US workers. The Decoder reports that 14% of the respondents who use
-AI described the condition the authors call brain fry, which it attributes to
-excessive use or oversight of AI, and names direct oversight of AI agents as
-the strongest driver. Workers with high oversight demands reported 14% more
-mental effort and 12% more mental fatigue[^decoder-brainfry]. Those affected
-reported 33% more decision fatigue and 39% more major errors. The Register
-gives the 39% for a slightly different group, workers who felt they used too
-much AI[^register-brainfry].
+AI described what the authors call AI brain fry, which The Decoder defines as
+mental fatigue from excessive use or oversight of AI tools, and names direct
+oversight of AI agents as the strongest driver. Workers with high oversight
+demands reported 14% more mental effort and 12% more mental
+fatigue[^decoder-brainfry]. Respondents with AI brain fry reported 33% more
+decision fatigue and 39% more major errors. The Register gives the 39% for a
+slightly different group, workers who felt they used too much
+AI[^register-brainfry].
 
-The finding that matters for an orchestrator concerns concurrency. Perceived
+For an orchestrator the finding on concurrency matters most. Perceived
 productivity rises from one simultaneous AI tool to two and drops beyond
 four; in The Decoder's words, "At three tools, it peaks." The study counted
 tools a person works with at once, and its productivity measure is
 self-reported. Neither is the same as the number of agent sessions on one
-machine, so we use it as a direction and do not carry the number three over.
+machine, so we read the finding as a direction. Three is a starting value
+suggested by the study's peak; the study does not test a cap on asking flows,
+and we will tune it.
 
 A second line of work looks at volume rather than oversight. Aruna
 Ranganathan and Xingqi Maggie Ye of Berkeley Haas published "AI Doesn't
 Reduce Work—It Intensifies It" in HBR in February 2026[^hbr-intensify]. As
 reported by heise, it is an eight-month field study, April to December 2025,
 of a US tech company with about 200 employees, in which people using AI took
-on more tasks, worked longer and switched between tasks more
-often[^heise-intensify]. The study is still running and heise gives no
-percentages.
+on a broader range of tasks, worked longer hours and switched constantly
+between tasks[^heise-intensify]. The study is still running and heise gives
+no percentages.
 
 ## Our own case
 
-On 28 October, with those sessions open and meetings on top, the owner
-reported himself overloaded. The same morning the record in
+On 28 October, with about 22 agent sessions open and meetings on top, the
+owner reported himself overloaded. The same morning the record in
 [#280](https://github.com/pulseengine/pulseengine.eu/pull/280) counts 53 pull
-requests opened across the organisation by 07:00 UTC, many of them one-line
-documentation edits, while all 14 self-hosted runners were busy.
+requests opened across the organisation by 07:00 UTC, in its words "many of
+them one-line docs edits", while all 14 self-hosted runners were busy.
 
-Each session that reaches a fork asks in the chat. With 22 sessions and
+Each session that reaches a fork asks in the chat. With about 22 sessions and
 meetings in between, one person answers questions in arrival order, and each
 answer costs a context switch into a repository he was not thinking about.
 Nothing limited how many could ask at once.
@@ -88,19 +92,23 @@ The `factory-notice` skill
 0.44.0) gives an unattended agent a place to put a fork instead of asking in
 the chat and waiting. A needs-decision notice carries the question, the
 options with pros and cons, a recommendation and why, whether the step is
-reversible and what it blocks. The skill tells the agent not to take the
-fork but to continue with work that does not depend on the answer, and to
-poll for the answer each time it wakes. It is told never to apply its own
-recommendation because nobody replied, and that an irreversible step always
-waits. These are instructions in the skill; no code enforces them.
+reversible and what it blocks. The skill tells the agent to leave the fork
+open, continue with work that does not depend on the answer, and poll for the
+answer each time it wakes. It is told never to apply its own recommendation
+because nobody replied, and that an irreversible step always waits. These are
+instructions in the skill; no code enforces them.
 
-An answer is an instruction to an agent, so `notice.py` enforces four rules
-before it accepts one, each checked against the agent's local copy of the
-notice: the agent posted that notice, the option is one it offered, the
-answer is for the current revision, and that revision has not already been
-answered. The consumed record is created with `O_EXCL`, so the first accepted
-answer wins. A note attached to an answer is printed quoted and labelled as
-data, and the skill tells the agent not to follow it.
+An answer is an instruction to an agent, so `notice.py` enforces at least
+four rules before it accepts one, each checked against the agent's local copy
+of the notice: the agent posted that notice, the option is one it offered,
+the answer is for the current revision, and that revision has not already
+been answered. The consumed record is created with `O_EXCL`, so the first
+accepted answer wins. A note attached to an answer is printed quoted and
+labelled as data, and the skill tells the agent not to follow it. These rules
+guard against forged rows on warte. Who answers locally is
+not checked: `notice.py answer` has no identity check, so any process running
+as the user can record an answer, and the only barrier is that `review`
+refuses to run without a terminal.
 
 ### An attention budget, so the inbox does not become the next queue
 
@@ -110,33 +118,36 @@ budget ([#284](https://github.com/pulseengine/pulseengine.eu/pull/284), plugin
 
 | Rule | What it does |
 |---|---|
-| **Flow cap** | At most `max_asking_flows` flows ask at a time, default 3. Every other decision is queued, kept, and promoted as the flows ahead of it clear |
+| **Flow cap** | At most `max_asking_flows` flows ask at a time, default 3. Every other decision is queued and promoted as the flows ahead of it clear |
 | **Decision windows** | Outside a window the session hook shows answers waiting and a count, never a routine question. The defaults are 08:30 to 09:00 and 17:00 to 17:30 |
-| **Focus blocks and off periods** | No notification in a focus block. During an off period nothing surfaces and nothing notifies, and the next window's digest covers the gap |
+| **Focus blocks and off periods** | No routine notification in a focus block. During an off period nothing surfaces and nothing notifies, and the next window's digest covers the gap |
 | **One digest** | `notice.py digest` writes one file grouped by flow, and `notice.py review` walks it so the decisions are answered in one sitting |
 | **Urgent bypass** | A decision tagged `security` or `red-main` skips the cap, the windows and focus blocks, and takes no slot. It still waits during an off period |
+
+The cap and the windows govern what `notice.py` shows the owner: the digest,
+the session hook, `review` and the notification. Nothing stops a session from
+asking in the chat instead. The `security` and `red-main` tags and the `flow`
+name are chosen by the agent that posts the decision and are never checked,
+so an agent can tag a routine question to skip the cap, or spread its
+questions over several flows to hold more than one slot. All the sessions
+keep working; the cap limits only how many flows `notice.py` shows the owner.
 
 A macOS notification carries two counts and the command to run, and nothing
 from any decision, because a notification shows on a locked screen and stays
 in the notification history.
 
-The cap of three is our choice, informed by the study's peak at three
-simultaneous tools. The study did not test a cap on asking flows. The cap
-limits how many flows may put a question to the owner, and all 22 sessions
-keep working.
-
 ### Admission and batching, so pull requests do not flood the same person
 
 [#280](https://github.com/pulseengine/pulseengine.eu/pull/280) (plugin
 0.43.0) attacks the same problem from the CI side. Before an agent opens a
-pull request, the `ci-status` skill tells it to check the queue. A
-documentation change is batched onto the session's own open pull request in
-that repository, or held, when the repository has a queued run or the session
-already has an open pull request there. A fix or feature is held at five or
-more queued runs. Security fixes and fixes for a red `main` always open.
-These are starting thresholds, and the skill treats admission as advice to
-the agent rather than a gate. Fewer, larger pull requests mean fewer CI runs
-and fewer reviews to schedule.
+pull request, the `ci-status` skill tells it to check the queue. When the
+repository has a queued run, or the session already has an open pull request
+there, a documentation change is added to that pull request if one exists
+and held otherwise. A fix or feature is held at five or more queued runs.
+Security fixes and fixes for a red `main` always open. These are starting
+thresholds. All of admission is an instruction in the skill; no code enforces
+it, and when no source answers the agent opens anyway. Fewer, larger pull
+requests mean fewer CI runs and fewer reviews to schedule.
 
 ### One schedule for every machine, still planned
 
@@ -150,38 +161,48 @@ built-in defaults, and says which source it used.
 
 ## What is not true yet
 
-As of 28 October, the scheduled `window-tick` that writes the digest every 10
-minutes is not installed on this machine, and one agent has posted one
-notice. Writes to the deployed warte need a bearer token that no warte route
-or CLI command we found issues yet, so notices stay in the local outbox and
-the owner answers locally. An agent picks up an answer when it next wakes and
-polls; nothing wakes it. There is no baseline for the old setup either,
-because nobody counted the load while 22 sessions asked in the chat.
+As of 28 October, the scheduled `window-tick`, which runs every 10 minutes
+and writes the digest in each window, is not installed on this machine. One
+agent has posted one notice, a `session-summary`, so no decision has gone
+through the budget yet. Writes to the deployed warte need a bearer token, and
+we found no warte route or CLI command that issues one yet, so notices stay
+in the local outbox and the owner answers locally. An agent picks up an
+answer when it next wakes and polls; nothing wakes it. There is no baseline
+for the old setup either, because nobody counted the load while the sessions
+asked in the chat.
 
 ## What we will measure
 
 The instrument is the load line the digest opens with: open decisions, how
 many are surfaced and how many queued, flows asking, the age of the oldest
-open decision, and
-decisions answered in the last 7 days. The first digest after `window-tick`
-is installed is week 0, a reading of the budget itself rather than of the old
-setup, and we will record the line once a week from then. Alongside it we
-will record decisions posted per week and the number of agents posting,
-which the digest does not print.
+open decision, and decisions answered in the last 7 days. Flows asking counts
+every flow with an open decision, queued ones included, so it can exceed
+three. The first digest after `window-tick` is installed is week 0, a reading
+of the budget itself rather than of the old setup, and we will record the
+line once a week from then. Alongside it we will record decisions posted per
+week, counted from the `needs-decision` notices by `opened_at` in the local
+store, and the number of agents posting, counted from the agent directories
+in it. The digest prints neither, and the store is per machine, so both
+counts cover this machine only.
 
-Three readings would show the budget working. The oldest open decision
-should stay under 48 hours at every weekly reading, because a cap that makes
-questions wait for weeks means the bottleneck has only moved; a weekly
-snapshot can miss a spike between readings. Decisions answered should hold
-steady or rise as a share of decisions posted, since the raw count will rise
-with adoption anyway. How often the owner is interrupted is not measured, and
-nothing records it. If the oldest age climbs week on week, the cap is too
-tight or the windows too short, and the settings change. We will report the
-first four weeks of readings in a follow-up post, with every settings change
-and its date.
+The budget is working if the oldest open decision stays under 48 hours at
+every weekly reading, because a cap that makes questions wait for weeks means
+the bottleneck has only moved; a weekly snapshot can miss a spike between readings. The criterion assumes windows on
+every day, as the defaults have; a Monday-to-Friday schedule leaves about 63
+hours from Friday 17:30 to Monday 08:30. If the oldest age climbs week on
+week, the cap is too tight or the windows too short, and the settings change.
+If it stays over 48 hours for two weekly readings after a settings change,
+the budget has moved the bottleneck and we will say so. We will also report
+decisions answered against decisions posted, as a figure without a
+threshold, because the answered count includes answers to older decisions and
+the ratio can exceed one. We will report the first four weeks of readings in
+a follow-up post, with every settings change and its date.
 
-These readings cover throughput and latency. They say nothing about the
-owner's strain, which the study measured by self-report.
+These readings cover throughput and latency. Once installed, `window-tick`
+logs on every tick inside a window whether it notified, which gives a partial
+count of inbox notifications. Nothing records how often the owner is
+interrupted in the chat, and nothing measures his strain, which the study
+measured by self-report.
 
 ## Limits and sources
 
@@ -190,8 +211,10 @@ own count from 28 October, not an instrumented measurement. The research
 figures are a single survey of US workers, reported through secondary
 coverage because the primary article is paywalled, and they measure
 simultaneous AI tools, not agent sessions. The mechanism is described from
-the merged pull requests and the skill's documentation in this repository,
-read on 28 October 2026. Whether it reduces the load is not yet known.
+the merged pull requests, the skill's documentation and `notice.py` in this
+repository, read on 28 October 2026. Questions an agent moves to the chat do
+not appear in the load line, so the line can look better than the owner's
+day was. Whether the budget reduces the load is not yet known.
 
 [^hbr-brainfry]: Julie Bedard, Matthew Kropp, Megan Hsu, Olivia T. Karaman, Jason Hawes and Gabriella Rosen Kellerman, *When Using AI Leads to "Brain Fry"*, Harvard Business Review, 5 March 2026. [hbr.org](https://hbr.org/2026/03/when-using-ai-leads-to-brain-fry). Primary, paywalled; authors and date read from the article page. The figures in this post come from the coverage below.
 

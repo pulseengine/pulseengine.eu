@@ -1,6 +1,6 @@
 +++
 title = "Trust at machine speed"
-description = "At machine speed, the team that pulls away is the one whose evidence is produced automatically. Europe's regulation has started asking for some evidence in machine-readable form, while German assessment practice, in the author's observation, still has people assemble and read most of it. What PulseEngine has today: claims checked in CI, traceability in rivet, and a release signature a buyer can check without the vendor's key."
+description = "Trust is an advantage at machine speed only when a machine can check it. Europe's regulation has started asking for some evidence in machine-readable form, while German assessment practice, in the author's observation, still has people assemble and read most of it. What PulseEngine has today: claims checked in CI, traceability in rivet, and a release signature a buyer can check without the vendor's key."
 date = 2026-11-02
 draft = true
 [taxonomies]
@@ -11,15 +11,16 @@ authors = ["Ralf Anton Beier"]
 {% <insight> %}
 **Trust is an advantage at machine speed only when a machine can check it.**
 
-- Slow and safe gets overtaken. Fast without evidence stalls at its first
-  audit or incident. Fast with evidence produced in CI pulls away.
+- Of three kinds of team, slow and safe gets overtaken, fast without evidence
+  stalls at its first audit or incident, and fast with evidence produced in CI
+  pulls away.
 - The EU moved the AI Act's high-risk rules to December 2027 and August 2028.
   The Cyber Resilience Act will require a software bill of materials in a
   machine-readable format from December 2027.
-- German practice around ISO 26262 and ASPICE, often with TÜV assessment, has
-  the evidence culture. In the author's observation, people still assemble and
-  read most of that evidence.
-- We put PulseEngine's evidence in CI and in signed release files. On
+- Germany has the evidence culture: ISO 26262 functional-safety assessment,
+  often by TÜV, and ASPICE assessments by intacs-certified assessors. In the
+  author's observation, people still assemble and read most of that evidence.
+- We put some of PulseEngine's evidence in CI and in signed release files. On
   28 October we checked one release archive's signature with cosign, without
   any key from us, and a one-byte change made the check fail.
 {% </insight> %}
@@ -39,10 +40,7 @@ Agents add a third kind of team to the usual two:
 |---|---|---|
 | **Slow and safe** | Reviews, documents and sign-offs by people | Overtaken. Its evidence costs the same per change whether an agent or a person wrote the change |
 | **Fast without evidence** | None, or claims in a README | Stalls at the first audit, customer questionnaire or incident, when the evidence has to be produced after the fact |
-| **Fast with automated evidence** | Checks that run on every change, results that are stored and signed | Pulls away. Evidence is a by-product of the pipeline, so its cost does not grow with the number of changes |
-
-The third team moves trust from people reading documents to machines checking
-results, so it reaches the same audit with the evidence already on file.
+| **Fast with automated evidence** | Checks that run on every change, results that are stored and signed | Pulls away. Machines check results instead of people reading documents, and evidence is a by-product of the pipeline, so its cost does not grow with the number of changes and it is already on file at the audit |
 
 ## What Europe changed this year
 
@@ -55,14 +53,14 @@ areas such as biometrics, education and employment apply from 2 December
 2 August 2028. Per the Commission's AI Act page, the amendments entered into
 force on 27 July 2026[^ec-ai-framework].
 
-The push behind it is older. Mario Draghi's report on European
+The argument for simplification is older. Mario Draghi's report on European
 competitiveness, September 2024, counted "around 100 tech-focused laws" and
 over 270 regulators active in digital networks across the member states. As
 an example of the precautionary, ex-ante approach it named the AI Act's extra
 requirements for general-purpose AI models above a computational-power
 threshold[^draghi]. We do not claim the report caused the omnibus.
 
-The obligations that remain still need evidence, and some of it is now
+The remaining obligations still need evidence, and some of it is now
 specified as machine-readable. The Cyber Resilience Act, Regulation (EU)
 2024/2847, has applied its reporting obligations since 11 September 2026,
 and its main obligations apply from 11 December 2027[^ec-cra]. Annex I asks
@@ -71,31 +69,27 @@ product, including "a software bill of materials in a commonly used and
 machine-readable format" covering at least the top-level
 dependencies[^cra-annex]. Manufacturers must draw up the SBOM, but Annex II
 point 9 makes giving it to users optional, and Recital 77 says they should not
-be obliged to make it public. An SBOM a tool can read is one a pipeline can
-produce and, where the manufacturer shares it, a buyer's tool can parse.
+be obliged to make it public. Where applicable, Annex VII point 8 has the
+manufacturer hand it to market surveillance authorities on reasoned request.
+An SBOM a tool can read is one a pipeline can produce and, where the
+manufacturer shares it, a buyer's tool can parse.
 
 ## Germany: the evidence culture and its form
 
-Germany's engineering trust rests on institutions: German practice around
-ISO 26262 for functional safety in road vehicles and Automotive SPICE for
-process capability, often with TÜV assessment. In the author's observation,
-the evidence in that practice is mostly assembled and read by people:
+In Germany, trust in safety-related software rests on ISO 26262
+functional-safety assessment, often by TÜV, and on ASPICE assessments by
+intacs-certified assessors. In the author's observation, the evidence in
+that practice is mostly assembled and read by people:
 documents, review records and assessment interviews. That suits a team that
 ships a few times a year. It does not suit a line where agents produce
 reviewed changes in hours, because each change waits for a person to read its
 evidence.
 
-gale has 302 of its 329 software requirements linked to a verification
-measure in rivet, measured on 26 October, and none of them has a recorded
-result, because gale's CI imports no test results into rivet ([ASPICE is not
-a queue](/blog/aspice-is-not-a-queue/)). The links are machine-checked. The
-evidence that the checks passed is not yet in the trace.
-
 ## What PulseEngine has, and what it shows
 
 PulseEngine is a WebAssembly Component Model engine for safety-critical
-systems, with machine-checked proofs for parts of it, and all of it is work
-in progress. Three parts of it are relevant to trust.
+systems, with machine-checked proofs for parts of it; everything is work in
+progress. Three of its pieces bear on trust.
 
 **Claims checked in CI.** This site's repository keeps its load-bearing
 claims in `claims.yaml`, each bound to evidence a script can re-derive. CI
@@ -107,13 +101,23 @@ build instead of waiting for a reader to notice.
 links requirements to design, code and verification measures, and this
 site's CI runs `rivet validate` on every pull request.
 
+gale, one of the PulseEngine repositories, has 302 of its 329 software
+requirements linked to a verification measure in rivet, measured on 26
+October, and none of them has a recorded result, because gale's CI imports no
+test results into rivet ([ASPICE is not a queue](/blog/aspice-is-not-a-queue/)).
+`rivet validate` checks that each link resolves. The evidence that the checks
+passed is not yet in the trace.
+
 **Signed release evidence.** [witness](https://github.com/pulseengine/witness)
 measures MC/DC-style branch coverage for WebAssembly components. Each release
 since v0.6.4 ships a compliance-evidence archive with per-verdict coverage
-reports and in-toto statements. The in-toto statements are signed with an
-ephemeral key shipped in the archive, and the archive itself carries a
-Sigstore keyless signature. Its README positions witness as supplementary
-evidence in a qualification dossier until v1.0. On 28 October we downloaded
+reports and in-toto statements. Each in-toto statement is DSSE-signed with a
+per-release ephemeral Ed25519 key, whose public half ships in the archive,
+and each also ships with its own Sigstore keyless certificate and signature,
+which we did not check. A signature checked against a key shipped with the
+data does not show where the data came from; a keyless signature can. Since v0.10.0 the archive itself also carries a Sigstore
+keyless signature. Its README positions witness as supplementary evidence in a
+qualification dossier until v1.0. On 28 October we downloaded
 the v0.45.0 archive and checked its keyless signature with cosign 3.1.2
 against the Sigstore certificate published with it (two flag-deprecation
 warnings removed from the output):
@@ -133,16 +137,18 @@ at `refs/tags/v0.45.0`. With one byte appended to the archive, the same
 command exited 1. Neither step used a key we hold. The check relies on
 GitHub's OIDC token issuance and Sigstore's certificate authority and
 transparency log, which we do not control, and it needs network access to
-Sigstore's log because no bundle is shipped. It shows that a workflow run in
-our repository at that tag signed these bytes. It does not show what that
+Sigstore's log because no bundle is shipped for the archive itself; the
+release's SHA256SUMS.txt, which lists the archive's hash, does carry one. It
+shows that a workflow run in our repository at that tag signed these bytes. It does not show what that
 workflow did, or that the coverage numbers are right.
 
-## What to take from this
+## What a buyer can ask for
 
 **Let the buyer check without you.** A signature tied to a public build
-identity and a claims file a script can re-run can be checked without the
-vendor's key and without taking the vendor's word for where it came from. A
-PDF signed off by the vendor cannot.
+identity shows where the bytes came from without the vendor's key and without
+the vendor's word. Re-running a claims file lets a reader re-derive the claims
+against the repository's evidence instead of reading them. A PDF signed off by
+the vendor offers neither.
 
 **Be exact about what each check covers.** A signature shows origin, a
 coverage report shows which compiled, Wasm-level conditions the tests
@@ -165,11 +171,11 @@ is a certification or an assessment result.
 
 [^ec-ai-framework]: European Commission, *AI Act*, Shaping Europe's digital future. [digital-strategy.ec.europa.eu](https://digital-strategy.ec.europa.eu/en/policies/regulatory-framework-ai). Primary (official policy page). Source of the entry into force on 27 July 2026.
 
-[^draghi]: Mario Draghi, *The future of European competitiveness. Part A: A competitiveness strategy for Europe*, published by the European Commission, September 2024; the landing page gives 9 September 2024. [commission.europa.eu](https://commission.europa.eu/topics/eu-competitiveness/draghi-report_en). Primary (report). The report states that it "should not be considered as representative of the European Commission's official position"; the views are Draghi's. The 100 laws, 270 regulators and the AI Act compute-threshold example are from Part A.
+[^draghi]: Mario Draghi, *The future of European competitiveness. Part A: A competitiveness strategy for Europe*, published on the European Commission's site (Publications Office of the European Union edition, 2025), September 2024; the landing page gives 9 September 2024. [commission.europa.eu](https://commission.europa.eu/topics/eu-competitiveness/draghi-report_en). Primary (report). The report states that it "should not be considered as representative of the European Commission's official position"; the views are Draghi's. The 100 laws, 270 regulators and the AI Act compute-threshold example are from Part A.
 
 [^ec-cra]: European Commission, *Cyber Resilience Act*, Shaping Europe's digital future. [digital-strategy.ec.europa.eu](https://digital-strategy.ec.europa.eu/en/policies/cyber-resilience-act). Primary (official policy page). Source of the regulation number and the 11 September 2026 and 11 December 2027 dates.
 
-[^cra-annex]: Regulation (EU) 2024/2847, Annex I, Part II, point (1); also Annex II, point (9), and Recital 77. Official text at [eur-lex.europa.eu](https://eur-lex.europa.eu/eli/reg/2024/2847/oj/eng); read from the mirror at springlex.eu ([Annex I](https://www.springlex.eu/en/packages/cra/cra-regulation/annex-1/), [Annex II](https://www.springlex.eu/en/packages/cra/cra-regulation/annex-2/), [Recital 77](https://www.springlex.eu/en/packages/cra/cra-regulation/recital-77/)) because EUR-Lex did not serve the page to our client. Secondary copy of the primary text.
+[^cra-annex]: Regulation (EU) 2024/2847, Annex I, Part II, point (1); also Annex II, point (9); Annex VII, point (8); and Recital 77. Official text at [eur-lex.europa.eu](https://eur-lex.europa.eu/eli/reg/2024/2847/oj/eng); read from the mirror at springlex.eu ([Annex I](https://www.springlex.eu/en/packages/cra/cra-regulation/annex-1/), [Annex II](https://www.springlex.eu/en/packages/cra/cra-regulation/annex-2/), [Annex VII](https://www.springlex.eu/en/packages/cra/cra-regulation/annex-7/), [Recital 77](https://www.springlex.eu/en/packages/cra/cra-regulation/recital-77/)) because EUR-Lex did not serve the page to our client. Secondary copy of the primary text.
 
 ---
 
