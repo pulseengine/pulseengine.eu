@@ -26,14 +26,15 @@ PulseEngine is a WebAssembly Component Model engine for safety-critical
 systems, built largely by AI agents under one owner, and everything in it is
 work in progress. The two posts before this one,
 [on attention](/blog/the-scarce-resource-is-attention/) and
-[on trust at machine speed](/blog/trust-at-machine-speed/), each closed with
+[on trust at machine speed](/blog/trust-at-machine-speed/), each included
 a short section on what a critic would say. This post collects the critic's
 case in one place and gives it room.
 
 ## The timeline
 
-The dated evidence behind each objection, in order. The line at 28 April 2026 marks six months before the evidence
-date of this post.
+Each row is evidence behind one objection, oldest first. The bold row, 28
+April 2026, is six months before 28 October 2026, the date this post's
+sources were read.
 
 | Date | Event | Objection |
 |---|---|---|
@@ -54,6 +55,7 @@ date of this post.
 | 2026-05-07 | Political agreement on the AI Act's Digital Omnibus[^ec-omnibus] | context |
 | 2026-06-08 | Bytecode Alliance: the road to Component Model 1.0[^cm-road] | 6 |
 | 2026-06-11 | WASI 0.3.0 released[^wasi03] | 6 |
+| 2026-07-08 | Formal-mathematics survey, v1[^solvers] | 2 |
 | 2026-07-27 | Digital Omnibus on AI enters into force[^ec-ai-act] | context |
 | 2026-08-05 | Novee Security at Black Hat USA 2026, reported in a CSA note of 8 August[^csa-blackhat] | 1 |
 | 2026-08-11 | WASI 0.3.1 released[^wasi-p3] | 6 |
@@ -62,7 +64,7 @@ date of this post.
 | 2026-10-28 | Our agent workflows audited and first fix merged (plugin 0.45.1, 0.45.2); `claim-check.py` negative control; hotspot trigger shipped; review records required (#275); issue #287 opened | 1, 2, 4, 7, 8 |
 
 The two AI Act rows are context: they bear on the regulatory calendar, not
-on any one objection. In April 2026 these dates were not yet agreed. Since the
+on any one objection. Before the 7 May agreement, these application dates were not settled. Since the
 agreement, the high-risk rules apply from 2 December 2027 for systems in areas such as critical infrastructure, and from 2 August
 2028 for AI systems built into regulated products such as lifts or
 toys[^ec-omnibus].
@@ -86,12 +88,12 @@ researchers reached CI secrets in the vendors' own repositories for Claude
 Code, Gemini CLI and OpenAI Codex from an issue opened by an account with no
 repository rights[^csa-blackhat].
 
-**How it moved.** This objection is stronger now than in April. Six months
-ago the evidence was one incident in one project and a published piece of
-Novee's research, the Gemini CLI advisory, which credits Elad Meged of Novee
-Security, also credits a researcher at Pillar Security[^gemini-ghsa], and is
-tied by the CSA note to the 5 August talk. In August the same research
-reached CI secrets for Claude Code and Codex too, each in its vendor's own
+**How it moved.** This objection is stronger now than in April. In April
+the evidence was one incident in one project (Clinejection) and one
+advisory (Gemini CLI, 24 April). The advisory credits researchers at Novee
+Security and Pillar Security[^gemini-ghsa], and the CSA note ties it to the
+5 August talk. In August the same research was disclosed to have reached
+CI secrets for Claude Code and Codex too, each in its vendor's own
 repository, and the note reports comparable configurations in well over a
 hundred other public repositories[^csa-blackhat].
 
@@ -106,9 +108,9 @@ claim in this repository's `claims.yaml` (`ISSUE-TEXT-IS-UNTRUSTED-DATA`),
 so a skill that again uses one of the instruction phrasings the claim forbids
 fails the build.
 
-**Where the counter stops.** We have not published the audit, and the rest
-of its work is not described here. The audit was our own; nobody outside the
-project has reviewed our agent workflows. A rule in a skill constrains an
+**Where the counter stops.** We have not published the audit. The
+audit was our own; nobody outside the project has reviewed our agent
+workflows. A rule in a skill constrains an
 agent that follows the skill; it does not stop a model that ignores it. Valid
 as of 28 October 2026; re-check by 28 January 2027, because this
 is the fastest-moving of the eight.
@@ -134,17 +136,17 @@ by 1.3. That movement predates April. The objection is about as strong as in
 April, now restated by a survey (July 2026, revised 19 October[^solvers]).
 
 **Our counter.** We try to see a check fail before we rely on it. On 28
-October 2026 we did that for one of the 41 claims: we changed one pinned
-sentence in the operating contract that
-`ISSUE-TEXT-IS-UNTRUSTED-DATA` binds. `claim-check.py` reported 40 of 41
-claims holding and exited 1; with the change reverted it reported 41 of 41.
-Claims in `claims.yaml` are meant to be able to fail; we checked that for
-one of them. The gale
-repository keeps a
+October 2026 we did that once, for one of the 41 claims on this branch: we
+changed one pinned sentence in the operating contract that
+`ISSUE-TEXT-IS-UNTRUSTED-DATA` binds. In that one run `claim-check.py`
+reported 40 of 41 claims holding and exited 1; with the change reverted it
+reported 41 of 41. PRs #275, #288 and #289 record similar controls on other
+claims. The gale repository keeps a
 [verification-honesty ledger](https://github.com/pulseengine/gale/blob/main/docs/safety/verification-honesty.md)
 that lists what its proofs do not cover and which words not to use about
-them. The site's tagline says "machine-checked proofs for parts of it"
-because a claim in `claims.yaml` fails the build on three broader phrasings it replaced.
+them. The site's tagline says "machine-checked proofs for parts of it", and
+a claim in `claims.yaml` fails the build if any of the three broader
+phrasings it replaced comes back.
 
 **Where the counter stops.** `claims.yaml` pins text and patterns, not
 behaviour. A claim can hold while the system it describes is wrong, if the
@@ -180,23 +182,24 @@ checked whether newer models do better.
 **Our counter.** We agree with Ladkin's sentence: a model's claim to have met
 a requirement is worth nothing. That is why our claims are bound to evidence
 a script can re-check. Our argument is that certification judges whether
-lifecycle objectives were met and evidenced, and none of DO-178C's
-objectives names who or what typed the code, so model-written code is held
-to the same objectives, including the documentation Ladkin points to. The
-argument holds only if model output goes through the same verification as
-hand-written code, and whether an AI review step (objection 8) would itself
-be a tool needing qualification is an open question.
+lifecycle objectives were met and evidenced, and we know of no DO-178C
+objective, as published summaries describe them, that names who or what
+typed the code, so model-written code is held to the same objectives,
+including the documentation Ladkin points to. The argument holds only if
+model output goes through the same verification as hand-written code.
+Whether an AI review step (objection 8) would itself be a tool needing
+qualification is an open question.
 
-As DO-178C is commonly summarised, a tool needs qualification when it
-eliminates, reduces or automates a process and its output is not verified,
-and RTCA DO-330 is the guidance for qualifying it[^do330]. That covers a
-tool that produces code, as synth does by transcoding, as well as one that
-checks it, and it puts this objection on synth, meld and loom. ISO 26262 and
-IEC 61508 have their own tool clauses. We did not read the text of any of
-these standards for this post.
+**Where the counter stops.** As DO-178C is commonly summarised, a tool needs
+qualification when it eliminates, reduces or automates a process and its
+output is not verified, and RTCA DO-330 is the guidance for qualifying
+it[^do330]. That covers a tool that produces code, as synth does by
+transcoding, as well as one that checks it, and it puts this objection on
+synth, meld and loom. ISO 26262 and IEC 61508 have their own
+tool-qualification requirements. We did not read the text of any of these
+standards for this post.
 
-**Where the counter stops.** Nothing in PulseEngine is certified or
-qualified. Tool-qualification records exist in the public
+Nothing in PulseEngine is certified or qualified. Tool-qualification records exist in the public
 [relay](https://github.com/pulseengine/relay/blob/main/docs/dossier/tool-qualification/README.md)
 and
 [rivet](https://github.com/pulseengine/rivet/blob/main/docs/reference/tool-qualification.md)
@@ -222,9 +225,9 @@ productivity effect of AI tools"[^metr-2026]. The main reason was selection:
 more developers declined to work without AI. METR thinks developers were
 probably more sped up in early 2026 than in early 2025 and says its data is
 only very weak evidence for how much. So the 19% is a historical result for
-early-2025 tools. The objection was sharper in late 2025, when that slowdown
-was the latest number, and it is still unanswered: no one has a reliable
-number in either direction.
+early-2025 tools. Relative to April it has not moved; the objection was
+sharper in late 2025, when that slowdown was the latest number, and it is
+still unanswered: no one has a reliable number in either direction.
 
 **Our counter.** We do not publish productivity figures, and where we claim
 that a process change has an effect, we pre-register the test. On 22 October
@@ -256,10 +259,10 @@ supplier for the life of a safety-critical product.
 show the risk is ordinary, not to measure ours.
 
 **Our counter.** What gets built and how it is checked is written where a
-successor can read it. Requirements, design links and verification measures live in
-rivet; load-bearing claims live in `claims.yaml` with their evidence; witness
-release archives are signed, and varve's are covered by a signed checksum
-file, both checkable with cosign without a key from us; and the
+successor can read it. Requirements, design links and verification
+measures live in rivet. Load-bearing claims live in `claims.yaml` with their
+evidence. Witness release archives are signed, and varve's are covered by a
+signed checksum file, both checkable with cosign without a key from us. The
 agents' working rules live in this repository's plugin as skills and memory
 files, which a new owner's agents would load the same way.
 
@@ -281,23 +284,25 @@ not defined in the same semantic framework as core
 WebAssembly[^assemblyscript].
 
 **How it moved.** This objection is weaker than in April, when WASI 0.3 was
-still a release candidate. WASI 0.3.0 was ratified and released on 11 June
-2026, which the Bytecode Alliance calls official[^wasi03]. The same release
+still a release candidate. WASI 0.3.0 was ratified by the WASI Subgroup and
+released on 11 June 2026, which the Bytecode Alliance calls official[^wasi03]. The same release
 shows the churn: it removed `wasi:io` entirely and moved async into the
 Component Model, and 0.3.1 on 11 August 2026 required further Component
 Model features, including a `map` type[^wasi-p3].
 
 **Our counter.** On PulseEngine's ahead-of-time path, meld fuses components
 into a single core module at build time and synth transcodes it to native
-code for embedded targets; today meld's default output is multi-memory and
-it has no single-address-space lowering for microcontrollers (meld README).
-For a module that is fully dissolved and imports
+code for embedded targets. For a module that is fused into one core module and imports
 no WASI interfaces, the resulting binary does not depend on a runtime's
 Component Model implementation. Our tools ship as signed, dated varve
 layers, and a project pins one, so a change in the standard reaches a
 project only when the project moves its pin.
 
-**Where the counter stops.** Standard churn still moves our stack. meld has
+**Where the counter stops.** meld's default output keeps one memory per
+component and has no single-address-space lowering for microcontrollers; a
+shared-memory mode for such targets has to be chosen explicitly
+([meld README](https://github.com/pulseengine/meld)). Standard churn still
+moves our stack. meld has
 to follow each change in the Component Model, and its README describes its
 lowering of P3 async as partial. synth's README says WASI on embedded
 targets needs kiln-builtins, which does not exist yet, and that piece will
@@ -319,8 +324,9 @@ dates from our own critic review on 28 October 2026 and is recorded as
 **How it moved.** It is new: six months ago none of these gates existed in
 their current form.
 
-**Our counter.** We have none yet. Issue #287 proposes moving the gates into
-WASI components with no network, no subprocesses and no writes, signing them
+**Our counter.** We have none yet. Issue #287 proposes moving claim-check into
+a WASI component with no network, no subprocesses and no writes, and the
+notice answer validation into one with read-only inputs, signing them
 with sigil, and running them under wasmtime first. kiln, our interpreter and
 runtime, is the planned second host, and requiring both hosts to agree would
 make our own gates a differential test of our engine.
@@ -333,8 +339,8 @@ on kiln as well as wasmtime. Valid as of 28 October 2026; re-check when #287 clo
 **The objection and its evidence.** Our posts and many of our pull requests
 are reviewed by fresh-context agents in split roles. A reviewer from the same
 model family as the author can share its blind spots, and a label saying
-"independent review" hides that. No standard we work to treats an AI
-reviewer as an independent assessor.
+"independent review" hides that. We know of no standard we work to that
+treats an AI reviewer as an independent assessor.
 
 **How it moved.** The objection has not moved since April. On 28 October
 2026, in [#275](https://github.com/pulseengine/pulseengine.eu/pull/275), the
@@ -365,7 +371,7 @@ advisory; it is not an assessment. Valid as of 28 October 2026; re-check by
 | 4 | Productivity is a feeling | The hotspot experiment fails its pre-registered criteria and we still claim the trigger works, or anyone finds a productivity figure of ours with no measurement behind it |
 | 5 | Bus factor 1 | Someone competent tries to build and release one PulseEngine tool from its repository and artifacts alone and cannot |
 | 6 | Unfinished standard | A pinned project has to move its pin to get a fix, and the move forces a Component Model or WASI migration it did not choose |
-| 7 | You don't use your own engine | Conceded until our gates run on kiln |
+| 7 | You don't use your own engine | Conceded until our gates run on kiln as well as wasmtime (#287) |
 | 8 | Agents reviewing agents | A human or a reviewer from another model family finds a blocking error in a post our panel cleared |
 
 If you have a stronger objection than these eight, or better evidence for one
