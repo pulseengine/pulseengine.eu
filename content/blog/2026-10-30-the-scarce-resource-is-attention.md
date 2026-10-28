@@ -206,6 +206,32 @@ count of inbox notifications. Nothing records how often the owner is
 interrupted in the chat, and nothing measures his strain, which the study
 measured by self-report.
 
+## What a critic would say
+
+**"This is one person who opened 22 sessions. Run fewer."** That is the
+conclusion the cap encodes: no more than three flows reach the owner at once,
+whatever else is running. The limit is that this is n=1, on one machine, and
+the cap does not reduce the sessions themselves, so nothing here shows that
+running fewer would not have worked as well.
+
+**"You answered tool overload with another tool."** The budget's purpose is
+fewer interruptions, so the honest success criterion is a fall in
+interruptions. We can count only part of them: once installed, the
+`window-tick` log shows inbox notifications, and nothing counts the questions
+that still arrive in the chat.
+
+**"You feel faster, so you think it works."** In METR's randomised trial,
+experienced open-source developers took 19% longer with early-2025 AI tools,
+after forecasting that AI would cut their time by 24% and while estimating
+afterwards that it had cut it by 20%[^metr]. Our sense that the budget helps
+is not evidence, which is why the plan above counts decision age and
+throughput. Those counts do not measure strain either.
+
+**"The brain-fry study is self-reported, paywalled, and counts tools."** All
+three are true, and the post reports its figures through secondary coverage
+for that reason. Three is a starting value suggested by that study and
+nothing more; no study we found tests a cap on asking flows.
+
 ## Limits and sources
 
 This is one factory with one orchestrator. The session count is the owner's
@@ -227,6 +253,8 @@ day was. Whether the budget reduces the load is not yet known.
 [^hbr-intensify]: Aruna Ranganathan and Xingqi Maggie Ye, *AI Doesn't Reduce Work—It Intensifies It*, Harvard Business Review, 9 February 2026. [hbr.org](https://hbr.org/2026/02/ai-doesnt-reduce-work-it-intensifies-it). Primary, paywalled; authors, affiliation and date read from the article page.
 
 [^heise-intensify]: Malte Kirchner, *Study: AI does not make work easier, but more intense*, heise online, 10 February 2026. [heise.de](https://www.heise.de/en/news/Study-AI-does-not-make-work-easier-but-more-intense-11171288.html). Secondary (news report). Source of the study design: eight months, April to December 2025, about 200 employees.
+
+[^metr]: Joel Becker, Nate Rush, Elizabeth Barnes and David Rein, *Measuring the Impact of Early-2025 AI on Experienced Open-Source Developer Productivity*, arXiv:2507.09089, July 2025. [arxiv.org](https://arxiv.org/abs/2507.09089). Primary (randomised controlled trial). Source of the 19%, the 24% forecast and the 20% estimate, all from the abstract.
 
 ---
 

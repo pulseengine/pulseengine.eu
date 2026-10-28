@@ -58,7 +58,10 @@ competitiveness, September 2024, counted "around 100 tech-focused laws" and
 over 270 regulators active in digital networks across the member states. As
 an example of the precautionary, ex-ante approach it named the AI Act's extra
 requirements for general-purpose AI models above a computational-power
-threshold[^draghi]. We do not claim the report caused the omnibus.
+threshold[^draghi]. We do not claim the report caused the omnibus. The
+evidence on cost is mixed: an LSE discussion paper of July 2026, using patent
+data for the GDPR, the Green Deal and the AI Act, found that "no regulatory
+package was followed by an absolute decline in EU innovation"[^lse-dp93].
 
 The remaining obligations still need evidence, and some of it is now
 specified as machine-readable. The Cyber Resilience Act, Regulation (EU)
@@ -156,6 +159,42 @@ coverage report shows which compiled, Wasm-level conditions the tests
 distinguish, and a trace link shows that a check exists. None of them alone
 shows that the software is safe.
 
+## What a critic would say
+
+**"PulseEngine certifies nothing. Glass house."** Correct: nothing here is
+certified or qualified. What we claim is that the evidence can be checked, and
+for tools the route to more is qualification under RTCA DO-330, the software
+tool qualification document that accompanies DO-178C[^do330]. witness plans a
+small checker audited under DO-330 for v1.0; none of our tools has been
+qualified yet.
+
+**"Verification gives false confidence."** A proof is only as good as its
+statement. A July 2026 survey of AI-assisted formal mathematics notes that
+compilation shows a candidate elaborates, "not that it faithfully represents
+the source"[^solvers], and on the VERINA benchmark the best model, OpenAI o3,
+reached 52.3% on specification soundness and completeness and 4.9% proof
+success[^verina]. We treat a specification as an unverified artifact, and we
+check our checks with negative controls: the claim that pins the previous post was
+broken on purpose and claim-check exited 1. The limit is that `claims.yaml`
+pins text and patterns in files, not the behaviour those files describe.
+
+**"Agents reviewing agents is not independence."** The posts on this site are
+reviewed by fresh-context agents in split roles, and their findings and fixes
+are recorded in the pull request. Those reviewers share a model family with
+the author, so the review is advisory and nothing like an independent
+assessment; the human step is the owner deciding to publish.
+
+**"Your agents are the attack surface."** In the Clinejection case, an issue
+title was placed in the prompt of a triage agent with shell access, and the
+chain ended in a tampered release[^clinejection]. At Black Hat USA 2026,
+Novee Security reported that an issue from an account with no repository
+rights reached CI secrets in the vendors' own repositories for Claude Code,
+Gemini CLI and OpenAI Codex[^csa-blackhat], and Google's advisory for Gemini
+CLI rates its headless-mode flaw critical[^gemini-ghsa]. Our issue-class check
+refuses to execute issue bodies, and an agent accepts only an answer that
+names an option it offered. Our agent workflows have not yet been audited
+against this class of attack; that audit is in progress.
+
 ## Limits and sources
 
 The three kinds of team are an argument; nobody measured them. The
@@ -177,6 +216,20 @@ is a certification or an assessment result.
 [^ec-cra]: European Commission, *Cyber Resilience Act*, Shaping Europe's digital future. [digital-strategy.ec.europa.eu](https://digital-strategy.ec.europa.eu/en/policies/cyber-resilience-act). Primary (official policy page). Source of the regulation number and the 11 September 2026 and 11 December 2027 dates.
 
 [^cra-annex]: Regulation (EU) 2024/2847, Annex I, Part II, point (1); also Annex II, point (9); Annex VII, point (8); and Recital 77. Official text at [eur-lex.europa.eu](https://eur-lex.europa.eu/eli/reg/2024/2847/oj/eng); read from the mirror at springlex.eu ([Annex I](https://www.springlex.eu/en/packages/cra/cra-regulation/annex-1/), [Annex II](https://www.springlex.eu/en/packages/cra/cra-regulation/annex-2/), [Annex VII](https://www.springlex.eu/en/packages/cra/cra-regulation/annex-7/), [Recital 77](https://www.springlex.eu/en/packages/cra/cra-regulation/recital-77/)) because EUR-Lex did not serve the page to our client. Secondary copy of the primary text.
+
+[^lse-dp93]: Slobodan Tomić and Ognjen Dragičević, *Does EU Regulation Stifle Innovation? In search for a 'Brussels Innovation Effect'*, LSE CARR Discussion Paper 93, July 2026. [lse.ac.uk](https://www.lse.ac.uk/government/research/research-groups/carr/assets/documents/D-P/DP-93.pdf). Primary (discussion paper, not peer-reviewed). Based on OECD REGPAT patent data and R&D intensity.
+
+[^do330]: RTCA, *DO-330: Software Tool Qualification Considerations*. [my.rtca.org](https://my.rtca.org/productdetails?id=a1B36000001IcfkEAC). Primary (standard, product page). witness's plan is from its README, [github.com/pulseengine/witness](https://github.com/pulseengine/witness).
+
+[^solvers]: Eric Jiang et al., *From Solvers to Research: Large Language Model-Driven Formal Mathematics at the Research Frontier*, arXiv:2607.07779, v2, 19 October 2026. [arxiv.org](https://arxiv.org/abs/2607.07779). Primary (survey and position paper).
+
+[^verina]: Zhe Ye, Zhengxu Yan, Jingxuan He, Timothe Kasriel, Kaiyu Yang and Dawn Song, *VERINA: Benchmarking Verifiable Code Generation*, arXiv:2505.23135, v3, 16 March 2026. [arxiv.org](https://arxiv.org/abs/2505.23135). Primary (benchmark paper). Figures from the v3 abstract; earlier versions report different numbers.
+
+[^clinejection]: Cloud Security Alliance AI Safety Initiative, *Clinejection: Prompt Injection in GitHub Issue Titles Enables CI/CD Cache Poisoning and Supply Chain Compromise*, research note, 10 March 2026. [labs.cloudsecurityalliance.org](https://labs.cloudsecurityalliance.org/research/csa-research-note-clinejection-prompt-injection-cicd-cache-p/). Secondary (research note on Adnan Khan's disclosure).
+
+[^csa-blackhat]: Cloud Security Alliance, *Three AI Coding Agents, One GitHub Issue: CI/CD Secrets Exposed*, research note, 8 August 2026. [labs.cloudsecurityalliance.org](https://labs.cloudsecurityalliance.org/wp-content/uploads/2026/08/CSA_research_note_ai_coding_agent_cicd_secrets_20260808-csa-styled.pdf). Secondary (AI-assisted research note, which says it has not undergone official CSA review, reporting Novee Security's Black Hat talk of 5 August 2026).
+
+[^gemini-ghsa]: Google, *Gemini CLI: Remote Code Execution via workspace trust and tool allowlisting bypasses*, GitHub security advisory GHSA-wpqr-6v78-jr5g, 24 April 2026. [github.com/advisories](https://github.com/advisories/GHSA-wpqr-6v78-jr5g). Primary (vendor advisory).
 
 ---
 
