@@ -2,7 +2,7 @@
 title = "The orchestrator: who does what when bottlenecks won't go away"
 description = "Hardware contention, CI queues, decision queues and cross-repo seams stay with us. jess integrates, relay builds the flight stack, gale provides the kernel, and one orchestrator directs the agents across all three. The contracts between them come from real issues."
 date = 2026-10-28
-draft = true
+draft = false
 ready = true
 [taxonomies]
 tags = ["process", "ai-agents", "orchestration", "deep-dive"]
