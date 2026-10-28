@@ -205,7 +205,9 @@ skill. For a queued job it returns a measured range for when the job will
 **start**, derived from how long recent jobs in the same runner pool waited,
 and flags it `overdue` once it has waited longer than 90% of them. It gives no
 finish forecast for running jobs, and the skill tells the agent not to invent
-one.
+one. Since 28 October the same skill also checks the queue before a pull request
+is opened: depending on the queue, the change is opened, added to the
+agent's open pull request in that repository, or held locally.
 
 ### Hardware: one board, many agents
 

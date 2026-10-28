@@ -233,6 +233,8 @@ churn-ratio.py <clone> ...                              # deleted per added line
 
 The labels come from a model and are not deterministic, so the reference score is re-run and reported whenever the model changes. Projects were read on 22 October 2026, rivet at `9e6fb60b` and spar at `02094f96`.
 
+*Updated on 28 October 2026: the fix-hotspot trigger shipped in rivet on 28 October (rivet#1133, `b4122de6`; it fires at six fixes to one file within 60 days), so the three-month window is November 2026 to January 2027. The monthly report now calls Claude Haiku (`claude-haiku-5-5`) through Claude Code instead of the API, which counts as a model change, so the references were re-scored the same day. On the agent reference, fix precision is 0.87 and recall 0.91, against 0.84 and 0.89 above. On Levin's, they are 0.84 and 0.86, against 0.92 and 0.89. Both still clear the bar (precision 0.75, recall 0.70), and human-side precision fell by eight points. The first in-window report is due on 1 December.*
+
 [^levin]: Stanislav Levin and Amiram Yehudai, "Boosting Automatic Commit Classification Into Maintenance Activities By Utilizing Source Code Changes", PROMISE 2017. Dataset: [zenodo.org/record/835534](https://zenodo.org/record/835534), CC BY-SA 4.0. Corrective commits are mapped to fix, everything else to not-fix.
 
 [^szz]: Jacek Śliwerski, Thomas Zimmermann and Andreas Zeller, "When do changes induce fixes?", MSR 2005. The variant here blames in the fix's parent and ignores whitespace, blank and comment-only lines.
