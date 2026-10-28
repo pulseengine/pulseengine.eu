@@ -34,12 +34,12 @@ jobs:
     # jam every later deploy. 15 min is generous for a build + tar + scp.
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
 
       - name: Install Zola
-        uses: taiki-e/install-action@v2.87.21
+        uses: taiki-e/install-action@4cef1412cce204788f482e778a0b9187f9626a29 # v2.87.21
         with:
           tool: zola@0.23.6
 
@@ -47,10 +47,10 @@ jobs:
         run: python3 scripts/inject-git-info.py
 
       - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@b725eda525362e7cf34af9a7243cac1e3f01a7ec # stable
 
       - name: Cache fetch-reports build
-        uses: actions/cache@v6
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: tools/fetch-reports/target
           key: fetch-reports-${{ hashFiles('tools/fetch-reports/Cargo.lock') }}
