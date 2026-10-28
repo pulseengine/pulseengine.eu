@@ -119,7 +119,8 @@ has open there, never a new PR and never a push onto another session's branch.
 **A cross-repo sweep (the same edit in N repos) is N PRs, each opened when its
 repo admits it, not all at once.** Before any `gh pr create`, check admission
 through [`ci-status`] → "Before opening a PR": it decides open, batch or hold,
-and a held change stays recorded until it is opened.
+and a held change stays recorded until it is opened. A security fix, or a fix that
+turns a red `main` green, opens at once however small it is.
 
 Why one PR costs more than one run: with strict up-to-date protection, each merge
 puts every other open PR in the repo behind `main`, and updating it re-runs its

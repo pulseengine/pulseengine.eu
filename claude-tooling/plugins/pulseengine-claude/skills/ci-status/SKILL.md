@@ -114,14 +114,15 @@ tidy-ups), `fix`, `feature`, `security`, or `red-main` (a fix that turns a red
 **Source 1: warte.** When `PULSEENGINE_WARTE_URL` is set:
 
 ```sh
-curl -s ${PULSEENGINE_WARTE_CACERT:+--cacert "$PULSEENGINE_WARTE_CACERT"} \
+curl -sf -m 10 ${PULSEENGINE_WARTE_CACERT:+--cacert "$PULSEENGINE_WARTE_CACERT"} \
   "$PULSEENGINE_WARTE_URL/api/admission?repo=<repo>&kind=<kind>"   # {verdict, reason, recheck_s}
-curl -s ${PULSEENGINE_WARTE_CACERT:+--cacert "$PULSEENGINE_WARTE_CACERT"} \
+curl -sf -m 10 ${PULSEENGINE_WARTE_CACERT:+--cacert "$PULSEENGINE_WARTE_CACERT"} \
   "$PULSEENGINE_WARTE_URL/api/queue?repo=<repo>"
 ```
 
-These endpoints are requested in pulseengine/warte#55 and do not exist yet. Treat
-an unset variable, no answer, or a 404 as "not available": say so once and use
+These endpoints are requested in pulseengine/warte#55 and do not exist yet. `-f`
+turns a 404 into a non-zero exit and `-m 10` bounds an unreachable host. Treat an
+unset variable, a non-zero exit, or a 200 without a `verdict` field as "not available": say so once and use
 the next source for the rest of the session. `verdict` is `open`, `batch` or
 `hold`; recheck a hold after `recheck_s` (the eta API's field is
 `recheck_after_s`; they differ).
@@ -130,7 +131,7 @@ the next source for the rest of the session. `verdict` is `open`, `batch` or
 `branch=`, so the per-repo count comes from `/api/state`:
 
 ```sh
-curl -s ${PULSEENGINE_CI_STATUS_CACERT:+--cacert "$PULSEENGINE_CI_STATUS_CACERT"} \
+curl -sf -m 10 ${PULSEENGINE_CI_STATUS_CACERT:+--cacert "$PULSEENGINE_CI_STATUS_CACERT"} \
   "$PULSEENGINE_CI_STATUS_URL/api/state" | jq --arg r <repo> \
   '.snapshot.queue | {runs: ([.queued[] | select(.repo == $r) | .run_id] | unique | length), complete: .queued_complete, pools}'
 ```
@@ -151,6 +152,10 @@ Quote the path; zsh globs the `?`. The count is per repo and cannot see the
 shared self-hosted pool: a repo with 0 queued runs can still wait an hour because
 other repos hold every runner. Say once which source this session uses.
 
+If no source gives a usable answer (warte and the fleet are unavailable and `gh api`
+fails), **open**, and say that admission could not be checked. A check that cannot
+run must not block work; it is advice, not a gate.
+
 Thresholds for sources 2 and 3, starting values to be tuned from warte data:
 
 | kind | condition | action |
@@ -165,9 +170,10 @@ Thresholds for sources 2 and 3, starting values to be tuned from warte data:
   created and recorded in its `pending_gates` or working context. Every session
   pushes as the same GitHub user, so `gh pr list --author` cannot tell sessions
   apart. **Never push onto another session's branch to batch.**
-- **Hold:** commit locally, record `{ repo, branch, kind, recheck_at }` in
-  `pending_gates` (no `pr` yet) or the working context, and recheck on the next
-  wake. A held change is opened later, never dropped.
+- **Hold:** commit locally, record `{ repo, branch, kind, recheck_at }` in the
+  working context, and recheck on the next wake. Not in `pending_gates`: its
+  entries are open PRs, and issue-hunt resolves each one by its PR status.
+  A held change is opened later, never dropped.
 
 ## Safety
 

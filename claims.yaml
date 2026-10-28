@@ -336,7 +336,7 @@ claims:
       - kind: verbatim
         text: "`/api/openapi.json` gives this endpoint no\nresponse schema"
       - kind: verbatim
-        text: "an unset variable, no answer, or a 404 as \"not available\""
+        text: "a 200 without a `verdict` field as \"not available\""
       - kind: verbatim
         text: "gh api 'repos/pulseengine/<repo>/actions/runs?status=queued&per_page=1' --jq .total_count"
       - kind: verbatim
