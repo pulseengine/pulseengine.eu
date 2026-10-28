@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import base64
 import datetime
+import hashlib
 import json
 import pathlib
 import re
@@ -57,6 +58,25 @@ def _get(repo: str, path: str, accept: str | None = None):
         return json.load(r)
 
 
+def _manifest(repo: str, tag: str) -> tuple[dict, str]:
+    """The manifest and its OCI digest: sha256 over the exact bytes served.
+
+    The digest is what `varve` pins and what a reader compares, so it is
+    computed here rather than trusted from a header. Where the registry also
+    sends Docker-Content-Digest the two must agree, or the fetch stops.
+    """
+    req = urllib.request.Request(
+        f"https://ghcr.io/v2/pulseengine/{repo}/manifests/{tag}",
+        headers={"Authorization": f"Bearer {_token(repo)}", "Accept": MANIFEST_ACCEPT})
+    with urllib.request.urlopen(req, timeout=TIMEOUT) as r:
+        raw = r.read()
+        sent = r.headers.get("Docker-Content-Digest")
+    digest = "sha256:" + hashlib.sha256(raw).hexdigest()
+    if sent and sent != digest:
+        raise KeyError(f"{repo}:{tag} digest header {sent} != computed {digest}")
+    return json.loads(raw), digest
+
+
 def _dsse(repo: str, digest: str) -> dict:
     """A DSSE envelope's payload is base64 of the JSON it signs."""
     return json.loads(base64.b64decode(_get(repo, f"blobs/{digest}")["payload"]))
@@ -71,7 +91,7 @@ def fetch_realm(realm: str, repo: str) -> dict:
     tags.sort(key=_sort_key)
     layers = {}
     for tag in tags:
-        manifest = _get(repo, f"manifests/{tag}", MANIFEST_ACCEPT)
+        manifest, digest = _manifest(repo, tag)
         roles = {l.get("annotations", {}).get("eu.pulseengine.varve.role"): l["digest"]
                  for l in manifest["layers"]}
         env = _dsse(repo, roles["envelope"])
@@ -103,6 +123,7 @@ def fetch_realm(realm: str, repo: str) -> dict:
 
         layers[tag] = {
             "layer": ann.get("eu.pulseengine.varve.layer", tag),
+            "digest": digest,
             "counter": int(ann.get("eu.pulseengine.varve.counter", 0)),
             "channel": ann.get("eu.pulseengine.varve.channel"),
             "line": ann.get("eu.pulseengine.varve.line"),

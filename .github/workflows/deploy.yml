@@ -83,6 +83,31 @@ jobs:
       - name: Fetch varve layer metadata
         run: python3 scripts/fetch-layers.py
 
+      # The hero evidence panel (pulseengine.eu#201). Runs after fetch-reports
+      # and fetch-layers so it reads what this deploy fetched. Same pinned
+      # rivet as ci.yml. Deliberately non-blocking: a tile whose source is
+      # missing renders "unavailable", which is the designed fallback, so a
+      # rivet download hiccup must not stop a deploy. The generator never reads
+      # a previous evidence.json, so nothing old is carried forward.
+      - name: Install rivet
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          VER=v0.39.0
+          ASSET="rivet-$VER-x86_64-unknown-linux-gnu.tar.gz"
+          rm -rf /tmp/rivet-bin && mkdir -p /tmp/rivet-bin "$HOME/.local/bin"
+          curl -fsSL --retry 3 -o /tmp/rivet.tar.gz \
+            "https://github.com/pulseengine/rivet/releases/download/$VER/$ASSET"
+          tar xzf /tmp/rivet.tar.gz -C /tmp/rivet-bin
+          BIN=$(find /tmp/rivet-bin -type f -name rivet | head -1)
+          test -n "$BIN"
+          install -m 0755 "$BIN" "$HOME/.local/bin/rivet"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          "$HOME/.local/bin/rivet" --version
+
+      - name: Measure the hero evidence panel
+        run: python3 scripts/build-evidence.py
+
       - name: Inject build info
         run: |
           SHORT_SHA="${GITHUB_SHA::7}"

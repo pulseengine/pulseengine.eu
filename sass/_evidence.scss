@@ -1,0 +1,137 @@
+// ─── Hero evidence panel (landing page, pulseengine.eu#201) ───────────
+//
+// A bounded panel inside the hero: the fractal stays ambient behind it, the
+// panel is the framed artifact. Four tiles, each a measured figure with its
+// source date. Built only on the live tokens from _variables.scss, so the light
+// theme follows. Markup: templates/partials/evidence-panel.html.
+
+.hev {
+  margin: 2.5rem auto 0;
+  max-width: 720px;
+  padding: 1rem;
+  background: $surface-glass;
+  backdrop-filter: $glass-blur;
+  -webkit-backdrop-filter: $glass-blur;
+  border: 1px solid $border-subtle;
+  border-radius: $glass-radius;
+  text-align: left;
+}
+
+.hev__heading {
+  font-family: $font-mono;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: $text-faint;
+  margin: 0 0 0.75rem;
+}
+
+.hev__grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.6rem;
+}
+
+.hev__tile {
+  min-width: 0;                 // let long digests wrap instead of widening the grid
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.75rem;
+  background: $surface;
+  border: 1px solid $border-subtle;
+  border-radius: 8px;
+  text-decoration: none;
+  color: $text;
+  overflow-wrap: anywhere;
+  transition: border-color 0.2s;
+
+  &:hover { border-color: $accent; }
+}
+
+.hev__label {
+  font-size: 0.72rem;
+  color: $text-dim;
+  line-height: 1.3;
+}
+
+.hev__value {
+  font-family: $font-mono;
+  font-size: 1.15rem;
+  font-weight: 700;
+  line-height: 1.2;
+  color: $text;
+  overflow-wrap: normal;        // a layer tag must not break mid-number
+}
+
+.hev--good .hev__value { color: $green; }
+.hev--bad  .hev__value { color: $red; }
+
+.hev__unit,
+.hev__detail,
+.hev__nospark {
+  font-size: 0.7rem;
+  color: $text-faint;
+  line-height: 1.35;
+}
+
+.hev__detail { font-family: $font-mono; }
+.hev__nospark { font-style: italic; margin-top: auto; }
+
+.hev__spark {
+  display: block;
+  width: 100%;
+  height: 22px;
+  margin-top: auto;
+  overflow: visible;
+
+  polyline {
+    fill: none;
+    stroke: $accent;
+    stroke-width: 1.5;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+  }
+}
+
+.hev__date {
+  font-family: $font-mono;
+  font-size: 0.65rem;
+  color: $text-faint;
+}
+
+// Older than the threshold at build time: greyed, and the date says since when.
+.hev__tile.is-stale {
+  border-style: dashed;
+
+  .hev__value,
+  .hev__spark polyline { opacity: 0.4; }
+  .hev__value { color: $text-dim; }
+  .hev__date { color: $amber; }
+}
+
+.hev__tile.is-unavailable {
+  border-style: dashed;
+}
+
+.hev__value--na {
+  font-size: 1rem;
+  color: $text-faint;
+}
+
+.hev__foot {
+  margin: 0.75rem 0 0;
+  font-family: $font-mono;
+  font-size: 0.65rem;
+  color: $text-faint;
+  line-height: 1.5;
+}
+
+@media (max-width: 768px) {
+  .hev__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 360px) {
+  .hev__grid { grid-template-columns: minmax(0, 1fr); }
+}

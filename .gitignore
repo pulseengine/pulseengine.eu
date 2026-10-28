@@ -27,3 +27,8 @@ __pycache__/
 .pytest_cache/
 .ruff_cache/
 .mypy_cache/
+
+# Measured at deploy by scripts/build-evidence.py (pulseengine.eu#201). Never
+# committed: a stale copy in git is exactly the silently-old number the panel
+# exists to refuse.
+data/evidence.json

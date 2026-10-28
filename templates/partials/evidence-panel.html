@@ -1,0 +1,59 @@
+{#
+  The hero evidence panel. Every figure, date, link and sparkline point below is
+  read from data/evidence.json, which scripts/build-evidence.py measures during
+  the deploy. This partial may not contain a single digit: claims.yaml carries
+  SITE-HERO-PANEL-NO-TYPED-FIGURES, which fails the build on the first one, so
+  a number typed here to "fix" a tile cannot ship.
+
+  Staleness is judged here, against the build clock, not by the generator: a
+  tile whose stale_after has passed renders greyed and says since when. A
+  missing evidence.json, or a tile the generator could not measure, renders
+  "unavailable" and never a remembered number.
+#}
+{% set evidence = load_data(path="data/evidence.json", required=false) %}
+{% set build_now = now(timestamp=true) %}
+<section class="hev" aria-labelledby="hev-heading">
+  <p class="hev__heading" id="hev-heading">Evidence, as read at this build</p>
+  {% if evidence and evidence.tiles %}
+  <div class="hev__grid">
+    {% for tile in evidence.tiles %}
+    {% set is_ok = tile.status == "ok" %}
+    {% set is_stale = is_ok and tile.stale_after and build_now > tile.stale_after %}
+    <a class="hev__tile{% if not is_ok %} is-unavailable{% elif is_stale %} is-stale{% endif %} hev--{{ tile.tone }}"
+       href="{{ tile.href }}"{% if tile.external %} rel="noopener"{% endif %}
+       title="{{ tile.source }}">
+      <span class="hev__label">{{ tile.label }}</span>
+      {% if is_ok %}
+      <span class="hev__value">{{ tile.value }}</span>
+      <span class="hev__unit">{{ tile.unit }}</span>
+      {% if tile.detail %}<span class="hev__detail">{{ tile.detail }}</span>{% endif %}
+      {% if tile.spark %}
+      <svg class="hev__spark" viewBox="{{ tile.spark.viewbox }}" preserveAspectRatio="none"
+           role="img" aria-label="{{ tile.spark.label }}">
+        <title>{{ tile.spark.label }}</title>
+        <polyline points="{{ tile.spark.points }}" vector-effect="non-scaling-stroke"/>
+      </svg>
+      {% else %}
+      <span class="hev__nospark">no recorded history</span>
+      {% endif %}
+      <span class="hev__date">
+        {% if is_stale %}stale since {{ tile.source_date }}{% else %}as of {{ tile.source_date }}{% endif %}
+      </span>
+      {% else %}
+      <span class="hev__value hev__value--na">unavailable</span>
+      <span class="hev__unit">source not readable at this build</span>
+      {% endif %}
+    </a>
+    {% endfor %}
+  </div>
+  <p class="hev__foot">
+    as of {{ build_now | date(format="%Y-%m-%d %H:%M UTC") }}
+    {% if evidence.commit %}&middot; commit <a href="{{ evidence.commit_url }}" rel="noopener">{{ evidence.commit }}</a>{% endif %}
+    &middot; each tile links to its source
+    &middot; greyed once its source is more than {{ evidence.stale_after_days }} days old
+  </p>
+  {% else %}
+  <p class="hev__foot">Evidence unavailable: this build did not measure it
+    (<code>scripts/build-evidence.py</code> did not run).</p>
+  {% endif %}
+</section>

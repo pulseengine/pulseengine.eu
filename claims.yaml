@@ -654,3 +654,36 @@ claims:
         pattern: 'never a fork \(see\n\[`clean-room-verification`\]\)'
         glob: ['claude-tooling/plugins/pulseengine-claude/skills/publication-review/SKILL.md']
         min: 1
+
+  # ── The hero evidence panel types no figure (pulseengine.eu#201) ────────────
+  # The landing-page panel is a claim that decays in public. Its four figures are
+  # measured at deploy by scripts/build-evidence.py; the partial only renders
+  # them. The failure this guards is the obvious shortcut: a tile reads
+  # "unavailable" or stale, and someone types the number into the template so it
+  # looks current. Any digit at all in the partial fails — not just a pattern
+  # shaped like "18/18" — because a typed number can take any shape, and the
+  # partial is written so that it needs none (the stale threshold, the dates and
+  # every sparkline coordinate come from data/evidence.json).
+  - id: SITE-HERO-PANEL-NO-TYPED-FIGURES
+    doc: templates/partials/evidence-panel.html
+    text: "This partial may not contain a single digit"
+    evidence:
+      - kind: count-max
+        pattern: '\d'
+        glob: ['templates/partials/evidence-panel.html']
+        max: 0
+      # …and it must still render from the measured data, not from nothing: the
+      # tile loop over the generated file, its value, date and sparkline fields.
+      - kind: count-min
+        pattern: 'load_data\(path="data/evidence\.json"'
+        glob: ['templates/partials/evidence-panel.html']
+        min: 1
+      - kind: count-min
+        pattern: '\{\{ tile\.(?:value|source_date|spark\.points) \}\}'
+        glob: ['templates/partials/evidence-panel.html']
+        min: 4
+      # The homepage hero must actually include it.
+      - kind: count-min
+        pattern: '\{% include "partials/evidence-panel\.html" %\}'
+        glob: ['templates/index.html']
+        min: 1

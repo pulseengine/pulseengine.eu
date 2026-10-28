@@ -17,7 +17,7 @@ artifacts:
       that is evidence rather than decoration. The figures exist on /layers and
       come from a deploy-refreshed source; the landing page still describes the
       project instead of showing its state.
-    status: draft
+    status: implemented
     category: functional
     priority: should
 
@@ -25,17 +25,41 @@ artifacts:
     type: feature
     title: Evidence panel in the landing-page hero
     description: >-
-      The four figures already rendered on /layers, in the hero, reading the
-      same deploy-written layers.json so the two cannot disagree.
-    status: draft
+      Option C from #201: a bounded panel of four tiles in the hero — site
+      claims holding (claim-check), the current varve layer and its digest
+      (layers.json), this repo's requirements verified (rivet coverage), and
+      MC/DC conditions proved on witness's own verdict suite (the substitute
+      for gale's trusted-base count, which has no machine-readable source).
+      scripts/build-evidence.py measures all four at deploy into
+      data/evidence.json; the template only renders it. A sparkline is drawn
+      only where a real series exists.
+    status: implemented
     phase: phase-1
     acceptance-criteria:
-      - "Every figure in the hero is read from static/layers.json; no figure is typed into a template."
-      - "The hero and /layers show the same value for the same figure in the same build."
-      - "With layers.json absent or older than a week, the hero withholds the figures and states their age rather than showing them undated."
-      - "check-asset-cachebust and the existing gates stay green; no new unstyled class (check-layers-view)."
+      - "Every figure in the hero is read from data/evidence.json, written at deploy by scripts/build-evidence.py; no figure is typed into the template (claim SITE-HERO-PANEL-NO-TYPED-FIGURES fails on any digit in the partial)."
+      - "The layer tile and /layers read the same static/layers.json in the same build, so they cannot disagree."
+      - "A tile whose source is older than seven days at build time renders greyed and says 'stale since <date>'; a source missing at build time renders 'unavailable', never a remembered number."
+      - "A sparkline appears only for a tile with at least two real points: claims.yaml git history, the layer index, witness versions on disk. Nothing is interpolated."
+      - "check-asset-cachebust, check-internal-links and the existing gates stay green; the panel has no horizontal scroll at 390px."
     links:
       - type: satisfies
+        target: REQ-HERO-EVIDENCE
+
+  - id: VER-HERO-EVIDENCE
+    type: verification
+    title: build-evidence.py --self-test
+    description: >-
+      Decision table over the generator, offline: each missing or malformed
+      source yields unavailable with no value; an empty rivet load is not 0/0;
+      an eight-day-old layer snapshot falls past its stale_after; one point is
+      not a sparkline. Red-first: widening the threshold to nine days fails the
+      staleness case. The template half is gated by claim
+      SITE-HERO-PANEL-NO-TYPED-FIGURES, seen to fail with a typed "18/18".
+    status: verified
+    method: automated-test
+    test-location: scripts/build-evidence.py
+    links:
+      - type: verifies
         target: REQ-HERO-EVIDENCE
 
   # ── reports <-> layers ─────────────────────────────────────────────────
