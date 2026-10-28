@@ -179,6 +179,16 @@ a model's help. The MISRA study's v2 is from November 2025 and names GPT-4o,
 DeepSeek-V3 and Gemini 2.0 Flash among the models tested; we have not
 checked whether newer models do better.
 
+The study's headline measures one-shot generation: a prompt to a chat
+assistant, with no checker in the loop. In the same study, every model fixed
+individual violations once they were pointed out, but a person did that by
+hand in a chat. No developer meets MISRA from memory either; they iterate
+against a checker. The question the study leaves open is how an agent does
+with the checker in its own loop, and in how many iterations. We have filed
+that as an experiment to pre-register
+([#292](https://github.com/pulseengine/pulseengine.eu/issues/292)); until it
+runs, this paragraph is an argument, not a result.
+
 **Our counter.** We agree with Ladkin's sentence: a model's claim to have met
 a requirement is worth nothing. That is why our claims are bound to evidence
 a script can re-check. Our argument is that certification judges whether
