@@ -431,3 +431,108 @@ claims:
         pattern: '\{\{ config\.description \}\} Each of its tools'
         glob: ['templates/about.html']
         min: 1
+
+  # ── Release standard: the docs archive is inside the signed sums (#262) ─────
+  # varve layers ingest documentation as signed [[docs]] payloads, only through
+  # the ladder they use for binaries: the digest must be in the cosign-signed
+  # SHA256SUMS.txt. The rule is in Track A; rollout is per repo at its next
+  # release, and the skill says so rather than implying it is done.
+  - id: RELEASE-DOCS-ARCHIVE-IN-SIGNED-SUMS
+    doc: claude-tooling/plugins/pulseengine-claude/skills/release-artifact-pipeline/SKILL.md
+    text: "**Every tool's release publishes a docs archive listed inside its signed `SHA256SUMS.txt`.**"
+    evidence:
+      - kind: verbatim
+        text: "<tool>-X.Y.Z-docs.tar.gz               # docs archive, rendered HTML or Markdown"
+      - kind: verbatim
+        text: "3. **Build the docs archive**"
+      - kind: verbatim
+        text: "**Must run before step 4**, for the same reason as the SBOM."
+      - kind: verbatim
+        text: "**Each repo adds the archive at its next release**"
+      - kind: verbatim
+        text: "grep -- '-docs.tar.gz$' SHA256SUMS.txt"
+
+  # ── Issue comments are messages to the reporter (#203) ──────────────────────
+  # The skills defined a closure comment as "the audit trail" and bounded how
+  # often the loop re-reads its own comments, not how often it posts. An
+  # external reporter received evidence-dense corrections and per-release
+  # machinery updates on a settled thread. The rules live once, in the feature
+  # loop; repo-hygiene and issue-hunt apply them and point there.
+  - id: ISSUE-COMMENTS-ADDRESS-THE-REPORTER
+    doc: claude-tooling/plugins/pulseengine-claude/skills/pulseengine-feature-loop/SKILL.md
+    text: "The reporter is a person and a volunteer."
+    evidence:
+      - kind: verbatim
+        text: "1. **Lead with what changed for the reporter, in a few sentences.**"
+      - kind: verbatim
+        text: "2. **Never correct a reporter's excerpt or counts.** Re-measure silently and work from the real figure."
+      - kind: verbatim
+        text: "3. **Do not post machinery updates to a settled thread.** A thread is settled once"
+      - kind: verbatim
+        text: "4. **Say plainly when a release did not change what they reported.**"
+      - kind: verbatim
+        text: "REST `author_association`"
+      - kind: count-min
+        pattern: '\*\*The closure comment is a message to the person who filed the issue\.\*\*'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/repo-hygiene/SKILL.md']
+        min: 1
+      - kind: count-min
+        pattern: '\*\*Bound what you post, too\.\*\*'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/issue-hunt/SKILL.md']
+        min: 1
+      - kind: count-min
+        pattern: 'the reporter rules in \[`pulseengine-feature-loop`\]'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/repo-hygiene/SKILL.md', 'claude-tooling/plugins/pulseengine-claude/skills/issue-hunt/SKILL.md']
+        min: 2
+      # The old definition does not come back.
+      - kind: count-max
+        pattern: 'closure comment is the audit trail'
+        glob: ['claude-tooling/plugins/pulseengine-claude/**/*.md']
+        max: 0
+
+  # ── Readiness tells a fix from more confidence (#203) ───────────────────────
+  # Releases closed the V on hardening work booked against an open external
+  # report whose failure never moved; the readiness query could not see it.
+  - id: READINESS-SEPARATES-FIX-FROM-CONFIDENCE
+    doc: claude-tooling/plugins/pulseengine-claude/skills/release-planning/SKILL.md
+    text: "**Readiness must tell a fix from more confidence.**"
+    evidence:
+      - kind: verbatim
+        text: "`fields: { effect: behaviour }` or `fields: { effect: confidence }`"
+      - kind: verbatim
+        text: "It does not count as progress on that\n  issue."
+
+  # ── AI review independence: fork rule, record, negative control (#196) ─────
+  # "Fresh context" was doctrine but never a recorded field, and a fork (which
+  # inherits the parent's context) produced a report shaped exactly like an
+  # independent one. clean-room-verification is the single source; the other
+  # skills point here, and the field list must not be copied elsewhere.
+  - id: CLEAN-ROOM-AI-REVIEW-INDEPENDENCE
+    doc: claude-tooling/plugins/pulseengine-claude/skills/clean-room-verification/SKILL.md
+    text: "**A clean-room reviewer is a fresh agent. A fork is the author.**"
+    evidence:
+      - kind: verbatim
+        text: "`subagent_type: \"fork\"` inherits the parent's full conversation context"
+      - kind: verbatim
+        text: "**Record these fields for every review used as evidence: reviewer model, inherited context (yes/no), reviewer run id, reviewed commit SHA, date, outcome.**"
+      - kind: verbatim
+        text: "A review missing any field is unrecorded, not independent"
+      - kind: verbatim
+        text: "**Periodically hand the reviewer a deliberately poisoned artifact or claim, and confirm it refutes it.**"
+      - kind: verbatim
+        text: "Record the date the control was last exercised"
+      - kind: verbatim
+        text: "It does not commit into the branch under review."
+      # Single source: the field list lives in exactly one skill.
+      - kind: count-max
+        pattern: 'reviewer model, inherited context'
+        glob: ['claude-tooling/plugins/pulseengine-claude/**/*.md']
+        max: 1
+      - kind: count-min
+        pattern: 'a fork is the author, not a reviewer'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/release-execution/SKILL.md']
+        min: 1
+      - kind: count-min
+        pattern: 'never a fork \(see\n\[`clean-room-verification`\]\)'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/publication-review/SKILL.md']
+        min: 1

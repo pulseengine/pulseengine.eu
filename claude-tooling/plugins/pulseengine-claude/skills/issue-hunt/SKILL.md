@@ -3,7 +3,7 @@ name: issue-hunt
 description: This skill should be used to run an incremental bug/feature hunt over a repo's issue tracker — pick up everything NEW since the last pass (new issues and new comments), digest and triage it, work the actionable items through the verification chain, and accumulate toward a feature release. Use it when the user says "hunt the issues", "do a bug/feature hunt", "look into the issues and work them", "loop through the issues", "digest the new issues and comments since last time", or wants a standing loop (via /loop or a scheduled agent) that drives the tracker toward releases. One invocation is one pass; the "since last time" watermark is what makes it a loop rather than a full re-scan. Composes with release-planning (land + ship), the feature loop, and the operating contract.
 metadata:
   author: pulseengine.eu
-  version: "0.3.0"
+  version: "0.4.0"
 ---
 
 # Issue hunt — the incremental bug/feature delivery loop
@@ -95,6 +95,12 @@ digest the entire backlog.
      the loop chases its own tail and re-triages settled issues every pass. (Be
      careful at the boundary: with the −60s overlap, a real human comment can share
      the window with your echo — filter by *author + comment id*, not by time.)
+   - **Bound what you post, too.** The echo filter protects the loop; nothing in it
+     protects the reporter's inbox. Comment on an external reporter's issue only
+     when something changed for them, or to ask what you need. **Do not post
+     machinery updates to a settled thread**, and never correct the reporter's
+     excerpt or counts (the reporter rules in [`pulseengine-feature-loop`]). Gate
+     and oracle progress goes in the release notes.
    - **State the count up front.** If it's large, process in priority order and
      say what you deferred — never silently truncate.
 2. **Digest & triage each item** (the [`release-planning`] evaluate step — measure,
@@ -254,6 +260,9 @@ half (see [`pulseengine-operating-contract`]).
 - **Re-digesting your own comments** — the loop's triage/status comments bump
   `updatedAt`; without the self-echo filter (step 1) it re-pulls and re-triages
   issues it just touched, chasing its own tail forever.
+- **Posting per-release status essays on a reporter's thread** — a report of
+  gates hardened while their build still fails reads as noise, and costs the
+  goodwill of the person who supplied the repro.
 - **Dropping a deferred merge on the floor** — opening a PR you can't land this
   pass and not recording it in `pending_gates` means the next pass never checks
   it; the "fix" sits green-and-unmerged indefinitely.

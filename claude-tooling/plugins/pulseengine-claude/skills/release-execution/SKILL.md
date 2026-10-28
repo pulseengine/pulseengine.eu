@@ -3,7 +3,7 @@ name: release-execution
 description: This skill should be used when cutting, shipping, or finishing a release — including "ship it", "cut a release", "tag this", "release v0.X.Y", "take this to release", "work the PR queue to green", "finish the release tail", "publish", or any end-to-end release work that involves PRs, reviewers, merging, CI, tagging, GitHub Release, and crates.io publish. ALWAYS use this skill when the user authorizes autonomous release work or asks to "go as long as you can" on a release campaign.
 metadata:
   author: pulseengine.eu
-  version: "0.3.1"
+  version: "0.3.2"
 ---
 
 # Release execution
@@ -89,7 +89,8 @@ mutation score or green board closes.
   ([`clean-room-verification`]) that re-derives the verdict from evidence rather than reading the
   author's summary.
 - **Record reviewer identity, date and outcome on the artifacts**, so independence is auditable
-  later rather than asserted now.
+  later rather than asserted now. For an AI reviewer that means the full independence record and
+  its negative control, in [`clean-room-verification`]; a fork is the author, not a reviewer.
 - **Record the verdict even when it is not yet enforced.** The canonical statement — varve's
   `REQ-INDEP-001`, *"No requirement is verified on the author's word alone"* — is explicit that at
   v0.x the recorded verdict is **advisory**: a missing or dissenting review is *visible but

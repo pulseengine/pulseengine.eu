@@ -3,7 +3,7 @@ name: pulseengine-feature-loop
 description: This skill should be used when doing a feature end-to-end on a PulseEngine project (rivet, spar, witness, sigil, meld, loom, synth, wohl, kiln) — including "implement a feature", "add a new requirement", "extend the architecture", "write a new pass", "ship a feature end-to-end", "do this properly with traceability", "model-driven implementation", or any feature work that should pass through the full AADL → WIT → typed traceability → oracle-gated code → MC/DC → attestation → verify loop. ALWAYS use this skill when the user authorizes feature work on a PulseEngine project and the work touches more than a single file.
 metadata:
   author: pulseengine.eu
-  version: "0.6.0"
+  version: "0.7.0"
 ---
 
 # PulseEngine feature loop
@@ -17,6 +17,15 @@ Use this when the feature touches more than one layer of the stack. Single-file 
 ## Standing practice across every step
 
 Friction is data. At any step below, if a tool errors, produces wrong output, lacks a capability you needed, or forces a workaround, file it via [`report-tool-friction`] in that tool's repo *as you hit it* — then continue. A workaround you don't report is friction the next feature re-hits. This is woven through the whole loop, not a phase of it.
+
+The reporter is a person and a volunteer. An issue comment is a message to the person who filed the issue, and the first thing they want to know is whether their build works now. The audit trail lives in rivet, the PR and the release notes, which is where an auditor looks. Four rules hold for every comment this loop, [`issue-hunt`] or [`repo-hygiene`] posts on an external reporter's issue:
+
+1. **Lead with what changed for the reporter, in a few sentences.** Evidence goes below a `<details>` fold or in the release notes.
+2. **Never correct a reporter's excerpt or counts.** Re-measure silently and work from the real figure. The rigor is in the measurement, not the announcement.
+3. **Do not post machinery updates to a settled thread.** A thread is settled once the reporter's behaviour is fixed, or they have said they are done with it. A hardened gate, a new oracle or a rebound floor is not news for them.
+4. **Say plainly when a release did not change what they reported.** Work that only raised our confidence about a still-open report is not progress on it (see [`release-planning`], Part A).
+
+Tell an external reporter from an internal one by the issue's REST `author_association`: `OWNER`, `MEMBER` and `COLLABORATOR` are internal; `CONTRIBUTOR`, `FIRST_TIME_CONTRIBUTOR`, `FIRST_TIMER` and `NONE` are external. On an internal issue the evidence may go inline instead of under a fold; the other three rules still hold.
 
 This is a long-running explorer (see [`pulseengine-operating-contract`]): self-verify at a **concrete interval — before every tag, and at least every ~2 features/releases in a round** (not "at some point") — with fresh-context subagents ([`clean-room-verification`]) — re-checking **both** the work (against requirements/architecture) **and** the campaign machinery (is the merge gate actually non-empty? is everything claimed "released" really tagged with a `success` CI run, not `cancelled`? — the campaign invariants in the operating contract). Across a multi-feature round the machinery failures are the ones per-feature review misses.
 
