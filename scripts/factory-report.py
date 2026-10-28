@@ -125,10 +125,10 @@ REPOS = {"rivet": "pulseengine/rivet", "spar": "pulseengine/spar"}
 HOTSPOT = ("rivet", "rivet-cli/src/main.rs")
 SAMPLE_N = 45               # per repo per month; rivet's baseline sample was 45
 EXTS = (".rs",)
-# The trigger has not shipped. Set this to the month it ships ("YYYY-MM"); the
-# window is the three calendar months after it, and the verdict is computed
-# over the window's summed counts, never from one month.
-TRIGGER_SHIPPED = None
+# The month the trigger shipped ("YYYY-MM"): rivet#1133, merged 2026-10-28 as
+# b4122de6. The window is the three calendar months after it, and the verdict
+# is computed over the window's summed counts, never from one month.
+TRIGGER_SHIPPED = "2026-10"
 
 PREFIX = re.compile(r"^(\w+)(\([^)]*\))?!?:")
 
