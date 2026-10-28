@@ -13,6 +13,7 @@
     "pulseengine/spar":  { "needs-decision_floor": null },
     "pulseengine/relay": { "needs-decision_floor": 57 },
     "pulseengine/gale":  { "needs-decision_floor": 30 },
-    "pulseengine/loom":  { "needs-decision_floor": 26 }
+    "pulseengine/loom":  { "needs-decision_floor": 26 },
+    "pulseengine/varve": { "needs-decision_floor": 25 }
   }
 }
