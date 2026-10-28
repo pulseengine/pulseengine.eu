@@ -9,8 +9,11 @@ name: Factory report
 # PR adding data/factory-report/YYYY-MM.json. main is protected, so the job
 # never pushes to it.
 #
-# INERT UNTIL THE OWNER ADDS THE ANTHROPIC_API_KEY SECRET. Without it the run
-# exits 0 with a "not configured" notice in the job summary and does nothing.
+# INERT UNTIL THE OWNER ADDS THE CLAUDE_CODE_OAUTH_TOKEN SECRET (made with
+# `claude setup-token`; the run is on the owner's Claude subscription, not an
+# API account). Without it the run exits 0 with a "not configured" notice in
+# the job summary and does nothing. Bare mode is never used: it reads only an
+# API key and ignores the OAuth token.
 # This deliberately differs from issue-classes.yml, whose check exits 2 and goes
 # red on a missing token: that script is a gate, and a gate that cannot reach
 # its evidence must say so. This job produces a report; a skipped run publishes
@@ -23,8 +26,9 @@ name: Factory report
 # made through the contents API, which GitHub is expected to sign; check that
 # the first report PR's commit shows Verified, since main requires it.
 #
-# ubuntu-latest, as issue-classes.yml uses: the job needs a Python venv for the
-# Anthropic SDK, which the self-hosted `light` pool is not known to provide.
+# ubuntu-latest, as issue-classes.yml uses: the job installs the Claude Code
+# CLI from npm, pinned to an exact version, and the self-hosted `light` pool is
+# not known to provide Node.
 # No `gh` is used anywhere; every GitHub call is REST over urllib.
 on:
   schedule:
@@ -50,29 +54,27 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - name: Decision table (no key, no network)
+      # Includes the command a subscription run sends (model ids, effort, the
+      # JSON schema, no tools, the prompt on stdin) against a stubbed CLI.
+      - name: Decision table (no credential, no network)
         run: python3 scripts/factory-report.py --self-test
 
       - name: Configured?
         id: cfg
         env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
         run: python3 scripts/factory-report.py configured
 
-      - name: Install the Anthropic SDK
+      # Pinned to the version factory-report.py's CLI_VERSION names; the
+      # version check fails the step if npm resolves anything else.
+      - name: Install the Claude Code CLI
         if: steps.cfg.outputs.configured == 'true'
         run: |
           set -euo pipefail
-          python3 -m venv "$RUNNER_TEMP/venv"
-          "$RUNNER_TEMP/venv/bin/pip" install --quiet anthropic==2.3.0
-          echo "$RUNNER_TEMP/venv/bin" >> "$GITHUB_PATH"
-
-      # Same table again, now with the SDK, so the request shape a paid run
-      # sends (model id, no sampling parameters, effort, json_schema) is checked
-      # against the real client before any money is spent.
-      - name: Decision table with the SDK
-        if: steps.cfg.outputs.configured == 'true'
-        run: python scripts/factory-report.py --self-test
+          npm install --prefix "$RUNNER_TEMP/claude-code" --no-fund --no-audit --silent \
+            @anthropic-ai/claude-code@2.1.312
+          echo "$RUNNER_TEMP/claude-code/node_modules/.bin" >> "$GITHUB_PATH"
+          "$RUNNER_TEMP/claude-code/node_modules/.bin/claude" --version | grep -qx '2.1.312 (Claude Code)'
 
       - name: Clone rivet and spar
         if: steps.cfg.outputs.configured == 'true'
@@ -87,16 +89,16 @@ jobs:
         id: run
         if: steps.cfg.outputs.configured == 'true'
         env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           MONTH: ${{ inputs.month }}
         run: |
           set -euo pipefail
-          python scripts/factory-report.py run ${MONTH:+--month "$MONTH"} \
+          python3 scripts/factory-report.py run ${MONTH:+--month "$MONTH"} \
             --clones "$RUNNER_TEMP/clones" --work "$RUNNER_TEMP/work" --out data/factory-report
 
       # Kept for 90 days whatever happens next, so a failed publish does not
-      # lose a month that has already been paid for.
+      # lose a month whose subscription usage has already been spent.
       - name: Keep the report as a run artifact
         if: steps.cfg.outputs.configured == 'true' && steps.run.outputs.file != ''
         uses: actions/upload-artifact@v7
@@ -123,4 +125,4 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ steps.app_token.outputs.token }}
           REPORT: ${{ steps.run.outputs.file }}
-        run: python scripts/factory-report.py publish --file "$REPORT" --repo "$GITHUB_REPOSITORY"
+        run: python3 scripts/factory-report.py publish --file "$REPORT" --repo "$GITHUB_REPOSITORY"
