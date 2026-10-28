@@ -247,7 +247,7 @@ def cli_argv(model, system, fields):
     """Print mode with every ambient input switched off. `--tools ""` leaves
     only the CLI's StructuredOutput tool, which is how --json-schema answers."""
     return [CLAUDE_CLI, "-p", "--model", model, "--effort", EFFORT,
-            "--json-schema", json.dumps(_schema(fields)), "--output-format", "json",
+            "--json-schema", json.dumps(_schema(fields)), "--output-format", "json", "--verbose",
             "--system-prompt", system, "--tools", "", "--strict-mcp-config",
             "--setting-sources", "", "--no-session-persistence"]
 
@@ -263,8 +263,8 @@ def cli_env():
 
 def cli_result(stdout):
     """(result object, rate-limit infos). `--output-format json` prints one
-    result object, or, with verbose on in the user's config, the whole message
-    list ending in it; both are read."""
+    result object, or with --verbose (always passed, so the rate-limit events
+    come too) the whole message list ending in it; both are read."""
     try:
         d = json.loads(stdout or "")
     except ValueError:
@@ -948,9 +948,10 @@ def cli_shape_test(check):
         def val(flag):
             return a[a.index(flag) + 1] if flag in a and a.index(flag) + 1 < len(a) else None
 
-        check("CLI: print mode, the pinned Haiku id, effort low, JSON output",
+        check("CLI: print mode, the pinned Haiku id, effort low, verbose JSON output",
               a[:2] == [CLAUDE_CLI, "-p"] and val("--model") == CLASSIFIER_MODEL
-              and val("--effort") == EFFORT == "low" and val("--output-format") == "json")
+              and val("--effort") == EFFORT == "low" and val("--output-format") == "json"
+              and "--verbose" in a)
         check("CLI: --json-schema is the labels schema itself, not an API format wrapper",
               json.loads(val("--json-schema") or "null") == _schema(LABEL_FIELDS)
               and json.loads(val("--json-schema"))["required"] == ["labels"])
