@@ -1149,3 +1149,29 @@ claims:
         pattern: 'check\("(notify: the notification carries two counts and no notice or note text|notify: osascript gets the text as an argument, never as script source|tick: idempotent inside a window, one notification and no rewrite when nothing changed|tick: an informational notice rewrites the digest and never notifies)"'
         glob: ['claude-tooling/plugins/pulseengine-claude/skills/factory-notice/notice.py']
         min: 4
+
+  # ── The attention post states the budget the skill actually ships ───────────
+  # "The scarce resource is the orchestrator's attention" tells readers the cap
+  # defaults to 3, names the default windows, and says the digest's load line
+  # is the instrument it will report from. If the skill's default, its windows
+  # or the load line's fields change, the post is wrong; fail here, in review.
+  - id: POST-ATTENTION-BUDGET-MATCHES-SKILL
+    doc: content/blog/2026-10-30-the-scarce-resource-is-attention.md
+    text: "At most `max_asking_flows` flows ask at a time, default 3."
+    evidence:
+      - kind: verbatim
+        text: "The defaults are 08:30 to 09:00 and 17:00 to 17:30"
+      - kind: verbatim
+        text: "decisions answered in the last 7 days"
+      - kind: count-min
+        pattern: 'ATTENTION_DEFAULTS = \{"max_asking_flows": 3, "windows": \["08:30-09:00", "17:00-17:30"\]'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/factory-notice/notice.py']
+        min: 1
+      - kind: count-min
+        pattern: 'flow\(s\) asking, oldest '
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/factory-notice/notice.py']
+        min: 1
+      - kind: count-min
+        pattern: 'answered in the last 7 days'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/factory-notice/notice.py']
+        min: 1
