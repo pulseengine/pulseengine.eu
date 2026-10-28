@@ -292,7 +292,7 @@ What we expected to learn was a performance number. What we learned was a method
 - **Predict from the architecture** (we said: 10–30% faster, mechanism = eliminating the per-handoff `bl`/`ret`). Specific enough to be falsifiable.
 - **Measure on real hardware** (Zephyr handoff through spinlock + wait queue + scheduler — not a synthetic FFI round-trip where the FFI dominates). The geometry is what the prediction implicitly assumes.
 - **Publish the falsification.** Wrong-prediction data is more informative than the predicted number would have been if it landed. "We expected X, we got Y, here is what Y means" is the post worth writing.
-- **Reframe around what the data supports.** The FFI savings weren't the win; symbol-level evidence of proof-to-binary correspondence is. Write up what was actually learned, not what you set out to prove.
+- **Reframe around what the data supports.** The FFI savings weren't the win; binary evidence that the verified Rust was inlined is. Write up what was actually learned, not what you set out to prove.
 
 That sequence is the load-bearing thing — not the cycle count, not even the inlining win.
 

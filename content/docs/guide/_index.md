@@ -38,12 +38,12 @@ The proof-to-code ratio is 1.62× — more lines of proof than implementation. T
 - **Rocq** — machine-checked proofs of invariants over hand-written abstract models. They are not connected to the Rust, and some Rocq files are still `Admitted` stubs.
 - **Lean 4** — mathematical proofs over models: rate-monotonic utilization bounds, the priority ceiling protocol, and ring-buffer index arithmetic. They are about the theory, not about the Rust.
 - **Kani** — bounded model checking that explores every reachable state within the harness's stated bounds.
-- **Differential testing** — Rust replicas of the FFI decision logic are compared against the Verus-annotated model. The C shims themselves are reviewed by eye against the Zephyr C they bridge to.
+- **Differential testing** — Rust replicas of the FFI decision logic are compared against the Verus-annotated model. The tests call the replicas, not the FFI functions or the C shims.
 - **Property-based testing** — proptest generates random operation sequences and verifies invariants hold.
 - **Fuzzing** — fuzz targets for the core primitives, such as semaphore, mutex, message queue and pipe.
 - **Zephyr upstream suites** — the actual Zephyr test suites pass with gale replacing the original C code.
 - **Multi-architecture emulation** — Renode runs tests on Cortex-M4F, M33, and Cortex-R5 hardware models.
-- **FFI model equivalence** — tests, over small input ranges, that the FFI decision mapping agrees with the model. It is a test, not a proof.
+- **FFI model equivalence** — tests, over small enumerated input ranges, that the FFI decision mapping agrees with the model. It is a test, not a proof.
 
 Each layer catches different classes of bugs. Formal proofs catch logical errors. Differential testing catches implementation drift. Fuzzing catches edge cases. Upstream suites catch compatibility regressions. Together they form a verification surface that no single technique achieves alone.
 

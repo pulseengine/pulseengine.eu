@@ -439,9 +439,10 @@ embedded reference implementation is running here.
 
 ## What's still open
 
-This is a seed, and an honest one. The thesis is demonstrated end to end: it boots
-and runs. The dissolved native code is differentially tested against a reference
-wasm runtime, not proven equivalent to the verified source. The gap to
+This is a seed, and an honest one. The dissolved kernel boots on a Cortex-M3, and
+its hot path runs on STM32F100 silicon. The dissolved native code is differentially
+tested against a reference wasm runtime, not proven equivalent to the verified
+source. The gap to
 the project's 10–20%-overhead goal is real and the work is visible:
 
 - **The proof-carrying floor is the one lever still entirely ahead.** Parity is in
@@ -485,4 +486,4 @@ is a strange enough idea that it's worth writing down *while it's still being bu
 tell their part. Consider this the gale node's entry in a record we want the synth,
 meld, loom, and wit-bindgen agents to finish with us.
 
-*Corrected on 28 October 2026: the mixer bench's check is now described as an exhaustive differential check over the proven range, rather than as a gate that guarantees soundness, and "What's still open" no longer claims an end-to-end proof of the thesis; the dissolved native code is differentially tested, not proven equivalent to the source.*
+*Corrected on 28 October 2026: the mixer bench's check is now described as an exhaustive differential check over the proven range, rather than as a gate that guarantees soundness, and "What's still open" no longer claims an end-to-end proof of the thesis; it states what ran and that the dissolved native code is differentially tested, not proven equivalent to the source.*
