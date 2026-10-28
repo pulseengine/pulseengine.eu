@@ -1,7 +1,7 @@
 // ─── Hero evidence panel (landing page, pulseengine.eu#201) ───────────
 //
 // A bounded panel inside the hero: the fractal stays ambient behind it, the
-// panel is the framed artifact. Four tiles, each a measured figure with its
+// panel is the framed artifact. Three tiles, each a measured figure with its
 // source date. Built only on the live tokens from _variables.scss, so the light
 // theme follows. Markup: templates/partials/evidence-panel.html.
 
@@ -29,7 +29,7 @@
 
 .hev__grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.6rem;
 }
 
@@ -128,10 +128,9 @@
   line-height: 1.5;
 }
 
-@media (max-width: 768px) {
-  .hev__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-}
-
-@media (max-width: 360px) {
+// Three tiles do not split evenly into two columns, and a lone third tile
+// reads as an afterthought. Below tablet width they stack, one per row.
+@media (max-width: 600px) {
   .hev__grid { grid-template-columns: minmax(0, 1fr); }
+  .hev__spark { height: 26px; }
 }

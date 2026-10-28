@@ -25,12 +25,11 @@ artifacts:
     type: feature
     title: Evidence panel in the landing-page hero
     description: >-
-      Option C from #201: a bounded panel of four tiles in the hero — site
-      claims holding (claim-check), the current varve layer and its digest
-      (layers.json), this repo's requirements verified (rivet coverage), and
-      MC/DC conditions proved on witness's own verdict suite (the substitute
-      for gale's trusted-base count, which has no machine-readable source).
-      scripts/build-evidence.py measures all four at deploy into
+      Option C from #201, cut to three tiles by the owner: site claims holding
+      (claim-check), the current varve layer and its digest (layers.json), and
+      this repo's requirements with a verifying test (rivet coverage). gale's
+      trusted-base count is deferred until gale emits it machine-readably.
+      scripts/build-evidence.py measures all three at deploy into
       data/evidence.json; the template only renders it. A sparkline is drawn
       only where a real series exists.
     status: implemented
@@ -39,7 +38,7 @@ artifacts:
       - "Every figure in the hero is read from data/evidence.json, written at deploy by scripts/build-evidence.py; no figure is typed into the template (claim SITE-HERO-PANEL-NO-TYPED-FIGURES fails on any digit in the partial)."
       - "The layer tile and /layers read the same static/layers.json in the same build, so they cannot disagree."
       - "A tile whose source is older than seven days at build time renders greyed and says 'stale since <date>'; a source missing at build time renders 'unavailable', never a remembered number."
-      - "A sparkline appears only for a tile with at least two real points: claims.yaml git history, the layer index, witness versions on disk. Nothing is interpolated."
+      - "A sparkline appears only for a tile with at least two real points: claims.yaml git history and the layer index. It is drawn as steps from real timestamps; nothing is interpolated or smoothed."
       - "check-asset-cachebust, check-internal-links and the existing gates stay green; the panel has no horizontal scroll at 390px."
     links:
       - type: satisfies

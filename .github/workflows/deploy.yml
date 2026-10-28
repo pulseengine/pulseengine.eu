@@ -83,8 +83,8 @@ jobs:
       - name: Fetch varve layer metadata
         run: python3 scripts/fetch-layers.py
 
-      # The hero evidence panel (pulseengine.eu#201). Runs after fetch-reports
-      # and fetch-layers so it reads what this deploy fetched. Same pinned
+      # The hero evidence panel (pulseengine.eu#201). Runs after
+      # fetch-layers so it reads the layer index this deploy fetched. Same pinned
       # rivet as ci.yml. Deliberately non-blocking: a tile whose source is
       # missing renders "unavailable", which is the designed fallback, so a
       # rivet download hiccup must not stop a deploy. The generator never reads

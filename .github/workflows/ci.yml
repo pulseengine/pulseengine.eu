@@ -49,8 +49,8 @@ jobs:
       # the generator runs against the pinned rivet the deploy also installs.
       # --require: claim-check and rivet run from this checkout, so if either
       # comes out unavailable here it is a broken generator, not a flaky
-      # source. The layer and MC/DC tiles may legitimately be stale or missing
-      # on a PR (no ghcr/report fetch), and render so.
+      # source. The layer tile may legitimately be stale or missing
+      # on a PR (no ghcr fetch), and renders so.
       - name: Check the evidence panel's generator can still fail
         run: python3 scripts/build-evidence.py --self-test
 

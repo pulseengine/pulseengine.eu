@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # rivet: verifies REQ-HERO-EVIDENCE
-"""Measure the four figures in the landing-page evidence panel into data/evidence.json.
+"""Measure the three figures in the landing-page evidence panel into data/evidence.json.
 
 pulseengine.eu#201, option C. The panel is a claim that decays in public, so
 every figure is re-measured here, at deploy time, from the instrument that owns
@@ -12,8 +12,9 @@ if a digit appears in that partial.
   claims    claim-check.py claims.yaml, run now          this run
   layer     static/layers.json (fetch-layers.py)         its generated_utc
   rivet     rivet coverage --format json, run now        this run
-  mcdc      witness verdict-suite report.json files      the suite's own timestamp
-            under static/reports/witness/ (fetch-reports)
+
+A fourth tile, gale's trusted-base size, waits on a machine-readable source:
+the external_body count exists only as prose in gale's honesty ledger.
 
 Rules, because they are the point of the issue:
 
@@ -25,9 +26,10 @@ Rules, because they are the point of the issue:
   evidence.json is still judged against the build clock, not its own.
 * A sparkline is emitted only from a real series with at least two points:
   claims.yaml's git history (needs a full clone — the deploy checks out with
-  fetch-depth 0; CI's shallow clone gets none), the layer index, and witness
-  versions on disk. rivet has no recorded history, so it gets none. Nothing is
-  interpolated: x is the real time of each point.
+  fetch-depth 0; CI's shallow clone gets none) and the layer index. rivet has
+  no recorded history, so it gets none. Nothing is interpolated: x is the real
+  time of each point, and the line is drawn as steps, because each value holds
+  until the next one replaces it.
 
 Usage:  build-evidence.py [--require claims,rivet,...]   write data/evidence.json
         build-evidence.py --self-test                    decision table, offline
@@ -69,10 +71,24 @@ def _run(cmd: list[str], cwd: pathlib.Path) -> subprocess.CompletedProcess | Non
 
 
 def sparkline(series: list[tuple[int, float]], label: str) -> dict | None:
-    """Polyline in a 100x24 box. x is proportional to real time, never index."""
+    """Step polyline in a 100x24 box. x is proportional to real time, never index.
+
+    Drawn step-after: a layer's payload count, or the claim ledger's size, holds
+    from the moment it is issued until the next one replaces it, so the honest
+    shape is a staircase, not a line sloping between two releases. Two points at
+    the same timestamp would draw a vertical stroke that means nothing, so the
+    later entry for a timestamp wins.
+
+    A short-lived value is NOT smoothed away: layer 2026.09.18 shipped 44
+    payloads where its neighbours shipped 54, and 2026.09.19 restored them two
+    hours later. On a seven-week axis that is a narrow notch, and it stays one.
+    """
+    dedup: dict[int, float] = {}
+    for t, v in sorted(series, key=lambda tv: tv[0]):
+        dedup[t] = v
+    series = sorted(dedup.items())
     if len(series) < 2:
         return None
-    series = sorted(series)
     t0, t1 = series[0][0], series[-1][0]
     lo, hi = min(v for _, v in series), max(v for _, v in series)
     span_t, span_v = (t1 - t0) or 1, (hi - lo)
@@ -82,13 +98,20 @@ def sparkline(series: list[tuple[int, float]], label: str) -> dict | None:
         y = 12 if span_v == 0 else 22 - (v - lo) / span_v * 20
         return round(x, 2), round(y, 2)
 
-    pts = [pt(t, v) for t, v in series]
+    pts = []
+    for i, (t, v) in enumerate(series):
+        x, y = pt(t, v)
+        if i:
+            pts.append((x, pts[-1][1]))      # hold the previous value until now
+        pts.append((x, y))
     fmt = lambda v: f"{v:g}" if isinstance(v, float) else str(v)
+    low_t, low_v = min(series, key=lambda tv: (tv[1], -tv[0]))   # most recent low
     return {
         "viewbox": "0 0 100 24",
         "points": " ".join(f"{x},{y}" for x, y in pts),
         "label": (f"{label}: {len(series)} points, {fmt(series[0][1])} on {_iso(t0)} "
-                  f"to {fmt(series[-1][1])} on {_iso(t1)}"),
+                  f"to {fmt(series[-1][1])} on {_iso(t1)}; lowest {fmt(low_v)} on "
+                  f"{_iso(low_t)}"),
     }
 
 
@@ -193,67 +216,6 @@ def tile_rivet(root: pathlib.Path, now: int, sha: str, run=None, which=shutil.wh
                 tone="good" if v == n else "neutral", source_epoch=now)
 
 
-# ── tile 4: MC/DC (substitute for the gale trusted-base count) ────────────────
-
-SUITE_TS = re.compile(r"^witness verdict suite — (\S+)", re.M)
-
-
-def _semver(s: str) -> tuple[int, ...]:
-    return tuple(int(p) for p in re.findall(r"\d+", s)[:3])
-
-
-def _suite(vdir: pathlib.Path) -> tuple[int, int, int, str] | None:
-    """(timestamp, conditions proved, conditions total, schema) for one witness version.
-
-    Conditions, not decisions: in witness 0.45.0 the per-report decision totals
-    sum to 128 while SUMMARY.txt's TOTAL row says 151, so the decision figure
-    depends on which of witness's own outputs is read. The condition sums agree
-    with SUMMARY.txt (146 proved of 839) and are the self-consistent metric.
-    """
-    ev = vdir / "mcdc" / "verdict-evidence"
-    try:
-        ts = _epoch(SUITE_TS.search((ev / "SUMMARY.txt").read_text())[1])
-        proved = total = 0
-        schemas = set()
-        reports = sorted(ev.glob("*/report.json"))
-        for p in reports:
-            r = json.loads(p.read_text())
-            o = r["overall"]
-            proved += int(o["conditions_proved"])
-            total += int(o["conditions_total"])
-            schemas.add(r.get("schema"))
-    except (OSError, ValueError, KeyError, TypeError):
-        return None
-    if not reports or not total or len(schemas) != 1:
-        return None
-    return ts, proved, total, schemas.pop()
-
-
-def tile_mcdc(root: pathlib.Path) -> dict:
-    base = dict(key="mcdc", label="MC/DC conditions proved", href="/reports/",
-                source="witness verdict-suite report.json, fetched by fetch-reports")
-    wdir = root / "static" / "reports" / "witness"
-    versions = sorted((d for d in wdir.glob("*") if d.is_dir() and d.name != "latest"
-                       and re.fullmatch(r"\d+\.\d+\.\d+", d.name)),
-                      key=lambda d: _semver(d.name)) if wdir.is_dir() else []
-    # The value comes from the NEWEST version only. If that one does not parse,
-    # the tile is unavailable — falling back to an older release would be the
-    # remembered number this panel exists to refuse.
-    latest = _suite(versions[-1]) if versions else None
-    if not latest:
-        return tile(**base)
-    ts, proved, total, schema = latest
-    # History: only versions on the same report schema, so the series measures
-    # coverage rather than a change of envelope.
-    series = [(s[0], round(s[1] / s[2] * 100, 1)) for d in versions
-              if (s := _suite(d)) and s[3] == schema]
-    return tile(**base, status="ok", value=f"{proved}/{total}", unit="conditions",
-                detail=(f"witness {versions[-1].name} on its own verdict suite of sample "
-                        "programs — not a measurement of PulseEngine code"),
-                source_epoch=ts,
-                spark=sparkline(series, "percent of conditions proved, per witness release"))
-
-
 # ── assemble ──────────────────────────────────────────────────────────────────
 
 def build(root: pathlib.Path, now: int | None = None) -> dict:
@@ -265,14 +227,12 @@ def build(root: pathlib.Path, now: int | None = None) -> dict:
             "stale_after_days": STALE_AFTER.days,
             "tiles": [_guarded("claims", lambda: tile_claims(root, now, sha)),
                       _guarded("layer", lambda: tile_layer(root)),
-                      _guarded("rivet", lambda: tile_rivet(root, now, sha)),
-                      _guarded("mcdc", lambda: tile_mcdc(root))]}
+                      _guarded("rivet", lambda: tile_rivet(root, now, sha))]}
 
 
 LABELS = {"claims": ("site claims holding", "claim-check.py claims.yaml"),
           "layer": ("current varve layer", "static/layers.json"),
-          "rivet": ("requirements with a verifying test", "rivet coverage"),
-          "mcdc": ("MC/DC conditions proved", "witness verdict-suite report.json")}
+          "rivet": ("requirements with a verifying test", "rivet coverage")}
 
 
 def _guarded(key: str, fn) -> dict:
@@ -304,8 +264,6 @@ def self_test() -> int:
         # missing sources -> unavailable, no value, no date
         t = tile_layer(root)
         check("layer: no layers.json -> unavailable", t["status"] == "unavailable" and t["value"] is None)
-        t = tile_mcdc(root)
-        check("mcdc: no witness reports -> unavailable", t["status"] == "unavailable" and t["value"] is None)
         t = tile_rivet(root, now, "x", which=lambda _: None)
         check("rivet: no binary -> unavailable", t["status"] == "unavailable" and t["source_epoch"] is None)
         t = tile_rivet(root, now, "x", run=lambda *a: R('{"rules": []}'), which=lambda _: "rivet")
@@ -336,27 +294,6 @@ def self_test() -> int:
         check("claims: measured now is not stale", t["stale_after"] > now)
         check("claims: not a git checkout -> no history, no sparkline", t["spark"] is None)
 
-        # witness: one version -> value, no sparkline; two -> sparkline
-        def suite(ver, ts, proved, total):
-            ev = root / "static/reports/witness" / ver / "mcdc/verdict-evidence"
-            (ev / "a").mkdir(parents=True)
-            (ev / "SUMMARY.txt").write_text(f"witness verdict suite — {ts}\n")
-            (ev / "a/report.json").write_text(json.dumps({"overall": {
-                "conditions_proved": proved, "conditions_total": total}}))
-        suite("0.9.0", "2026-01-01T00:00:00Z", 1, 10)
-        t = tile_mcdc(root)
-        check("mcdc: single version -> value, no sparkline", t["value"] == "1/10" and t["spark"] is None)
-        suite("0.10.0", "2026-02-01T00:00:00Z", 3, 10)
-        t = tile_mcdc(root)
-        check("mcdc: latest by semver, not by string", t["value"] == "3/10")
-        check("mcdc: two versions -> sparkline", t["spark"] is not None)
-        bad = root / "static/reports/witness/0.11.0/mcdc/verdict-evidence"
-        bad.mkdir(parents=True)
-        (bad / "SUMMARY.txt").write_text("a header witness changed\n")
-        t = tile_mcdc(root)
-        check("mcdc: newest unparseable -> unavailable, not an older release's figure",
-              t["status"] == "unavailable" and t["value"] is None)
-
         # a malformed source costs its tile, never the run
         (root / "static" / "layers.json").write_text(json.dumps({
             "generated_utc": stamp, "realms": {REALM: {"order": ["x"], "layers": {
@@ -366,9 +303,22 @@ def self_test() -> int:
               t["status"] == "unavailable")
 
     s = sparkline([(0, 5), (10, 5)], "x")
-    check("sparkline: flat series stays inside the box", s and s["points"] == "0.0,12 100.0,12")
+    check("sparkline: flat series stays inside the box",
+          s and s["points"] == "0.0,12 100.0,12 100.0,12")
     s = sparkline([(0, 1), (90, 2), (100, 3)], "x")
-    check("sparkline: x follows real time, not index", s and s["points"].split()[1].startswith("90.0,"))
+    check("sparkline: x follows real time, not index",
+          s and s["points"].split()[1].startswith("90.0,"))
+    s = sparkline([(0, 1), (50, 3)], "x")
+    check("sparkline: steps — the old value holds until the new one",
+          s and s["points"] == "0.0,22.0 100.0,22.0 100.0,2.0")
+    s = sparkline([(0, 1), (50, 3), (50, 2), (100, 2)], "x")
+    xs = [p.split(",")[0] for p in s["points"].split()] if s else []
+    check("sparkline: a duplicate timestamp is one point, the later value wins",
+          s and "4 points" not in s["label"] and "3 points" in s["label"]
+          and s["points"].split()[2] == "50.0,2.0")
+    check("sparkline: x never decreases", xs == sorted(xs, key=float))
+    check("sparkline: duplicates collapsing to one point -> no sparkline",
+          sparkline([(5, 1), (5, 2)], "x") is None)
     print(f"\n{'FAILED' if fails else 'passed'}: {len(fails)} failing case(s)")
     return 2 if fails else 0
 

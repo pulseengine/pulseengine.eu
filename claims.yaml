@@ -656,7 +656,7 @@ claims:
         min: 1
 
   # ── The hero evidence panel types no figure (pulseengine.eu#201) ────────────
-  # The landing-page panel is a claim that decays in public. Its four figures are
+  # The landing-page panel is a claim that decays in public. Its three figures are
   # measured at deploy by scripts/build-evidence.py; the partial only renders
   # them. The failure this guards is the obvious shortcut: a tile reads
   # "unavailable" or stale, and someone types the number into the template so it
