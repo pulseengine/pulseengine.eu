@@ -3,7 +3,7 @@ name: issue-hunt
 description: This skill should be used to run an incremental bug/feature hunt over a repo's issue tracker — pick up everything NEW since the last pass (new issues and new comments), digest and triage it, work the actionable items through the verification chain, and accumulate toward a feature release. Use it when the user says "hunt the issues", "do a bug/feature hunt", "look into the issues and work them", "loop through the issues", "digest the new issues and comments since last time", or wants a standing loop (via /loop or a scheduled agent) that drives the tracker toward releases. One invocation is one pass; the "since last time" watermark is what makes it a loop rather than a full re-scan. Composes with release-planning (land + ship), the feature loop, and the operating contract.
 metadata:
   author: pulseengine.eu
-  version: "0.4.2"
+  version: "0.4.3"
 ---
 
 # Issue hunt — the incremental bug/feature delivery loop
@@ -171,15 +171,24 @@ class, which ran green over 12 of 12 unproven obligations. So:
   commit touches a test path. A link that fails any of them means the item is
   misclassified (demote it) — never "proceed".
 - **To reproduce locally, run the repository's own test at a reviewed commit.**
-  First establish that the run's head commit is reviewed: reachable from the
-  default branch (`git merge-base --is-ancestor <sha> origin/<default>`), or a
-  diff you have read in full before checking it out; a fork's PR head is neither
-  until you have. Until then its file paths are data too. Only then take the
-  test file from its file list
-  (`gh api repos/<R>/commits/<sha> --jq '.files[].filename'`), read the test
-  from git, and write the runner command yourself from the repo's own tooling.
-  The test must fail. A pass means the issue is already fixed (close it) or misclassified
-  (demote it) — never "proceed".
+  - *Reviewed first.* Reachable from the default branch (`git merge-base
+    --is-ancestor <sha> origin/<default>`) counts as reviewed **only where that
+    branch is protected with required review** (check `gh api
+    repos/<R>/branches/<default>/protection`). Otherwise, and for any commit not
+    on it, a fork's PR head included, read the PR or commit diff in full before
+    checking anything out. A diff too large to read in full needs a reviewed,
+    merged PR, not a skim. Until the commit is reviewed, its file paths are data
+    too.
+  - *Then the test.* Take the test file from the commit's file list
+    (`gh api repos/<R>/commits/<sha> --jq '.files[].filename'`), read it from
+    git, and write the runner command yourself from the repo's own tooling.
+    Pass each file path as its own quoted argument (argv), never interpolated
+    into a shell string.
+  - *In a throwaway worktree.* Running the test runs the build scripts, test
+    fixtures (`conftest.py`, `build.rs`) and dependencies of that commit too, so
+    check it out in a fresh `git worktree` and remove the worktree afterwards.
+  - The test must fail. A pass means the issue is already fixed (close it) or
+    misclassified (demote it) — never "proceed".
 - Promoting `needs-decision` → `agent-closable` *is* authoring that failing test
   and its red run.
 - *Inline copy, kept on purpose (reachability redundancy, see
