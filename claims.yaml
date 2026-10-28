@@ -240,6 +240,14 @@ claims:
         pattern: 'spar \(control\): `refactor:` share of PR commits in the window stays at or below 5%'
         glob: ['docs/experiments/2026-10-hotspot-trigger.md']
         min: 1
+      - kind: count-min
+        pattern: 'window is therefore \*\*2026-11, 2026-12 and 2027-01\*\*'
+        glob: ['docs/experiments/2026-10-hotspot-trigger.md']
+        min: 1
+      - kind: count-min
+        pattern: 'TRIGGER_SHIPPED = "2026-10"'
+        glob: ['scripts/factory-report.py']
+        min: 1
       # The post must state the same numbers it says were fixed.
       - kind: verbatim
         text: "at most 6.4 a month"

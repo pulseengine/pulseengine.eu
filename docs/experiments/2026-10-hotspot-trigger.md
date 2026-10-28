@@ -17,6 +17,10 @@ fix. No other process change in rivet or spar during the window.
 
 The three calendar months after the month in which the trigger ships.
 
+**Shipped 2026-10-28.** The trigger landed in rivet#1133, merged as `b4122de6`.
+It consists of `tools/ci/fix-hotspot.py` and `.github/workflows/fix-hotspot.yml`,
+with N=6 fixes in a 60-day window. The window is therefore **2026-11, 2026-12 and 2027-01**.
+
 ## Baselines, measured 2026-10-22
 
 | measure | rivet | spar | source |
