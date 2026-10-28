@@ -140,7 +140,8 @@ not cuttable for that reason.
 **Simulation and hardware.** gale has a Renode emulation workflow
 (`.github/workflows/renode-tests.yml`). jess is the hub meant to carry
 relay's flight stack onto a Pixhawk 6X-RT board; today it runs that stack
-under Renode, and its README states there is no hardware in that loop yet.
+under Renode, and its README states there is no hardware in that automated
+loop yet. One manual bench run on the board matched bit-exact (jess#278).
 20 of the requirements jess's marker scan lists are `REQ-PIX-*` hardware
 requirements, which jess#298 tracks. No hardware result is recorded.
 
@@ -304,4 +305,5 @@ for safety-critical systems, with machine-checked proofs for parts of it
 [The machine arrived before the factory](/blog/the-machine-arrived-before-the-factory/),
 [Agents don't tidy up](/blog/agents-dont-tidy-up/),
 [SAFe was built for slow humans](/blog/safe-was-built-for-slow-humans/),
-[Can we deliver X by January?](/blog/can-we-deliver-x-by-january/).*
+[Can we deliver X by January?](/blog/can-we-deliver-x-by-january/),
+[The orchestrator: who does what when bottlenecks won't go away](/blog/the-orchestrator-who-does-what/).*
