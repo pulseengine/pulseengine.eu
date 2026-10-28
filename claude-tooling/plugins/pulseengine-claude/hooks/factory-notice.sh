@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # SessionStart / SessionEnd hook (pulseengine-claude): the factory notice inbox.
-#   start  record the session start, then tell the agent which decisions are open
-#          and which answers are waiting (read-only: nothing is consumed here)
+#   start  record the session start, then tell the agent which answers are waiting
+#          and, inside the owner's decision windows only, which decisions are
+#          surfaced (read-only: nothing is consumed here)
 #   end    if the agent posted no session-summary and the session changed
 #          something, post a minimal automatic one; then flush the outbox to warte
 # The hook JSON arrives on stdin and is passed through. Never blocks, never
