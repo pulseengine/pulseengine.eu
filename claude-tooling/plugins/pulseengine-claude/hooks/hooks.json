@@ -1,5 +1,5 @@
 {
-  "description": "Always-on PulseEngine context: at session start inject the methodology memory, situational awareness (git state, repo category, resumed working context), and — in a rivet project — the traceability state plus the rivet command surface to use instead of grepping artifact YAML; persist a working-context checkpoint on session end and before compaction so work resumes instead of starting cold.",
+  "description": "Always-on PulseEngine context: at session start inject the methodology memory, situational awareness (git state, repo category, resumed working context), and — in a rivet project — the traceability state plus the rivet command surface to use instead of grepping artifact YAML; persist a working-context checkpoint on session end and before compaction so work resumes instead of starting cold; list the factory-notice decisions that are open or answered at session start, and at session end post an automatic summary when the agent wrote none and flush the notice outbox to warte.",
   "hooks": {
     "SessionStart": [
       {
@@ -18,6 +18,11 @@
             "type": "command",
             "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/inject-rivet-context.sh",
             "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/factory-notice.sh start",
+            "timeout": 5
           }
         ]
       }
@@ -40,6 +45,11 @@
             "type": "command",
             "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/save-working-context.sh",
             "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/factory-notice.sh end",
+            "timeout": 5
           }
         ]
       }

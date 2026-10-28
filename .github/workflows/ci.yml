@@ -175,6 +175,14 @@ jobs:
       - name: Check the factory report's instrument gate can still fail
         run: python3 scripts/factory-report.py --self-test
 
+      # The factory notice inbox's answer-safety rules (REQ-FACTORY-NOTICE-
+      # ANSWER-SAFETY). An answer is an instruction and a row in warte is not
+      # proof the owner wrote it, so the rejection cases (option not offered, stale revision,
+      # second answer, unknown id, forged warte notice) run on every PR. Offline:
+      # the warte client runs against an in-process stub on the loopback.
+      - name: Check the factory notice inbox rejects unsafe answers
+        run: python3 claude-tooling/plugins/pulseengine-claude/skills/factory-notice/notice.py --self-test
+
       # External review of #232 found a compiled .pyc in that PR and a second
       # one tracked for longer, with all ten gates green over both: each asked
       # whether a claim matched the tree, none asked what was in it.
