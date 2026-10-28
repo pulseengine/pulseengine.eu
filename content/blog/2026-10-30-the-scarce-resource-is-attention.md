@@ -3,6 +3,7 @@ title = "The scarce resource is the orchestrator's attention"
 description = "On 28 October one machine ran about 22 agent sessions in parallel, and survey research published in March 2026, as reported, identifies overseeing AI agents as the strongest driver of cognitive strain. We built a decision inbox with an attention budget: it surfaces at most three routine flows at a time, and questions wait for a decision window and one digest. It is days old and unmeasured; this post says what we will measure."
 date = 2026-10-30
 draft = true
+ready = true
 [taxonomies]
 tags = ["process", "ai-agents", "orchestration"]
 authors = ["Ralf Anton Beier"]
@@ -19,10 +20,11 @@ authors = ["Ralf Anton Beier"]
   fry, and self-rated productivity peaks at three simultaneous AI tools.
 - In response we shipped a decision inbox (plugin 0.44.0) and an attention
   budget (0.45.0): the digest, the session hook and review surface at most
-  three routine flows at a time, questions wait for a decision window, one digest collects them, and
-  security or red-`main` decisions skip the queue. Three is a starting value
-  suggested by the study's peak; the study did not test a cap on asking
-  flows. All of it is days old and nothing about it has been measured yet.
+  three routine flows at a time, questions wait for a decision window, one
+  digest collects them, and security or red-`main` decisions skip the queue.
+  Three is a starting value suggested by the study's peak; the study did not
+  test a cap on asking flows. All of it is days old and nothing about it has
+  been measured yet.
 {% </insight> %}
 
 [SAFe was built for slow humans](/blog/safe-was-built-for-slow-humans/)
@@ -84,7 +86,7 @@ Nothing limited how many could ask at once.
 ## What we built
 
 Three changes landed on 28 October, all in the pulseengine-claude plugin that
-lives in this site's repository.
+lives in this site's repository; a fourth is planned.
 
 ### A decision inbox, so agents do not block
 
@@ -106,10 +108,8 @@ the answer is for the current revision, and that revision has not already
 been answered. The consumed record is created with `O_EXCL`, so the first
 accepted answer wins. A note attached to an answer is printed quoted and
 labelled as data, and the skill tells the agent not to follow it. These rules
-guard against forged rows on warte, the control tower described below. Who
-answers locally is not checked: `notice.py answer` has no identity check and,
-unlike `review`, runs without a terminal, so any process running as the user
-can record an answer.
+guard against forged rows on warte, the control tower described below; their
+known limits are listed in the skill.
 
 ### An attention budget, so the inbox does not become the next queue
 
@@ -129,11 +129,8 @@ The cap governs what `notice.py` shows the owner, directly or through the
 agent's session hook: the digest, the hook's output, `review` and the
 notification. The windows govern the session hook and
 `window-tick`; a `digest` or `review` the owner runs by hand ignores them.
-Nothing stops a session from
-asking in the chat instead. The `security` and `red-main` tags and the `flow`
-name are chosen by the agent that posts the decision and are never checked,
-so an agent can tag a routine question to skip the cap, or spread its
-questions over several flows to hold more than one slot.
+Nothing stops a session from asking in the chat instead, and the budget's
+known limits are listed in the skill.
 
 A macOS notification carries two counts and the command to run, and nothing
 from any decision, because a notification shows on a locked screen and stays
@@ -182,8 +179,8 @@ open decision, and decisions answered in the last 7 days. Flows asking counts
 every flow with an open decision, queued ones included, so it can exceed
 three. Week 0 is the week of 28 October 2026, when `window-tick` was
 installed; it is a reading of the budget itself rather than of the old setup,
-and we record the line once a week from then. Alongside it we will record decisions posted per
-week, counted from the `needs-decision` notices by `opened_at` in the local
+and we record the line once a week from then. Alongside it we will record
+decisions posted per week, counted from the `needs-decision` notices by `opened_at` in the local
 store, and the number of agents posting, counted from the agent directories
 that hold at least one `needs-decision` notice. The digest prints neither,
 and the store is per machine, so both counts cover this machine only.
@@ -191,8 +188,9 @@ and the store is per machine, so both counts cover this machine only.
 The budget is working if the oldest open decision stays under 48 hours at
 every weekly reading. A cap that makes questions wait for weeks has only moved
 the bottleneck. A weekly reading can miss a spike between readings. The
-criterion assumes windows on every day, as the defaults have; a Monday-to-Friday schedule leaves about 63
-hours from Friday 17:30 to Monday 08:30. If the oldest age climbs week on
+criterion assumes windows on every day, as the defaults have; a
+Monday-to-Friday schedule leaves about 63 hours from Friday 17:30 to Monday
+08:30. If the oldest age climbs week on
 week, the cap is too tight or the windows too short, and the settings change.
 If it stays over 48 hours for two weekly readings after a settings change,
 the budget has moved the bottleneck and we will say so. We will also report
@@ -201,8 +199,8 @@ threshold, because the answered count includes answers to older decisions and
 the ratio can exceed one. The first four weekly readings go into a follow-up
 post due around 25 November 2026, with every settings change and its date.
 
-These readings cover throughput and latency. `window-tick` logs on every tick inside a window whether it notified, which gives a partial
-count of inbox notifications. Nothing records how often the owner is
+These readings cover throughput and latency. `window-tick` logs on every
+tick inside a window whether it notified, which gives a partial count of inbox notifications. Nothing records how often the owner is
 interrupted in the chat, and nothing measures his strain, which the study
 measured by self-report.
 

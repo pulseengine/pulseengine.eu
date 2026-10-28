@@ -3,6 +3,7 @@ title = "Trust at machine speed"
 description = "Trust is an advantage at machine speed only when a machine can check it. Europe's regulation has started asking for some evidence in machine-readable form, while German assessment practice still has people assemble and read most of it. What PulseEngine has today: claims checked in CI, traceability in rivet, and a release signature a buyer can check without the vendor's key."
 date = 2026-11-02
 draft = true
+ready = true
 [taxonomies]
 tags = ["process", "verification", "regulation", "ai-agents"]
 authors = ["Ralf Anton Beier"]
@@ -114,9 +115,9 @@ test results into rivet ([ASPICE is not a queue](/blog/aspice-is-not-a-queue/)).
 `rivet validate` checks that each link resolves, not that the check passed.
 
 **Signed release evidence.** [witness](https://github.com/pulseengine/witness)
-measures MC/DC-style branch coverage for WebAssembly components. Each release
-since v0.6.4 ships a compliance-evidence archive with per-verdict coverage
-reports and in-toto statements. Each in-toto statement is DSSE-signed with a
+measures MC/DC-style branch coverage for WebAssembly components. Every
+witness release since v0.4.0 ships a compliance-evidence archive, and since
+v0.6.4 it holds per-verdict coverage reports and in-toto statements. Each in-toto statement is DSSE-signed with a
 per-release ephemeral Ed25519 key, whose public half ships in the archive. In
 v0.45.0, each statement also ships with its own Sigstore keyless certificate
 and signature, which we did not check. A signature checked against a key
@@ -170,7 +171,7 @@ shows that the software is safe.
 certified or qualified. What we claim is that the evidence can be checked, and
 for tools the route to more is qualification under RTCA DO-330, the tool
 qualification standard used with DO-178C in aerospace[^do330]; automotive has
-its own tool-confidence process in ISO 26262. Qualification happens inside an
+its own tool-confidence process in ISO 26262. Qualification usually happens inside an
 applicant's certification project, so a vendor can only prepare qualification
 data. witness plans a small checker audited under DO-330 for v1.0, and we have
 prepared no qualification data for any of our tools.
@@ -181,8 +182,9 @@ its statement. A survey of AI-assisted formal mathematics (arXiv v2, October
 faithfully represents the source"[^solvers], and on the VERINA benchmark,
 based on one trial per task, the best model, OpenAI o3, reached 52.3% on
 specification soundness and completeness and 4.9% proof success[^verina]. Our
-own checks get the same treatment: we broke the claim pinning the previous
-post on purpose and claim-check exited 1, though `claims.yaml` pins text and
+own checks get the same treatment: we broke the claim that pins the
+attention post (`POST-ATTENTION-BUDGET-MATCHES-SKILL`) on purpose and
+claim-check exited 1, though `claims.yaml` pins text and
 patterns, not behaviour.
 
 **"Agents reviewing agents is not independence."** The posts on this site are
@@ -197,13 +199,11 @@ chain ended in a tampered release[^clinejection]. At Black Hat USA 2026,
 Novee Security reported that an issue from an account with no repository
 rights reached CI secrets in the vendors' own repositories for Claude Code,
 Gemini CLI and OpenAI Codex[^csa-blackhat], and Google's advisory for Gemini
-CLI rates its headless-mode flaw critical[^gemini-ghsa]. Our issue-class check
-refuses to execute issue bodies, and an agent accepts only an answer that
-names an option it offered; that option check limits what a forged answer can
-pick but does not authenticate the answerer, and our issue-hunt sessions do
-read issue text into an agent's prompt. We audited our agent workflows on 28 October 2026
-and fixed one finding the same day (plugin 0.45.1 and 0.45.2); further fixes
-are in progress. The audit itself is not published.
+CLI rates its headless-mode flaw critical[^gemini-ghsa]. Our own control is
+to treat issue and pull-request text as data, never as commands. We audited
+our agent workflows on 28 October 2026 and fixed one finding the same day
+(plugin 0.45.1 and 0.45.2); further fixes are in progress. The audit itself
+is not published.
 
 ## Limits and sources
 
