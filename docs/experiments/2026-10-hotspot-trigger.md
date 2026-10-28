@@ -68,4 +68,6 @@ commits on `rivet-cli/src/main.rs` and whether the file still exists, and
 message-labelled and diff-judged shares on a seeded sample of up to 45
 commits per repository), so the window's verdict is computed from summed
 counts, never from one month. Until the trigger ships, each file is marked
-`pre-window`. The job is inert until the `ANTHROPIC_API_KEY` secret exists.
+`pre-window`. The model calls run on the owner's Claude subscription through
+the Claude Code CLI, and the job is inert until the `CLAUDE_CODE_OAUTH_TOKEN`
+secret exists.

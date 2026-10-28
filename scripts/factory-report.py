@@ -2,8 +2,8 @@
 # rivet: verifies REQ-FACTORY-REPORT-INSTRUMENT-GATE
 """Monthly measurement for the fix-hotspot experiment (docs/experiments/2026-10-hotspot-trigger.md).
 
-    factory-report.py --self-test              offline decision table; no key, no network
-    factory-report.py configured               prints whether ANTHROPIC_API_KEY is set (exit 0 either way)
+    factory-report.py --self-test              offline decision table; no credential, no network, no CLI
+    factory-report.py configured               prints whether a Claude credential is set (exit 0 either way)
     factory-report.py run --clones DIR --work DIR --out data/factory-report [--month YYYY-MM]
     factory-report.py publish --file data/factory-report/YYYY-MM.json --repo owner/name
 
@@ -24,7 +24,16 @@ ORDER IS THE POINT. `run` checks the instrument before it measures anything:
      sample as labelled the references, so the check qualifies the instrument
      the report actually uses.
 
-A missing ANTHROPIC_API_KEY (unset or empty) is exit 0 with a notice and no
+The model calls run on the owner's Claude subscription: the Claude Code CLI
+in print mode, authenticated by the CLAUDE_CODE_OAUTH_TOKEN secret (made with
+`claude setup-token`). ANTHROPIC_API_KEY is accepted as a fallback credential
+for a local run, and is then billed to that API account; when both are set the
+OAuth token wins and the key is withheld from the CLI, which would otherwise
+prefer it. The workflow passes only the OAuth token. Bare mode is never used:
+it reads only an API key and ignores OAuth, so it would silently break the
+subscription run.
+
+A missing credential (unset or empty) is exit 0 with a notice and no
 file. This deliberately differs from check-issue-classes.py, which exits 2 on a
 missing token: that script is a gate, and a gate that cannot reach its evidence
 must go red. This one produces a report, and a skipped run publishes nothing,
@@ -32,32 +41,42 @@ so nothing false can be read from it. A red schedule for the known reason "the
 owner has not added the secret yet" would only train people to ignore red.
 
 Instruments:
-- Message labels: Claude Haiku via the API, model id below, read from the
-  models overview page on 2026-10-27. The 22 October calibration used Claude
+- Message labels: Claude Haiku through the Claude Code CLI, model id below,
+  read from the models overview page on 2026-10-27; the CLI is pinned to the
+  version below and accepted both full ids when tried on 2026-10-28. The 22 October calibration used Claude
   Code's "haiku" alias, which may not be the same snapshot; the instrument
   check, not the name, is what qualifies the model each month.
 - Diff judgement (criterion 3): Claude Sonnet reading message plus diff
   truncated at 3,500 characters, both repositories shuffled together under
   opaque ids, as judge-batches.py did for the baseline. It has no labelled
   refactor reference, so it is reported as uncalibrated.
-  No server-side refusal fallback is enabled on either model: a fallback
-  would swap the instrument silently, so a refusal is a missing label and the
-  run fails closed.
+  No fallback model is passed to the CLI, and every answer's per-model usage
+  must name exactly the requested model: a fallback would swap the instrument
+  silently, so a swap is "could not run" and a refusal is a missing label;
+  either way the run fails closed.
+- Each call runs `claude -p` with no tools, no MCP servers, no settings
+  sources and no session persistence, from a fresh empty directory, so no
+  CLAUDE.md, memory or hook reaches the classifier. The prompt goes on stdin;
+  the labels come back in the result's `structured_output`, validated by the
+  CLI against --json-schema. The CLI has no max-tokens flag, so none is set.
 
 Month boundaries are UTC calendar months. The 22 October baseline used a
 +02:00 cut-off; the difference is at most two hours at each end.
 
 Exit: 0 report written, or not configured · 1 instrument check failed or
-labels incomplete · 2 could not run (reference moved, network, API error).
+labels incomplete · 2 could not run (reference moved, network, a CLI failure
+after retries, auth failure, the subscription usage limit).
 """
 from __future__ import annotations
 
 import argparse
 import base64
 import collections
+import contextlib
 import datetime as dt
 import hashlib
 import importlib.util
+import io
 import json
 import os
 import pathlib
@@ -67,6 +86,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import time
 import urllib.error
 import urllib.request
 
@@ -80,11 +100,12 @@ MODEL_SOURCE = "https://platform.claude.com/docs/en/about-claude/models/overview
 CLASSIFIER_MODEL = "claude-haiku-5-5"
 JUDGE_MODEL = "claude-sonnet-5-5"
 EFFORT = "low"
-MAX_TOKENS = 16000          # thinking counts against it; a classification batch needs ~2k
 BATCH = 20                  # commits per classifier request
 JUDGE_BATCH = 10            # diffs per judge request
-# USD per million tokens, input/output, from the same page (Haiku: prompts <= 100K).
-PRICE = {CLASSIFIER_MODEL: (0.10, 0.50), JUDGE_MODEL: (2.00, 10.00)}
+CLAUDE_CLI = "claude"
+CLI_VERSION = "2.1.312"     # the version the workflow installs and this was tried with
+CLI_TIMEOUT = 600           # seconds per call
+BACKOFF = (15, 60, 180, 420)  # seconds before each retry of a transient failure
 
 PRECISION_MIN = 0.75
 RECALL_MIN = 0.70
@@ -145,14 +166,19 @@ def notice(msg):
             fh.write(f"### factory report\n\n{msg}\n")
 
 
-def api_key():
-    """Unset and empty are the same: an Actions secret that does not exist
-    arrives as the empty string, not as a missing variable."""
-    return (os.environ.get("ANTHROPIC_API_KEY") or "").strip()
+CREDENTIALS = ("CLAUDE_CODE_OAUTH_TOKEN", "ANTHROPIC_API_KEY")   # first set one wins
 
 
-NOT_CONFIGURED = ("not configured: ANTHROPIC_API_KEY is not set, so no report was produced. "
-                  "Add it under Settings > Secrets and variables > Actions to enable the monthly run.")
+def credential():
+    """The name of the credential the CLI will use, or "". Unset and empty are
+    the same: an Actions secret that does not exist arrives as the empty
+    string, not as a missing variable."""
+    return next((k for k in CREDENTIALS if (os.environ.get(k) or "").strip()), "")
+
+
+NOT_CONFIGURED = ("not configured: CLAUDE_CODE_OAUTH_TOKEN is not set, so no report was produced. "
+                  "Create it with `claude setup-token` and add it under Settings > Secrets and "
+                  "variables > Actions to enable the monthly run.")
 
 
 # ── Gate (pure) ──────────────────────────────────────────────────────────────
@@ -177,53 +203,130 @@ def sha256(path):
 
 
 # ── Model calls (the one code path for references and month samples) ─────────
-class Usage:
-    def __init__(self):
-        self.tokens = collections.defaultdict(lambda: [0, 0])
+class UsageLimit(CouldNotRun):
+    """The subscription's usage window is exhausted. Not retried: the window
+    does not reset within any backoff this job can afford."""
 
-    def add(self, model, u):
-        self.tokens[model][0] += getattr(u, "input_tokens", 0) or 0
-        self.tokens[model][1] += getattr(u, "output_tokens", 0) or 0
+
+class Usage:
+    """Per-model tokens and the CLI's own notional list-price cost. On the
+    subscription nothing is billed per token; the figure says what the run
+    would have cost on the API."""
+
+    KEYS = (("inputTokens", "input_tokens"), ("cacheCreationInputTokens", "cache_creation_input_tokens"),
+            ("cacheReadInputTokens", "cache_read_input_tokens"), ("outputTokens", "output_tokens"))
+
+    def __init__(self):
+        self.tokens = collections.defaultdict(lambda: collections.defaultdict(float))
+
+    def add(self, model_usage):
+        for m, u in (model_usage or {}).items():
+            for src, dst in self.KEYS:
+                self.tokens[m][dst] += u.get(src, 0) or 0
+            self.tokens[m]["notional_cost_usd"] += u.get("costUSD", 0) or 0
 
     def report(self):
-        out = {}
-        for m, (i, o) in self.tokens.items():
-            pi, po = PRICE.get(m, (0, 0))
-            out[m] = {"input_tokens": i, "output_tokens": o,
-                      "cost_usd": round(i / 1e6 * pi + o / 1e6 * po, 4)}
-        return out
+        return {m: {**{dst: int(t[dst]) for _, dst in self.KEYS},
+                    "notional_cost_usd": round(t["notional_cost_usd"], 4)}
+                for m, t in self.tokens.items()}
 
 
 def _schema(fields):
-    return {"type": "json_schema", "schema": {
-        "type": "object", "additionalProperties": False, "required": ["labels"],
-        "properties": {"labels": {"type": "array", "items": {
-            "type": "object", "additionalProperties": False,
-            "required": ["id", *fields],
-            "properties": {"id": {"type": "string"}, **fields}}}}}}
+    return {"type": "object", "additionalProperties": False, "required": ["labels"],
+            "properties": {"labels": {"type": "array", "items": {
+                "type": "object", "additionalProperties": False,
+                "required": ["id", *fields],
+                "properties": {"id": {"type": "string"}, **fields}}}}}
 
 
 LABEL_FIELDS = {"primary": {"type": "string", "enum": cc.CATS}, "contains_fix": {"type": "boolean"}}
 JUDGE_FIELDS = {"primary": {"type": "string", "enum": cc.CATS}, "refactor": {"type": "boolean"}}
 
 
-def _ask(client, usage, model, system, items, fields):
-    """One request. Returns {id: label}. A refusal, a truncated answer, or
-    unparseable JSON returns {} for the batch, so the caller's schema check
-    (commit-classify.load_labels) fails closed on the missing ids."""
-    resp = client.messages.create(
-        model=model, max_tokens=MAX_TOKENS, system=system,
-        output_config={"effort": EFFORT, "format": _schema(fields)},
-        messages=[{"role": "user", "content": json.dumps(items, ensure_ascii=False)}])
-    usage.add(model, resp.usage)
-    if resp.stop_reason != "end_turn":
-        print(f"  {model}: stop_reason={resp.stop_reason} for {len(items)} items; leaving them unlabelled",
-              file=sys.stderr)
-        return {}
-    text = next((b.text for b in resp.content if b.type == "text"), "")
+def cli_argv(model, system, fields):
+    """Print mode with every ambient input switched off. `--tools ""` leaves
+    only the CLI's StructuredOutput tool, which is how --json-schema answers."""
+    return [CLAUDE_CLI, "-p", "--model", model, "--effort", EFFORT,
+            "--json-schema", json.dumps(_schema(fields)), "--output-format", "json",
+            "--system-prompt", system, "--tools", "", "--strict-mcp-config",
+            "--setting-sources", "", "--no-session-persistence"]
+
+
+def cli_env():
+    """With the OAuth token present, the API key is withheld from the CLI so
+    the run lands on the subscription, never on an API account by accident."""
+    env = dict(os.environ)
+    if (env.get("CLAUDE_CODE_OAUTH_TOKEN") or "").strip():
+        env.pop("ANTHROPIC_API_KEY", None)
+    return env
+
+
+def cli_result(stdout):
+    """(result object, rate-limit infos). `--output-format json` prints one
+    result object, or, with verbose on in the user's config, the whole message
+    list ending in it; both are read."""
     try:
-        rows = json.loads(text)["labels"]
-    except (ValueError, KeyError, TypeError):
+        d = json.loads(stdout or "")
+    except ValueError:
+        return None, []
+    msgs = d if isinstance(d, list) else [d]
+    msgs = [m for m in msgs if isinstance(m, dict)]
+    res = next((m for m in reversed(msgs) if m.get("type") == "result"), None)
+    return res, [m.get("rate_limit_info") or {} for m in msgs if m.get("type") == "rate_limit_event"]
+
+
+LIMIT_TEXT = re.compile(r"usage limit|hit your (usage )?limit|limit reached|limit will reset|resets at", re.I)
+TRANSIENT_TEXT = re.compile(r"overloaded|connection|timed? ?out|network|ECONNRESET|socket|internal server", re.I)
+TRANSIENT_STATUS = {408, 409, 429, 500, 502, 503, 504, 529}
+_sleep = time.sleep          # the self-test replaces it
+
+
+def _call(runner, argv, prompt):
+    """One CLI call, retried with backoff on transient failures. Returns the
+    result object; raises CouldNotRun (or UsageLimit) on anything else."""
+    why = ""
+    for attempt in range(len(BACKOFF) + 1):
+        if attempt:
+            print(f"  claude: {why}; retry {attempt}/{len(BACKOFF)} in {BACKOFF[attempt - 1]}s", file=sys.stderr)
+            _sleep(BACKOFF[attempt - 1])
+        with tempfile.TemporaryDirectory(prefix="factory-report-claude-") as cwd:
+            try:
+                p = runner(argv, input=prompt, capture_output=True, text=True, timeout=CLI_TIMEOUT,
+                           cwd=cwd, env=cli_env())
+            except subprocess.TimeoutExpired:
+                why = f"no answer within {CLI_TIMEOUT}s"
+                continue
+            except FileNotFoundError:
+                raise CouldNotRun(f"the Claude Code CLI ({CLAUDE_CLI}) is not installed")
+        res, limits = cli_result(p.stdout)
+        text = str((res or {}).get("result") or p.stderr or "")[:300]
+        if any(i.get("status") == "rejected" for i in limits) or (
+                (res is None or res.get("is_error")) and LIMIT_TEXT.search(text)):
+            raise UsageLimit(f"subscription usage limit reached: {text}")
+        if res is not None and p.returncode == 0 and not res.get("is_error"):
+            return res
+        status = (res or {}).get("api_error_status")
+        why = f"exit {p.returncode}, status {status}: {text}"
+        if res is not None and status not in TRANSIENT_STATUS and not TRANSIENT_TEXT.search(text):
+            raise CouldNotRun(f"Claude Code CLI failed ({why})")
+    raise CouldNotRun(f"Claude Code CLI failed after {len(BACKOFF)} retries ({why})")
+
+
+def _ask(client, usage, model, system, items, fields):
+    """One request. Returns {id: label}. A refusal, or an answer without
+    structured output, returns {} for the batch, so the caller's schema check
+    (commit-classify.load_labels) fails closed on the missing ids. `client` is
+    a subprocess.run-compatible runner."""
+    res = _call(client, cli_argv(model, system, fields), json.dumps(items, ensure_ascii=False))
+    used = res.get("modelUsage") or {}
+    usage.add(used)
+    if set(used) != {model}:
+        raise CouldNotRun(f"asked for {model}, the CLI answered with {sorted(used)}: instrument swapped")
+    out = res.get("structured_output")
+    rows = out.get("labels") if isinstance(out, dict) else None
+    if not isinstance(rows, list):
+        print(f"  {model}: no structured output (stop_reason={res.get('stop_reason')}, "
+              f"{res.get('terminal_reason')}) for {len(items)} items; leaving them unlabelled", file=sys.stderr)
         return {}
     want = {it["id"] for it in items}
     return {r["id"]: {k: r[k] for k in fields} for r in rows
@@ -247,8 +350,8 @@ def judge(client, usage, items):
 
 
 def make_client():
-    import anthropic  # lazy: the PR self-test runs without the SDK installed
-    return anthropic.Anthropic(max_retries=4)
+    """The runner every model call goes through; the self-test passes a stub."""
+    return subprocess.run
 
 
 # ── Step 1-2: references and the instrument check ────────────────────────────
@@ -519,7 +622,7 @@ def run(month, out_dir, work, *, refs_fn, label_fn, measure_fn):
 
 
 def cmd_run(a):
-    if not api_key():
+    if not credential():
         notice(NOT_CONFIGURED)
         return 0
     month = a.month or previous_month()
@@ -533,17 +636,17 @@ def cmd_run(a):
                          refs_fn=lambda: build_references(clones, work),
                          label_fn=lambda items: classify(client, usage, items),
                          measure_fn=lambda: measure(month, clones, client, usage, token, work))
+    except UsageLimit as e:
+        # A CLI failure is "could not run", not "the instrument failed": the
+        # exit code is how the log tells the two apart.
+        print(f"::error title=factory-report::subscription usage limit reached — re-run with "
+              f"workflow_dispatch month={month}")
+        print(f"could not run: subscription usage limit reached — re-run with workflow_dispatch "
+              f"month={month} ({e})", file=sys.stderr)
+        return 2
     except (CouldNotRun, subprocess.CalledProcessError) as e:
         print(f"could not run: {e}", file=sys.stderr)
         return 2
-    except Exception as e:
-        # An API error is "could not run", not "the instrument failed": the
-        # exit code is how the log tells the two apart.
-        import anthropic
-        if isinstance(e, anthropic.APIError):
-            print(f"could not run: Anthropic API error: {e}", file=sys.stderr)
-            return 2
-        raise
     finally:
         print("usage:", json.dumps(usage.report()))
     if path:
@@ -578,9 +681,10 @@ def pr_body(rep):
              "| criterion | this month |", "|---|---|"]
     for k, v in rep["criteria"].items():
         lines.append(f"| {k} | `{json.dumps({x: y for x, y in v.items() if x != 'window_threshold'})}` |")
-    cost = sum(u.get("cost_usd", 0) for u in rep.get("usage", {}).values())
+    cost = sum(u.get("notional_cost_usd", 0) for u in rep.get("usage", {}).values())
     lines += ["", f"Window: {rep['window']['status']}. The verdict is computed over the window's summed "
-              f"counts, never from one month. API cost of this run: ${cost:.2f}. "
+              f"counts, never from one month. Run on the Claude subscription; notional "
+              f"list-price cost as reported by Claude Code: ${cost:.2f}. "
               "Opened by `.github/workflows/factory-report.yml`."]
     return "\n".join(lines)
 
@@ -619,7 +723,7 @@ def cmd_publish(a):
 
 
 def cmd_configured(_a):
-    ok = bool(api_key())
+    ok = bool(credential())
     if not ok:
         notice(NOT_CONFIGURED)
     out = os.environ.get("GITHUB_OUTPUT")
@@ -715,24 +819,56 @@ def _table():
         code, files = pipeline(lambda items: {i["id"]: perfect[i["id"]] for i in items[:-1]})
         check("one missing label (a refusal) is refused, nothing written", code == 1 and files == [])
 
-        for val, label in ((None, "unset"), ("", "empty"), ("  ", "blank")):
-            saved = os.environ.pop("ANTHROPIC_API_KEY", None)
-            if val is not None:
-                os.environ["ANTHROPIC_API_KEY"] = val
-            out = td / f"skip-{label}"
-            code = cmd_run(argparse.Namespace(month="2026-11", work=str(td / "w2"), clones=str(td),
-                                              out=str(out)))
-            os.environ.pop("ANTHROPIC_API_KEY", None)
-            if saved is not None:
-                os.environ["ANTHROPIC_API_KEY"] = saved
-            check(f"{label} ANTHROPIC_API_KEY exits 0 and writes nothing", code == 0 and not out.exists())
+        saved = {k: os.environ.pop(k) for k in CREDENTIALS if k in os.environ}
+        try:
+            for val, label in ((None, "unset"), ("", "empty"), ("  ", "blank")):
+                for k in CREDENTIALS:
+                    os.environ.pop(k, None)
+                    if val is not None:
+                        os.environ[k] = val
+                out = td / f"skip-{label}"
+                code = cmd_run(argparse.Namespace(month="2026-11", work=str(td / "w2"), clones=str(td),
+                                                  out=str(out)))
+                check(f"{label} CLAUDE_CODE_OAUTH_TOKEN and ANTHROPIC_API_KEY exit 0 and write nothing",
+                      code == 0 and not out.exists())
+            for k in CREDENTIALS:
+                os.environ.pop(k, None)
+            os.environ["ANTHROPIC_API_KEY"] = "k"
+            check("ANTHROPIC_API_KEY alone counts as configured (local fallback)",
+                  credential() == "ANTHROPIC_API_KEY" and "ANTHROPIC_API_KEY" in cli_env())
+            os.environ["CLAUDE_CODE_OAUTH_TOKEN"] = "t"
+            check("with both set the OAuth token wins and the key is withheld from the CLI",
+                  credential() == "CLAUDE_CODE_OAUTH_TOKEN" and "ANTHROPIC_API_KEY" not in cli_env())
+
+            # The subscription limit mid-run: exit 2, nothing written, the
+            # re-run instruction in the log.
+            real = globals()["build_references"]
+
+            def limited(*_a):
+                raise UsageLimit("subscription usage limit reached: You've hit your limit")
+
+            globals()["build_references"] = limited
+            out, err = td / "limited", io.StringIO()
+            try:
+                with contextlib.redirect_stderr(err), contextlib.redirect_stdout(io.StringIO()):
+                    code = cmd_run(argparse.Namespace(month="2026-11", work=str(td / "w3"), clones=str(td),
+                                                      out=str(out)))
+            finally:
+                globals()["build_references"] = real
+            check("a usage limit exits 2, writes nothing, and says how to re-run",
+                  code == 2 and not out.exists() and "subscription usage limit reached — re-run with "
+                  "workflow_dispatch month=2026-11" in err.getvalue())
+        finally:
+            for k in CREDENTIALS:
+                os.environ.pop(k, None)
+            os.environ.update(saved)
 
     check("previous month of 2026-11-01 is 2026-10", previous_month(dt.date(2026, 11, 1)) == "2026-10")
     check("previous month of 2027-01-15 is 2026-12", previous_month(dt.date(2027, 1, 15)) == "2026-12")
     check("pre-window while the trigger has not shipped", TRIGGER_SHIPPED is not None
           or window_status("2026-11")["status"] == "pre-window")
 
-    sdk_shape_test(check)
+    cli_shape_test(check)
     print(f"  {'all cases hold' if not bad else f'{bad} case(s) FAILED'}")
     return 1 if bad else 0
 
@@ -746,71 +882,188 @@ def fake_repos():
             "spar": {"pr_commits": pr, "sample": smp}}
 
 
-def sdk_shape_test(check):
-    """The real SDK against a mock transport: the request a paid run will send,
-    caught before the owner's first run instead of as a 400 during it."""
+# Recorded from Claude Code 2.1.312 on 2026-10-28 (`claude -p --output-format json`
+# with verbose on, so a message list), trimmed to the fields read here. The
+# first is cli_argv(CLASSIFIER_MODEL, ...) on two commits; the second is the
+# same call with a model id that does not exist (exit 1).
+RECORDED = [
+    {"type": "system", "subtype": "init", "tools": ["StructuredOutput"], "mcp_servers": [],
+     "model": "claude-haiku-5-5", "apiKeySource": "none", "claude_code_version": "2.1.312"},
+    {"type": "rate_limit_event", "rate_limit_info": {"status": "allowed_warning", "rateLimitType": "seven_day",
+                                                      "utilization": 0.32}},
+    {"type": "result", "subtype": "success", "is_error": False, "api_error_status": None,
+     "stop_reason": "tool_use", "terminal_reason": "completed", "num_turns": 2,
+     "result": "{\"labels\":[{\"id\":\"a\",\"primary\":\"fix\",\"contains_fix\":true},"
+               "{\"id\":\"b\",\"primary\":\"feature\",\"contains_fix\":false}]}",
+     "structured_output": {"labels": [{"id": "a", "primary": "fix", "contains_fix": True},
+                                      {"id": "b", "primary": "feature", "contains_fix": False}]},
+     "total_cost_usd": 0.0003017,
+     "modelUsage": {"claude-haiku-5-5": {"inputTokens": 2, "outputTokens": 97, "cacheReadInputTokens": 0,
+                                         "cacheCreationInputTokens": 1265, "costUSD": 0.0003017}}}]
+RECORDED_ERROR = {
+    "type": "result", "subtype": "success", "is_error": True, "api_error_status": 404,
+    "stop_reason": "stop_sequence", "terminal_reason": "api_error", "num_turns": 1,
+    "result": "There's an issue with the selected model (claude-nonexistent-9). It may not exist or you "
+              "may not have access to it. Run --model to pick a different model.",
+    "structured_output": None, "total_cost_usd": 0, "modelUsage": {}}
+
+
+def cli_shape_test(check):
+    """A stub in place of subprocess.run: the exact command a subscription run
+    sends, and the parsing of what the CLI answers, caught before the owner's
+    first run instead of during it."""
+    global _sleep
+    calls, slept = [], []
+    real_sleep, _sleep = _sleep, slept.append
+    repo = HERE.parent.resolve()
+
+    def done(obj, code=0, stderr=""):
+        return subprocess.CompletedProcess([], code, stdout=json.dumps(obj), stderr=stderr)
+
+    def result(model, rows, **kw):
+        r = {**RECORDED[-1], "structured_output": {"labels": rows},
+             "modelUsage": {model: {"inputTokens": 100, "outputTokens": 20, "cacheReadInputTokens": 5,
+                                    "cacheCreationInputTokens": 7, "costUSD": 0.001}}}
+        r.update(kw)
+        return r
+
+    def stub(argv, **kw):
+        cwd = pathlib.Path(kw.get("cwd") or ".").resolve()
+        calls.append({"argv": list(argv), "input": kw.get("input"), "cwd": cwd,
+                      "cwd_empty": cwd.is_dir() and not any(cwd.iterdir()), "kw": kw})
+        model = argv[argv.index("--model") + 1]
+        sent = json.loads(kw["input"])
+        ids = [i["id"] for i in sent]
+        if "refuse-me" in ids:
+            return done(result(model, [], structured_output=None, stop_reason="refusal"))
+        if model == JUDGE_MODEL:   # label each diff by what its message says, to check the mapping
+            return done(result(model, [{"id": i["id"], "primary": i["message"], "refactor": False} for i in sent]))
+        return done(result(model, [{"id": i, "primary": "fix", "contains_fix": True} for i in ids]))
+
     try:
-        import anthropic
-        import httpx2 as httpx
-    except ImportError:
-        try:
-            import anthropic
-            import httpx
-        except ImportError:
-            print("  [skip] SDK request shape: anthropic not installed (the monthly workflow runs it)")
-            return
-    sent = []
+        usage = Usage()
+        got = classify(stub, usage, [{"id": f"c{i}", "text": "msg"} for i in range(25)])
+        a = calls[0]["argv"] if calls else []
 
-    def handler(request):
-        body = json.loads(request.content)
-        sent.append(body)
-        sent_items = json.loads(body["messages"][0]["content"])
-        ids = [i["id"] for i in sent_items]
-        stop = "refusal" if "refuse-me" in ids else "end_turn"
-        if body["model"] == JUDGE_MODEL:   # label each diff by what its message says, to check the mapping
-            rows = [{"id": i["id"], "primary": i["message"], "refactor": False} for i in sent_items]
-        else:
-            rows = [{"id": i, "primary": "fix", "contains_fix": True} for i in ids]
-        text = json.dumps({"labels": rows})
-        return httpx.Response(200, json={
-            "id": "msg_test", "type": "message", "role": "assistant", "model": body["model"],
-            "content": [{"type": "thinking", "thinking": "", "signature": "x"}, {"type": "text", "text": text}],
-            "stop_reason": stop, "stop_sequence": None, "usage": {"input_tokens": 100, "output_tokens": 20}})
+        def val(flag):
+            return a[a.index(flag) + 1] if flag in a and a.index(flag) + 1 < len(a) else None
 
-    client = anthropic.Anthropic(api_key="test", http_client=httpx.Client(transport=httpx.MockTransport(handler)))
-    usage = Usage()
-    got = classify(client, usage, [{"id": f"c{i}", "text": "msg"} for i in range(25)])
-    b = sent[0] if sent else {}
-    check("SDK: model is the pinned Haiku id", b.get("model") == CLASSIFIER_MODEL)
-    check("SDK: no sampling parameters are sent",
-          not any(k in b for k in ("temperature", "top_p", "top_k")))
-    check("SDK: effort and json_schema format are in output_config",
-          b.get("output_config", {}).get("effort") == EFFORT
-          and b.get("output_config", {}).get("format", {}).get("type") == "json_schema")
-    check("SDK: no thinking config is sent (adaptive is the default)", "thinking" not in b)
-    check("SDK: 25 commits go in 2 batches and all come back labelled", len(sent) == 2 and len(got) == 25)
-    check("SDK: labels are read past a leading thinking block", got.get("c0", {}).get("primary") == "fix")
-    check("SDK: usage is accumulated", usage.report()[CLASSIFIER_MODEL]["input_tokens"] == 200)
-    got = classify(client, usage, [{"id": "refuse-me", "text": "msg"}])
-    check("SDK: a refusal leaves the batch unlabelled", got == {})
+        check("CLI: print mode, the pinned Haiku id, effort low, JSON output",
+              a[:2] == [CLAUDE_CLI, "-p"] and val("--model") == CLASSIFIER_MODEL
+              and val("--effort") == EFFORT == "low" and val("--output-format") == "json")
+        check("CLI: --json-schema is the labels schema itself, not an API format wrapper",
+              json.loads(val("--json-schema") or "null") == _schema(LABEL_FIELDS)
+              and json.loads(val("--json-schema"))["required"] == ["labels"])
+        check("CLI: no tools, no MCP, no settings sources, no session persistence",
+              val("--tools") == "" and val("--setting-sources") == ""
+              and "--strict-mcp-config" in a and "--no-session-persistence" in a)
+        check("CLI: never bare mode (it ignores OAuth), never a fallback model",
+              not any("bare" in x for x in a) and not any("fallback" in x for x in a))
+        check("CLI: the system prompt is the classifier prompt",
+              val("--system-prompt") == PROMPT)
+        check("CLI: the commits go on stdin, never in argv",
+              json.loads(calls[0]["input"])[0] == {"id": "c0", "text": "msg"}
+              and not any("c0" in x for x in a))
+        check("CLI: each call runs in a fresh empty directory outside the repo",
+              all(c["cwd_empty"] and repo not in c["cwd"].parents and c["cwd"] != repo for c in calls)
+              and len({c["cwd"] for c in calls}) == len(calls))
+        check("CLI: a timeout is set on every call", all(c["kw"].get("timeout") for c in calls))
+        check("CLI: 25 commits go in 2 batches and all come back labelled", len(calls) == 2 and len(got) == 25)
+        check("CLI: labels are read from structured_output", got.get("c0", {}).get("primary") == "fix")
+        rep_ = usage.report()[CLASSIFIER_MODEL]
+        check("CLI: usage is accumulated per model, cache tokens and notional cost included",
+              rep_["input_tokens"] == 200 and rep_["cache_read_input_tokens"] == 10
+              and rep_["cache_creation_input_tokens"] == 14 and rep_["output_tokens"] == 40
+              and rep_["notional_cost_usd"] == 0.002)
+        check("CLI: a refusal (no structured output) leaves the batch unlabelled",
+              classify(stub, usage, [{"id": "refuse-me", "text": "msg"}]) == {})
 
-    sent.clear()
-    samples = {name: [{"id": f"{name}-2026-11-{k}", "h": "x", "diff": f"d{p}",
-                       "text": ["feature", "fix", "refactor", "maintenance"][k % 4]} for k in range(12)]
-               for p, name in enumerate(REPOS)}
-    jud = blind_judge(client, usage, samples, "2026-11")
-    jb = sent[0] if sent else {}
-    seen_ids = [i["id"] for b in sent for i in json.loads(b["messages"][0]["content"])]
-    check("SDK judge: model is the pinned Sonnet id, no sampling parameters, json_schema format",
-          jb.get("model") == JUDGE_MODEL and not any(k in jb for k in ("temperature", "top_p", "top_k"))
-          and jb.get("output_config", {}).get("format", {}).get("type") == "json_schema")
-    check("SDK judge: ids are opaque, so no request names a project or month",
-          seen_ids and all(re.fullmatch(r"j\d{4}", i) for i in seen_ids)
-          and not any(n in json.dumps(sent) for n in REPOS))
-    check("SDK judge: 24 diffs in 3 batches, projects mixed within the first",
-          len(sent) == 3 and {i["diff"] for i in json.loads(jb["messages"][0]["content"])} == {"d0", "d1"})
-    check("SDK judge: every label maps back to its own commit",
-          len(jud) == 24 and all(jud[i["id"]]["primary"] == i["text"] for n in samples for i in samples[n]))
+        # The recorded responses, exactly as the CLI printed them.
+        u = Usage()
+        rec = _ask(lambda *a_, **k: done(RECORDED), u, CLASSIFIER_MODEL, PROMPT,
+                   [{"id": "a", "text": "x"}, {"id": "b", "text": "y"}], LABEL_FIELDS)
+        check("recorded: the message-list shape parses to both labels",
+              rec == {"a": {"primary": "fix", "contains_fix": True},
+                      "b": {"primary": "feature", "contains_fix": False}})
+        check("recorded: usage and notional cost read from modelUsage",
+              u.report() == {CLASSIFIER_MODEL: {"input_tokens": 2, "cache_creation_input_tokens": 1265,
+                                                "cache_read_input_tokens": 0, "output_tokens": 97,
+                                                "notional_cost_usd": 0.0003}})
+        rec1 = _ask(lambda *a_, **k: done(RECORDED[-1]), Usage(), CLASSIFIER_MODEL, PROMPT,
+                    [{"id": "a", "text": "x"}], LABEL_FIELDS)
+        check("recorded: the single-object shape parses too", rec1 == {"a": {"primary": "fix", "contains_fix": True}})
+
+        def raises(responses, exc=CouldNotRun):
+            seq, n = list(responses), [0]
+
+            def r(*_a, **_k):
+                n[0] += 1
+                x = seq.pop(0) if len(seq) > 1 else seq[0]
+                if isinstance(x, BaseException):
+                    raise x
+                return x
+            slept.clear()
+            try:
+                with contextlib.redirect_stderr(io.StringIO()):   # simulated retries, not real ones
+                    out = _ask(r, Usage(), CLASSIFIER_MODEL, PROMPT, [{"id": "a", "text": "x"}], LABEL_FIELDS)
+                return "returned", n[0], out
+            except exc as e:
+                return type(e).__name__, n[0], str(e)
+            except Exception as e:     # the wrong exception is a failure, not a pass
+                return f"wrong:{type(e).__name__}", n[0], str(e)
+
+        k, n, _ = raises([done(RECORDED_ERROR, 1)])
+        check("recorded: is_error (404, unknown model) is could-not-run, not retried",
+              k == "CouldNotRun" and n == 1)
+        k, n, _ = raises([done({**RECORDED_ERROR, "api_error_status": 401, "result": "Invalid API key"}, 1)])
+        check("an auth failure is could-not-run, not retried", k == "CouldNotRun" and n == 1)
+        k, n, out = raises([done({**RECORDED_ERROR, "api_error_status": 529, "result": "Overloaded"}, 1),
+                            subprocess.TimeoutExpired("claude", CLI_TIMEOUT),
+                            done({}, 1, "socket hang up"), done(RECORDED)])
+        check("transient failures (529, timeout, no JSON) are retried with backoff, then succeed",
+              k == "returned" and n == 4 and out.get("a", {}).get("primary") == "fix" and slept == list(BACKOFF[:3]))
+        k, n, _ = raises([done({**RECORDED_ERROR, "api_error_status": 503, "result": "Overloaded"}, 1)])
+        check("a transient failure that persists is could-not-run after every retry",
+              k == "CouldNotRun" and n == len(BACKOFF) + 1)
+        k, n, msg = raises([done([{"type": "rate_limit_event", "rate_limit_info": {"status": "rejected"}},
+                                  {**RECORDED_ERROR, "api_error_status": 429,
+                                   "result": "You've hit your limit · resets 3pm"}], 1)], UsageLimit)
+        check("a rejected rate-limit event is a usage limit, reported as such, not retried",
+              k == "UsageLimit" and n == 1 and "usage limit" in msg)
+        k, n, _ = raises([done({**RECORDED_ERROR, "api_error_status": 429,
+                                "result": "Claude usage limit reached. Your limit will reset at 3pm"}, 1)],
+                         UsageLimit)
+        check("usage-limit wording without the event is a usage limit too", k == "UsageLimit" and n == 1)
+        k, n, _ = raises([done({**RECORDED[-1], "is_error": False, "modelUsage": {
+            JUDGE_MODEL: RECORDED[-1]["modelUsage"][CLASSIFIER_MODEL]}})])
+        check("an answer from another model is could-not-run (instrument swap)", k == "CouldNotRun" and n == 1)
+        k, n, _ = raises([FileNotFoundError("claude")])
+        check("a missing CLI is could-not-run", k == "CouldNotRun" and n == 1)
+        k, n, _ = raises([done({"type": "result", "is_error": False, "modelUsage": {}}, 0)])
+        check("a result with no model usage is could-not-run", k == "CouldNotRun")
+
+        calls.clear()
+        samples = {name: [{"id": f"{name}-2026-11-{k}", "h": "x", "diff": f"d{p}",
+                           "text": ["feature", "fix", "refactor", "maintenance"][k % 4]} for k in range(12)]
+                   for p, name in enumerate(REPOS)}
+        jud = blind_judge(stub, usage, samples, "2026-11")
+        ja = calls[0]["argv"] if calls else []
+        sent = [json.loads(c["input"]) for c in calls]
+        seen_ids = [i["id"] for b in sent for i in b]
+        check("CLI judge: the pinned Sonnet id, the judge prompt and schema, no tools, never bare mode",
+              ja[ja.index("--model") + 1] == JUDGE_MODEL and ja[ja.index("--system-prompt") + 1] == JUDGE_PROMPT
+              and json.loads(ja[ja.index("--json-schema") + 1]) == _schema(JUDGE_FIELDS)
+              and ja[ja.index("--tools") + 1] == "" and not any("bare" in x for x in ja))
+        check("CLI judge: ids are opaque, so no request names a project or month",
+              seen_ids and all(re.fullmatch(r"j\d{4}", i) for i in seen_ids)
+              and not any(n in json.dumps([c["input"] for c in calls]) + json.dumps([c["argv"] for c in calls])
+                          for n in REPOS))
+        check("CLI judge: 24 diffs in 3 batches, projects mixed within the first",
+              len(calls) == 3 and {i["diff"] for i in sent[0]} == {"d0", "d1"})
+        check("CLI judge: every label maps back to its own commit",
+              len(jud) == 24 and all(jud[i["id"]]["primary"] == i["text"] for n in samples for i in samples[n]))
+    finally:
+        _sleep = real_sleep
 
 
 def month_arg(v):
