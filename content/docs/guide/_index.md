@@ -32,18 +32,18 @@ The proof-to-code ratio is 1.62× — more lines of proof than implementation. T
 
 [loom](https://github.com/pulseengine/loom) then optimizes the fused module, [synth](https://github.com/pulseengine/synth) transcodes to native ARM if needed. [sigil](https://github.com/pulseengine/sigil) signs every transformation.
 
-**3. Verify everything** — Not just formal proofs. A verification pyramid with independent layers that reinforce each other. This is how [gale](/docs/gale/) verifies every kernel primitive:
+**3. Verify everything** — Not just formal proofs. A verification pyramid with independent layers that reinforce each other. This is the pyramid [gale](/docs/gale/) builds toward. Not every primitive has every layer yet:
 
-- **Verus** — SMT/Z3 contracts on every public function. Preconditions, postconditions, invariants. All inputs, not a sample.
-- **Rocq** — machine-checked proofs of abstract invariants that hold regardless of implementation.
-- **Lean 4** — mathematical proofs for scheduling theory, priority ceiling, ring buffer correctness.
+- **Verus** — SMT/Z3 requires/ensures contracts on the Rust source, checked for all inputs. Functions marked `external_body` are trusted rather than checked, and gale's [verification-honesty ledger](https://github.com/pulseengine/gale/blob/main/docs/safety/verification-honesty.md) lists them.
+- **Rocq** — machine-checked proofs of invariants over hand-written abstract models. They are not connected to the Rust, and some Rocq files are still `Admitted` stubs.
+- **Lean 4** — mathematical proofs over models: rate-monotonic utilization bounds, the priority ceiling protocol, and ring-buffer index arithmetic. They are about the theory, not about the Rust.
 - **Kani** — bounded model checking that explores every reachable state within the harness's stated bounds.
-- **Differential testing** — the C FFI shims produce identical results to the Verus-verified Rust model. Every module.
+- **Differential testing** — Rust replicas of the FFI decision logic are compared against the Verus-annotated model. The C shims themselves are reviewed by eye against the Zephyr C they bridge to.
 - **Property-based testing** — proptest generates random operation sequences and verifies invariants hold.
-- **Fuzzing** — adversarial inputs thrown at every kernel primitive.
+- **Fuzzing** — fuzz targets for the core primitives, such as semaphore, mutex, message queue and pipe.
 - **Zephyr upstream suites** — the actual Zephyr test suites pass with gale replacing the original C code.
 - **Multi-architecture emulation** — Renode runs tests on Cortex-M4F, M33, and Cortex-R5 hardware models.
-- **FFI model equivalence** — proves the boundary between verified Rust and the C interface preserves correctness.
+- **FFI model equivalence** — tests, over small input ranges, that the FFI decision mapping agrees with the model. It is a test, not a proof.
 
 Each layer catches different classes of bugs. Formal proofs catch logical errors. Differential testing catches implementation drift. Fuzzing catches edge cases. Upstream suites catch compatibility regressions. Together they form a verification surface that no single technique achieves alone.
 
@@ -59,14 +59,13 @@ The Zephyr kernel has 51 source files. Gale replaces 19 of them completely, prov
 
 **How it verifies:**
 
-Each replaced kernel file goes through the full pyramid. Take the semaphore:
+Not every replaced kernel file gets every layer. The semaphore gets most of them:
 
 - Verus contracts prove give/take preserve count invariants for all inputs
-- Rocq proves abstract semaphore properties independent of implementation
-- Lean proves priority inheritance correctness mathematically
-- Kani exhaustively checks all states for counts up to 20
-- Differential tests verify the C FFI shim matches the Rust model exactly
-- Proptest generates thousands of random give/take/reset sequences
+- Rocq proves properties of an abstract semaphore model
+- Kani bounded-checks the logic for counts up to 20
+- Differential tests compare a replica of the FFI decision logic with the Rust model
+- Proptest generates random give/take/reset sequences
 - Fuzzing throws adversarial inputs at the API
 - Zephyr's own `tests/kernel/semaphore` passes with gale replacing the C code
 - Renode runs the semaphore test on Cortex-M4F, M33, and Cortex-R5 emulated hardware

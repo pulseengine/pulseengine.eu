@@ -403,3 +403,31 @@ claims:
         pattern: 'formal proofs of specific safety properties'
         glob: ['content/docs/guide/_index.md']
         min: 1
+
+  # ── gale and the ecosystem are not described past gale's own ledger ─────────
+  # Follows SITE-NO-FLAT-VERIFIED-RELAY-OR-TOOLCHAIN for the phrases #267 left
+  # on the site. Evidence is gale's docs/safety/verification-honesty.md and its
+  # proof dirs: Verus trusts external_body functions; Rocq is over hand-written
+  # models and some files are Admitted stubs; proofs/lean/BUILD.bazel calls the
+  # Lean files "pure mathematical proofs ... not implementation proofs" (RMA,
+  # priority ceiling, ring-buffer index arithmetic; nothing on the semaphore);
+  # the FFI differential and model-equivalence tests compare Rust replicas of
+  # the FFI logic with the model, over small ranges, and the C shims are
+  # reviewed by eye. The ledger names "soundness gate" and an end-to-end proof
+  # across the wasm-to-native dissolve as wording not to use.
+  - id: SITE-NO-GALE-OVERCLAIM
+    doc: content/docs/guide/_index.md
+    text: "Not every replaced kernel file gets every layer."
+    evidence:
+      - kind: count-max
+        pattern: '(?i)(formally[\s-]+verified\s+(Rust\s+(port|replacement)|WebAssembly\s+tools)|on\s+every\s+public\s+function|every\s+component\s+in\s+the\s+ecosystem|goes\s+through\s+the\s+full\s+pyramid|ring[\s-]buffer\s+correctness|Lean[^\n]{0,80}priority\s+inheritance|FFI\s+model\s+equivalence[^\n]*\bproves\b|C\s+FFI\s+shims?\s+(produce|matches)|soundness[\s-]+gat|thesis\s+is\s+proven\s+end)'
+        glob: ['templates/**/*.html', 'content/**/*.md']
+        max: 0
+      - kind: count-min
+        pattern: 'It is a test, not a proof\.'
+        glob: ['content/docs/guide/_index.md']
+        min: 1
+      - kind: count-min
+        pattern: '\{\{ config\.description \}\} Each of its tools'
+        glob: ['templates/about.html']
+        min: 1

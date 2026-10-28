@@ -9,16 +9,16 @@ authors = ["Ralf Anton Beier"]
 +++
 
 {% <insight> %}
-[gale](https://github.com/pulseengine/gale) is our drop-in formally-verified Rust replacement for the kernel primitives in Zephyr RTOS. We turned on cross-language LTO between rustc and clang on Cortex-M expecting a 10–30% handoff speedup from inlining the Rust into the C call sites. The prediction was wrong — the LTO build came out 1.1 percentage points *slower* per handoff than the GCC + Gale build with the FFI calls intact.
+[gale](https://github.com/pulseengine/gale) is our drop-in Rust replacement for the kernel primitives in Zephyr RTOS, with Verus contracts on the Rust source. We turned on cross-language LTO between rustc and clang on Cortex-M expecting a 10–30% handoff speedup from inlining the Rust into the C call sites. The prediction was wrong — the LTO build came out 1.1 percentage points *slower* per handoff than the GCC + Gale build with the FFI calls intact.
 
-What the measurement actually revealed was that the FFI overhead is a rounding error against the surrounding C kernel cost, and that clang's codegen for that C runs a few cycles per handoff slower than GCC's — enough to outweigh what LTO saved by erasing the FFI. The real value of LTO on this stack lives somewhere else: a binary where every verified-Rust function has been inlined into the call site that uses it, with `nm zephyr.elf | grep gale_` returning zero. That is the configuration where an assessor can verify, with one command, that what was proved is what shipped.
+What the measurement actually revealed was that the FFI overhead is a rounding error against the surrounding C kernel cost, and that clang's codegen for that C runs a few cycles per handoff slower than GCC's — enough to outweigh what LTO saved by erasing the FFI. The real value of LTO on this stack lives somewhere else: a binary where every verified-Rust function has been inlined into the call site that uses it, with `nm zephyr.elf | grep gale_` returning zero. That is the configuration where an assessor can check, with one command, that no gale function survives as a separate symbol. That is evidence the inlining happened, not by itself proof that what was proved is what shipped.
 
 Two configurations now satisfy different constraints — GCC + Gale a touch faster, LLVM + LTO a touch smaller and FFI-shim-free — and the choice between them is a real system-design call.
 {% </insight> %}
 
 ## Why we cared
 
-[gale](https://github.com/pulseengine/gale) is a drop-in formally-verified Rust replacement for the kernel primitives in Zephyr RTOS — the semaphores, mutexes, message queues, ring buffers, and schedulers everything else in the system leans on. The Verus proofs live next to the Rust source. The Rust compiles to a static archive, the Zephyr public API is unchanged, the C kernel calls into the Rust across an FFI boundary, and the application doesn't notice the substitution.
+[gale](https://github.com/pulseengine/gale) is a drop-in Rust replacement for the kernel primitives in Zephyr RTOS — the semaphores, mutexes, message queues, ring buffers, and schedulers everything else in the system leans on. The Verus proofs live next to the Rust source. The Rust compiles to a static archive, the Zephyr public API is unchanged, the C kernel calls into the Rust across an FFI boundary, and the application doesn't notice the substitution.
 
 Why bother? Safety-critical embedded code is mostly C. Not because C is good for safety — the opposite — but because the toolchain and certification ecosystem grew up around C and leaving it has been expensive.
 
@@ -125,7 +125,7 @@ That was the bet.
 
 ## The prediction
 
-[gale](https://github.com/pulseengine/gale) is our formally-verified Rust replacement for Zephyr's kernel primitives. After six weeks of work, the engine-control bench reported a `−3.1%` handoff median against GCC `-Os` on stm32f4_disco — Cortex-M4F at 168 MHz, 7,750 samples, p<1e-100 across 13 RPM steps. Real measurement. The number stands.
+[gale](https://github.com/pulseengine/gale) is our Rust replacement for Zephyr's kernel primitives, with Verus contracts on the source. After six weeks of work, the engine-control bench reported a `−3.1%` handoff median against GCC `-Os` on stm32f4_disco — Cortex-M4F at 168 MHz, 7,750 samples, p<1e-100 across 13 RPM steps. Real measurement. The number stands.
 
 The path from there to LTO ran through our internal optimization story, which carried this prediction:
 
@@ -255,7 +255,7 @@ Two configurations, neither dominates:
 
 The choice is a system-design decision typically made once, at the start of a program or during an architectural rework like the one Gale itself represents. Once shipped, switching costs re-qualification of the safety case. So the choice should map to the constraints that dominate the platform — not to whichever number on this page is biggest.
 
-Throughput-budget vs flash-budget is a pre-existing axis on every embedded program. The third row above adds something new: **verifiable proof-to-binary correspondence**. The FFI calls in the GCC build were always there; nobody had measured them. With the LTO build, the assessor can verify the claim with `nm zephyr.elf | grep gale_` and read zero. If the safety case argues from "what was proved is what shipped", that's the only configuration where the argument has direct binary evidence.
+Throughput-budget vs flash-budget is a pre-existing axis on every embedded program. The third row above adds something new: **binary evidence that the verified Rust was inlined**. The FFI calls in the GCC build were always there; nobody had measured them. With the LTO build, `nm zephyr.elf | grep gale_` reads zero: no gale function survives as a separate symbol. If the safety case argues from "what was proved is what shipped", that's the only configuration where part of that argument rests on direct binary evidence. The rest rests on the bitcode chain described below.
 
 For Gale itself, both lanes stay live in CI as regression guards. We don't pick one — we publish both numbers, and let downstream consumers map their constraints to a regime.
 
@@ -292,7 +292,7 @@ What we expected to learn was a performance number. What we learned was a method
 - **Predict from the architecture** (we said: 10–30% faster, mechanism = eliminating the per-handoff `bl`/`ret`). Specific enough to be falsifiable.
 - **Measure on real hardware** (Zephyr handoff through spinlock + wait queue + scheduler — not a synthetic FFI round-trip where the FFI dominates). The geometry is what the prediction implicitly assumes.
 - **Publish the falsification.** Wrong-prediction data is more informative than the predicted number would have been if it landed. "We expected X, we got Y, here is what Y means" is the post worth writing.
-- **Reframe around what the data supports.** The FFI savings weren't the win; proof-to-binary correspondence is. Write up what was actually learned, not what you set out to prove.
+- **Reframe around what the data supports.** The FFI savings weren't the win; symbol-level evidence of proof-to-binary correspondence is. Write up what was actually learned, not what you set out to prove.
 
 That sequence is the load-bearing thing — not the cycle count, not even the inlining win.
 
@@ -319,3 +319,5 @@ That sequence is the load-bearing thing — not the cycle count, not even the in
 *This post is part of [PulseEngine](/) — a WebAssembly Component Model engine
 for safety-critical systems, with machine-checked proofs for parts of it
 (work in progress). Prior posts in the verification arc: [Formal verification just became practical](/blog/formal-verification-ai-agents/), [What comes after test suites](/blog/what-comes-after-test-suites/), [Spec-driven development is half the loop](/blog/spec-driven-development-is-half-the-loop/).*
+
+*Corrected on 28 October 2026: the flat "formally verified" label on gale is replaced by what it is: a Rust replacement with Verus contracts on the source. The opening and the regime section no longer say `nm` lets an assessor verify that what was proved is what shipped; it shows that no gale symbol survives, which is evidence the inlining happened.*
