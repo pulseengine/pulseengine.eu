@@ -270,6 +270,21 @@ claims:
         max: 0
       - kind: verbatim
         text: "PULSEENGINE_CI_STATUS_URL"
+      # The .local pattern above cannot see a host on public DNS. ci-status
+      # carries no URL at all (the GitHub fallback is `gh api`, not a curl to
+      # api.github.com), and no PULSEENGINE_*_URL is ever given a value.
+      - kind: count-max
+        pattern: 'https?://'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/ci-status/SKILL.md']
+        max: 0
+      - kind: count-max
+        pattern: 'PULSEENGINE_[A-Z_]+_URL\s*[=:]\s*["\x27]?https?://'
+        glob: ['claude-tooling/**/*']
+        max: 0
+      - kind: verbatim
+        text: "| `PULSEENGINE_WARTE_URL` | base URL of warte"
+      - kind: verbatim
+        text: "| `PULSEENGINE_WARTE_CACERT` | path to the CA certificate that signs warte"
 
   # ── CI status: missing or unreachable API is said once, then gh ─────────────
   - id: CI-STATUS-FALLS-BACK-AND-SAYS-SO
@@ -291,6 +306,84 @@ claims:
                'claude-tooling/plugins/pulseengine-claude/skills/pulseengine-feature-loop/SKILL.md',
                'claude-tooling/plugins/pulseengine-claude/memory/pulseengine-operating-contract.md']
         min: 3
+
+  # ── PR admission: check the queue before opening a PR ───────────────────────
+  # 2026-10-28: 53 PRs opened org-wide by 07:00 UTC, many one-line docs edits,
+  # while all 14 self-hosted runners were busy and 272 jobs waited. ci-status
+  # owns the check; warte's endpoints are requested (warte#55), not built, so
+  # the GitHub fallback and the always-open exceptions must stay stated.
+  - id: CI-STATUS-PR-ADMISSION
+    doc: claude-tooling/plugins/pulseengine-claude/skills/ci-status/SKILL.md
+    text: "## Before opening a PR"
+    evidence:
+      - kind: verbatim
+        text: "**`security` and `red-main` always open, whatever the source below says.**"
+      - kind: verbatim
+        text: "\"$PULSEENGINE_WARTE_URL/api/admission?repo=<repo>&kind=<kind>\""
+      # Every warte call carries warte's own CA; none borrows ci-status's.
+      - kind: count-min
+        pattern: '--cacert "\$PULSEENGINE_WARTE_CACERT"\} \\\n\s*"\$PULSEENGINE_WARTE_URL/'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/ci-status/SKILL.md']
+        min: 2
+      - kind: count-max
+        pattern: 'PULSEENGINE_CI_STATUS_CACERT"\} \\\n\s*"\$PULSEENGINE_WARTE_URL'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/ci-status/SKILL.md']
+        max: 0
+      - kind: verbatim
+        text: "These endpoints are requested in pulseengine/warte#55 and do not exist yet."
+      - kind: verbatim
+        text: "\"$PULSEENGINE_CI_STATUS_URL/api/state\" | jq --arg r <repo>"
+      - kind: verbatim
+        text: "`/api/openapi.json` gives this endpoint no\nresponse schema"
+      - kind: verbatim
+        text: "an unset variable, no answer, or a 404 as \"not available\""
+      - kind: verbatim
+        text: "gh api 'repos/pulseengine/<repo>/actions/runs?status=queued&per_page=1' --jq .total_count"
+      - kind: verbatim
+        text: "cannot see the\nshared self-hosted pool"
+      - kind: verbatim
+        text: "Say once which source this session uses."
+      - kind: verbatim
+        text: "| `docs` | the repo has ≥1 queued run, or this session already has an open PR there | batch |"
+      - kind: verbatim
+        text: "| `fix`, `feature` | the repo has ≥5 queued runs | hold |"
+      - kind: verbatim
+        text: "**Never push onto another session's branch to batch.**"
+      - kind: verbatim
+        text: "A held change is opened later, never dropped."
+      # Without the trigger in the description the section never loads.
+      - kind: count-min
+        pattern: 'description: This skill should be used whenever an agent is about to open a pull request'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/ci-status/SKILL.md']
+        min: 1
+
+  # ── Trivial changes batch: one PR per repo per session ──────────────────────
+  # Strict up-to-date protection re-runs every other open PR after each merge,
+  # so k small PRs cost about k(k+1)/2 runs. The rule lives in the always-on
+  # operating contract (feature-loop does not fire for one-file edits); the
+  # skills that open PRs point to it and must not copy it.
+  - id: PR-BATCH-TRIVIAL-ONE-PER-REPO
+    doc: claude-tooling/plugins/pulseengine-claude/memory/pulseengine-operating-contract.md
+    text: "## One PR per repo per session for trivial changes"
+    evidence:
+      - kind: verbatim
+        text: "**Docs edits, one-liners and tidy-ups go into one PR per repo per session.**"
+      - kind: verbatim
+        text: "**A cross-repo sweep (the same edit in N repos) is N PRs, each opened when its\nrepo admits it, not all at once.**"
+      - kind: verbatim
+        text: "costs about k(k+1)/2 runs instead\nof k. A merge queue tests each merge result once and avoids the multiplier."
+      - kind: count-max
+        pattern: 'go into one PR per repo per session'
+        glob: ['claude-tooling/plugins/pulseengine-claude/**/*.md']
+        max: 1
+      - kind: count-min
+        pattern: '"One PR per repo per session for trivial changes"'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/pulseengine-feature-loop/SKILL.md']
+        min: 1
+      - kind: count-min
+        pattern: '"One PR per repo per\s+session for trivial changes"'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/issue-hunt/SKILL.md']
+        min: 1
 
   # ── The org tagline is scoped to what is proven ─────────────────────────────
   # "a formally verified WebAssembly Component Model engine" was in ten post

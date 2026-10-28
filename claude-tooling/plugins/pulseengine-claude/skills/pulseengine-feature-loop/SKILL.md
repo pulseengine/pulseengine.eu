@@ -3,7 +3,7 @@ name: pulseengine-feature-loop
 description: This skill should be used when doing a feature end-to-end on a PulseEngine project (rivet, spar, witness, sigil, meld, loom, synth, wohl, kiln) — including "implement a feature", "add a new requirement", "extend the architecture", "write a new pass", "ship a feature end-to-end", "do this properly with traceability", "model-driven implementation", or any feature work that should pass through the full AADL → WIT → typed traceability → oracle-gated code → MC/DC → attestation → verify loop. ALWAYS use this skill when the user authorizes feature work on a PulseEngine project and the work touches more than a single file.
 metadata:
   author: pulseengine.eu
-  version: "0.7.0"
+  version: "0.7.1"
 ---
 
 # PulseEngine feature loop
@@ -181,6 +181,7 @@ Per [`oracle-gate-a-change`]:
   loudly**, printed on every run, so the check lands without the debt blocking it.
 - Land code that flips the oracle from red to green.
 - Each PR passes through `oracle-gate-a-change`.
+- Before opening a PR, ask for admission ([`ci-status`] → "Before opening a PR"). Trivial changes batch into one PR per repo per session; see [`pulseengine-operating-contract`] → "One PR per repo per session for trivial changes".
 - **Artifact:** code diff + a now-green oracle traceable to the rivet requirement.
 
 ### 5. Witness — MC/DC truth table on the Wasm artifact

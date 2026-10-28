@@ -112,6 +112,22 @@ When runners wedge, queues stall, or runs zombie, the signal is ambiguous:
   cause (saturated/wedged runner, dead queue, empty gate) before retrying. Hours
   disappear into blind re-dispatch loops.
 
+## One PR per repo per session for trivial changes
+**Docs edits, one-liners and tidy-ups go into one PR per repo per session.** The
+second trivial change in a repo becomes a commit on the PR this session already
+has open there, never a new PR and never a push onto another session's branch.
+**A cross-repo sweep (the same edit in N repos) is N PRs, each opened when its
+repo admits it, not all at once.** Before any `gh pr create`, check admission
+through [`ci-status`] → "Before opening a PR": it decides open, batch or hold,
+and a held change stays recorded until it is opened.
+
+Why one PR costs more than one run: with strict up-to-date protection, each merge
+puts every other open PR in the repo behind `main`, and updating it re-runs its
+full CI. Merging k open PRs one after another costs about k(k+1)/2 runs instead
+of k. A merge queue tests each merge result once and avoids the multiplier. On
+2026-10-28 agents had opened 53 PRs org-wide by 07:00 UTC, many of them one-line
+docs edits, while all 14 self-hosted runners were busy and 272 jobs waited.
+
 ## Single-source by default — restate inline only where absence is unsafe
 The plugin's rule is single-source: a fact (the tool roster, the disposition
 taxonomy, the philosophy framing) lives in **one** place and everything else
