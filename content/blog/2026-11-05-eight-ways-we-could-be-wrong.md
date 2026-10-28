@@ -3,6 +3,7 @@ title = "Eight ways we could be wrong"
 description = "The eight strongest objections to PulseEngine we know of, each with the date of its evidence, how the picture moved in the last six months, our counter, where the counter stops, and what would make us concede. Valid as of 28 October 2026."
 date = 2026-11-05
 draft = true
+ready = true
 [taxonomies]
 tags = ["deep-dive", "process", "verification", "ai-agents"]
 authors = ["Ralf Anton Beier"]
@@ -99,11 +100,10 @@ hundred other public repositories[^csa-blackhat].
 
 **Our counter.** We audited our agent workflows on 28 October 2026 and fixed
 one finding the same day (plugin 0.45.1 and 0.45.2); further fixes are in
-progress. Skills no longer execute commands taken from issue text, and issue, PR and
-comment text is treated as untrusted data, never as instructions. The fix
-shipped as plugin 0.45.1 and 0.45.2 in
-[#288](https://github.com/pulseengine/pulseengine.eu/pull/288) and
-[#289](https://github.com/pulseengine/pulseengine.eu/pull/289); #289 applied
+progress. Issue, PR and comment text is now treated as untrusted data, never
+as instructions, fixed in plugin 0.45.1 and 0.45.2
+([#288](https://github.com/pulseengine/pulseengine.eu/pull/288) and
+[#289](https://github.com/pulseengine/pulseengine.eu/pull/289)); #289 applied
 findings from a separate reviewer agent. The rule is a
 claim in this repository's `claims.yaml` (`ISSUE-TEXT-IS-UNTRUSTED-DATA`),
 so a skill that again uses one of the instruction phrasings the claim forbids
@@ -136,7 +136,7 @@ by 1.3. That movement predates April. The objection is about as strong as in
 April, now restated by a survey (July 2026, revised 19 October[^solvers]).
 
 **Our counter.** We try to see a check fail before we rely on it. On 28
-October 2026 we did that once, for one of the 41 claims on this branch: we
+October 2026 we did that once, for one of our 41 claims: we
 changed one pinned sentence in the operating contract that
 `ISSUE-TEXT-IS-UNTRUSTED-DATA` binds. In that one run `claim-check.py`
 reported 40 of 41 claims holding and exited 1; with the change reverted it
