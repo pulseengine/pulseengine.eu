@@ -3,7 +3,7 @@ name: release-artifact-pipeline
 description: This skill should be used when setting up, standardizing, auditing, or modifying a release artifact pipeline on a PulseEngine project — including "standardize release artifacts", "set up release workflow", "fix the release pipeline", "add cosign signing", "add SLSA attestation", "add SBOM", "switch to signed SHA256SUMS", "sign the wasm with sigil", "add a witness/scry gate to the release", "publish to crates.io / npm", "add a Pages verification dashboard", "audit release artifacts", "migrate off per-file .sha256 sidecars", or any release.yml setup/refactor. ALWAYS use this skill when proposing or reviewing changes to a release.yml workflow, when adopting the PulseEngine release-artifact standard for a new repo, or before claiming a release pipeline is "compliant" or "signed". Covers all five tracks — native binaries, distribution channels (crates.io + npm), wasm signing (sigil + cosign) and wasm verification gates (witness MC/DC + scry), the Pages verification dashboard, and rivet verification extraction.
 metadata:
   author: pulseengine.eu
-  version: "0.4.0"
+  version: "0.5.0"
 ---
 
 # Release artifact pipeline
@@ -41,7 +41,8 @@ The canonical implementation lives at **`pulseengine/synth/.github/workflows/rel
 ```
 <tool>-vX.Y.Z-<triple>.{tar.gz|zip}    # binary archives
 <tool>-X.Y.Z.cdx.json                  # CycloneDX SBOM
-SHA256SUMS.txt                         # checksums over the archives + SBOM
+<tool>-X.Y.Z-docs.tar.gz               # docs archive, rendered HTML or Markdown
+SHA256SUMS.txt                         # checksums over archives + SBOM + docs
 SHA256SUMS.txt.sig                     # cosign signature (keyless OIDC)
 SHA256SUMS.txt.pem                     # cosign certificate
 SHA256SUMS.txt.cosign.bundle           # cosign bundle for verify-blob
@@ -51,13 +52,28 @@ build-env.txt                          # rustc / cargo / cosign / runner version
 ### Required workflow steps, in this order
 
 1. **Build binary archives** → `release-assets/`.
-2. **Generate SBOM** — `cargo cyclonedx --manifest-path <main-crate>/Cargo.toml --format json --spec-version 1.5`, then copy result to `release-assets/<tool>-${BARE}.cdx.json`. **Must run before step 3** so its digest enters the sums.
-3. **Generate checksums** — `cd release-assets && sha256sum ./* > SHA256SUMS.txt`.
-4. **SLSA provenance** — `actions/attest-build-provenance@v2` with `subject-path: "release-assets/*.tar.gz"` (SLSA v1 provenance, GitHub-native).
-5. **Install cosign** — `sigstore/cosign-installer@v3`.
-6. **Sign the sums file** — `cosign sign-blob --yes --bundle SHA256SUMS.txt.cosign.bundle --output-signature SHA256SUMS.txt.sig --output-certificate SHA256SUMS.txt.pem SHA256SUMS.txt` (keyless OIDC).
-7. **Record build environment** — write `build-env.txt` (rustc/cargo/cosign/runner versions).
-8. **Upload everything** — `gh release upload` over everything in `release-assets/`.
+2. **Generate SBOM** — `cargo cyclonedx --manifest-path <main-crate>/Cargo.toml --format json --spec-version 1.5`, then copy result to `release-assets/<tool>-${BARE}.cdx.json`. **Must run before step 4** so its digest enters the sums.
+3. **Build the docs archive** — rendered HTML or Markdown into `release-assets/<tool>-${BARE}-docs.tar.gz`. **Must run before step 4**, for the same reason as the SBOM.
+4. **Generate checksums** — `cd release-assets && sha256sum ./* > SHA256SUMS.txt`.
+5. **SLSA provenance** — `actions/attest-build-provenance@v2` with `subject-path: "release-assets/*.tar.gz"` (SLSA v1 provenance, GitHub-native).
+6. **Install cosign** — `sigstore/cosign-installer@v3`.
+7. **Sign the sums file** — `cosign sign-blob --yes --bundle SHA256SUMS.txt.cosign.bundle --output-signature SHA256SUMS.txt.sig --output-certificate SHA256SUMS.txt.pem SHA256SUMS.txt` (keyless OIDC).
+8. **Record build environment** — write `build-env.txt` (rustc/cargo/cosign/runner versions).
+9. **Upload everything** — `gh release upload` over everything in `release-assets/`.
+
+### Required: a docs archive inside the signed sums
+
+**Every tool's release publishes a docs archive listed inside its signed `SHA256SUMS.txt`.**
+varve layers carry documentation as signed `[[docs]]` payloads, and a layer can ingest a
+file only through the same verification ladder it uses for binaries: the file's digest
+must be in the cosign-signed sums. A docs page on a website, or a docs file uploaded
+next to the release but missing from the sums, gives a layer nothing it can verify.
+Markdown is enough. A tool with a built-in `docs` command still ships the archive.
+
+This is a rule, not a completed rollout. Measured for pulseengine.eu#262 on 2026-10-27,
+varve is the only tool whose release carries a docs file. **Each repo adds the archive at its next release**; do not
+cut a release only to add it. Until a repo has done so, its release is a Track A gap
+like any other.
 
 ### Required: the CLI baseline, asserted at release
 
@@ -206,6 +222,8 @@ cosign verify-blob \
   --bundle SHA256SUMS.txt.cosign.bundle SHA256SUMS.txt
 
 gh attestation verify <tool>-vX.Y.Z-<triple>.tar.gz --repo pulseengine/<tool>
+
+grep -- '-docs.tar.gz$' SHA256SUMS.txt     # the docs archive is inside the signed sums
 ```
 
 If either of these fails on the published release, the pipeline did not actually do what was claimed. That's a refute under [`clean-room-verification`].
@@ -216,7 +234,8 @@ If either of these fails on the published release, the pipeline did not actually
 2. **Identify the target repo's deltas** — Track A is broadly done org-wide; the
    live gaps from the 2026-06 sweep are Tracks B–E:
    - **Track A (binaries):** mostly compliant. Exceptions: sigil lacks the CycloneDX
-     SBOM; kiln/mcp have no real release at all.
+     SBOM; kiln/mcp have no real release at all; every tool except varve lacks the
+     docs archive (pulseengine.eu#262, 2026-10-27; added per repo at its next release).
    - **Track B (distribution):** rivet is npm-only (no crates.io); sigil/synth/scry
      crates.io-only (no npm CLI wrapper); **mcp publishes via a stale unsigned manual
      script — move it into CI.**
@@ -232,6 +251,9 @@ If either of these fails on the published release, the pipeline did not actually
    - The main crate manifest path for the SBOM step.
    - The `<tool>` name in the verification one-liner.
    - The asset name pattern.
+
+   Then add the docs-archive step (workflow step 3 above) if synth's block does not
+   carry it yet.
 4. **Run [`oracle-gate-a-change`]** to verify the new workflow flips a check that didn't previously exist. The check is "the verification one-liner runs green against a test release."
 5. **Run [`clean-room-verification`]** on the claim "the pipeline produces signed, attestable, SBOM-bearing artifacts." Have the verifier actually re-run `cosign verify-blob` and `gh attestation verify` against a real published release, not infer from the workflow YAML.
 
@@ -242,6 +264,7 @@ If either of these fails on the published release, the pipeline did not actually
 - **Keeping per-file `.sha256` sidecars "for backwards compat".** They're not in the standard. Drop them. (Witness's `.cert`/`.sig` are a different artifact serving certification evidence, not checksums — keep those.)
 - **Adding the cosign step without `id-token: write` permission.** Cosign keyless OIDC requires it. Missing this is the most common pipeline-broken-silently failure mode.
 - **Generating the SBOM after the sums file.** Order matters: SBOM must enter the sums.
+- **Generating the docs archive after the sums file, or uploading it beside them.** A docs file outside the signed sums cannot be ingested into a layer.
 
 ## Cross-links
 
@@ -252,4 +275,4 @@ If either of these fails on the published release, the pipeline did not actually
 
 ## Notes on the canonical (synth)
 
-synth's `release.yml` is the reference. If patterns there look synth-specific (e.g. transcoder-output naming, Rocq-proof handling), generalize them when adapting. Generalization is fine — divergence from the 8-step skeleton is not. If you find yourself wanting to skip a step, that's a [`oracle-gate-a-change`] decision, not a casual one.
+synth's `release.yml` is the reference. If patterns there look synth-specific (e.g. transcoder-output naming, Rocq-proof handling), generalize them when adapting. Generalization is fine — divergence from the 9-step skeleton is not. If you find yourself wanting to skip a step, that's a [`oracle-gate-a-change`] decision, not a casual one.

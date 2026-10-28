@@ -3,7 +3,7 @@ name: release-planning
 description: This skill should be used to plan releases in rivet — assign which requirements/artifacts belong to which release and drive development from that plan — and to run the issue-driven delivery loop — an error, regression, or optimization comes in, gets evaluated, flows through the full verification chain, and ships in a planned release. Use it when scoping a release ("what goes in v0.X"), triaging an incoming issue/bug/optimization toward a release, asking "is v0.X ready to cut", or driving a roadmap. Builds on rivet's existing `release:` field + status lifecycle (draft→proposed→approved→implemented→verified→accepted); composes with the feature loop (build each item), traceability-audit (a release is ready when its items' V is closed), and release-execution (cut it).
 metadata:
   author: pulseengine.eu
-  version: "0.1.0"
+  version: "0.2.0"
 ---
 
 # Release planning & the delivery loop
@@ -31,6 +31,17 @@ the plan, not GitHub milestones alone:
   (filter by release + status) + `rivet coverage` give the live burn-down. The
   release is cuttable when **every** artifact in its scope is `verified` and the
   V is closed (see [`traceability-audit`]).
+- **Readiness must tell a fix from more confidence.** A `verified` artifact can
+  either change the behaviour a reporter reported or only improve our confidence
+  about it (a hardened CI step, a new oracle, a rebound floor). The V closes the
+  same way for both, so the query cannot see the difference unless the artifact
+  says which. Every artifact booked against an issue carries
+  `fields: { effect: behaviour }` or `fields: { effect: confidence }`. When a
+  release's only work against a still-open external report is `confidence`, its
+  release notes and its comment on that issue say plainly that the reported
+  behaviour did not change in this release. It does not count as progress on that
+  issue. rivet 0.39.0 accepts the field and reports it as undeclared (INFO);
+  declare `effect` in the project schema if you want `validate` to check it.
 - **Drive from it** — "what must we implement for v0.X" is exactly the
   `release: v0.X` + status≠verified set. Pull work from there.
 - **Mirror to GitHub milestones** for visibility (synth phases, loom versions),
@@ -91,5 +102,8 @@ benchmark delta). Run it as a loop, not an ad-hoc fix:
   must keep proofs/tests/MC-DC green; a faster wrong answer is a regression.
 - **Cutting a release before its scope is `verified`** — readiness is the query,
   not the calendar; move scope out explicitly rather than shipping it unverified.
+- **Booking confidence work as progress on an open report** — release after release of
+  verified hardening against an issue whose reported failure never moved is a
+  release plan that cannot see its reporter. Tag the `effect` and say so.
 - **Untriaged issues** — an issue with no rivet artifact and no release is
   invisible to the plan and resurfaces as a release-time surprise.

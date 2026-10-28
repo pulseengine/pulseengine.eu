@@ -3,7 +3,7 @@ name: repo-hygiene
 description: This skill should be used to run a complete hygiene sweep over a repo after a release or on a standing cadence — stale worktrees, dead local/remote branches (including squash-merge artifacts git cannot see as merged), ancient stashes, agent build caches, status noise, and the open-issue board. Use it when the user says "clean up", "hygiene", "check worktrees and branches", "what's stale", or when a release tick finishes and residue has accumulated. It is quiesce-gated so it is safe to run inside a live multi-agent campaign. Closure is evidence-based — an issue closes on a tagged release, or on the deploy run for its merge SHA in a repo that has no tags, or with a rationale when obsolete or captured elsewhere; otherwise it stays open with a "remaining:" note, or is marked perennial if it is a living surface rather than a task — never silently. Composes with issue-hunt (the board is its watermark surface), release-execution (fire this as the release tail), and the operating contract.
 metadata:
   author: pulseengine.eu
-  version: "0.3.0"
+  version: "0.4.0"
 ---
 
 # Repo hygiene — the post-release residue sweep
@@ -212,9 +212,14 @@ Disciplines that make this honest:
   When a PR addresses one item of a multi-item issue, use `Refs #N`, **never**
   `closes/fixes #N`. After a merge wave, re-check that umbrella issues weren't
   auto-closed — reopen, tick the one box, keep the rest open.
-- **The closure comment is the audit trail.** Include the evidence (repro command
-  + observed result, or the release/PR refs), and attribute it if the account is
-  shared.
+- **The closure comment is a message to the person who filed the issue.** For an
+  external reporter (told apart by the REST `author_association`; see
+  the reporter rules in [`pulseengine-feature-loop`]), lead with what changed
+  for them in a few sentences: "fixed in v0.X.Y, your module now compiles". The
+  evidence (repro command + observed result, or the release/PR refs) goes below
+  a `<details>` fold; the full audit trail belongs in the release notes. On an
+  internal issue the evidence may lead. Either way, attribute it if the account
+  is shared.
 
 ## Cadence and composition
 
@@ -255,6 +260,9 @@ issue-hunt watermarks: hygiene closes what shipped; issue-hunt triages what's ne
   re-verified closure costs one compile.
 - **Silently closing** — every closure carries evidence or rationale in a
   comment; a bare close is indistinguishable from an accident.
+- **A closure comment written as an evidence dump at the reporter.** The evidence
+  is kept, under a fold or in the release notes; what leads is whether their
+  problem is fixed.
 - **Clearing stashes without matching them to a branch** — the stack is shared;
   a stash on an unshipped branch is salvage, not age-cleared residue.
 - **`rm -rf` a cache without gating** — it may be a shared target or an open PR's;

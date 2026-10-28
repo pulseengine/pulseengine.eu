@@ -59,6 +59,12 @@ artifacts:
         target: REQ-PUBLICATION-REVIEW-SKILL
       - type: satisfies
         target: REQ-FACTORY-REPORT-INSTRUMENT-GATE
+      - type: satisfies
+        target: REQ-RELEASE-DOCS-ARCHIVE-RULE
+      - type: satisfies
+        target: REQ-ISSUE-COMMENTS-TO-REPORTER
+      - type: satisfies
+        target: REQ-CLEAN-ROOM-INDEPENDENCE-RECORD
   - id: REQ-LINKS
     type: requirement
     title: Every internal link in the built site resolves
@@ -475,3 +481,78 @@ artifacts:
     links:
       - type: verifies
         target: REQ-FACTORY-REPORT-INSTRUMENT-GATE
+
+  - id: REQ-RELEASE-DOCS-ARCHIVE-RULE
+    type: requirement
+    title: Every tool's release publishes a docs archive inside its signed SHA256SUMS
+    description: >-
+      varve layers carry documentation as signed [[docs]] payloads and can ingest a file only when its digest is in the release's cosign-signed SHA256SUMS.txt, the same ladder they use for binaries. Measured for pulseengine.eu#262 on 2026-10-27, no pulseengine tool except varve published a docs file in its release. The release-artifact-pipeline skill's Track A adds <tool>-X.Y.Z-docs.tar.gz (rendered HTML or Markdown) to the required assets, builds it before the checksums step, adds a grep for it to the release verification block, and states that each repo adds the archive at its next release rather than in an out-of-cycle one. The requirement covers the rule in the skill; the per-repo rollout happens in each tool's repo at its next release.
+    status: verified
+    release: 0.42.0
+    category: functional
+    priority: should
+    fields:
+      category: functional
+
+  - id: VER-RELEASE-DOCS-ARCHIVE-RULE
+    type: verification
+    title: claim RELEASE-DOCS-ARCHIVE-IN-SIGNED-SUMS
+    description: >-
+      claim-check requires the skill's rule sentence, the docs asset line in the required-assets block, the docs-archive workflow step and its run-before-checksums rule, the per-repo rollout sentence and the SHA256SUMS grep in the verification block verbatim. Negative-controlled: removing the rollout sentence or the asset line each makes the check exit 1.
+    status: verified
+    release: 0.42.0
+    method: automated-test
+    test-location: claims.yaml
+    links:
+      - type: verifies
+        target: REQ-RELEASE-DOCS-ARCHIVE-RULE
+
+  - id: REQ-ISSUE-COMMENTS-TO-REPORTER
+    type: requirement
+    title: Issue comments address the reporter, and readiness tells a fix from more confidence
+    description: >-
+      repo-hygiene defined the closure comment as the audit trail, issue-hunt bounded how often the loop re-read its own comments but not how often it posted, and release-planning's readiness query closed the V the same way for a behaviour change and for hardening around an unchanged defect. An external reporter received evidence-dense corrections of their own counts and per-release machinery updates on a settled thread while the failure they reported did not move. The feature loop now carries a standing practice with four rules for comments on an external reporter's issue (lead with what changed for them, never correct their excerpt or counts, no machinery updates to a settled thread, say plainly when a release did not change what they reported) and tells external from internal by the REST author_association. repo-hygiene's closure comment and issue-hunt's posting bound point there. release-planning has every artifact booked against an issue declare fields.effect as behaviour or confidence, and a release whose only work on a still-open external report is confidence says so in its notes and its comment.
+    status: verified
+    release: 0.42.0
+    category: functional
+    priority: should
+    fields:
+      category: functional
+
+  - id: VER-ISSUE-COMMENTS-TO-REPORTER
+    type: verification
+    title: claims ISSUE-COMMENTS-ADDRESS-THE-REPORTER and READINESS-SEPARATES-FIX-FROM-CONFIDENCE
+    description: >-
+      claim-check requires the feature loop's four reporter rules and the author_association test verbatim, requires repo-hygiene's closure-comment rule and issue-hunt's posting bound to be present and to point at the feature loop, fails if "closure comment is the audit trail" reappears anywhere in the plugin, and requires release-planning's fix-versus-confidence rule and its effect field verbatim. Negative-controlled: restoring the audit-trail sentence, dropping rule 2, dropping the posting bound, or dropping the effect field each makes the check exit 1.
+    status: verified
+    release: 0.42.0
+    method: automated-test
+    test-location: claims.yaml
+    links:
+      - type: verifies
+        target: REQ-ISSUE-COMMENTS-TO-REPORTER
+
+  - id: REQ-CLEAN-ROOM-INDEPENDENCE-RECORD
+    type: requirement
+    title: AI review independence is a recorded field with a negative control, and a fork is the author
+    description: >-
+      clean-room-verification required a fresh-context reviewer but never said what makes two AI instances independent, and in Claude Code a fork (subagent_type fork) inherits the parent's full context while producing a report shaped like an independent one. The skill now states that a clean-room reviewer is a fresh agent and a fork is the author; requires an independence record (reviewer model, inherited context yes/no, reviewer run id, reviewed commit SHA, date, outcome) and treats a review missing any field as unrecorded; requires a negative control in which the reviewer is handed a deliberately poisoned artifact or claim it must refute, with the date last exercised recorded; and gives the cloud-reviewer shape (no commits to the branch under review, the model named, the verdict citing command and output). It stays the single source: release-execution and publication-review point to it.
+    status: verified
+    release: 0.42.0
+    category: functional
+    priority: should
+    fields:
+      category: functional
+
+  - id: VER-CLEAN-ROOM-INDEPENDENCE-RECORD
+    type: verification
+    title: claim CLEAN-ROOM-AI-REVIEW-INDEPENDENCE
+    description: >-
+      claim-check requires the fork rule, the independence-record field list, the unrecorded-review rule, the negative-control rule with its last-exercised date and the no-commit cloud-reviewer rule verbatim, requires release-execution and publication-review to point at the skill for the fork rule, and fails if the field list appears in more than one file in the plugin. Negative-controlled: dropping the fork rule, the negative-control rule or the release-execution pointer, or copying the field list into release-execution, each makes the check exit 1.
+    status: verified
+    release: 0.42.0
+    method: automated-test
+    test-location: claims.yaml
+    links:
+      - type: verifies
+        target: REQ-CLEAN-ROOM-INDEPENDENCE-RECORD
