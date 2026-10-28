@@ -800,7 +800,7 @@ claims:
     text: "3. **Never auto-apply the recommendation on a timeout.** No answer means no"
     evidence:
       - kind: verbatim
-        text: "4. **Irreversible actions always wait for an accepted answer**: a tag, a publish,"
+        text: "4. **Irreversible actions always wait for an accepted answer**, and so do reversible"
       - kind: verbatim
         text: "**Post a `needs-decision` notice with options, pros, cons and a recommendation, and\ndo not take the fork.**"
       # The script never turns a recommendation into an answer.

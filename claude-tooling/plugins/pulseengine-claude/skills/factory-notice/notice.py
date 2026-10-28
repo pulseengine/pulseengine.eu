@@ -218,7 +218,7 @@ def default_agent(cwd=None):
 
 
 def check_agent(agent):
-    if not AGENT_RE.match(agent or ""):
+    if not AGENT_RE.fullmatch(agent or ""):
         raise ValueError(f"agent id {agent!r} must match {AGENT_RE.pattern}")
     return agent
 
@@ -258,7 +258,7 @@ class Store:
             return None
 
     def notice(self, nid):
-        if not NOTICE_ID_RE.match(nid or ""):
+        if not NOTICE_ID_RE.fullmatch(nid or ""):
             return None
         return self._read(self.dir / "notices" / f"{nid}.json")
 
@@ -313,7 +313,7 @@ def all_agents(root):
     root = pathlib.Path(root)
     if not root.is_dir():
         return []
-    return sorted(p.name for p in root.iterdir() if p.is_dir() and AGENT_RE.match(p.name))
+    return sorted(p.name for p in root.iterdir() if p.is_dir() and AGENT_RE.fullmatch(p.name))
 
 
 # ── warte client ────────────────────────────────────────────────────────────

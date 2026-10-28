@@ -169,7 +169,8 @@ the task is complete or you are blocked on input only the user can provide.
 
 When the run is unattended and the input only the user can provide is a choice
 between options, post it as a decision through [`factory-notice`] and carry on
-with independent work instead of ending the turn on a question.
+with independent work instead of ending the turn on a question. Never take the
+fork on its recommendation because nobody answered.
 
 > Harness note (not a standing prompt): don't surface remaining-token countdowns
 > to the model — they're what triggers premature "let's start a new session"

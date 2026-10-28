@@ -115,7 +115,8 @@ Then:
 3. **Never auto-apply the recommendation on a timeout.** No answer means no
    decision, however long it has been. A recommendation is advice to the owner,
    not a default.
-4. **Irreversible actions always wait for an accepted answer**: a tag, a publish,
+4. **Irreversible actions always wait for an accepted answer**, and so do reversible
+   ones (rule 3); irreversibility only raises the bar further: a tag, a publish,
    a force-push, a delete, anything a revert cannot undo. Mark them
    `"reversible": false`.
 5. **When the facts change, re-post, do not edit in place.**
