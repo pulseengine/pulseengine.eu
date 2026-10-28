@@ -1,6 +1,6 @@
 +++
 title = "Trust at machine speed"
-description = "Trust is an advantage at machine speed only when a machine can check it. Europe's regulation has started asking for some evidence in machine-readable form, while German assessment practice, in the author's observation, still has people assemble and read most of it. What PulseEngine has today: claims checked in CI, traceability in rivet, and a release signature a buyer can check without the vendor's key."
+description = "Trust is an advantage at machine speed only when a machine can check it. Europe's regulation has started asking for some evidence in machine-readable form, while German assessment practice still has people assemble and read most of it. What PulseEngine has today: claims checked in CI, traceability in rivet, and a release signature a buyer can check without the vendor's key."
 date = 2026-11-02
 draft = true
 [taxonomies]
@@ -11,15 +11,15 @@ authors = ["Ralf Anton Beier"]
 {% <insight> %}
 **Trust is an advantage at machine speed only when a machine can check it.**
 
-- Of three kinds of team, slow and safe gets overtaken, fast without evidence
-  stalls at its first audit or incident, and fast with evidence produced in CI
-  pulls away.
+- Of three kinds of team, we argue, slow and safe gets overtaken, fast without
+  evidence stalls at its first audit or incident, and fast with evidence
+  produced in CI pulls away.
 - The EU moved the AI Act's high-risk rules to December 2027 and August 2028.
   The Cyber Resilience Act will require a software bill of materials in a
   machine-readable format from December 2027.
 - Germany has the evidence culture: ISO 26262 functional-safety assessment,
-  often by TÜV, and ASPICE assessments by intacs-certified assessors. In the
-  author's observation, people still assemble and read most of that evidence.
+  often by TÜV, and ASPICE assessments by intacs-certified assessors. In our
+  experience, people still assemble and read most of that evidence.
 - We put some of PulseEngine's evidence in CI and in signed release files. On
   28 October we checked one release archive's signature with cosign, without
   any key from us, and a one-byte change made the check fail.
@@ -72,11 +72,11 @@ product, including "a software bill of materials in a commonly used and
 machine-readable format" covering at least the top-level
 dependencies[^cra-annex]. Manufacturers must draw up the SBOM, but Annex II
 point 9 makes giving it to users optional, and Recital 77 says they should not
-be obliged to make it public. Where applicable, Annex VII point 8 lists the SBOM in
-the technical documentation, provided to a market surveillance authority on
-reasoned request where needed to check compliance.
-An SBOM a tool can read is one a pipeline can produce and, where the
-manufacturer shares it, a buyer's tool can parse.
+be obliged to make it public. Annex VII point 8 lists the SBOM, if
+applicable, in the technical documentation, which a market surveillance
+authority can ask for on reasoned request when it needs it to check
+compliance. An SBOM a tool can read is one a pipeline can produce, and one a
+buyer's tool can parse if the manufacturer shares it.
 
 ## Germany: the evidence culture and its form
 
@@ -84,10 +84,12 @@ In Germany, trust in safety-related software rests on ISO 26262
 functional-safety assessment, often by TÜV, and on ASPICE assessments by
 intacs-certified assessors. In the author's observation, the evidence in
 that practice is mostly assembled and read by people:
-documents, review records and assessment interviews. That suits a team that
-ships a few times a year. It does not suit a line where agents produce
-reviewed changes in hours, because each change waits for a person to read its
-evidence.
+documents, review records and assessment interviews. Assessments happen at
+milestones and sample that record. Between them, the project's own
+change-impact analysis and work-product reviews are done by people for each
+change. That suits a team that ships a few times a year. It does not suit a
+line where agents produce reviewed changes in hours, because those per-change
+steps then have to keep pace with the agents.
 
 ## What PulseEngine has, and what it shows
 
@@ -109,19 +111,21 @@ gale, one of the PulseEngine repositories, has 302 of its 329 software
 requirements linked to a verification measure in rivet, measured on 26
 October, and none of them has a recorded result, because gale's CI imports no
 test results into rivet ([ASPICE is not a queue](/blog/aspice-is-not-a-queue/)).
-`rivet validate` checks that each link resolves. The evidence that the checks
-passed is not yet in the trace.
+`rivet validate` checks that each link resolves, not that the check passed.
 
 **Signed release evidence.** [witness](https://github.com/pulseengine/witness)
 measures MC/DC-style branch coverage for WebAssembly components. Each release
 since v0.6.4 ships a compliance-evidence archive with per-verdict coverage
 reports and in-toto statements. Each in-toto statement is DSSE-signed with a
-per-release ephemeral Ed25519 key, whose public half ships in the archive,
-and each also ships with its own Sigstore keyless certificate and signature,
-which we did not check. A signature checked against a key shipped with the
-data does not show where the data came from; a keyless signature can. Since v0.10.0 the archive itself also carries a Sigstore
-keyless signature. Its README positions witness as supplementary evidence in a
-qualification dossier until v1.0. On 28 October we downloaded
+per-release ephemeral Ed25519 key, whose public half ships in the archive. In
+v0.45.0, each statement also ships with its own Sigstore keyless certificate
+and signature, which we did not check. A signature checked against a key
+shipped with the data does not show where the data came from; a keyless
+signature can.
+
+Since v0.10.0 the archive itself also carries a Sigstore keyless signature.
+Its README positions witness as supplementary evidence in a qualification
+dossier until v1.0. On 28 October we downloaded
 the v0.45.0 archive and checked its keyless signature with cosign 3.1.2
 against the Sigstore certificate published with it (two flag-deprecation
 warnings removed from the output):
@@ -137,24 +141,25 @@ Verified OK
 ```
 
 The command pins the exact signer identity, witness's `release.yml` workflow
-at `refs/tags/v0.45.0`. With one byte appended to the archive, the same
-command exited 1. Neither step used a key we hold. The check relies on
+at `refs/tags/v0.45.0`; it pins the tag name, not the commit. With one byte
+appended to the archive, the same command exited 1. The check relies on
 GitHub's OIDC token issuance and Sigstore's certificate authority and
-transparency log, which we do not control, and it needs network access to
-Sigstore's log because no bundle is shipped for the archive itself; the
-release's SHA256SUMS.txt, which lists the archive's hash, does carry one. It
-shows that a workflow run in our repository at that tag signed these bytes. It does not show what that
-workflow did, or that the coverage numbers are right.
+transparency log, which we do not control. It needs network access to
+Sigstore's log because the archive ships without a Sigstore bundle. The
+release's SHA256SUMS.txt, which lists the archive's hash, has one. The check
+shows that a workflow run in our repository at that tag signed these bytes.
+It does not show what that workflow did, or that the coverage numbers are
+right.
 
 ## What a buyer can ask for
 
-**Let the buyer check without you.** A signature tied to a public build
-identity shows where the bytes came from without the vendor's key and without
-the vendor's word, trusting GitHub and Sigstore instead. Re-running a claims file lets a reader re-derive the claims
+**A check that does not need the vendor.** A signature tied to a public build
+identity shows where the bytes came from without the vendor's key or word;
+the buyer trusts GitHub and Sigstore instead. Re-running a claims file lets a reader re-derive the claims
 against the repository's evidence instead of reading them. A PDF signed off by
 the vendor offers neither.
 
-**Be exact about what each check covers.** A signature shows origin, a
+**A statement of what each check covers.** A signature shows origin, a
 coverage report shows which compiled, Wasm-level conditions the tests
 distinguish, and a trace link shows that a check exists. None of them alone
 shows that the software is safe.
@@ -163,25 +168,27 @@ shows that the software is safe.
 
 **"PulseEngine certifies nothing. Glass house."** Correct: nothing here is
 certified or qualified. What we claim is that the evidence can be checked, and
-for tools the route to more is qualification under RTCA DO-330, the software
-tool qualification document that accompanies DO-178C[^do330]. witness plans a
-small checker audited under DO-330 for v1.0; none of our tools has been
-qualified yet.
+for tools the route to more is qualification under RTCA DO-330, the tool
+qualification standard used with DO-178C in aerospace[^do330]; automotive has
+its own tool-confidence process in ISO 26262. Qualification happens inside an
+applicant's certification project, so a vendor can only prepare qualification
+data. witness plans a small checker audited under DO-330 for v1.0, and we have
+prepared no qualification data for any of our tools.
 
-**"Verification gives false confidence."** A proof is only as good as its
-statement. A July 2026 survey of AI-assisted formal mathematics notes that
-compilation shows a candidate elaborates, "not that it faithfully represents
-the source"[^solvers], and on the VERINA benchmark the best model, OpenAI o3,
-reached 52.3% on specification soundness and completeness and 4.9% proof
-success[^verina]. We treat a specification as an unverified artifact, and we
-check our checks with negative controls: the claim that pins the previous post was
-broken on purpose and claim-check exited 1. The limit is that `claims.yaml`
-pins text and patterns in files, not the behaviour those files describe.
+**"Verification gives false confidence."** It can: a proof is only as good as
+its statement. A survey of AI-assisted formal mathematics (arXiv v2, October
+2026) notes that compilation shows a candidate elaborates, "not that it
+faithfully represents the source"[^solvers], and on the VERINA benchmark,
+based on one trial per task, the best model, OpenAI o3, reached 52.3% on
+specification soundness and completeness and 4.9% proof success[^verina]. Our
+own checks get the same treatment: we broke the claim pinning the previous
+post on purpose and claim-check exited 1, though `claims.yaml` pins text and
+patterns, not behaviour.
 
 **"Agents reviewing agents is not independence."** The posts on this site are
 reviewed by fresh-context agents in split roles, and their findings and fixes
-are recorded in the pull request. Those reviewers share a model family with
-the author, so the review is advisory and nothing like an independent
+are recorded in the pull request description and its commits. Those
+reviewers share a model family with the author, so the review is advisory and nothing like an independent
 assessment; the human step is the owner deciding to publish.
 
 **"Your agents are the attack surface."** In the Clinejection case, an issue
@@ -192,8 +199,11 @@ rights reached CI secrets in the vendors' own repositories for Claude Code,
 Gemini CLI and OpenAI Codex[^csa-blackhat], and Google's advisory for Gemini
 CLI rates its headless-mode flaw critical[^gemini-ghsa]. Our issue-class check
 refuses to execute issue bodies, and an agent accepts only an answer that
-names an option it offered. Our agent workflows have not yet been audited
-against this class of attack; that audit is in progress.
+names an option it offered; that option check limits what a forged answer can
+pick but does not authenticate the answerer, and our issue-hunt sessions do
+read issue text into an agent's prompt. Our agent workflows have not yet been
+audited against this class of attack; an audit is being done, with no results
+yet.
 
 ## Limits and sources
 

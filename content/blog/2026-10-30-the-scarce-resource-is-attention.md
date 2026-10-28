@@ -1,6 +1,6 @@
 +++
 title = "The scarce resource is the orchestrator's attention"
-description = "On 28 October one machine ran about 22 agent sessions in parallel, and survey research published in March 2026, as reported, identifies overseeing AI agents as the strongest driver of cognitive strain. We built a decision inbox with an attention budget: it shows the owner at most three asking flows at a time, and questions wait for a decision window and one digest. It is days old and unmeasured; this post says what we will measure."
+description = "On 28 October one machine ran about 22 agent sessions in parallel, and survey research published in March 2026, as reported, identifies overseeing AI agents as the strongest driver of cognitive strain. We built a decision inbox with an attention budget: it surfaces at most three routine flows at a time, and questions wait for a decision window and one digest. It is days old and unmeasured; this post says what we will measure."
 date = 2026-10-30
 draft = true
 [taxonomies]
@@ -15,11 +15,11 @@ authors = ["Ralf Anton Beier"]
   parallel on 28 October, with meetings on top.
 - A BCG survey of 1,488 US workers was published in HBR in March 2026. As
   reported by The Decoder, it identifies overseeing AI agents as the strongest
-  driver of what the authors call AI brain fry, and self-rated productivity
-  peaks at three simultaneous AI tools.
+  driver of cognitive strain in a study of what the authors call AI brain
+  fry, and self-rated productivity peaks at three simultaneous AI tools.
 - In response we shipped a decision inbox (plugin 0.44.0) and an attention
-  budget (0.45.0): the inbox shows the owner at most three asking flows at a
-  time, questions wait for a decision window, one digest collects them, and
+  budget (0.45.0): the digest, the session hook and review surface at most
+  three routine flows at a time, questions wait for a decision window, one digest collects them, and
   security or red-`main` decisions skip the queue. Three is a starting value
   suggested by the study's peak; the study did not test a cap on asking
   flows. All of it is days old and nothing about it has been measured yet.
@@ -40,9 +40,10 @@ In March 2026 six authors working with BCG published "When Using AI Leads to
 paywalled, so the figures below are as reported by The Decoder and The
 Register, not read from the article itself. The survey covered 1,488
 full-time US workers. The Decoder reports that 14% of the respondents who use
-AI described what the authors call AI brain fry, which The Decoder defines as
-mental fatigue from excessive use or oversight of AI tools, and names direct
-oversight of AI agents as the strongest driver. Workers with high oversight
+AI described what the authors call AI brain fry, which the authors, as
+reported by The Decoder, define as mental fatigue from excessive use or
+oversight of AI tools beyond one's cognitive capacity. The Decoder names
+direct oversight of AI agents as the strongest driver of cognitive strain. Workers with high oversight
 demands reported 14% more mental effort and 12% more mental
 fatigue[^decoder-brainfry]. Respondents with AI brain fry reported 33% more
 decision fatigue and 39% more major errors. The Register gives the 39% for a
@@ -106,10 +107,9 @@ been answered. The consumed record is created with `O_EXCL`, so the first
 accepted answer wins. A note attached to an answer is printed quoted and
 labelled as data, and the skill tells the agent not to follow it. These rules
 guard against forged rows on warte, the control tower described below. Who
-answers locally is not checked: `notice.py answer` has no identity check and
-no terminal check, so any process running as the user can record an answer.
-`review` refuses to run without a terminal, but `answer` does not, so that is
-no barrier.
+answers locally is not checked: `notice.py answer` has no identity check and,
+unlike `review`, runs without a terminal, so any process running as the user
+can record an answer.
 
 ### An attention budget, so the inbox does not become the next queue
 
@@ -125,8 +125,9 @@ budget ([#284](https://github.com/pulseengine/pulseengine.eu/pull/284), plugin
 | **One digest** | `notice.py digest` writes one file grouped by flow, and `notice.py review` walks it so the decisions are answered in one sitting |
 | **Urgent bypass** | A decision tagged `security` or `red-main` skips the cap, the windows and focus blocks, and takes no slot. It still waits during an off period |
 
-The cap governs what `notice.py` shows the owner: the digest, the session
-hook, `review` and the notification. The windows govern the session hook and
+The cap governs what `notice.py` shows the owner, directly or through the
+agent's session hook: the digest, the hook's output, `review` and the
+notification. The windows govern the session hook and
 `window-tick`; a `digest` or `review` the owner runs by hand ignores them.
 Nothing stops a session from
 asking in the chat instead. The `security` and `red-main` tags and the `flow`
@@ -184,12 +185,13 @@ of the budget itself rather than of the old setup, and we will record the
 line once a week from then. Alongside it we will record decisions posted per
 week, counted from the `needs-decision` notices by `opened_at` in the local
 store, and the number of agents posting, counted from the agent directories
-in it. The digest prints neither, and the store is per machine, so both
+that hold at least one `needs-decision` notice. The digest prints neither, and the store is per machine, so both
 counts cover this machine only.
 
 The budget is working if the oldest open decision stays under 48 hours at
-every weekly reading, because a cap that makes questions wait for weeks means
-the bottleneck has only moved; a weekly snapshot can miss a spike between readings. The criterion assumes windows on
+every weekly reading. A cap that makes questions wait for weeks has only moved
+the bottleneck. A weekly reading can miss a spike between readings. The
+criterion assumes windows on
 every day, as the defaults have; a Monday-to-Friday schedule leaves about 63
 hours from Friday 17:30 to Monday 08:30. If the oldest age climbs week on
 week, the cap is too tight or the windows too short, and the settings change.
@@ -208,37 +210,36 @@ measured by self-report.
 
 ## What a critic would say
 
-**"This is one person who opened 22 sessions. Run fewer."** That is the
-conclusion the cap encodes: no more than three flows reach the owner at once,
-whatever else is running. The limit is that this is n=1, on one machine, and
-the cap does not reduce the sessions themselves, so nothing here shows that
-running fewer would not have worked as well.
+**"This is one person who opened 22 sessions. Run fewer."** Fair, and the cap
+is a version of that: no more than three flows reach the owner at once. But
+this is n=1 on one machine, and the cap leaves the session count alone, so we
+cannot say the budget beats simply running fewer sessions.
 
-**"You answered tool overload with another tool."** The budget's purpose is
-fewer interruptions, so the honest success criterion is a fall in
-interruptions. We can count only part of them: once installed, the
-`window-tick` log shows inbox notifications, and nothing counts the questions
-that still arrive in the chat.
+**"You answered tool overload with another tool."** The budget exists to cut
+interruptions, so a fall in interruptions is the real test. The 48-hour
+criterion above measures latency, and the interruption test cannot be run
+yet: once installed, the `window-tick` log shows the inbox notifications sent
+inside windows, and nothing counts the questions that still arrive in the
+chat.
 
 **"You feel faster, so you think it works."** In METR's randomised trial,
 experienced open-source developers took 19% longer with early-2025 AI tools,
 after forecasting that AI would cut their time by 24% and while estimating
 afterwards that it had cut it by 20%[^metr]. Our sense that the budget helps
 is not evidence, which is why the plan above counts decision age and
-throughput. Those counts do not measure strain either.
+throughput.
 
 **"The brain-fry study is self-reported, paywalled, and counts tools."** All
-three are true, and the post reports its figures through secondary coverage
-for that reason. Three is a starting value suggested by that study and
-nothing more; no study we found tests a cap on asking flows.
+three are true. We cite it through The Decoder and The Register because of
+the paywall, and take three from it as a starting value only. No study we
+found tests a cap on asking flows.
 
 ## Limits and sources
 
 This is one factory with one orchestrator. The session count is the owner's
 own count from 28 October, not an instrumented measurement. The research
-figures are a single survey of US workers, reported through secondary
-coverage because the primary article is paywalled, and they measure
-simultaneous AI tools, not agent sessions. The mechanism is described from
+figures are a single survey of US workers, and they measure simultaneous AI
+tools, not agent sessions. The mechanism is described from
 the merged pull requests, the skill's documentation and `notice.py` in this
 repository, read on 28 October 2026. Questions an agent moves to the chat do
 not appear in the load line, so the line can look better than the owner's
