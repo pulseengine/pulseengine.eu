@@ -11,15 +11,15 @@ authors = ["Ralf Anton Beier"]
 {% <insight> %}
 **These are the eight strongest objections to PulseEngine we know of, and each one is dated.**
 
-- Every objection names when its evidence was published and how the picture
-  moved since. The debate in April 2026 was a different debate: no Black Hat
-  disclosure and no WASI 0.3 release.
-- Two objections are stronger now than six months ago (agents as an attack
-  surface, verification giving false confidence). One is weaker (building on
-  an unfinished standard). One we concede outright: our own gates do not run
-  on our own engine yet.
-- Each objection ends with what would make us concede it. If you have a
-  stronger objection, open an issue and we will add it with its date.
+- Every objection names when its evidence dates from and how the picture
+  moved since. In April 2026 neither the Black Hat disclosure nor WASI 0.3.0
+  existed.
+- One objection is stronger now than six months ago (agents as an attack
+  surface). One is weaker (building on an unfinished standard). One we
+  concede outright: our own gates do not run on our own engine yet.
+- The table at the end says, for each objection, what would make us concede
+  it. If you have a stronger objection, open an issue and we will add it with
+  its date.
 {% </insight> %}
 
 PulseEngine is a WebAssembly Component Model engine for safety-critical
@@ -29,10 +29,6 @@ work in progress. The two posts before this one,
 [on trust at machine speed](/blog/trust-at-machine-speed/), each closed with
 a short section on what a critic would say. This post collects the critic's
 case in one place and gives it room.
-
-Each section gives the objection and its dated evidence, how the evidence
-moved, our counter, where the counter stops, and dates for when it was read
-and when to read it again.
 
 ## The timeline
 
@@ -65,8 +61,8 @@ date of this post.
 | 2026-10-22 | Our hotspot experiment pre-registered | 4 |
 | 2026-10-28 | Our agent workflows audited and first fix merged (plugin 0.45.1, 0.45.2); `claim-check.py` negative control; hotspot trigger shipped; review records required (#275); issue #287 opened | 1, 2, 4, 7, 8 |
 
-The two AI Act rows are context for objection 3 rather than evidence for any
-one objection. In April 2026 these dates were not yet agreed. Since the
+The two AI Act rows are context: they bear on the regulatory calendar, not
+on any one objection. In April 2026 these dates were not yet agreed. Since the
 agreement, the high-risk rules apply from 2 December 2027 for systems in areas such as critical infrastructure, and from 2 August
 2028 for AI systems built into regulated products such as lifts or
 toys[^ec-omnibus].
@@ -80,7 +76,7 @@ Clinejection case reached the prompt of a triage agent that had shell access
 and was open to any GitHub user. The note traces the chain through cache
 poisoning to leaked publishing credentials, and on 17 February 2026 someone
 used a stolen npm token to publish a tampered `cline@2.3.0`[^clinejection].
-Google's advisory for Gemini CLI, published 24 April 2026, rates critical a
+Google's advisory for Gemini CLI, published 24 April 2026, rates as critical a
 flaw that let headless runs on untrusted content execute attacker-supplied
 code[^gemini-ghsa]. On 5 August 2026 Novee Security gave a security research
 demonstration at Black Hat USA. A second Cloud Security Alliance note, which
@@ -91,11 +87,12 @@ Code, Gemini CLI and OpenAI Codex from an issue opened by an account with no
 repository rights[^csa-blackhat].
 
 **How it moved.** This objection is stronger now than in April. Six months
-ago the evidence was one incident in one project and the first published
-piece of Novee's research: the Gemini CLI advisory, which credits Elad Meged
-of Novee Security[^gemini-ghsa] and which the CSA note ties to the 5 August
-talk. August added Claude Code and Codex, reached in the three vendors' own
-repositories, and the note reports comparable configurations in well over a
+ago the evidence was one incident in one project and a published piece of
+Novee's research, the Gemini CLI advisory, which credits Elad Meged of Novee
+Security, also credits a researcher at Pillar Security[^gemini-ghsa], and is
+tied by the CSA note to the 5 August talk. In August the same research
+reached CI secrets for Claude Code and Codex too, each in its vendor's own
+repository, and the note reports comparable configurations in well over a
 hundred other public repositories[^csa-blackhat].
 
 **Our counter.** On 28 October 2026 we audited our own agent workflows
@@ -109,7 +106,8 @@ claim in this repository's `claims.yaml` (`ISSUE-TEXT-IS-UNTRUSTED-DATA`),
 so a skill that again uses one of the instruction phrasings the claim forbids
 fails the build.
 
-**Where the counter stops.** The audit's other findings are open. The audit was our own; nobody outside the
+**Where the counter stops.** We have not published the audit, and the rest
+of its work is not described here. The audit was our own; nobody outside the
 project has reviewed our agent workflows. A rule in a skill constrains an
 agent that follows the skill; it does not stop a model that ignores it. Valid
 as of 28 October 2026; re-check by 28 January 2027, because this
@@ -132,22 +130,21 @@ specification.
 o4-mini, at 61.4% code, 51.0% specifications and 3.6% proofs[^verina-v1].
 Between v1 and v3 the best model changed and code correctness rose by about
 11 points, while specification quality rose by 1.3 points and proof success
-by 1.3. Models got better at writing code much faster than at stating what
-the code should do. The objection is stronger than in April: the survey
-(July 2026, revised 19 October[^solvers]) adds to the evidence that
-specifications are the bottleneck.
+by 1.3. That movement predates April. The objection is about as strong as in
+April, now restated by a survey (July 2026, revised 19 October[^solvers]).
 
 **Our counter.** We try to see a check fail before we rely on it. On 28
 October 2026 we did that for one of the 41 claims: we changed one pinned
 sentence in the operating contract that
 `ISSUE-TEXT-IS-UNTRUSTED-DATA` binds. `claim-check.py` reported 40 of 41
 claims holding and exited 1; with the change reverted it reported 41 of 41.
-Claims in `claims.yaml` are written so they can fail, and the gale
+Claims in `claims.yaml` are meant to be able to fail; we checked that for
+one of them. The gale
 repository keeps a
 [verification-honesty ledger](https://github.com/pulseengine/gale/blob/main/docs/safety/verification-honesty.md)
 that lists what its proofs do not cover and which words not to use about
 them. The site's tagline says "machine-checked proofs for parts of it"
-because a claim in `claims.yaml` fails the build on the broader phrasings.
+because a claim in `claims.yaml` fails the build on three broader phrasings it replaced.
 
 **Where the counter stops.** `claims.yaml` pins text and patterns, not
 behaviour. A claim can hold while the system it describes is wrong, if the
@@ -164,40 +161,47 @@ code is governed by standards (DO-178C, ISO 26262, IEC 61508), and that if
 you ask whether LLM-written procedural code can meet them, the quick answer
 is no. IEC 61508 Part 3 has over 50 documentation requirements, he wrote; an
 LLM might claim to have met them all, but "no wetware will take such a claim
-seriously"[^ladkin]. An arXiv study of C++ from five assistants found that
+seriously"[^ladkin]. A study in IEEE Access of C++ from five assistants found that
 "none of the evaluated LLMs generated MISRA-compliant code despite clear
 prompts"[^misra].
 
-**How it moved.** Little. We read the list's 2026
-monthly archives that were online on 28 October 2026 (July and August were
-not) and found no later post by Ladkin on this question. The standard he
-pointed to for neural networks, ISO/IEC TS 22440, is still a draft: Part 1
-was registered as a committee draft on 9 February 2026 and its comment
-period closed on 11 April 2026[^iso22440]. By Ladkin's description it covers
-encapsulated neural-network modules in critical systems, not procedural code
-written with a model's help, so it does not answer this objection either way.
-The MISRA study's v2 is from November 2025 and tested 2025 assistants; we
-have not checked whether newer models do better.
+**How it moved.** Little since April. We read the list's 2026 monthly
+archives that were online on 28 October 2026 (July and August were not) and
+found no later post by Ladkin on this question. The standard he pointed to
+for neural networks, ISO/IEC TS 22440, is still a draft: Part 1 was
+registered as a committee draft on 9 February 2026 and its comment period
+closed on 11 April 2026[^iso22440]. Ladkin describes it as covering
+encapsulated neural-network modules in critical systems. We could not read
+Part 1's scope, so we do not know whether it will address code written with
+a model's help. The MISRA study's v2 is from November 2025 and names GPT-4o,
+DeepSeek-V3 and Gemini 2.0 Flash among the models tested; we have not
+checked whether newer models do better.
 
 **Our counter.** We agree with Ladkin's sentence: a model's claim to have met
 a requirement is worth nothing. That is why our claims are bound to evidence
-a script can re-derive. Our argument is that certification judges whether
-lifecycle objectives were met and evidenced, and none of those objectives
-names who or what typed the code, so model-written code is held to the same
-objectives, including the documentation Ladkin points to. Any tool whose
-output is not checked again, whether it generates code like synth or checks
-it, needs qualification under RTCA DO-330, the tool qualification guidance
-used with DO-178C[^do330]. For a code generator that means its own
-development is held to lifecycle objectives, which puts this objection
-squarely on synth and meld.
+a script can re-check. Our argument is that certification judges whether
+lifecycle objectives were met and evidenced, and none of DO-178C's
+objectives names who or what typed the code, so model-written code is held
+to the same objectives, including the documentation Ladkin points to. The
+argument holds only if model output goes through the same verification as
+hand-written code, and whether an AI review step (objection 8) would itself
+be a tool needing qualification is an open question.
+
+As DO-178C is commonly summarised, a tool needs qualification when it
+eliminates, reduces or automates a process and its output is not verified,
+and RTCA DO-330 is the guidance for qualifying it[^do330]. That covers a
+tool that produces code, as synth does by transcoding, as well as one that
+checks it, and it puts this objection on synth, meld and loom. ISO 26262 and
+IEC 61508 have their own tool clauses. We did not read the text of any of
+these standards for this post.
 
 **Where the counter stops.** Nothing in PulseEngine is certified or
 qualified. Tool-qualification records exist in the public
 [relay](https://github.com/pulseengine/relay/blob/main/docs/dossier/tool-qualification/README.md)
 and
 [rivet](https://github.com/pulseengine/rivet/blob/main/docs/reference/tool-qualification.md)
-repositories; no assessor has reviewed them. No assessor has accepted this
-argument for our code. Valid as of 28 October 2026; re-check
+repositories; no assessor has reviewed them or accepted this argument for
+our code. Valid as of 28 October 2026; re-check
 by 28 April 2027 or when ISO/IEC TS 22440-1 moves to its next stage.
 
 ## 4. "Your productivity is a feeling"
@@ -207,7 +211,7 @@ July 2025, 16 experienced open-source developers worked 246 tasks in mature
 projects. With early-2025 AI tools they took 19% longer, after forecasting a
 24% saving and while estimating afterwards that they had saved
 20%[^metr-rct]. If experienced developers cannot tell a slowdown from a
-speedup, an owner who feels his agent factory is fast is not evidence.
+speedup, an owner's feeling that his agent factory is fast is not evidence.
 
 **How it moved.** On 24 February 2026 METR said it was changing its
 experiment design.
@@ -243,9 +247,9 @@ window's results are in.
 
 **The objection and its evidence.** PulseEngine has one owner who decides
 what is built and publishes what ships. If he stops, the agents stop with
-him. Being small is common: Avelino and colleagues estimated truck factors
+him. A low truck factor is common: Avelino and colleagues estimated truck factors
 for 133 popular GitHub projects in 2016 and found that 65% had a truck factor
-of two or less[^avelino]. Being common is no comfort to a buyer who needs a
+of two or less[^avelino]. That is no comfort to a buyer who needs a
 supplier for the life of a safety-critical product.
 
 **How it moved.** It has not. The 2016 figure is old, and we cite it only to
@@ -253,9 +257,9 @@ show the risk is ordinary, not to measure ours.
 
 **Our counter.** What gets built and how it is checked is written where a
 successor can read it. Requirements, design links and verification measures live in
-rivet; load-bearing claims live in `claims.yaml` with their evidence; release
-archives of witness and varve carry signatures that anyone can check without
-a key from us; and the
+rivet; load-bearing claims live in `claims.yaml` with their evidence; witness
+release archives are signed, and varve's are covered by a signed checksum
+file, both checkable with cosign without a key from us; and the
 agents' working rules live in this repository's plugin as skills and memory
 files, which a new owner's agents would load the same way.
 
@@ -285,7 +289,9 @@ Model features, including a `map` type[^wasi-p3].
 
 **Our counter.** On PulseEngine's ahead-of-time path, meld fuses components
 into a single core module at build time and synth transcodes it to native
-code for embedded targets. For a module that is fully dissolved and imports
+code for embedded targets; today meld's default output is multi-memory and
+it has no single-address-space lowering for microcontrollers (meld README).
+For a module that is fully dissolved and imports
 no WASI interfaces, the resulting binary does not depend on a runtime's
 Component Model implementation. Our tools ship as signed, dated varve
 layers, and a project pins one, so a change in the standard reaches a
@@ -313,14 +319,14 @@ dates from our own critic review on 28 October 2026 and is recorded as
 **How it moved.** It is new: six months ago none of these gates existed in
 their current form.
 
-**Our counter.** None yet. Issue #287 proposes moving the gates into WASI
-components with no network, no subprocesses and no writes, signing them with
-sigil, and running them under wasmtime first. kiln, our interpreter and
+**Our counter.** We have none yet. Issue #287 proposes moving the gates into
+WASI components with no network, no subprocesses and no writes, signing them
+with sigil, and running them under wasmtime first. kiln, our interpreter and
 runtime, is the planned second host, and requiring both hosts to agree would
 make our own gates a differential test of our engine.
 
-**Where the counter stops.** We concede this objection. It is true until
-#287 is done. Valid as of 28 October 2026; re-check when #287 closes.
+**Where the counter stops.** We concede this objection until our gates run
+on kiln as well as wasmtime. Valid as of 28 October 2026; re-check when #287 closes.
 
 ## 8. "Agents reviewing agents isn't independence"
 
@@ -330,14 +336,14 @@ model family as the author can share its blind spots, and a label saying
 "independent review" hides that. No standard we work to treats an AI
 reviewer as an independent assessor.
 
-**How it moved.** The objection has not moved; our practice has. On 28 October
+**How it moved.** The objection has not moved since April. On 28 October
 2026, in [#275](https://github.com/pulseengine/pulseengine.eu/pull/275), the
 `clean-room-verification` skill started requiring a record for every review
 used as evidence: reviewer model, whether it inherited context, run id,
 reviewed commit, date and outcome. A review missing a field counts as
-absent, and the skill says to hand the reviewer a deliberately poisoned
-claim at least once per release whose gate rests on AI review, and confirm
-it refutes it.
+absent, and, in every release whose gate rests on AI review, the skill says
+to give a reviewer at least one deliberately false claim and confirm the
+reviewer refutes it.
 
 **Our counter.** The record makes the review checkable. A reader can see
 which model reviewed which commit, with what context, and what it found. The
@@ -353,13 +359,13 @@ advisory; it is not an assessment. Valid as of 28 October 2026; re-check by
 
 | # | Objection | We concede if |
 |---|---|---|
-| 1 | Agents are the attack surface | Text in an issue, PR or comment makes one of our agent workflows run a command or follow an instruction after plugin 0.45.2, or any finding of this class, ours or reported to us, stays unfixed 30 days after it is known |
+| 1 | Agents are the attack surface | Text in an issue, PR or comment makes one of our agent workflows run a command or follow an instruction after plugin 0.45.2, or a hole of this class reported to us stays unfixed 30 days after the report |
 | 2 | Verification gives false confidence | Someone shows a claim in `claims.yaml` holding green while the property it states is false, and that false claim was live on the site or in a release |
-| 3 | You can't certify LLM-written code | An assessor or authority states that a DO-330 route is closed to tools built this way, for reasons rooted in how the code was written, or an assessor rejects model-written product code that meets the same objectives |
+| 3 | You can't certify LLM-written code | An assessor or authority states that a DO-330 route is closed to tools built this way, for reasons rooted in how the code was written, or an assessor rejects model-written product code that meets the same objectives; this depends on an assessor looking, and none has yet |
 | 4 | Productivity is a feeling | The hotspot experiment fails its pre-registered criteria and we still claim the trigger works, or anyone finds a productivity figure of ours with no measurement behind it |
 | 5 | Bus factor 1 | Someone competent tries to build and release one PulseEngine tool from its repository and artifacts alone and cannot |
 | 6 | Unfinished standard | A pinned project has to move its pin to get a fix, and the move forces a Component Model or WASI migration it did not choose |
-| 7 | You don't use your own engine | Conceded until #287 is done |
+| 7 | You don't use your own engine | Conceded until our gates run on kiln |
 | 8 | Agents reviewing agents | A human or a reviewer from another model family finds a blocking error in a post our panel cleared |
 
 If you have a stronger objection than these eight, or better evidence for one
@@ -380,8 +386,10 @@ write-up. The Clinejection note is also AI-assisted. The ISO page for ISO/IEC TS
 stage dates were read from ISO's committee mirror. We dropped a NASA position
 on LLMs in safety-critical development, reported by a vendor blog we could not
 load, and Lean soundness issues, for which we found no primary source. The
-PulseEngine statements come from this repository, the gale, meld, synth,
-varve and witness READMEs and releases, and one `claim-check.py` run on 28 October 2026.
+PulseEngine statements come from this repository, the meld, synth, varve
+and witness READMEs and releases, gale's verification-honesty ledger, the
+relay and rivet tool-qualification documents, issue #287, pull requests
+#275, #288 and #289, and one `claim-check.py` run on 28 October 2026.
 
 [^avelino]: Guilherme Avelino, Leonardo Passos, Andre Hora and Marco Tulio Valente, *A Novel Approach for Estimating Truck Factors*, 24th International Conference on Program Comprehension (ICPC), 2016; arXiv:1604.06766, 22 April 2016. [arxiv.org](https://arxiv.org/abs/1604.06766). Peer-reviewed (conference paper, read as the arXiv preprint). Source of the 133 projects and the 65%.
 
@@ -391,7 +399,7 @@ varve and witness READMEs and releases, and one `claim-check.py` run on 28 Octob
 
 [^verina]: The same paper, v3, 16 March 2026. [arxiv.org](https://arxiv.org/abs/2505.23135v3). Primary (benchmark paper). Figures from the v3 abstract; v2 is dated 18 October 2025.
 
-[^misra]: Malik Muhammad Umer, *Comparative Analysis of the Code Generated by Popular Large Language Models (LLMs) for MISRA C++ Compliance*, arXiv:2506.23535, v1 30 June 2025, v2 18 November 2025. [arxiv.org](https://arxiv.org/abs/2506.23535). Primary (preprint, not peer-reviewed). The assistants tested were ChatGPT, Gemini, DeepSeek, Meta AI and Microsoft Copilot.
+[^misra]: Malik Muhammad Umer, *Comparative Analysis of the Code Generated by Popular Large Language Models (LLMs) for MISRA C++ Compliance*, arXiv:2506.23535, v1 30 June 2025, v2 18 November 2025. [arxiv.org](https://arxiv.org/abs/2506.23535). Peer-reviewed (journal article, IEEE Access 13, 2025, doi:10.1109/ACCESS.2025.3633086; read as arXiv v2). The assistants tested were ChatGPT, Gemini, DeepSeek, Meta AI and Microsoft Copilot.
 
 [^metr-rct]: Joel Becker, Nate Rush, Elizabeth Barnes and David Rein, *Measuring the Impact of Early-2025 AI on Experienced Open-Source Developer Productivity*, arXiv:2507.09089, v1 12 July 2025, v2 25 July 2025. [arxiv.org](https://arxiv.org/abs/2507.09089). Primary (randomised controlled trial). Source of the 16 developers, 246 tasks, 19%, 24% and 20%.
 
@@ -403,7 +411,7 @@ varve and witness READMEs and releases, and one `claim-check.py` run on 28 Octob
 
 [^do330]: RTCA, *DO-330: Software Tool Qualification Considerations*, 13 December 2011. [my.rtca.org](https://my.rtca.org/productdetails?id=a1B36000001IcfkEAC). Primary (product page only; the standard is paywalled and was not read).
 
-[^clinejection]: Cloud Security Alliance AI Safety Initiative, *Clinejection: Prompt Injection in GitHub Issue Titles Enables CI/CD Cache Poisoning and Supply Chain Compromise*, research note, 10 March 2026. [labs.cloudsecurityalliance.org](https://labs.cloudsecurityalliance.org/research/csa-research-note-clinejection-prompt-injection-cicd-cache-p/). Secondary, and AI-assisted: the note says it was generated with AI assistance and has not undergone official CSA review. It reports Adnan Khan's disclosure of 9 February 2026. Source of the 9 and 17 February dates and the chain.
+[^clinejection]: Cloud Security Alliance AI Safety Initiative, *Clinejection: Prompt Injection in GitHub Issue Titles Enables CI/CD Cache Poisoning and Supply Chain Compromise*, research note, 10 March 2026. [labs.cloudsecurityalliance.org](https://labs.cloudsecurityalliance.org/research/csa-research-note-clinejection-prompt-injection-cicd-cache-p/). Secondary, and AI-assisted: the note says it was generated with AI assistance and has not undergone official CSA review; that statement is in the [PDF edition](https://labs.cloudsecurityalliance.org/wp-content/uploads/2026/03/CSA_research_note_clinejection_prompt_injection_cicd_cache_poisoning_20260310-csa-styled-1.pdf). It reports Adnan Khan's disclosure of 9 February 2026. Source of the 9 and 17 February dates and the chain.
 
 [^gemini-ghsa]: Google, *Gemini CLI: Remote Code Execution via workspace trust and tool allowlisting bypasses*, GitHub security advisory GHSA-wpqr-6v78-jr5g, 24 April 2026. [github.com/advisories](https://github.com/advisories/GHSA-wpqr-6v78-jr5g). Primary (vendor advisory).
 
