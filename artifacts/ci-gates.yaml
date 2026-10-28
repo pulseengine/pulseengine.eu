@@ -69,6 +69,10 @@ artifacts:
         target: REQ-PR-ADMISSION
       - type: satisfies
         target: REQ-PR-BATCH-TRIVIAL
+      - type: satisfies
+        target: REQ-FACTORY-NOTICE
+      - type: satisfies
+        target: REQ-FACTORY-NOTICE-ANSWER-SAFETY
   - id: REQ-LINKS
     type: requirement
     title: Every internal link in the built site resolves
@@ -610,3 +614,53 @@ artifacts:
     links:
       - type: verifies
         target: REQ-PR-BATCH-TRIVIAL
+
+  - id: REQ-FACTORY-NOTICE
+    type: requirement
+    title: Unattended agents report notices and post decisions to the owner without blocking
+    description: >-
+      The owner asked on 2026-10-28 that unattended agents report into warte, still work with no warte (at an employer) through local per-agent storage, notify on needs-decision, blocked, shipped and session end, and present a decision as an option dialogue whose answer can come through warte or directly into the agent. The plugin gains the factory-notice skill. notice.schema.json (schema_version 1) is the single definition of a notice (kinds heartbeat, shipped, blocked, needs-decision, session-summary, info; lineage agent, session, parent, repo, flow, links; a decision adds question, options with description, pros and cons, recommended and why, reversible, blocks, revision and status) and of an answer. notice.py, standard library only, loads that file and refuses any schema keyword it does not implement; its subcommands are post, list, answer, poll and sync. It writes every notice to a user-level store under ~/.local/state/pulseengine/notices/<agent>/ (or PULSEENGINE_NOTICE_DIR) and, when PULSEENGINE_WARTE_URL answers, to warte as agent data of type notice.v1 and answer.v1, saying once when warte is unavailable or refuses a write (the deployed warte answers 401 to writes without a bearer token) and keeping unsent notices in an outbox. When urllib gets EHOSTUNREACH, ENETUNREACH or EPERM (measured 2026-10-28 on macOS, python3 could not reach warte where curl could, probably per-binary Local Network privacy, not confirmed) it retries the request through curl. The skill tells the agent not to take a fork it posted, to continue with independent work, to poll on each wake, never to apply its recommendation on a timeout, and to wait on irreversible actions. A SessionStart hook lists open decisions and waiting answers without consuming them; a SessionEnd hook posts a minimal summary when the agent posted none and the session changed something, writing locally and handing the outbox to a detached sync. Neither hook waits on warte for more than 3 seconds, because a connection to the deployed warte took 2.3 seconds to connect from a plain shell and 5.0 seconds inside the agent sandbox; both exit 0 on every path and are silent on failure. No warte host or certificate path is written into the plugin.
+    status: verified
+    release: 0.44.0
+    category: functional
+    priority: should
+    fields:
+      category: functional
+
+  - id: VER-FACTORY-NOTICE
+    type: verification
+    title: claims FACTORY-NOTICE-SCHEMA-SINGLE-SOURCE, -NEVER-AUTO-APPLY, -LOCAL-FALLBACK and -NO-HOST, and notice.py --self-test
+    description: >-
+      claim-check requires the schema file, the script's load of it by name, the kind and status lists to appear once under claude-tooling/, both schema_version consts, the two loud failures on an unimplemented keyword and the CI self-test step; the skill's never-auto-apply, irreversible-waits and do-not-take-the-fork rules verbatim, no code path that assigns the recommendation to option_id, and the operating contract's pointer; the default store path in the skill and the script, no .warte/ path in the script and the two offline self-test cases; and no URL in any factory-notice file or its hook, and no certificate path under claude-tooling/. notice.py --self-test (43 cases, in CI) covers schema validation, the local store round trip with warte unset and unreachable, the warte client against an in-process stub (register once, find by name, notice.v1 rows, the curl transport, and a 401-on-write mode like the deployed warte) and the hooks. A self-test mutant that treats a 401 as success exits 1 with 2 cases failing; dropping the say-once flag survives, because availability is cached after the first failure and no tested path says a message twice. Negative-controlled on 2026-10-28, eight mutants each exit 1: the kind list copied into the script, the schema file renamed, the CI step dropped, the recommendation assigned in code, the never-auto-apply rule reworded, the store moved to .warte/, a public URL in the skill and a certificate path in the hook.
+    status: verified
+    release: 0.44.0
+    method: automated-test
+    test-location: claims.yaml
+    links:
+      - type: verifies
+        target: REQ-FACTORY-NOTICE
+
+  - id: REQ-FACTORY-NOTICE-ANSWER-SAFETY
+    type: requirement
+    title: An answer is accepted only for an offered option at the current revision, once
+    description: >-
+      An answer to a decision is an instruction to the agent, and an answer.v1 row in warte is not proof the owner wrote it: on warte's main a write needs a bearer token, but the data handler does not compare the token's agent with the agent id in the path, and reads are public (pulseengine/warte#46). notice.py poll accepts an answer only when the notice id is one the agent posted, option_id is one of the options it offered on that notice, the revision equals the notice's current revision (re-posting a decision supersedes every earlier answer) and no answer was accepted for that notice and revision before; each rule is checked against the agent's local copy of the notice, never a copy read from warte. The consumed record is created with O_EXCL so the first accepted answer wins across processes. The answer's note is printed quoted and labelled as data from the owner, not instructions. Rejected answers are reported once with their reason.
+    status: verified
+    release: 0.44.0
+    category: functional
+    priority: must
+    fields:
+      category: functional
+
+  - id: VER-FACTORY-NOTICE-ANSWER-SAFETY
+    type: verification
+    title: claims FACTORY-NOTICE-ANSWER-OFFERED-OPTION-ONLY, -CURRENT-REVISION-ONLY, -CONSUMED-ONCE, -NOTE-IS-DATA and notice.py --self-test
+    description: >-
+      claim-check requires each rule verbatim in the skill, the code that enforces it in evaluate() (the offered-option test, the unknown-id test on the local store, the revision comparison, the consumed lookup and the O_EXCL create) and the self-test cases that exercise it. notice.py --self-test runs in CI and rejects an option that was not offered, a stale revision, a second answer to a consumed revision, a double write of the consumed record, an unknown notice id, an invalid answer object, an answer to a withdrawn decision, and a forged notice.v1 row in warte with a higher revision and an extra option together with its answers; it accepts an answer to the current revision and keeps an instruction-like note as quoted data with the chosen option unchanged. Negative-controlled on 2026-10-28, five mutants each exit 1 on claim-check (option check removed, local-copy rule dropped from the skill, revision check removed, O_EXCL dropped, note printed unlabelled), and seven code mutants each exit 1 on the self-test, failing a named case: option check removed (1 case), revision check removed (4), consume-once check removed (2), O_EXCL dropped (2), note printed unlabelled (2), status ignored (2), and the unknown-id check removed, which crashes the run with an AttributeError instead of failing a case.
+    status: verified
+    release: 0.44.0
+    method: automated-test
+    test-location: claims.yaml
+    links:
+      - type: verifies
+        target: REQ-FACTORY-NOTICE-ANSWER-SAFETY

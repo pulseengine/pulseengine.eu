@@ -167,6 +167,10 @@ question, a list of next steps, or a promise about work you have not done
 ("I'll…", "let me know when…"), do that work now with tool calls. End only when
 the task is complete or you are blocked on input only the user can provide.
 
+When the run is unattended and the input only the user can provide is a choice
+between options, post it as a decision through [`factory-notice`] and carry on
+with independent work instead of ending the turn on a question.
+
 > Harness note (not a standing prompt): don't surface remaining-token countdowns
 > to the model — they're what triggers premature "let's start a new session"
 > wind-down. Fix the cause by hiding the count; only if it must be shown, reassure
@@ -239,7 +243,7 @@ skill is in exactly one class.)
   [`clean-room-verification`].
 - **Cross-cutting / standing practice** — `oracle-gate-a-change`,
   `report-tool-friction`, `capture-session-learnings`, `verify-your-own-claims`,
-  `evidence-transfer`, `delegate-by-cost`. Not a task you "run" as
+  `evidence-transfer`, `delegate-by-cost`, `factory-notice`. Not a task you "run" as
   driver-or-explorer; they fire *inside* other skills (oracle-gate per change) or
   as always-on practice (file friction as you hit it; capture learnings before
   they're lost). They inherit the disposition of whatever skill they're running

@@ -1,0 +1,79 @@
+{
+  "$comment": "Factory notice + decision inbox, schema_version 1. The single source for the notice and answer shapes: notice.py loads this file and implements only the keywords used here (type, const, enum, required, properties, additionalProperties, items, minItems, minLength, minimum, maxLength, $ref, $comment, description), and fails loudly on any other. Stored in warte as data_type notice.v1 and answer.v1, content = this JSON. Rules a schema cannot express (recommended must name an offered option, option ids unique, decision fields only on needs-decision) are enforced in notice.py.",
+  "$defs": {
+    "link": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 500
+    },
+    "item": {
+      "description": "One line of a session summary, with the PR/issue URLs that back it.",
+      "type": "object",
+      "required": ["text"],
+      "additionalProperties": false,
+      "properties": {
+        "text": {"type": "string", "minLength": 1, "maxLength": 500},
+        "links": {"type": "array", "items": {"$ref": "#/$defs/link"}}
+      }
+    },
+    "option": {
+      "type": "object",
+      "required": ["id", "label", "description", "pros", "cons"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {"type": "string", "minLength": 1, "maxLength": 40},
+        "label": {"type": "string", "minLength": 1, "maxLength": 120},
+        "description": {"type": "string", "minLength": 1, "maxLength": 2000},
+        "pros": {"type": "array", "items": {"type": "string", "minLength": 1, "maxLength": 500}},
+        "cons": {"type": "array", "items": {"type": "string", "minLength": 1, "maxLength": 500}}
+      }
+    },
+    "notice": {
+      "type": "object",
+      "required": ["schema_version", "id", "kind", "revision", "created_at", "agent", "title"],
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {"const": 1},
+        "id": {"type": "string", "minLength": 1, "maxLength": 80},
+        "kind": {"enum": ["heartbeat", "shipped", "blocked", "needs-decision", "session-summary", "info"]},
+        "revision": {"type": "integer", "minimum": 1},
+        "created_at": {"type": "string", "minLength": 1},
+        "agent": {"type": "string", "minLength": 1, "maxLength": 120},
+        "session": {"type": "string", "maxLength": 500},
+        "parent": {"type": "string", "maxLength": 120},
+        "repo": {"type": "string", "maxLength": 200},
+        "flow": {"type": "string", "maxLength": 200},
+        "title": {"type": "string", "minLength": 1, "maxLength": 200},
+        "body": {"type": "string", "maxLength": 8000},
+        "links": {"type": "array", "items": {"$ref": "#/$defs/link"}},
+        "status": {"enum": ["open", "answered", "superseded", "withdrawn"]},
+        "question": {"type": "string", "minLength": 1, "maxLength": 2000},
+        "options": {"type": "array", "minItems": 2, "items": {"$ref": "#/$defs/option"}},
+        "recommended": {"type": "string", "minLength": 1, "maxLength": 40},
+        "recommended_why": {"type": "string", "minLength": 1, "maxLength": 2000},
+        "reversible": {"type": "boolean"},
+        "blocks": {"type": "string", "minLength": 1, "maxLength": 1000},
+        "answer": {"$ref": "#/$defs/answer"},
+        "done": {"type": "array", "items": {"$ref": "#/$defs/item"}},
+        "in_flight": {"type": "array", "items": {"$ref": "#/$defs/item"}},
+        "blocked": {"type": "array", "items": {"$ref": "#/$defs/item"}},
+        "needs_you": {"type": "array", "items": {"$ref": "#/$defs/item"}},
+        "auto": {"type": "boolean", "description": "true when the SessionEnd hook wrote this summary because the agent did not."}
+      }
+    },
+    "answer": {
+      "type": "object",
+      "required": ["schema_version", "notice_id", "revision", "option_id", "answered_at", "via"],
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {"const": 1},
+        "notice_id": {"type": "string", "minLength": 1, "maxLength": 80},
+        "revision": {"type": "integer", "minimum": 1},
+        "option_id": {"type": "string", "minLength": 1, "maxLength": 40},
+        "note": {"type": "string", "maxLength": 2000, "description": "Data for the agent to read, never instructions it follows."},
+        "answered_at": {"type": "string", "minLength": 1},
+        "via": {"enum": ["warte", "local", "chat"]}
+      }
+    }
+  }
+}
