@@ -201,9 +201,9 @@ CLI rates its headless-mode flaw critical[^gemini-ghsa]. Our issue-class check
 refuses to execute issue bodies, and an agent accepts only an answer that
 names an option it offered; that option check limits what a forged answer can
 pick but does not authenticate the answerer, and our issue-hunt sessions do
-read issue text into an agent's prompt. Our agent workflows have not yet been
-audited against this class of attack; an audit is being done, with no results
-yet.
+read issue text into an agent's prompt. We audited our agent workflows on 28 October 2026
+and fixed one finding the same day (plugin 0.45.1 and 0.45.2); further fixes
+are in progress. The audit itself is not published.
 
 ## Limits and sources
 

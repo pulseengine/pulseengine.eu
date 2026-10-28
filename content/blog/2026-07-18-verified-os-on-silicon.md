@@ -212,8 +212,8 @@ already written down — *a crafted tenant writes outside its region without a f
 
 There's really **one compiler and one pipeline**:
 [synth](https://github.com/pulseengine/synth) dissolves wasm components to native at
-build time. That's how the OS reaches silicon today — the certified hot path, a static
-native image with nothing dynamic on the device.
+build time. That's how the OS reaches silicon today — the hot path, transcoded ahead of
+time into a static native image with nothing dynamic on the device.
 
 The second path doesn't bypass that pipeline; it **runs through it.**
 [kiln](https://github.com/pulseengine/kiln), the interpreter, is *itself* a **`no_std`
@@ -269,3 +269,5 @@ chips, with a path to a multi-tenant one that never grows what you trust.
 ---
 
 *Where this sits in the wider toolchain: [how it works](@/how-it-works.md).*
+
+*Corrected on 28 October 2026: the dissolve path was called "the certified hot path". Nothing in it is certified; it is the hot path that synth transcodes ahead of time into a static native image.*

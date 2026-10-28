@@ -164,9 +164,9 @@ built-in defaults, and says which source it used.
 
 ## What is not true yet
 
-As of 28 October, the scheduled `window-tick`, which runs every 10 minutes
-and writes the digest in each window, is not installed on this machine. One
-agent has posted one notice, a `session-summary`, so no decision has gone
+The scheduled `window-tick`, which runs every 10 minutes and writes the
+digest in each window, was installed on this machine on 28 October 2026. As
+of that day, one agent had posted one notice, a `session-summary`, so no decision has gone
 through the budget yet. Writes to the deployed warte need a bearer token, and
 we found no warte route or CLI command that issues one yet, so notices stay
 in the local outbox and the owner answers locally. An agent picks up an
@@ -180,30 +180,28 @@ The instrument is the load line the digest opens with: open decisions, how
 many are surfaced and how many queued, flows asking, the age of the oldest
 open decision, and decisions answered in the last 7 days. Flows asking counts
 every flow with an open decision, queued ones included, so it can exceed
-three. The first digest after `window-tick` is installed is week 0, a reading
-of the budget itself rather than of the old setup, and we will record the
-line once a week from then. Alongside it we will record decisions posted per
+three. Week 0 is the week of 28 October 2026, when `window-tick` was
+installed; it is a reading of the budget itself rather than of the old setup,
+and we record the line once a week from then. Alongside it we will record decisions posted per
 week, counted from the `needs-decision` notices by `opened_at` in the local
 store, and the number of agents posting, counted from the agent directories
-that hold at least one `needs-decision` notice. The digest prints neither, and the store is per machine, so both
-counts cover this machine only.
+that hold at least one `needs-decision` notice. The digest prints neither,
+and the store is per machine, so both counts cover this machine only.
 
 The budget is working if the oldest open decision stays under 48 hours at
 every weekly reading. A cap that makes questions wait for weeks has only moved
 the bottleneck. A weekly reading can miss a spike between readings. The
-criterion assumes windows on
-every day, as the defaults have; a Monday-to-Friday schedule leaves about 63
+criterion assumes windows on every day, as the defaults have; a Monday-to-Friday schedule leaves about 63
 hours from Friday 17:30 to Monday 08:30. If the oldest age climbs week on
 week, the cap is too tight or the windows too short, and the settings change.
 If it stays over 48 hours for two weekly readings after a settings change,
 the budget has moved the bottleneck and we will say so. We will also report
 decisions answered against decisions posted, as a figure without a
 threshold, because the answered count includes answers to older decisions and
-the ratio can exceed one. We will report the first four weeks of readings in
-a follow-up post, with every settings change and its date.
+the ratio can exceed one. The first four weekly readings go into a follow-up
+post due around 25 November 2026, with every settings change and its date.
 
-These readings cover throughput and latency. Once installed, `window-tick`
-logs on every tick inside a window whether it notified, which gives a partial
+These readings cover throughput and latency. `window-tick` logs on every tick inside a window whether it notified, which gives a partial
 count of inbox notifications. Nothing records how often the owner is
 interrupted in the chat, and nothing measures his strain, which the study
 measured by self-report.
@@ -218,8 +216,8 @@ cannot say the budget beats simply running fewer sessions.
 **"You answered tool overload with another tool."** The budget exists to cut
 interruptions, so a fall in interruptions is the real test. The 48-hour
 criterion above measures latency, and the interruption test cannot be run
-yet: once installed, the `window-tick` log shows the inbox notifications sent
-inside windows, and nothing counts the questions that still arrive in the
+yet: the `window-tick` log shows the inbox notifications sent inside
+windows, and nothing counts the questions that still arrive in the
 chat.
 
 **"You feel faster, so you think it works."** In METR's randomised trial,
