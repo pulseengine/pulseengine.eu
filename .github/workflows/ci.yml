@@ -19,6 +19,44 @@ jobs:
         with:
           tool: zola@0.23.6
 
+      # The V for the gates themselves. rivet is pinned to the version the
+      # signed varve layer ships, not "latest", so CI and a local run agree —
+      # a project that validates on one version and runs another is the same
+      # shape as a gate that passes against the wrong instrument.
+      # curl, not `gh`: the self-hosted runners do not have the GitHub CLI.
+      # Measured the hard way — the first version of this step died on
+      # `gh: command not found`, which is the same thing that made the report
+      # freshness check silently examine nothing (#214). The release asset is
+      # public, so no token is needed.
+      - name: Install rivet
+        run: |
+          set -euo pipefail
+          VER=v0.39.0
+          ASSET="rivet-$VER-x86_64-unknown-linux-gnu.tar.gz"
+          rm -rf /tmp/rivet-bin && mkdir -p /tmp/rivet-bin "$HOME/.local/bin"
+          curl -fsSL --retry 3 -o /tmp/rivet.tar.gz \
+            "https://github.com/pulseengine/rivet/releases/download/$VER/$ASSET"
+          tar xzf /tmp/rivet.tar.gz -C /tmp/rivet-bin
+          BIN=$(find /tmp/rivet-bin -type f -name rivet | head -1)
+          test -n "$BIN"
+          install -m 0755 "$BIN" "$HOME/.local/bin/rivet"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          "$HOME/.local/bin/rivet" --version
+
+      # The hero evidence panel (pulseengine.eu#201) is measured, not typed:
+      # build-evidence.py writes data/evidence.json and the homepage renders it.
+      # Measured here, before Build, so the PR build renders the real panel and
+      # the generator runs against the pinned rivet the deploy also installs.
+      # --require: claim-check and rivet run from this checkout, so if either
+      # comes out unavailable here it is a broken generator, not a flaky
+      # source. The layer tile may legitimately be stale or missing
+      # on a PR (no ghcr fetch), and renders so.
+      - name: Check the evidence panel's generator can still fail
+        run: python3 scripts/build-evidence.py --self-test
+
+      - name: Measure the hero evidence panel
+        run: python3 scripts/build-evidence.py --require claims,rivet
+
       - name: Build
         run: zola build
 
@@ -96,30 +134,6 @@ jobs:
       # step with each other; they can do that while both are stale.
       - name: Check the plugin version tracks its content
         run: python3 scripts/check-plugin-version-current.py
-
-      # The V for the gates themselves. rivet is pinned to the version the
-      # signed varve layer ships, not "latest", so CI and a local run agree —
-      # a project that validates on one version and runs another is the same
-      # shape as a gate that passes against the wrong instrument.
-      # curl, not `gh`: the self-hosted runners do not have the GitHub CLI.
-      # Measured the hard way — the first version of this step died on
-      # `gh: command not found`, which is the same thing that made the report
-      # freshness check silently examine nothing (#214). The release asset is
-      # public, so no token is needed.
-      - name: Install rivet
-        run: |
-          set -euo pipefail
-          VER=v0.39.0
-          ASSET="rivet-$VER-x86_64-unknown-linux-gnu.tar.gz"
-          rm -rf /tmp/rivet-bin && mkdir -p /tmp/rivet-bin "$HOME/.local/bin"
-          curl -fsSL --retry 3 -o /tmp/rivet.tar.gz \
-            "https://github.com/pulseengine/rivet/releases/download/$VER/$ASSET"
-          tar xzf /tmp/rivet.tar.gz -C /tmp/rivet-bin
-          BIN=$(find /tmp/rivet-bin -type f -name rivet | head -1)
-          test -n "$BIN"
-          install -m 0755 "$BIN" "$HOME/.local/bin/rivet"
-          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
-          "$HOME/.local/bin/rivet" --version
 
       # --strict-empty is the point: without it a config typo that loads zero
       # artifacts reports n/a for every rule and historically 100% overall, so
