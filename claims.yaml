@@ -695,7 +695,7 @@ claims:
   # keyword its validator does not implement.
   - id: FACTORY-NOTICE-SCHEMA-SINGLE-SOURCE
     doc: claude-tooling/plugins/pulseengine-claude/skills/factory-notice/SKILL.md
-    text: "`schema_version: 1`, and is the only\ndefinition of these shapes."
+    text: "`schema_version: 2` (version 1 is still read), and is the only\ndefinition of these shapes."
     evidence:
       - kind: file-exists
         path: claude-tooling/plugins/pulseengine-claude/skills/factory-notice/notice.schema.json
@@ -712,10 +712,19 @@ claims:
         pattern: '"open",\s*"answered"'
         glob: ['claude-tooling/**/*']
         max: 1
+      # Notices are version 2 and still read version 1; answers stay version 1.
+      - kind: count-min
+        pattern: '"schema_version": \{"type": "integer", "enum": \[1, 2\]\}'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/factory-notice/notice.schema.json']
+        min: 1
       - kind: count-min
         pattern: '"schema_version": \{"const": 1\}'
         glob: ['claude-tooling/plugins/pulseengine-claude/skills/factory-notice/notice.schema.json']
-        min: 2
+        min: 1
+      - kind: count-min
+        pattern: 'errs\.append\(f"\$\.\{f\}: needs schema_version 2"\)'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/factory-notice/notice.py']
+        min: 1
       - kind: count-min
         pattern: 'raise SchemaError\(f"(top-level )?schema keyword'
         glob: ['claude-tooling/plugins/pulseengine-claude/skills/factory-notice/notice.py']
@@ -851,3 +860,187 @@ claims:
         pattern: '\.config/smithy|caddy-root'
         glob: ['claude-tooling/**/*']
         max: 0
+
+  # ── Factory notice: the attention budget (0.45.0) ──────────────────────────
+  # The owner's attention is what the inbox rations. Each rule is held in the
+  # skill's wording, the code path that enforces it, and the self-test cases CI
+  # runs on every PR (notice.py --self-test, fake clock, stubbed notifier).
+  - id: FACTORY-NOTICE-ATTENTION-CAP-QUEUED-KEPT
+    doc: claude-tooling/plugins/pulseengine-claude/skills/factory-notice/SKILL.md
+    text: "**Only `max_asking_flows` flows ask at a time (default 3); every other decision\nis queued, kept, and promoted as the flows ahead of it clear.**"
+    evidence:
+      - kind: verbatim
+        text: '{"max_asking_flows": 3, "windows": ["08:30-09:00", "17:00-17:30"],'
+      - kind: count-min
+        pattern: 'ATTENTION_DEFAULTS = \{"max_asking_flows": 3, '
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/factory-notice/notice.py']
+        min: 1
+      # The cap is applied in one place, from the config, not a literal.
+      - kind: count-min
+        pattern: 'state = "always-open" if k\[0\] else \("surfaced" if position <= cfg\["max_asking_flows"\] else "queued"\)'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/factory-notice/notice.py']
+        min: 1
+      # Queued is a view: the store refuses it, so a queued decision stays an open one.
+      - kind: count-min
+        pattern: 'if not errs and n\.get\("status"\) == "queued":\n        errs = \["\$\.status: queued is assigned by the attention budget'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/factory-notice/notice.py']
+        min: 1
+      - kind: count-min
+        pattern: 'check\("budget: (the cap of 3 surfaces the three oldest flows; the rest are queued and still stored|answering a surfaced flow promotes the next queued flow at once|a revised decision keeps its flow''s place in line|an always_open tag bypasses the cap without taking a flow''s slot|queued is a view that validates, and the store refuses to hold it)"'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/factory-notice/notice.py']
+        min: 5
+
+  - id: FACTORY-NOTICE-WINDOW-HOOK-NO-QUESTION
+    doc: claude-tooling/plugins/pulseengine-claude/skills/factory-notice/SKILL.md
+    text: "**Outside the windows the SessionStart hook shows answers waiting and never a\nroutine question:**"
+    evidence:
+      - kind: count-min
+        pattern: 'shown = \[n for n in res\["open"\] if states\.get\(n\.get\("id"\)\) == "always-open"\]'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/factory-notice/notice.py']
+        min: 1
+      # The hook renders only `shown`; the unfiltered render of 0.44.0 is gone.
+      - kind: count-min
+        pattern: 'body\.append\(render_poll\(dict\(res, rejected=\[\], open=shown\), script\)\)'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/factory-notice/notice.py']
+        min: 1
+      - kind: count-max
+        pattern: 'render_poll\(dict\(res, rejected=\[\]\), script\)'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/factory-notice/notice.py']
+        max: 0
+      # An off period closes every window, for the hook and for window-tick alike.
+      - kind: count-min
+        pattern: '"surface": bool\(win\) and available and off is None,'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/factory-notice/notice.py']
+        min: 1
+      - kind: count-min
+        pattern: 'check\("off: nothing surfaces and nothing notifies during an off period; the next digest covers it"'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/factory-notice/notice.py']
+        min: 1
+      - kind: count-min
+        pattern: 'check\("window: (outside a window the hook shows answers waiting and no question|the start is inside, the end is outside|a window crossing midnight holds on both sides and belongs to the day it opened)"'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/factory-notice/notice.py']
+        min: 3
+
+  # The schedule is the owner's, set in warte; at an employer warte is not
+  # reachable, so the last good copy and the local file stand in.
+  - id: FACTORY-NOTICE-ATTENTION-SOURCE-ORDER
+    doc: claude-tooling/plugins/pulseengine-claude/skills/factory-notice/SKILL.md
+    text: "**`notice.py` takes the schedule from the first of these that\ngives a valid one: warte, warte's last good copy, the local file, the built-in\ndefaults.**"
+    evidence:
+      - kind: file-exists
+        path: claude-tooling/plugins/pulseengine-claude/skills/factory-notice/attention.schema.json
+      - kind: count-min
+        pattern: 'ATTENTION_SCHEMA_PATH = HERE / "attention\.schema\.json"'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/factory-notice/notice.py']
+        min: 1
+      - kind: count-min
+        pattern: 'raw = w\._req\("GET", "/api/attention"\)'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/factory-notice/notice.py']
+        min: 1
+      # warte, then the cache (fresh, else within the age limit), then the file.
+      - kind: count-min
+        pattern: '    if base and network and not recent:\n        raw, why = fetch_attention\(base, cacert, timeout\)\n        if raw is not None:\n'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/factory-notice/notice.py']
+        min: 1
+      - kind: count-min
+        pattern: '        if now - fetched <= CACHE_MAX_AGE:\n'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/factory-notice/notice.py']
+        min: 1
+      - kind: count-min
+        pattern: '    cfg, problem = load_attention\(path, err=err, said=said\)\n'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/factory-notice/notice.py']
+        min: 1
+      # The hook never waits on warte for the schedule.
+      - kind: count-min
+        pattern: 'resolve_attention\(store\.root, network=False'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/factory-notice/notice.py']
+        min: 1
+      - kind: count-min
+        pattern: 'check\("attention source: (warte, then its cache, then the local file, then the defaults|a fresh cache is used without asking warte again; with no warte it still holds|a stale cache is skipped for the local file and said so|a failed fetch is not repeated for 10 minutes|an invalid warte schedule is not used or cached)"'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/factory-notice/notice.py']
+        min: 5
+
+  # Urgent decisions do not wait for a window or a focus block, and do wait for
+  # an off period: the owner is away, and a notification then is noise he cannot act on.
+  - id: FACTORY-NOTICE-URGENT-BYPASS
+    doc: claude-tooling/plugins/pulseengine-claude/skills/factory-notice/SKILL.md
+    text: "**An always-open decision (tagged with an `always_open_kinds` entry, `post --tag\nsecurity`) bypasses the cap, the windows, the available hours and focus blocks,\nand never an off period.**"
+    evidence:
+      - kind: count-min
+        pattern: 'state = "always-open" if k\[0\] else'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/factory-notice/notice.py']
+        min: 1
+      # The tick's outside-window path acts only on always-open decisions, once each.
+      - kind: count-min
+        pattern: 'urgent_flows = \[f for f in d\["flows"\] if f\["state"\] == "always-open"\]'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/factory-notice/notice.py']
+        min: 1
+      - kind: count-min
+        pattern: '        if not urgent - seen_urgent:\n            return res\n'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/factory-notice/notice.py']
+        min: 1
+      - kind: count-min
+        pattern: 'res\["text"\] = notification_text\(len\(urgent\), len\(urgent_flows\)\)\n'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/factory-notice/notice.py']
+        min: 1
+      - kind: count-min
+        pattern: 'dec = sorted\(urgent\)  # a focus block holds routine notifications; urgent ones go through'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/factory-notice/notice.py']
+        min: 1
+      - kind: count-min
+        pattern: 'check\("urgent: (outside a window an always-open decision writes the digest and notifies once, counts only|inside a focus block an always-open decision is surfaced and notified once|outside a window the hook shows the always-open decision and still no routine question)"'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/factory-notice/notice.py']
+        min: 3
+
+  - id: FACTORY-NOTICE-OFF-SUPPRESSES-ALL
+    doc: claude-tooling/plugins/pulseengine-claude/skills/factory-notice/SKILL.md
+    text: "**During an off period nothing surfaces and nothing notifies, always-open\ndecisions included.**"
+    evidence:
+      # The off check comes first in the tick, before the urgent path.
+      - kind: count-min
+        pattern: '    if sched\["off"\]:\n        res\["next_window"\] = next_window_start\(cfg, now\)\n        return res  # off: nothing, urgent or not\n    state = read_tick_state\(root\)\n'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/factory-notice/notice.py']
+        min: 1
+      - kind: count-min
+        pattern: 'states = \{\} if sched\["off"\] else attention_states\(store\.root, cfg\)'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/factory-notice/notice.py']
+        min: 1
+      - kind: count-min
+        pattern: '"surface": bool\(win\) and available and off is None,'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/factory-notice/notice.py']
+        min: 1
+      - kind: count-min
+        pattern: 'check\("off: (nothing surfaces and nothing notifies during an off period; the next digest covers it|an always-open decision is held during an off period and notified once on the first tick after|during an off period the hook shows no decision, always-open ones included)"'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/factory-notice/notice.py']
+        min: 3
+
+  - id: FACTORY-NOTICE-NOTIFY-COUNTS-ONLY
+    doc: claude-tooling/plugins/pulseengine-claude/skills/factory-notice/SKILL.md
+    text: "**The notification carries two counts and nothing else:**"
+    evidence:
+      - kind: count-min
+        pattern: 'return f"\{int\(n_decisions\)\} decisions in \{int\(n_flows\)\} flows — run: notice\.py review"'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/factory-notice/notice.py']
+        min: 1
+      # The tick builds the text from that function alone and passes nothing else on.
+      - kind: count-min
+        pattern: 'res\["text"\] = notification_text\(d\["stats"\]\["surfaced"\], len\(d\["flows"\]\)\)\n'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/factory-notice/notice.py']
+        min: 1
+      - kind: count-max
+        pattern: '\bnotifier\((?!res\["text"\]\))'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/factory-notice/notice.py']
+        max: 0
+      # The text is an argument to the AppleScript, never spliced into its source.
+      - kind: count-min
+        pattern: '''display notification \(item 1 of argv\) with title "factory-notice"'', "-e", "end run", text\]'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/factory-notice/notice.py']
+        min: 1
+      - kind: count-max
+        pattern: 'display notification "'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/factory-notice/notice.py']
+        max: 0
+      - kind: count-min
+        pattern: 'check\("(notify: the notification carries two counts and no notice or note text|notify: osascript gets the text as an argument, never as script source|tick: idempotent inside a window, one notification and no rewrite when nothing changed|tick: an informational notice rewrites the digest and never notifies)"'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/factory-notice/notice.py']
+        min: 4

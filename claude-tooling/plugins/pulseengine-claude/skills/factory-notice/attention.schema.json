@@ -1,0 +1,45 @@
+{
+  "$comment": "The owner's attention schedule, schema_version 1. The single definition of the shape warte serves at GET <warte>/api/attention, the cache notice.py keeps of it (<store>/attention.cache.json, under config) and the local file ~/.config/pulseengine/attention.json. notice.py loads this file with the same validator as notice.schema.json and the same keyword limit. Before validation a window, available or focus entry written as the string HH:MM-HH:MM becomes {from, to} on every day. Rules a schema cannot express are enforced in notice.py: HH:MM times, from differs from to, max_asking_flows at most 100, a known timezone, off.to after off.from.",
+  "$defs": {
+    "span": {
+      "description": "A daily time span in the schedule's timezone. to before from crosses midnight and belongs to the day it opened. days defaults to every day.",
+      "type": "object",
+      "required": ["from", "to"],
+      "additionalProperties": false,
+      "properties": {
+        "days": {"type": "array", "minItems": 1, "items": {"enum": ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]}},
+        "from": {"type": "string", "minLength": 5, "maxLength": 5},
+        "to": {"type": "string", "minLength": 5, "maxLength": 5}
+      }
+    },
+    "off": {
+      "description": "A period the owner is off (vacation, sick, a conference): nothing surfaces and nothing notifies; digests accumulate. ISO 8601 date-times; without an offset they are read in the schedule's timezone.",
+      "type": "object",
+      "required": ["from", "to"],
+      "additionalProperties": false,
+      "properties": {
+        "from": {"type": "string", "minLength": 10, "maxLength": 40},
+        "to": {"type": "string", "minLength": 10, "maxLength": 40},
+        "note": {"type": "string", "maxLength": 500}
+      }
+    },
+    "attention": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {"const": 1},
+        "updated_at": {"type": "string", "maxLength": 40},
+        "max_asking_flows": {"type": "integer", "minimum": 1},
+        "windows": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/span"},
+                    "description": "Decision windows: the only times questions reach the owner."},
+        "available": {"type": "array", "items": {"$ref": "#/$defs/span"},
+                      "description": "Working hours. When given, a decision window counts only inside them."},
+        "focus": {"type": "array", "items": {"$ref": "#/$defs/span"},
+                  "description": "Focus blocks: no notification; the digest is still written."},
+        "off": {"type": "array", "items": {"$ref": "#/$defs/off"}},
+        "timezone": {"type": "string", "minLength": 1, "maxLength": 64},
+        "always_open_kinds": {"type": "array", "items": {"type": "string", "minLength": 1, "maxLength": 40}}
+      }
+    }
+  }
+}

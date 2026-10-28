@@ -1,5 +1,5 @@
 {
-  "$comment": "Factory notice + decision inbox, schema_version 1. The single source for the notice and answer shapes: notice.py loads this file and implements only the keywords used here (type, const, enum, required, properties, additionalProperties, items, minItems, minLength, minimum, maxLength, $ref, $comment, description), and fails loudly on any other. Stored in warte as data_type notice.v1 and answer.v1, content = this JSON. Rules a schema cannot express (recommended must name an offered option, option ids unique, decision fields only on needs-decision) are enforced in notice.py.",
+  "$comment": "Factory notice + decision inbox, notice schema_version 2 (version 1 is still read; tags, opened_at and status queued exist only in version 2), answer schema_version 1. The single source for the notice and answer shapes: notice.py loads this file and implements only the keywords used here (type, const, enum, required, properties, additionalProperties, items, minItems, minLength, minimum, maxLength, $ref, $comment, description), and fails loudly on any other. Stored in warte as data_type notice.v1 and answer.v1, content = this JSON. Rules a schema cannot express (recommended must name an offered option, option ids unique, decision fields only on needs-decision, version 2 fields only on version 2) are enforced in notice.py. The local store never holds status queued: notice.py assigns it in the views it prints (list, poll, digest), from the attention budget.",
   "$defs": {
     "link": {
       "type": "string",
@@ -33,7 +33,7 @@
       "required": ["schema_version", "id", "kind", "revision", "created_at", "agent", "title"],
       "additionalProperties": false,
       "properties": {
-        "schema_version": {"const": 1},
+        "schema_version": {"type": "integer", "enum": [1, 2]},
         "id": {"type": "string", "minLength": 1, "maxLength": 80},
         "kind": {"enum": ["heartbeat", "shipped", "blocked", "needs-decision", "session-summary", "info"]},
         "revision": {"type": "integer", "minimum": 1},
@@ -46,7 +46,9 @@
         "title": {"type": "string", "minLength": 1, "maxLength": 200},
         "body": {"type": "string", "maxLength": 8000},
         "links": {"type": "array", "items": {"$ref": "#/$defs/link"}},
-        "status": {"enum": ["open", "answered", "superseded", "withdrawn"]},
+        "status": {"enum": ["open", "answered", "superseded", "withdrawn", "queued"]},
+        "opened_at": {"type": "string", "minLength": 1, "description": "created_at of revision 1, carried through revisions; the attention budget orders flows by it (version 2)."},
+        "tags": {"type": "array", "items": {"type": "string", "minLength": 1, "maxLength": 40}, "description": "Free tags; a tag listed in always_open_kinds bypasses the attention budget's flow cap (version 2)."},
         "question": {"type": "string", "minLength": 1, "maxLength": 2000},
         "options": {"type": "array", "minItems": 2, "items": {"$ref": "#/$defs/option"}},
         "recommended": {"type": "string", "minLength": 1, "maxLength": 40},

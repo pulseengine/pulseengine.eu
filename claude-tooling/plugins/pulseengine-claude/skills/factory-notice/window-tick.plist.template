@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- launchd user agent: notice.py window-tick every 10 minutes. A template; nothing installs it.
+     SKILL.md ("Running window-tick every 10 minutes") has the install commands, which fill in the
+     three placeholders and copy the PULSEENGINE_* variables of the installing shell into
+     EnvironmentVariables, so the warte address lands only in ~/Library/LaunchAgents.
+     No DOCTYPE line: plutil -lint accepts the file without it. -->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>eu.pulseengine.factory-notice.window-tick</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>__PYTHON3__</string>
+    <string>__NOTICE_DIR__/notice.py</string>
+    <string>window-tick</string>
+  </array>
+  <key>EnvironmentVariables</key>
+  <dict/>
+  <key>StartInterval</key>
+  <integer>600</integer>
+  <key>RunAtLoad</key>
+  <true/>
+  <key>ProcessType</key>
+  <string>Background</string>
+  <key>StandardOutPath</key>
+  <string>__HOME__/Library/Logs/pulseengine-window-tick.log</string>
+  <key>StandardErrorPath</key>
+  <string>__HOME__/Library/Logs/pulseengine-window-tick.log</string>
+</dict>
+</plist>
