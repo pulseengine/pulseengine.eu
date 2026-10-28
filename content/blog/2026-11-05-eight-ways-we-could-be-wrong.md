@@ -140,8 +140,8 @@ October 2026 we did that once, for one of the 41 claims on this branch: we
 changed one pinned sentence in the operating contract that
 `ISSUE-TEXT-IS-UNTRUSTED-DATA` binds. In that one run `claim-check.py`
 reported 40 of 41 claims holding and exited 1; with the change reverted it
-reported 41 of 41. PRs #275, #288 and #289 record similar controls on other
-claims. The gale repository keeps a
+reported 41 of 41. PR #275 records controls on four other claims, and #288
+and #289 on this one. The gale repository keeps a
 [verification-honesty ledger](https://github.com/pulseengine/gale/blob/main/docs/safety/verification-honesty.md)
 that lists what its proofs do not cover and which words not to use about
 them. The site's tagline says "machine-checked proofs for parts of it", and
