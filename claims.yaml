@@ -392,6 +392,13 @@ claims:
         pattern: '(?i)formally[\s-]+verified'
         glob: ['static/og-image-generator.html']
         max: 0
+      # …and it carries config.toml's description as its headline. The PNG is
+      # rendered from it by scripts/render-og-image.sh; the PNG itself is not
+      # text, so re-render after editing the generator.
+      - kind: count-min
+        pattern: '(?i)A WebAssembly Component Model engine for safety-critical systems'
+        glob: ['static/og-image-generator.html', 'config.toml']
+        min: 2
       - kind: count-min
         pattern: 'formal proofs of specific safety properties'
         glob: ['content/docs/guide/_index.md']

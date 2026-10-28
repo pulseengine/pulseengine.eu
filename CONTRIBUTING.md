@@ -310,6 +310,13 @@ Access caveats first, then `[^key]: ...` definitions with a tier on each.
 - **Sans:** Atkinson Hyperlegible Next (Google Fonts)
 - **Mono:** Atkinson Hyperlegible Mono (Google Fonts)
 
+### Social card
+
+`static/og-image.png` (1200×630, used for `og:image` / `twitter:image`) is rendered
+from `static/og-image-generator.html`. After editing the generator, regenerate it with
+`scripts/render-og-image.sh` (needs Google Chrome or Chromium, and network access for
+the web font), then commit both files.
+
 ## Git workflow
 
 ### Branch protection
