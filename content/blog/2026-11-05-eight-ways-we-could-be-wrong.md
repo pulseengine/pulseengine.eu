@@ -97,20 +97,20 @@ CI secrets for Claude Code and Codex too, each in its vendor's own
 repository, and the note reports comparable configurations in well over a
 hundred other public repositories[^csa-blackhat].
 
-**Our counter.** On 28 October 2026 we audited our own agent workflows
-against this class of attack and fixed one finding the same day.
-Skills no longer execute commands taken from issue text, and issue, PR and
+**Our counter.** We audited our agent workflows on 28 October 2026 and fixed
+one finding the same day (plugin 0.45.1 and 0.45.2); further fixes are in
+progress. Skills no longer execute commands taken from issue text, and issue, PR and
 comment text is treated as untrusted data, never as instructions. The fix
 shipped as plugin 0.45.1 and 0.45.2 in
 [#288](https://github.com/pulseengine/pulseengine.eu/pull/288) and
-[#289](https://github.com/pulseengine/pulseengine.eu/pull/289). The rule is a
+[#289](https://github.com/pulseengine/pulseengine.eu/pull/289); #289 applied
+findings from a separate reviewer agent. The rule is a
 claim in this repository's `claims.yaml` (`ISSUE-TEXT-IS-UNTRUSTED-DATA`),
 so a skill that again uses one of the instruction phrasings the claim forbids
 fails the build.
 
-**Where the counter stops.** We have not published the audit. The
-audit was our own; nobody outside the project has reviewed our agent
-workflows. A rule in a skill constrains an
+**Where the counter stops.** The audit itself is not published. It was our
+own; nobody outside the project has reviewed our agent workflows. A rule in a skill constrains an
 agent that follows the skill; it does not stop a model that ignores it. Valid
 as of 28 October 2026; re-check by 28 January 2027, because this
 is the fastest-moving of the eight.
@@ -352,9 +352,9 @@ to give a reviewer at least one deliberately false claim and confirm the
 reviewer refutes it.
 
 **Our counter.** The record makes the review checkable. A reader can see
-which model reviewed which commit, with what context, and what it found. The
-pull request that ships this post carries that record for its own panel. The
-human step is the owner deciding to publish a post.
+which model reviewed which commit, with what context, and what it found. For
+this post, the pull request that ships it records only what its review rounds
+actually logged. The human step is the owner deciding to publish a post.
 
 **Where the counter stops.** The reviewers share a model family with the
 author, and recording that fact does not make them independent. The review is
@@ -378,9 +378,9 @@ If you have a stronger objection than these eight, or better evidence for one
 of them, open an issue on the
 [pulseengine.eu tracker](https://github.com/pulseengine/pulseengine.eu/issues).
 We will add it to the next version of this list with its date, whether or not
-we have a counter. For a security hole in our agent workflows, do not post
-exploit details in a public issue; open an issue asking for a private
-contact.
+we have a counter. Report a security hole privately instead, through
+GitHub's "Report a vulnerability" button on the Security tab of the affected
+repository, as the organisation's SECURITY.md describes.
 
 ## Sources and caveats
 
