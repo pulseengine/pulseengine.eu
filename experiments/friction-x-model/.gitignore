@@ -1,0 +1,4 @@
+work/
+target/
+# run records and transcripts stay on the bench machine; only aggregates are published
+results/

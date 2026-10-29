@@ -1,0 +1,20 @@
+{
+  "id": "t01-ring-buffer",
+  "c": {
+    "header": "rb.h",
+    "solution": "rb.c"
+  },
+  "rust": {
+    "crate": "fxm_task"
+  },
+  "kani_probe": {
+    "why": "a change to the reference that must make at least one fixed harness fail",
+    "old": "if self.count == CAPACITY {\n            return false;",
+    "new": "if self.count > CAPACITY {\n            return false;"
+  },
+  "unwind_probe": {
+    "why": "a loop longer than the harness's #[kani::unwind] bound: the unwinding assertion must fail",
+    "old": "        let tail = (self.head + self.count) % CAPACITY;",
+    "new": "        let mut spin = 0_usize;\n        while spin < 64 {\n            spin += 1;\n        }\n        let tail = (self.head + self.count + spin - 64) % CAPACITY;"
+  }
+}

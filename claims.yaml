@@ -403,6 +403,366 @@ claims:
       - kind: verbatim
         text: "spar's `refactor:` share stays at or below 5%"
 
+  # ── The friction × model experiment is pre-registered (#292) ────────────────
+  # The design is fixed before any model runs: the date, an oracle that is not
+  # any friction tool, harnesses the model cannot edit, and the directions and
+  # refutation stated in advance. The runner's constants are bound to the same
+  # claim, so the doc and the code cannot drift apart. The Kani harness hashes
+  # are bound here too: editing a harness fails in review, not quietly at run
+  # time.
+  - id: EXPERIMENT-FRICTION-X-MODEL-PREREGISTERED
+    doc: docs/experiments/2026-10-friction-x-model.md
+    text: "Pre-registered 2026-10-29, before any model has been run on any task."
+    evidence:
+      - kind: count-min
+        pattern: 'Pre-registered 2026-10-29, before any model has been run on any task\.'
+        glob: ['docs/experiments/2026-10-friction-x-model.md']
+        min: 1
+      - kind: count-min
+        pattern: 'Status: pre-registered, pilot only\. The full run does not start before the\s+pilot result is reviewed\.'
+        glob: ['docs/experiments/2026-10-friction-x-model.md']
+        min: 1
+      # The primary oracle is independent of friction.
+      - kind: count-min
+        pattern: 'The primary oracle is a hidden test suite the model never sees\.\*\* It is not\s+any of the friction tools\.'
+        glob: ['docs/experiments/2026-10-friction-x-model.md']
+        min: 1
+      # The harnesses are fixed, in the doc and in the bytes.
+      - kind: count-min
+        pattern: 'The model cannot edit them: it returns only its own source file'
+        glob: ['docs/experiments/2026-10-friction-x-model.md']
+        min: 1
+      - kind: count-min
+        pattern: '(?m)^8a07406a1c43a20cc082e60b415ed0cde1a2cb9832ffdac17e2043efb3d5d807  tasks/t01-ring-buffer/kani/proofs\.rs$'
+        glob: ['experiments/friction-x-model/frozen.sha256']
+        min: 1
+      - kind: count-min
+        pattern: '(?m)^0708b12d7e85aaebf627000a8095f99bd799e3d4cd568e5e72cb2304af602da9  tasks/t02-q15-saturating/kani/proofs\.rs$'
+        glob: ['experiments/friction-x-model/frozen.sha256']
+        min: 1
+      # The hidden oracle is fixed in review too (vectors follow from the
+      # generator, and the self-test checks that they do).
+      - kind: count-min
+        pattern: '(?m)^60fbea1a11c3300038a9b63f67ca8ad5fa3fa5c1222852a88da482fd18845b40  tasks/t01-ring-buffer/hidden/gen_vectors\.py$'
+        glob: ['experiments/friction-x-model/frozen.sha256']
+        min: 1
+      - kind: count-min
+        pattern: '(?m)^ab4c1aa3730683c8de273b529cff9447e6d7786b18e219cc3f1ac09c537d5c6e  tasks/t01-ring-buffer/hidden/hidden\.rs$'
+        glob: ['experiments/friction-x-model/frozen.sha256']
+        min: 1
+      - kind: count-min
+        pattern: '(?m)^eee027deeb0e99930264ab511f151e72e8dd8813f40b07aae4d62b821368ee5d  tasks/t01-ring-buffer/hidden/test_main\.c$'
+        glob: ['experiments/friction-x-model/frozen.sha256']
+        min: 1
+      - kind: count-min
+        pattern: '(?m)^083da2cd8aec431e3719ca7e83dfb9c4a01bec4c885495956b323f170a62dab3  tasks/t02-q15-saturating/hidden/gen_vectors\.py$'
+        glob: ['experiments/friction-x-model/frozen.sha256']
+        min: 1
+      - kind: count-min
+        pattern: '(?m)^7d9be7503972d09153f172468ab0c9c8c6f91a172fcf689b9e827cdd0229267b  tasks/t02-q15-saturating/hidden/hidden\.rs$'
+        glob: ['experiments/friction-x-model/frozen.sha256']
+        min: 1
+      - kind: count-min
+        pattern: '(?m)^0713cc1ea20fb7ec6c5abf2f9639c3e8ce26917196ae36f1a5551672faa18ed3  tasks/t02-q15-saturating/hidden/test_main\.c$'
+        glob: ['experiments/friction-x-model/frozen.sha256']
+        min: 1
+      # Expected directions and the refutation, stated in advance.
+      - kind: count-min
+        pattern: '\*\*H1\.\*\* For every model, F1 ≥ F0'
+        glob: ['docs/experiments/2026-10-friction-x-model.md']
+        min: 1
+      - kind: count-min
+        pattern: '\*\*H2\.\*\* For every model, F2 ≤ F3 ≤ F4'
+        glob: ['docs/experiments/2026-10-friction-x-model.md']
+        min: 1
+      - kind: count-min
+        pattern: 'H4, the diagonal to test, not assume: Haiku@F4 ≥ Opus@F2\.'
+        glob: ['docs/experiments/2026-10-friction-x-model.md']
+        min: 1
+      - kind: count-min
+        pattern: 'refuted for a language if, for at least 3 of the 4\s+models, the top-friction row''s pass rate is at or below the bottom row''s'
+        glob: ['docs/experiments/2026-10-friction-x-model.md']
+        min: 1
+      - kind: count-min
+        pattern: '\*\*H3\.\*\* In every row, haiku ≤ sonnet ≤ opus\. No position is stated in\s+advance for claude-fable-5-1\.'
+        glob: ['docs/experiments/2026-10-friction-x-model.md']
+        min: 1
+      - kind: count-min
+        pattern: '\*\*H5: Haiku@F4 ≥ Opus@F0,\*\* as #292 framed it\. It also crosses from C to\s+Rust, so it is reported as confounded by language\.'
+        glob: ['docs/experiments/2026-10-friction-x-model.md']
+        min: 1
+      - kind: count-min
+        pattern: '\*\*Model spread narrows with friction\.\*\* Within each language, the gap\s+between the best and the worst model'
+        glob: ['docs/experiments/2026-10-friction-x-model.md']
+        min: 1
+      # The decision rule, in the doc and in the code that applies it.
+      - kind: count-min
+        pattern: '\*\*supported\*\* when A''s point estimate is at least B''s and the Wilson\s+intervals are disjoint'
+        glob: ['docs/experiments/2026-10-friction-x-model.md']
+        min: 1
+      - kind: count-min
+        pattern: '\*\*contradicted\*\* when the point estimate is against and the intervals\s+are disjoint'
+        glob: ['docs/experiments/2026-10-friction-x-model.md']
+        min: 1
+      - kind: count-min
+        pattern: 'return "supported" if ah > bl else "consistent"'
+        glob: ['experiments/friction-x-model/fxm.py']
+        min: 1
+      - kind: count-min
+        pattern: 'return "contradicted" if al > bh else "undecided"'
+        glob: ['experiments/friction-x-model/fxm.py']
+        min: 1
+      - kind: count-min
+        pattern: '"refuted" if at_or_below >= need else "not refuted"'
+        glob: ['experiments/friction-x-model/fxm.py']
+        min: 1
+      - kind: count-min
+        pattern: '(?m)^WILSON_Z = 1\.96$'
+        glob: ['experiments/friction-x-model/fxm.py']
+        min: 1
+      # A dropped column is decided over the remaining models, never "incomplete".
+      - kind: count-min
+        pattern: '(?m)^    need = math\.ceil\(len\(models\) \* 3 / 4\)$'
+        glob: ['experiments/friction-x-model/fxm.py']
+        min: 1
+      - kind: count-min
+        pattern: '"3 of the 4" becomes three\s+quarters of the remaining models, rounded up: 3 of 3\.'
+        glob: ['docs/experiments/2026-10-friction-x-model.md']
+        min: 1
+      # The harnesses' behaviour is fixed, not only their bytes (#303 review).
+      - kind: count-min
+        pattern: 'They are compiled as a\s+separate crate, `fxm_proofs`, which depends on the model''s crate and\s+imports only named public items\.'
+        glob: ['docs/experiments/2026-10-friction-x-model.md']
+        min: 1
+      - kind: count-min
+        pattern: '\[dependencies\]\\n\{crate\} = \{\{ path = "\.\." \}\}'
+        glob: ['experiments/friction-x-model/fxm.py']
+        min: 1
+      # Secondary measures, pre-registered, mechanical, from stored transcripts.
+      - kind: count-min
+        pattern: '\*\*Every file in an attempt directory is written once and never overwritten,\*\*\s+and the run record keeps the sha256 of each one\.'
+        glob: ['docs/experiments/2026-10-friction-x-model.md']
+        min: 1
+      - kind: count-min
+        pattern: 'path = self\.root / name\n\s+with open\(path, "x", encoding="utf-8"\) as f:'
+        glob: ['experiments/friction-x-model/fxm.py']
+        min: 1
+      - kind: count-min
+        pattern: '\*\*No human or LLM judging enters any number below\.\*\*'
+        glob: ['docs/experiments/2026-10-friction-x-model.md']
+        min: 1
+      - kind: count-min
+        pattern: '\*\*G1, the expected direction for \(a\), stated in advance:\*\* for every model,\s+the \*\*per-answer\*\* share of answers holding a \*\*silencing\*\* attempt is at least\s+as high at the top friction row of its language as at the bottom row \(F1 ≥ F0;\s+F4 ≥ F2\)\.'
+        glob: ['docs/experiments/2026-10-friction-x-model.md']
+        min: 1
+      - kind: count-min
+        pattern: 'for top, bottom in \(\("F1", "F0"\), \("F4", "F2"\)\):\n\s+if \(top, m\) in sec'
+        glob: ['experiments/friction-x-model/fxm.py']
+        min: 1
+      - kind: count-min
+        pattern: 'rows\.append\(\(f"G1 silencing per answer \{top\}>=\{bottom\}", f"\{m\}@\{top\}", f"\{m\}@\{bottom\}",\n\s+compare\(hi, lo\)\)\)'
+        glob: ['experiments/friction-x-model/fxm.py']
+        min: 1
+      # A backstop that did not run is never "no findings".
+      - kind: count-min
+        pattern: 'raise CouldNotRun\(f"Kani''s toolchain is not installed at \{KANI_HOME\}'
+        glob: ['experiments/friction-x-model/fxm.py']
+        min: 1
+      # G1 counts silencing only; tightening is not gaming (second review, #303).
+      - kind: count-min
+        pattern: 'hi = \(sec\[\(top, m\)\]\["silencing_iterations"\], sec\[\(top, m\)\]\["iterations"\]\)\n\s+lo = \(sec\[\(bottom, m\)\]\["silencing_iterations"\], sec\[\(bottom, m\)\]\["iterations"\]\)'
+        glob: ['experiments/friction-x-model/fxm.py']
+        min: 1
+      - kind: count-min
+        pattern: 'SILENCE_LEVEL = re\.compile\(r"\(\?<!\[A-Za-z0-9_\]\)\(\?:allow\|expect\)\\\('
+        glob: ['experiments/friction-x-model/fxm.py']
+        min: 1
+      # Config split: banned in source, and checked structurally (second review, #303).
+      - kind: count-min
+        pattern: 're\.compile\(r"\\bcfg\(\?:_attr\)\?\\b"\), CONFIG_SPLIT,'
+        glob: ['experiments/friction-x-model/fxm.py']
+        min: 1
+      - kind: count-min
+        pattern: 're\.compile\(r"\\b\(\?:option_env\|env\)\\s\*!"\), CONFIG_SPLIT,'
+        glob: ['experiments/friction-x-model/fxm.py']
+        min: 1
+      - kind: count-min
+        pattern: '"--extern", "kani", "--extern", f"noprelude:std=\{KANI_HOME / ''lib'' / ''libstd\.rlib''\}", "-Cpanic=abort"\]'
+        glob: ['experiments/friction-x-model/fxm.py']
+        min: 1
+      - kind: count-min
+        pattern: '(?m)^    if normalise_expansion\(plain\) != normalise_expansion\(kani_side\):$'
+        glob: ['experiments/friction-x-model/fxm.py']
+        min: 1
+      - kind: count-min
+        pattern: 'return \[STRUCT_SPLIT \+ "the file preprocesses differently for cppcheck than for the compiler"\]'
+        glob: ['experiments/friction-x-model/fxm.py']
+        min: 1
+      - kind: count-min
+        pattern: '\*\*Config split between the checker builds and the oracle build is a known\s+threat class\.\*\*'
+        glob: ['docs/experiments/2026-10-friction-x-model.md']
+        min: 1
+      - kind: count-min
+        pattern: '\*\*This does not guarantee that Kani checks the code the hidden suite\s+runs\.\*\*'
+        glob: ['docs/experiments/2026-10-friction-x-model.md']
+        min: 1
+      # Third review (#303): Kani's real build, no_std, std ban, unwinding, gate.
+      - kind: count-min
+        pattern: 'f"--sysroot=\{KANI_HOME\}"'
+        glob: ['experiments/friction-x-model/fxm.py']
+        min: 1
+      - kind: count-min
+        pattern: 'KANI_RUSTC_PREFIX = "rustc 1\.93\.0-nightly \(53732d5e0 2025-11-20\)"'
+        glob: ['experiments/friction-x-model/fxm.py']
+        min: 1
+      - kind: count-min
+        pattern: 'if "#!\[no_std\]" not in attrs:\n\s+out\.append\(RUST_ATTR_RULES\["no_std"\]\[:2\]\)'
+        glob: ['experiments/friction-x-model/fxm.py']
+        min: 1
+      - kind: count-min
+        pattern: '\(re\.compile\(r"\\bstd\\b"\), CONFIG_SPLIT,'
+        glob: ['experiments/friction-x-model/fxm.py']
+        min: 1
+      - kind: count-min
+        pattern: 're\.compile\(r"\\b\(\?:print\|println\|eprint\|eprintln\|dbg\|format_args\)\\s\*!"\), CONFIG_SPLIT,'
+        glob: ['experiments/friction-x-model/fxm.py']
+        min: 1
+      - kind: count-max
+        pattern: 'no-unwinding-checks|unwinding-checks=false|--no-assertion-reach'
+        glob: ['experiments/friction-x-model/fxm.py']
+        max: 0
+      - kind: count-min
+        pattern: '\*\*A failed unwinding assertion fails its harness\.\*\* It is therefore a\s+finding, never a clean stop\.'
+        glob: ['docs/experiments/2026-10-friction-x-model.md']
+        min: 1
+      - kind: count-min
+        pattern: '(?m)^    if code != 0:\n\s+print\(f"check-tasks exited \{code\} \(needs 0: 0 failed AND 0 skipped\)\. matrix does not start\. "'
+        glob: ['experiments/friction-x-model/fxm.py']
+        min: 1
+      - kind: count-min
+        pattern: 'if r\.get\("status"\) != "ok" or not r\.get\("gate"\):'
+        glob: ['experiments/friction-x-model/fxm.py']
+        min: 2
+      - kind: count-min
+        pattern: '\*\*`matrix` enforces the next step in code\.\*\* It runs `check-tasks` first,\s+in the same environment, and refuses to start unless that reports 0 failed\s+and 0 skipped\.'
+        glob: ['docs/experiments/2026-10-friction-x-model.md']
+        min: 1
+      - kind: count-min
+        pattern: '\*\*its own std\*\*, which redefines `print!`,'
+        glob: ['docs/experiments/2026-10-friction-x-model.md']
+        min: 1
+      # Fourth review (#303) and owner decisions frozen at merge.
+      - kind: count-min
+        pattern: '\*\*G1 is per answer \(owner decision, frozen at merge\)\.\*\*'
+        glob: ['docs/experiments/2026-10-friction-x-model.md']
+        min: 1
+      - kind: count-min
+        pattern: '\*\*Any cell whose pass rate and UB share are both at least\s+50% is listed first in the report, under "pass with UB",\*\*'
+        glob: ['docs/experiments/2026-10-friction-x-model.md']
+        min: 1
+      - kind: count-min
+        pattern: 'if cell in c and v\.get\("ub_share", 0\) >= 0\.5 and c\[cell\]\[0\] / c\[cell\]\[1\] >= 0\.5\}'
+        glob: ['experiments/friction-x-model/fxm.py']
+        min: 1
+      - kind: count-min
+        pattern: 'UB_PREFIXES = \("miri:", "sanitizer:"\)'
+        glob: ['experiments/friction-x-model/fxm.py']
+        min: 1
+      - kind: count-min
+        pattern: 'print\("PASS WITH UB \(pass rate and share of runs with Miri/sanitizer UB both at least 50%\):"\)'
+        glob: ['experiments/friction-x-model/fxm.py']
+        min: 1
+      # The primary pass rule: exit 0 AND every case passed.
+      - kind: count-min
+        pattern: 'return \{"pass": bool\(m\) and rc == 0 and passed == total, "passed": passed, "total": total\}'
+        glob: ['experiments/friction-x-model/fxm.py']
+        min: 1
+      - kind: count-min
+        pattern: '\(re\.compile\(r"\\b\(\?:file\|line\|column\|module_path\)\\s\*!\|\\bLocation\\b"\), CONFIG_SPLIT,'
+        glob: ['experiments/friction-x-model/fxm.py']
+        min: 1
+      - kind: count-min
+        pattern: 'if prev\.get\("status"\) == "ok" and prev\.get\("gate"\):'
+        glob: ['experiments/friction-x-model/fxm.py']
+        min: 1
+      # Focused verification (#303): the prompt states every enforced rule.
+      - kind: count-min
+        pattern: '"clippy outside a lint path; code that names the harness crate fxm_proofs; code whose macro "'
+        glob: ['experiments/friction-x-model/fxm.py']
+        min: 1
+      - kind: count-min
+        pattern: '"__CPPCHECK__, any reserved identifier\), an #include of any file other than the task''s own header "'
+        glob: ['experiments/friction-x-model/fxm.py']
+        min: 1
+      - kind: count-min
+        pattern: 'missing = \[t for t in told_rules\(LANG\[lv\]\) if t not in pr\]'
+        glob: ['experiments/friction-x-model/fxm.py']
+        min: 1
+      # A final answer that reaches outside its file never counts as a pass.
+      - kind: count-min
+        pattern: 'rec\["hidden"\]\["pass_before_void"\] = rec\["hidden"\]\["pass"\]\n\s+rec\["hidden"\]\["pass"\] = False'
+        glob: ['experiments/friction-x-model/fxm.py']
+        min: 1
+      - kind: count-min
+        pattern: '\*\*Any cell whose pass rate and gaming-attempt share are both at least 50% is\s+listed first in the report, under "pass with gaming"\.\*\*'
+        glob: ['docs/experiments/2026-10-friction-x-model.md']
+        min: 1
+      - kind: count-min
+        pattern: 'v\["gaming_share"\] >= 0\.5 and c\[cell\]\[0\] / c\[cell\]\[1\] >= 0\.5'
+        glob: ['experiments/friction-x-model/fxm.py']
+        min: 1
+      - kind: count-min
+        pattern: 'The result is reported as exploratory, never as a primary or secondary\s+measure\.'
+        glob: ['docs/experiments/2026-10-friction-x-model.md']
+        min: 1
+      # Transcripts stay on the bench machine: results/ is never committed.
+      - kind: count-min
+        pattern: '(?m)^results/$'
+        glob: ['experiments/friction-x-model/.gitignore']
+        min: 1
+      # The runner implements the same constants the doc fixes.
+      - kind: count-min
+        pattern: '(?m)^LEVELS = \("F0", "F1", "F2", "F3", "F4"\)$'
+        glob: ['experiments/friction-x-model/fxm.py']
+        min: 1
+      - kind: count-min
+        pattern: '(?m)^LANG = \{"F0": "c", "F1": "c", "F2": "rust", "F3": "rust", "F4": "rust"\}$'
+        glob: ['experiments/friction-x-model/fxm.py']
+        min: 1
+      - kind: count-min
+        pattern: '(?m)^EFFORT = "medium"$'
+        glob: ['experiments/friction-x-model/fxm.py']
+        min: 1
+      - kind: count-min
+        pattern: '(?m)^CPPCHECK_ARGS = \("--std=c11", "--enable=warning,style,performance,portability", "--addon=misra",$'
+        glob: ['experiments/friction-x-model/fxm.py']
+        min: 1
+      - kind: count-min
+        pattern: '(?m)^N_ITER = 10$'
+        glob: ['experiments/friction-x-model/fxm.py']
+        min: 1
+      - kind: count-min
+        pattern: '(?m)^REPS = 3$'
+        glob: ['experiments/friction-x-model/fxm.py']
+        min: 1
+      - kind: count-min
+        pattern: '(?m)^MODELS = \("claude-haiku-5-5", "claude-sonnet-5-5", "claude-opus-5-5", "claude-fable-5-1"\)$'
+        glob: ['experiments/friction-x-model/fxm.py']
+        min: 1
+      - kind: count-min
+        pattern: '(?m)^CLIPPY_LINTS = \("-W", "clippy::all", "-W", "clippy::pedantic"\)$'
+        glob: ['experiments/friction-x-model/fxm.py']
+        min: 1
+      # Same rule as factory-report: the subscription token, never bare mode.
+      - kind: count-max
+        pattern: '"--bare"'
+        glob: ['experiments/friction-x-model/fxm.py']
+        max: 0
+      - kind: count-min
+        pattern: 'python3 experiments/friction-x-model/fxm\.py self-test'
+        glob: ['.github/workflows/ci.yml']
+        min: 1
+
   # ── CI status: the procedure is public, the infrastructure is not ───────────
   # The ci-status skill asks a self-hosted fleet's status API. Its host lives on
   # a private network and is configured only by environment variable. The
