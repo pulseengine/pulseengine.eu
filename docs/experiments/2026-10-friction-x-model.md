@@ -500,6 +500,10 @@ ceiling (see Pilot).
 - **If a column is dropped** (pilot step 2), "3 of the 4" becomes three
   quarters of the remaining models, rounded up: 3 of 3. Every comparison that
   needs the dropped column is listed as not evaluated.
+- **No headroom is not refutation** (amended 2026-10-29, pilot finding; see
+  [Amendments](#amendments)). If every cell of both rows of a language is at
+  100%, or every one is at 0%, that language is reported as "no headroom
+  (ceiling)" or "no headroom (floor)", not as refuted or not refuted.
 - **"Friction replaces model strength" is refuted if H4 is contradicted:**
   Opus@F2's Wilson interval lies entirely above Haiku@F4's.
 - **False-clean dominance:** if at F4 more than half of the clean stops fail
@@ -587,3 +591,78 @@ single-TU analysis; fixed by adding a public caller TU; rule set unchanged.**
   a partial check of "keep helpers static", not a complete one.
 - **Unchanged:** the levels, the models, N, the repetitions, the lint set
   (`misra-rules-2.22.0.txt`), the hypotheses and the decision rules.
+
+### 2026-10-29, pilot finding, before the main run
+
+**2026-10-29, pilot finding, before the main run: t01's C spec did not name
+the header that NULL needs; fixed in the fixed header and the spec. Ceiling
+reported as no headroom.**
+
+This amendment was written after the pilot and before any run of the main
+experiment. It needs the owner's sign-off in review, because it revises a
+pilot task (see the Tasks section). The owner decides whether t01's C rows
+are re-run. Nothing here re-runs them.
+
+- **What failed.** On t01 the hidden suite compiled 0 of 12 F0 answers and 4
+  of 12 F1 answers. The 4 that compiled passed 49/49. t02 passed 12/12 at F0
+  and at F1. Compiled again exactly as the oracle builds them, 19 of the 20
+  failing answers stop at `use of undeclared identifier 'NULL'`. The other
+  one stops at a different undeclared identifier. No failing answer
+  includes `<stddef.h>`. All 4 compiling answers do.
+- **Why it is a defect, not a model result.** R8 asks for null checks.
+  Every prompt asks for MISRA C:2012, and rule 11.9 (on the pinned rule list)
+  makes `NULL` the only null pointer constant. `NULL` is in neither
+  `<stdbool.h>` nor `<stdint.h>`. The spec's C section named only those two,
+  and `rb.h` included only those two. The reference included `<stddef.h>`.
+  So a compliant answer had to use a header that the public material did not
+  name, and only the reference was allowed to. t02 has no pointers and no
+  null rule, so it never needs `NULL`.
+- **Why F1 compiled more often.** The F1 feedback did not cause it. All 4
+  compiling F1 runs already included `<stddef.h>` in their first answer,
+  before any feedback. Three stopped clean at that answer. The fourth got
+  only two `variableScope` findings. cppcheck does not report an
+  undeclared `NULL`, and the compiler is not run at F1 (by design,
+  unchanged), so 8 of the 12 F1 runs were false-clean. What differs is the
+  prompt. Only F1 gets the rules paragraph, and it treats an include of "the
+  standard headers" as allowed. F0 sees only the spec's narrower list. So
+  pilot H1 on t01 compares two prompts that disagree about the includes. It
+  is confounded and is not reported as evidence.
+- **The fix.** `rb.h` now includes `<stddef.h>`. The spec's C section names
+  `<stdbool.h>`, `<stddef.h>` and `<stdint.h>`, and says that `rb.h` includes
+  all three. The reference, the mutant, the hidden suite, the vectors, the
+  caller and the Rust side do not change. `frozen.sha256` changes for `rb.h`
+  and `spec.md` only.
+- **Scope of the revision.** The Tasks section allows a pilot task to be
+  revised only for a floor or ceiling. This is not a revision of difficulty.
+  The spec and the reference disagreed about what the answer may include, so
+  the instrument measured the disagreement instead of the task. That is a
+  harness defect, which the Pilot section allows to be fixed.
+- **Guards.**
+  - Both the self-test (in CI) and `check-tasks` check that every standard
+    header the fixed header or the reference includes is named in the spec's
+    C section. In the self-test, a negative control runs this check on t01's
+    C section as the pilot ran it, and it fails, naming `<stddef.h>`.
+  - `check-tasks` compiles the reference with every `#include` except the
+    task header removed, and it must still pass the hidden suite. A
+    potency probe also strips the header's own standard includes, and the
+    reference must then fail to compile.
+  - With the pilot's t01 files, `check-tasks` fails both checks (see the
+    PR).
+- **Ceiling.** Every Rust cell of the pilot (F2 to F4, 4 models) is at 6/6.
+  The thesis rule counts a tie as "at or below", so the report said that the
+  thesis was refuted for Rust. A tie at 100% cannot show anything in either
+  direction. If every cell of both rows of a language is at 100% (or every
+  one at 0%), the report now says "no headroom (ceiling)" (or "(floor)") for
+  that language, and says why. This narrows "refuted" only in the case that
+  pilot step 5 already treats as unable to discriminate. In every other case
+  the rule is unchanged, and the self-test checks that one cell below 6/6
+  falls back to it.
+- **For the owner, not a change.** t02 is already at 12/12 in both C rows.
+  Compiled against the fixed `rb.h`, 23 of the 24 stored t01 C answers pass
+  49/49. That is not a result, because those answers were written against
+  the old prompt. But with t01 fixed, the C rows will probably sit at or near
+  the ceiling too, and pilot step 5 may then apply to the task set for the
+  main run.
+- **Unchanged:** the levels, the models, N, the repetitions, the lint set,
+  the hypotheses, the decision rules outside the no-headroom case, and the
+  hidden oracle.

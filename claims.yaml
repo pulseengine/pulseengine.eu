@@ -628,6 +628,33 @@ claims:
         pattern: 'F1 rule 8\.7 still bites'
         glob: ['experiments/friction-x-model/fxm.py']
         min: 1
+      # Amendment 2026-10-29 (pilot finding): t01's header gives NULL, the
+      # spec names every header the reference uses, the guards and their
+      # negative control, and a tie at 100%/0% is no headroom, not refuted.
+      - kind: count-min
+        pattern: '\*\*2026-10-29, pilot finding, before the main run: t01''s C spec did not name\s+the header that NULL needs; fixed in the fixed header and the spec\. Ceiling\s+reported as no headroom\.\*\*'
+        glob: ['docs/experiments/2026-10-friction-x-model.md']
+        min: 1
+      - kind: count-min
+        pattern: '(?m)^f1c26f8a79361c82d1ce385d1a2d4a295e4d9ddc061bd49797b511a03512ade5  tasks/t01-ring-buffer/c/rb\.h$'
+        glob: ['experiments/friction-x-model/frozen.sha256']
+        min: 1
+      - kind: count-min
+        pattern: '(?m)^8d3502d3385dadd7bf64a10676c333b7381faa83bb8e35dc60bc906b2156e97b  tasks/t01-ring-buffer/spec\.md$'
+        glob: ['experiments/friction-x-model/frozen.sha256']
+        min: 1
+      - kind: count-min
+        pattern: 'the include check fails on the pilot''s t01 as run \(spec without <stddef\.h>\)'
+        glob: ['experiments/friction-x-model/fxm.py']
+        min: 1
+      - kind: count-min
+        pattern: 'C reference passes the hidden suite with only \{hdr\} included'
+        glob: ['experiments/friction-x-model/fxm.py']
+        min: 1
+      - kind: count-min
+        pattern: 'NO_HEADROOM_CEILING, NO_HEADROOM_FLOOR = "no headroom \(ceiling\)", "no headroom \(floor\)"'
+        glob: ['experiments/friction-x-model/fxm.py']
+        min: 1
       # Third review (#303): Kani's real build, no_std, std ban, unwinding, gate.
       - kind: count-min
         pattern: 'f"--sysroot=\{KANI_HOME\}"'

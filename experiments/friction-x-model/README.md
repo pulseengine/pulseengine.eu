@@ -228,7 +228,8 @@ Without a model or a toolchain, the self-test checks:
   - the Wilson intervals;
   - the decision rule;
   - the thesis verdict, per language and overall, including with a dropped
-    column;
+    column, and "no headroom" when every cell of both rows is at 100% or at
+    0%;
   - the model spread.
 
 `--with-tools` adds the real oracle on the reference and the mutant, through
@@ -243,6 +244,11 @@ The self-test also checks the C caller TU (`c/api_use.c`):
 - it is in the friction directory, never in the oracle's;
 - cppcheck gets the answer and the caller, with the pinned arguments.
 
+It also checks that the public material is enough to write an answer that
+compiles (pilot finding of 2026-10-29). Every standard header the fixed header
+or the reference includes must be named in the spec's C section. A negative
+control runs this check on t01's C section as the pilot ran it, and it fails.
+
 It also checks `--wait-on-limit` with a stub model and a fake sleep:
 - a limit gives one wait until just after `resetsAt`, then a resume that
   skips done cells and re-runs the cut-off cell;
@@ -251,6 +257,9 @@ It also checks `--wait-on-limit` with a stub model and a fake sleep:
 
 On the toolchain, `check-tasks` also checks that:
 - each friction level can fail, through a probe;
+- the C reference, with every `#include` except the task header removed,
+  still compiles and passes the hidden suite. A probe that also strips the
+  header's own standard includes must fail to compile;
 - rule 8.7 still bites with the caller TU: an exported helper outside the
   header is reported under 8.7 on its own lines and nowhere else;
 - F4 still fails when the model defines macros that shadow `assert!` and

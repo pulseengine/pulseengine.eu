@@ -26,7 +26,7 @@ nothing else.
 
 Implement the functions declared in `rb.h` (given, fixed: you may not change
 it) in one file, `rb.c`, in C11. No dynamic memory, no standard library calls
-beyond `<stdbool.h>` and `<stdint.h>`.
+beyond `<stdbool.h>`, `<stddef.h>` and `<stdint.h>`. `rb.h` includes all three.
 
 ## Rust
 
