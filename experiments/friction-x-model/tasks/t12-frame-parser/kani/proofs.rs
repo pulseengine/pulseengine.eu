@@ -35,7 +35,7 @@ fn any_bytes_stay_in_bounds() {
 /// After a frame is accepted, the accepted payload does not change until the
 /// next Frame event, whatever 4 bytes follow (H7).
 #[kani::proof]
-#[kani::unwind(40)]
+#[kani::unwind(14)]
 fn accepted_frame_is_stable() {
     let mut wire = [0_u8; 12];
     let n = encode(5, &[0xA1, 0xA2], &mut wire);

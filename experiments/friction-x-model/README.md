@@ -111,8 +111,10 @@ results directory, and the first pilot's checkout already holds gated t01 and
 t02 records. A script on the bench machine, `$WORK/repilot/repilot.sh`
 (not in the repository), does this:
 - sleeps until 2026-11-03T18:30Z, checking the clock every 5 minutes;
-- checks out the merge commit, and refuses to start unless the hash of
-  `frozen.sha256` is the expected one;
+- checks out the merge commit (pinned in the script once the merge queue has
+  merged; until then `origin/main`), and refuses to start unless the hash of
+  `frozen.sha256` is the expected one. That hash covers the tasks, not
+  `fxm.py`;
 - runs `check-tools`, `self-test --with-tools` and `check-tasks`, in that
   order, and refuses to start unless each exits 0;
 - with `FXM_NOTICE` set to the clone's `notice.py`, runs
