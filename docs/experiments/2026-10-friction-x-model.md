@@ -214,7 +214,8 @@ stores what was sent and what came back, under the run's results directory:
 - the findings text shown to the model.
 
 **Every file is written once and never overwritten,** and the run record keeps
-the sha256 of each one. A re-run of a cell gets a new attempt directory. Any
+the sha256 of each one. A re-run of a cell gets a new attempt directory, with its own run record,
+written the same way. Any
 hidden-test content in a prompt or a transcript file stops the run (the
 canary check).
 

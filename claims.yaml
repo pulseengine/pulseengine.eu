@@ -556,6 +556,19 @@ claims:
         glob: ['docs/experiments/2026-10-friction-x-model.md']
         min: 1
       - kind: count-min
+        pattern: 'for top, bottom in \(\("F1", "F0"\), \("F4", "F2"\)\):\n\s+if \(top, m\) in sec'
+        glob: ['experiments/friction-x-model/fxm.py']
+        min: 1
+      - kind: count-min
+        pattern: 'rows\.append\(\(f"G1 gaming \{top\}>=\{bottom\}", f"\{m\}@\{top\}", f"\{m\}@\{bottom\}", compare\(hi, lo\)\)\)'
+        glob: ['experiments/friction-x-model/fxm.py']
+        min: 1
+      # A backstop that did not run is never "no findings".
+      - kind: count-min
+        pattern: 'raise CouldNotRun\(f"the expansion backstop did not run'
+        glob: ['experiments/friction-x-model/fxm.py']
+        min: 1
+      - kind: count-min
         pattern: '\*\*Any cell whose pass rate and gaming-attempt share are both at least 50% is\s+listed first in the report, under "pass with gaming"\.\*\*'
         glob: ['docs/experiments/2026-10-friction-x-model.md']
         min: 1

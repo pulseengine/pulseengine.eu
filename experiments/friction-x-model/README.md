@@ -130,6 +130,7 @@ rm -rf "$WORK/cppcheck-src"
 # 3. Rust 1.96.1 + clippy, and the Miri nightly
 rustup toolchain install 1.96.1 --profile minimal --component clippy
 rustup toolchain install nightly-2026-09-23 --profile minimal --component miri
+# (this nightly also runs the expanded-source scan at F2-F4, every iteration)
 cargo +nightly-2026-09-23 miri setup
 
 # 4. Kani 0.67.0
