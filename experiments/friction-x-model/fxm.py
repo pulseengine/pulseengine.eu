@@ -107,7 +107,8 @@ SCHEMA = {"type": "object", "additionalProperties": False, "required": ["code"],
 LEVEL_TEXT = {
     "F0": "Write C11 that complies with MISRA C:2012. You get one answer; nothing is run on it before it is judged.",
     "F1": ("Write C11 that complies with MISRA C:2012. After each answer the harness runs cppcheck "
-           "with its MISRA C:2012 add-on on your file and shows you every finding. You may then revise. "
+           "with its MISRA C:2012 add-on on your file, together with the fixed caller shown below, and shows "
+           "you every finding. You may then revise. "
            "The run ends when cppcheck reports no findings, or after {n} answers."),
     "F2": ("Write safe, idiomatic Rust that cannot panic. After each answer the harness compiles your crate "
            "with rustc and shows you every error and warning. You may then revise. The run ends when the "
@@ -401,7 +402,17 @@ class CouldNotRun(Exception):
 
 
 class UsageLimit(CouldNotRun):
-    pass
+    """The subscription's usage limit. `resets_at` is the reset time (epoch
+    seconds) when the CLI gives one, else None."""
+
+    def __init__(self, msg, resets_at=None):
+        super().__init__(msg)
+        self.resets_at = resets_at
+
+
+class LoginFailure(CouldNotRun):
+    """The CLI is not logged in, or its token is invalid or expired. matrix
+    stops with exit 4 and never waits or loops on it."""
 
 
 # ── Fixed files ──────────────────────────────────────────────────────────────
@@ -453,7 +464,10 @@ def visible_files(task, level):
     """(name, text) the model is shown. Never anything under hidden/."""
     d = task["dir"]
     if LANG[level] == "c":
-        return [(task["c"]["header"], (d / "c" / task["c"]["header"]).read_text())]
+        # The caller is public material, shown at F0 and F1 alike so the two C rows stay symmetric.
+        return [(task["c"]["header"], (d / "c" / task["c"]["header"]).read_text()),
+                (f'{task["c"]["caller"]} (a caller of the whole API; cppcheck analyses it together with your file)',
+                 (d / "c" / task["c"]["caller"]).read_text())]
     files = []
     if level == "F4":
         files.append(("Kani proof harnesses (a separate crate that depends on yours and uses only its public API)",
@@ -521,7 +535,50 @@ def cli_result(stdout):
 LIMIT_TEXT = re.compile(r"usage limit|hit your (usage )?limit|limit reached|limit will reset|resets at", re.I)
 TRANSIENT_TEXT = re.compile(r"overloaded|connection|timed? ?out|network|ECONNRESET|socket|internal server", re.I)
 TRANSIENT_STATUS = {408, 409, 429, 500, 502, 503, 504, 529}
+LOGIN_TEXT = re.compile(r"not logged in|please run /login|run `?claude (?:setup-token|/?login)|invalid api key|"
+                        r"invalid (?:oauth|bearer|authentication|x-api-key)|(?:oauth )?token (?:has )?expired|"
+                        r"authentication[_ ](?:error|failed)|unauthori[sz]ed|\b401\b", re.I)
+RESET_TEXT = re.compile(r"resets?\s+(?:at\s+)?(\d{1,2})(?::(\d{2}))?\s*([ap]\.?m\.?)?", re.I)
+LIMIT_WAIT_DEFAULT = 30 * 60     # no reset time from the CLI: back off 30 min
+LIMIT_WAIT_MAX = 6 * 3600        # never sleep longer than this in one wait; then try again
+LIMIT_WAIT_MARGIN = 120          # wake a little after the reset, not on it
 _sleep = time.sleep
+
+
+def limit_resets_at(limits, text, now=None):
+    """The reset time (epoch seconds) of a usage limit, or None. First the
+    rate_limit_event `resetsAt` of a rejected window, then "resets at 3pm" text
+    (bench-machine local time, the next such time)."""
+    now = time.time() if now is None else now
+    found = []
+    for info in limits:
+        windows = [info] + [w for w in (info.get("unifiedWindows") or {}).values() if isinstance(w, dict)]
+        for w in windows:
+            v = w.get("resetsAt")
+            if w.get("status") == "rejected" and isinstance(v, (int, float)) and not isinstance(v, bool):
+                found.append(v / 1000 if v > 1e12 else float(v))
+    future = [v for v in found if v > now]
+    if future:
+        return max(future)
+    m = RESET_TEXT.search(text or "")
+    if m:
+        hour, minute, ampm = int(m[1]), int(m[2] or 0), (m[3] or "").lower().replace(".", "")
+        if ampm == "pm" and hour < 12:
+            hour += 12
+        elif ampm == "am" and hour == 12:
+            hour = 0
+        if hour < 24 and minute < 60:
+            t = time.localtime(now)
+            cand = time.mktime((t.tm_year, t.tm_mon, t.tm_mday, hour, minute, 0, 0, 0, -1))
+            return cand if cand > now else time.mktime((t.tm_year, t.tm_mon, t.tm_mday + 1, hour, minute, 0, 0, 0, -1))
+    return None
+
+
+def limit_wait(resets_at, now):
+    """Seconds to sleep on a usage limit: until just after the reset, else
+    the default back-off; at least a minute and at most LIMIT_WAIT_MAX."""
+    secs = (resets_at - now + LIMIT_WAIT_MARGIN) if resets_at else LIMIT_WAIT_DEFAULT
+    return int(min(max(secs, 60), LIMIT_WAIT_MAX))
 
 
 def ask(runner, model, prompt):
@@ -543,9 +600,13 @@ def ask(runner, model, prompt):
                 raise CouldNotRun(f"the Claude Code CLI ({CLAUDE_CLI}) is not installed")
         res, limits = cli_result(p.stdout)
         text = str((res or {}).get("result") or p.stderr or "")[:300]
+        failed = res is None or res.get("is_error") or p.returncode != 0
+        if failed and ((res or {}).get("api_error_status") == 401
+                       or LOGIN_TEXT.search(text) or LOGIN_TEXT.search(str(p.stderr or "")[:300])):
+            raise LoginFailure(f"the Claude Code CLI is not logged in, or its token is invalid: {text}")
         if any(i.get("status") == "rejected" for i in limits) or (
                 (res is None or res.get("is_error")) and LIMIT_TEXT.search(text)):
-            raise UsageLimit(f"usage limit reached: {text}")
+            raise UsageLimit(f"usage limit reached: {text}", limit_resets_at(limits, text))
         if res is not None and p.returncode == 0 and not res.get("is_error"):
             used = res.get("modelUsage") or {}
             if set(used) != {model}:
@@ -622,6 +683,7 @@ def write_friction_dir(task, level, code, root):
     root.mkdir(parents=True, exist_ok=True)
     if LANG[level] == "c":
         shutil.copy(d / "c" / task["c"]["header"], root / task["c"]["header"])
+        shutil.copy(d / "c" / task["c"]["caller"], root / task["c"]["caller"])
         (root / task["c"]["solution"]).write_text(code)
     else:
         (root / "src").mkdir(exist_ok=True)
@@ -773,9 +835,46 @@ def c_config_split(code, root):
     return []
 
 
+C_KEYWORDS = frozenset(("if", "while", "for", "switch", "return", "sizeof", "do", "else"))
+
+
+def c_strip(src):
+    """C source without comments, string literals and preprocessor lines."""
+    src = re.sub(r"/\*.*?\*/|//[^\n]*", " ", src, flags=re.S)
+    src = re.sub(r'"(?:\\.|[^"\\\n])*"', '""', src)
+    return re.sub(r"(?m)^[ \t]*#.*$", "", src)
+
+
+def caller_drift(header, caller):
+    """Problems with the caller TU against the header, [] if none. The caller
+    must call every function the header declares, call nothing else, and define
+    only main."""
+    declared = set(re.findall(r"\b([A-Za-z_]\w*)[ \t]*\([^()]*\)[ \t]*;", c_strip(header)))
+    named = set(re.findall(r"\b([A-Za-z_]\w*)[ \t]*\(", c_strip(caller))) - C_KEYWORDS
+    called = named - {"main"}
+    out = [f"declared in the header but never called: {n}" for n in sorted(declared - called)]
+    out += [f"called but not declared in the header: {n}" for n in sorted(called - declared)]
+    if not declared:
+        out.append("no function declarations found in the header")
+    if "main" not in named:
+        out.append("the caller defines no main")
+    return out
+
+
+def task_caller_drift(task):
+    d = task["dir"] / "c"
+    return caller_drift((d / task["c"]["header"]).read_text(), (d / task["c"]["caller"]).read_text())
+
+
 def friction_cppcheck(task, root):
+    """The one cppcheck invocation: F1 friction, the post-hoc MISRA measure and
+    check-tasks all come through here. The fixed caller TU goes in with the
+    answer, so the whole-program MISRA check (rule 8.7) sees the API called
+    from another translation unit, as the hidden tests call it (amendment of
+    2026-10-29 in the pre-registration)."""
     tmpl = "--template={file}:{line}:{column}: {severity}: {id}: {message}"
-    rc, out, to = run([CPPCHECK, *CPPCHECK_ARGS, tmpl, "-I", ".", task["c"]["solution"]], root, TIMEOUT["cppcheck"])
+    rc, out, to = run([CPPCHECK, *CPPCHECK_ARGS, tmpl, "-I", ".", task["c"]["solution"], task["c"]["caller"]],
+                      root, TIMEOUT["cppcheck"])
     if to:
         return [f"cppcheck did not finish within {TIMEOUT['cppcheck']}s"]
     found = CPPCHECK_DIAG.findall(out)
@@ -1298,6 +1397,7 @@ def cmd_run(args, runner=subprocess.run, tools=None):
         rec = {"task": args.task, "level": args.level, "model": args.model, "rep": args.rep,
                "status": "could-not-run", "why": str(e), "usage_limit": isinstance(e, UsageLimit),
                "stop_reason": "usage limit" if isinstance(e, UsageLimit) else "error",
+               "resets_at": getattr(e, "resets_at", None), "login_failure": isinstance(e, LoginFailure),
                "transcript": tr.record()}
     with open(tr.root / "record.json", "x", encoding="utf-8") as f:
         f.write(json.dumps(rec, indent=1))
@@ -1334,12 +1434,71 @@ def gate_matrix(args, check=None):
     return code, path
 
 
-def cmd_matrix(args, runner=subprocess.run, tools=None, check=None):
+def utc(t=None):
+    return time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(time.time() if t is None else t))
+
+
+def notify(kind, title, body=""):
+    """Log a line and, when FXM_NOTICE names the factory-notice script
+    (notice.py), post one notice. A failed post is logged, never fatal."""
+    print(f"[{utc()}] notice ({kind}): {title}", flush=True)
+    script = os.environ.get("FXM_NOTICE")
+    if not script:
+        return
+    try:
+        p = subprocess.run([sys.executable, script, "post", "--kind", kind, "--flow", "friction-x-model-pilot",
+                            "--title", title, "--body", body], capture_output=True, text=True, timeout=120)
+        if p.returncode != 0:
+            print(f"[{utc()}] notice post failed (exit {p.returncode}): {(p.stderr or '')[-300:]}", flush=True)
+    except (OSError, subprocess.TimeoutExpired) as e:
+        print(f"[{utc()}] notice post failed: {e}", flush=True)
+
+
+RESTART = "python3 fxm.py matrix --pilot --wait-on-limit"
+
+
+def cmd_matrix(args, runner=subprocess.run, tools=None, check=None, notify=notify):
+    """One gated pass over the matrix, or, with --wait-on-limit, passes until
+    done: on a usage limit it sleeps until the reset (at most LIMIT_WAIT_MAX
+    per wait) and starts a new gated pass, which skips every cell already ok.
+    A cell cut off by the limit is could-not-run and is re-run, not counted.
+    A login failure stops with exit 4 and is never waited on."""
+    waits = 0
+    while True:
+        code, rec = matrix_pass(args, runner, tools, check)
+        cell = f"{rec['task']} {rec['level']} {rec['model']} rep{rec['rep']}" if rec else ""
+        if code == 2 and getattr(args, "wait_on_limit", False):
+            waits += 1
+            now = time.time()
+            secs = limit_wait(rec.get("resets_at"), now)
+            reset = utc(rec["resets_at"]) if rec.get("resets_at") else "not given (default back-off)"
+            print(f"[{utc(now)}] usage limit at {cell}; wait {waits}: sleeping {secs}s until {utc(now + secs)} "
+                  f"(reset {reset})", flush=True)
+            notify("info", f"fxm pilot waiting on the usage limit until {utc(now + secs)}",
+                   f"Wait {waits}, at {cell}. Reset: {reset}. It resumes on its own.")
+            _sleep(secs)
+            print(f"[{utc()}] wait {waits} over; resuming", flush=True)
+            continue
+        if code == 0:
+            notify("info", "fxm pilot matrix finished", f"Every cell is ok, after {waits} usage-limit wait(s). "
+                   "Next: python3 fxm.py report")
+        elif code == 2:
+            notify("blocked", "fxm pilot stopped on the usage limit", f"At {cell}. Resume with: {RESTART}")
+        elif code == 4:
+            notify("blocked", "fxm pilot stopped: the Claude Code CLI is not logged in",
+                   f"At {cell}: {rec.get('why', '')[:300]}. Log in again, then resume with: {RESTART}")
+        else:
+            notify("blocked", "fxm pilot did not start: check-tasks failed", f"Fix it, then run: {RESTART}")
+        return code
+
+
+def matrix_pass(args, runner=subprocess.run, tools=None, check=None):
+    """(exit code, the record that stopped it or None)."""
     code, manifest = gate_matrix(args, check)
     if code != 0:
         print(f"check-tasks exited {code} (needs 0: 0 failed AND 0 skipped). matrix does not start. "
               f"Manifest: {manifest}")
-        return 1
+        return 1, None
     tids = PILOT_TASKS if args.pilot else tuple(t.name for t in sorted(TASKS_DIR.iterdir()) if t.is_dir())
     for tid in tids:
         for level in args.levels:
@@ -1352,10 +1511,14 @@ def cmd_matrix(args, runner=subprocess.run, tools=None, check=None):
                     rec = cmd_run(argparse.Namespace(task=tid, level=level, model=model, rep=rep,
                                                      results=args.results, work=args.work,
                                                      gate=manifest.name), runner=runner, tools=tools)
+                    if rec.get("login_failure"):
+                        print(f"[{utc()}] the Claude Code CLI is not logged in or its token is invalid; "
+                              f"stopping (exit 4). Log in, then re-run the same command.", flush=True)
+                        return 4, rec
                     if rec.get("usage_limit"):
                         print("usage limit reached; stopping. Re-run the same command to resume.")
-                        return 2
-    return 0
+                        return 2, rec
+    return 0, None
 
 
 def _version(cmd, env=None):
@@ -1422,6 +1585,12 @@ def cmd_check_tools():
 PROBE = {"F1": "\nint fxm_probe(int x)\n{\n    return x << 1;\n}\n",
          "F2": "\nfn fxm_probe() {\n    let unused = 1;\n}\n",
          "F3": "\npub fn fxm_probe(x: u32) -> u8 {\n    x as u8\n}\n"}
+# The rule 8.7 negative control: a non-static helper with its own prototype,
+# absent from the header and so never called by the caller TU. In this shape
+# misra.py 2.22.0 reports 8.7 and nothing else. (Its 8.7 check counts name
+# references, so a helper with a prototype that is also called once is not
+# flagged, with or without the caller; see the amendment.)
+HELPER_87 = "\nint32_t fxm_exported_helper(int32_t x);\nint32_t fxm_exported_helper(int32_t x)\n{\n    return x;\n}\n"
 
 
 def cmd_check_tasks(tids):
@@ -1445,6 +1614,8 @@ def cmd_check_tasks(tids):
     for tid in tids:
         task = load_task(tid)
         print(tid)
+        drift = task_caller_drift(task)
+        say(not drift, f"C caller calls exactly the functions the header declares {drift}")
         with tempfile.TemporaryDirectory(prefix="fxm-check-") as w:
             w = pathlib.Path(w)
             ref_c = (task["dir"] / "reference" / "solution.c").read_text()
@@ -1479,6 +1650,17 @@ def cmd_check_tasks(tids):
                 say(not f, f"C reference has zero F1 findings {f[:5]}")
                 f = friction_cppcheck(task, write_friction_dir(task, "F1", ref_c + PROBE["F1"], w / "p1"))
                 say(bool(f), f"F1 can fail: a probe added to the reference gives {len(f)} finding(s)")
+                # Rule 8.7 stays on with the caller TU (amendment 2026-10-29): an exported helper that
+                # is not in the header, and so not called by the caller, is still flagged, on its own
+                # lines only. Through friction(), the path the model sees.
+                helper = ref_c + HELPER_87
+                lines = helper.splitlines()
+                at = {i + 1 for i, ln in enumerate(lines) if "fxm_exported_helper" in ln}
+                f87 = [(x, int(x.split(":")[1])) for x in friction(task, "F1", helper, w / "n87")
+                       if "misra-c2012-8.7" in x]
+                say(any(n in at for _, n in f87) and all(n in at for _, n in f87),
+                    f"F1 rule 8.7 still bites: an exported helper outside the header is flagged on its own "
+                    f"lines {sorted(at)} and nowhere else {[x for x, _ in f87][:5]}")
             else:
                 skip("F1 cppcheck+MISRA on the C reference (no cppcheck)")
             if have["rustc"] and have["clippy"]:
@@ -1632,6 +1814,7 @@ def cmd_gen_vectors():
 def self_test(with_tools=False):
     global _sleep, TASKS_DIR, FROZEN, run, toolchain, KANI_HOME
     failures = []
+    os.environ.pop("FXM_NOTICE", None)     # the self-test never posts a real factory notice
 
     def check(name, cond):
         print(("ok   " if cond else "FAIL ") + name)
@@ -1741,6 +1924,45 @@ def self_test(with_tools=False):
             check("F4 shows the fixed Kani harnesses; F3 does not",
                   "kani::proof" in p4 and "kani::proof" not in build_prompt(task, "F3", []))
             check("C rows show the fixed header", "typedef struct" in build_prompt(task, "F1", []))
+            # The caller TU (amendment 2026-10-29): public, symmetric across the C rows, exactly the
+            # header's API, in the friction directory and never in the oracle's.
+            for tid in PILOT_TASKS:
+                tk = load_task(tid)
+                caller = (tk["dir"] / "c" / tk["c"]["caller"]).read_text()
+                hdr = (tk["dir"] / "c" / tk["c"]["header"]).read_text()
+                check(f"{tid}: F0 and F1 both show the caller TU",
+                      all(caller in build_prompt(tk, lv, []) for lv in ("F0", "F1")))
+                check(f"{tid}: the caller calls exactly the functions the header declares {task_caller_drift(tk)}",
+                      not task_caller_drift(tk))
+                calls = [n for n in re.findall(r"\b([A-Za-z_]\w*)[ \t]*\(", c_strip(caller))
+                         if n not in C_KEYWORDS and n != "main"]
+                dropped = re.sub(rf"\b{calls[-1]}\b", "fxm_not_api", caller)
+                check(f"{tid}: the drift check fails when a header function is not called",
+                      any("never called" in x for x in caller_drift(hdr, dropped)))
+                check(f"{tid}: the drift check fails when the caller calls a non-API function",
+                      any("not declared" in x for x in caller_drift(hdr, dropped)))
+                check(f"{tid}: the drift check fails when the header gains a function",
+                      any("never called" in x for x in caller_drift(hdr + "\nint fxm_new(int x);\n", caller)))
+                check(f"{tid}: the caller carries no hidden canary or vectors",
+                      not CANARY.search(caller) and "FXM_STEPS" not in caller and "vectors.h" not in caller)
+                fd = write_friction_dir(tk, "F1", "int x;", pathlib.Path(work) / f"fd-{tid}")
+                ed = pathlib.Path(work) / f"ed-{tid}"
+                write_eval_dir(tk, "c", "int x;", ed)
+                check(f"{tid}: the caller is in the friction directory and not in the oracle's",
+                      (fd / tk["c"]["caller"]).is_file() and not (ed / tk["c"]["caller"]).exists())
+            cp_seen = []
+
+            def fake_cppcheck(cmd, cwd, timeout, env=None, **kw):
+                cp_seen.append(cmd)
+                return 0, "", False
+            saved_run, run = run, fake_cppcheck
+            try:
+                friction_cppcheck(task, pathlib.Path(work))
+            finally:
+                run = saved_run
+            check("cppcheck gets the answer and the caller TU, with the pinned arguments",
+                  cp_seen and cp_seen[0][-2:] == [task["c"]["solution"], task["c"]["caller"]]
+                  and all(a in cp_seen[0] for a in CPPCHECK_ARGS))
 
             st = Stub([result("x", "claude-sonnet-5-5")])
             try:
@@ -2009,6 +2231,75 @@ def self_test(with_tools=False):
                 check("matrix runs behind a passing check-tasks; each record names its manifest",
                       code == 0 and len(recs_mx) == 2 and all(x["gate"] == man[-1].name for x in recs_mx)
                       and json.loads(man[-1].read_text())["check_tasks_exit"] == 0 and len(man) == 3)
+
+                # --wait-on-limit: a usage limit sleeps until the reset, then a new gated pass resumes,
+                # skipping done cells and re-running the cell the limit cut off.
+                notices, slept = [], []
+                quiet = lambda kind, title, body="": notices.append((kind, title))
+                gate_ok = lambda tids: (print("0 failed, 0 skipped"), 0)[1]
+                limit_at = int(time.time()) + 600
+                limited = [{"type": "rate_limit_event", "rate_limit_info": {"status": "rejected",
+                                                                            "resetsAt": limit_at}},
+                           {"type": "result", "is_error": True, "result": "You've hit your limit"}]
+                mw = argparse.Namespace(pilot=True, reps=2, models=[m], levels=["F2"], wait_on_limit=True,
+                                        results=str(pathlib.Path(work) / "mw"), work=str(pathlib.Path(work) / "mww"))
+                st = Stub([result(ref, m), limited] + [result(ref, m)] * 3)
+                saved_sleep, _sleep = _sleep, slept.append
+                try:
+                    code = cmd_matrix(mw, runner=st, tools=gtools, check=gate_ok, notify=quiet)
+                finally:
+                    _sleep = saved_sleep
+                recs_w = {(q.parent.parent.parent.name, q.stem): json.loads(q.read_text())
+                          for q in pathlib.Path(mw.results).glob("*/*/*/rep*.json")}
+                att = lambda tid, k: sorted(p.name for p in result_path(mw.results, tid, "F2", m, k)
+                                            .with_suffix(".transcript").iterdir())
+                check("wait-on-limit: one wait, until just after the CLI's resetsAt, then it finishes (exit 0)",
+                      code == 0 and len(slept) == 1 and 600 <= slept[0] <= 600 + LIMIT_WAIT_MARGIN + 5
+                      and len(st.calls) == 5)
+                check("wait-on-limit: done cells are skipped on resume; the cut-off cell is re-run, and only its "
+                      "ok record counts", len(recs_w) == 4 and all(r_["status"] == "ok" for r_ in recs_w.values())
+                      and att("t01-ring-buffer", 1) == ["attempt-01"]
+                      and att("t01-ring-buffer", 2) == ["attempt-01", "attempt-02"]
+                      and cells(list(recs_w.values())).get(("F2", m)) == (4, 4))
+                check("wait-on-limit: one notice per wait, with the time, and one when it finishes",
+                      [k for k, _ in notices] == ["info", "info"] and utc(time.time() + slept[0])[:13] in notices[0][1]
+                      and "finished" in notices[1][1])
+                # A login failure stops with exit 4, once, and never waits or loops.
+                notices.clear()
+                slept.clear()
+                ml = argparse.Namespace(**{**vars(mw), "results": str(pathlib.Path(work) / "ml")})
+                st = Stub([({"type": "result", "is_error": True, "result": "Not logged in · Please run /login"}, 1)]
+                          + [result(ref, m)] * 4)
+                _sleep = slept.append
+                try:
+                    code = cmd_matrix(ml, runner=st, tools=gtools, check=gate_ok, notify=quiet)
+                finally:
+                    _sleep = saved_sleep
+                check("a login failure stops matrix with exit 4: one call, no wait, no retry, one blocked notice",
+                      code == 4 and len(st.calls) == 1 and not slept and [k for k, _ in notices] == ["blocked"])
+                st = Stub([({"type": "result", "is_error": True, "api_error_status": 401,
+                             "result": "Invalid bearer token"}, 1)])
+                try:
+                    run_one(task, "F2", m, 1, st, work, stub_tools([])[0])
+                    check("an HTTP 401 is a login failure", False)
+                except LoginFailure:
+                    check("an HTTP 401 is a login failure", len(st.calls) == 1)
+                # The reset time: resetsAt (seconds or ms), else "resets at" text, else the default back-off.
+                t0 = time.mktime((2026, 10, 29, 10, 0, 0, 0, 0, -1))
+                check("reset time: resetsAt of a rejected window, in seconds or milliseconds",
+                      limit_resets_at([{"status": "rejected", "resetsAt": t0 + 60}], "", t0) == t0 + 60
+                      and limit_resets_at([{"status": "allowed", "resetsAt": t0 + 9,
+                                            "unifiedWindows": {"five_hour": {"status": "rejected",
+                                                                             "resetsAt": (t0 + 90) * 1000}}}],
+                                          "", t0) == t0 + 90)
+                check("reset time: 'resets at 3pm' text is the next 15:00 local; no time at all is None",
+                      limit_resets_at([], "You've hit your limit · resets 3pm (Europe/Berlin)", t0) == t0 + 5 * 3600
+                      and limit_resets_at([], "resets at 9:30am", t0)
+                      == time.mktime((2026, 10, 30, 9, 30, 0, 0, 0, -1))
+                      and limit_resets_at([], "You've hit your limit", t0) is None)
+                check("wait length: just after the reset, the default without one, never above the cap",
+                      limit_wait(t0 + 600, t0) == 600 + LIMIT_WAIT_MARGIN and limit_wait(None, t0) == LIMIT_WAIT_DEFAULT
+                      and limit_wait(t0 + 86400, t0) == LIMIT_WAIT_MAX and limit_wait(t0 - 500, t0) == 60)
             finally:
                 toolchain = real_tc
 
@@ -2160,6 +2451,8 @@ def main():
             s.add_argument("--rep", type=int, required=True)
         else:
             s.add_argument("--pilot", action="store_true")
+            s.add_argument("--wait-on-limit", action="store_true",
+                           help="on a usage limit, sleep until the reset and resume (exit 4 on a login failure)")
             s.add_argument("--reps", type=int, default=REPS)
             s.add_argument("--models", nargs="+", default=list(active_models()))
             s.add_argument("--levels", nargs="+", default=list(LEVELS), choices=LEVELS)

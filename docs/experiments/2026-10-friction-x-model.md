@@ -98,7 +98,8 @@ task, three times.
   without `--inline-suppr`, so suppression comments have no effect. A finding
   is every diagnostic line: MISRA add-on and cppcheck core alike. The compiler
   is not run at F1. This keeps #292's arm B; a syntax error reaches the model
-  only as cppcheck reports it.
+  only as cppcheck reports it. (Amended 2026-10-29: cppcheck also gets a
+  fixed caller translation unit. See [Amendments](#amendments).)
 - **F2.** `cargo +1.96.1 build --lib`. A finding is every error and every
   warning under rustc's default lint levels.
 - **F3.** `cargo +1.96.1 clippy --lib -- -W clippy::all -W clippy::pedantic`.
@@ -549,3 +550,40 @@ repetitions, the lint set, the hypotheses or the decision rules.
   git ignores.
 - **Reports publish aggregates only:** the cell tables, the hypothesis
   verdicts and the secondary measures. The pilot report is a separate PR.
+
+## Amendments
+
+### 2026-10-29, before any data collection
+
+**2026-10-29, before any data collection: MISRA 8.7 false positive from
+single-TU analysis; fixed by adding a public caller TU; rule set unchanged.**
+
+- **What failed.** The first `check-tasks` run with cppcheck 2.22.0 found
+  `misra-c2012-8.7` on every public function of both C references. cppcheck
+  saw only the answer file, so each external function looked as if it was
+  used in one translation unit only. The hidden tests do call them from
+  another one.
+- **The fix.** Each C task now has a fixed public caller, `c/api_use.c`. It
+  calls every function the task's header declares and nothing else, and it
+  defines only `main`. F1 now runs `cppcheck --std=c11
+  --enable=warning,style,performance,portability --addon=misra
+  --suppress=missingIncludeSystem` on the answer **and** `api_use.c`
+  together. The F1 friction, the post-hoc MISRA measure and `check-tasks`
+  share that one invocation. The caller is public material: it is shown at
+  F0 and at F1, so the two C rows stay symmetric. It is never compiled into
+  the hidden suite, and it holds nothing from the hidden vectors. The hidden
+  oracle does not change.
+- **Drift check.** The self-test (in CI) and `check-tasks` both check that
+  the caller calls exactly the functions the header declares. Probes show
+  that the check fails on a dropped call, on an extra call and on a new
+  header function.
+- **Rule 8.7 stays on.** `check-tasks` adds a negative control: an exported
+  helper with its own prototype, absent from the header, must be reported
+  under 8.7 on its own lines and nowhere else.
+- **A limit of the checker, unchanged by this fix.** The add-on's 8.7 check
+  counts references to a name. So an exported helper that has a prototype and
+  one call, or no prototype and two calls, gets no 8.7 finding, with or
+  without the caller. It gets 8.4 when it has no prototype. 8.7 is therefore
+  a partial check of "keep helpers static", not a complete one.
+- **Unchanged:** the levels, the models, N, the repetitions, the lint set
+  (`misra-rules-2.22.0.txt`), the hypotheses and the decision rules.
