@@ -1219,3 +1219,58 @@ claims:
         pattern: 'answered in the last 7 days'
         glob: ['claude-tooling/plugins/pulseengine-claude/skills/factory-notice/notice.py']
         min: 1
+
+  # ── CI builds with the pinned zola, by path ─────────────────────────────────
+  # On self-hosted runners an old zola (Tera v1) on PATH shadowed the one the
+  # install step pinned and reported: the step printed `zola 0.23.6`, then the
+  # bare `zola build` rejected the Tera v2 templates on main and ejected #298
+  # from the merge queue (run 40843089563; pulseengine/smithy#43). Each
+  # workflow that builds must download the pinned archive, check its sha256,
+  # and call the binary only as "$ZOLA". One entry per file: _count sums across
+  # globs, so a shared entry would pass with the check missing from one file.
+  - id: CI-ZOLA-PINNED-BY-PATH
+    doc: CLAUDE.md
+    text: "CI calls zola only by absolute path, as `\"$ZOLA\"`"
+    evidence:
+      # No bare `zola` invocation in any workflow. Comment lines are skipped by
+      # the anchor; a `run: zola …` or a `zola …` script line is a failure.
+      - kind: count-max
+        pattern: '(?m)^\s*(?:-\s*)?(?:run:\s*)?zola\s'
+        glob: ['.github/workflows/*.yml']
+        max: 0
+      - kind: count-max
+        pattern: 'tool:\s*zola'
+        glob: ['.github/workflows/*.yml']
+        max: 0
+      - kind: count-min
+        pattern: '(?m)^\s*"\$ZOLA" build$'
+        glob: ['.github/workflows/ci.yml']
+        min: 1
+      - kind: count-min
+        pattern: '(?m)^\s*"\$ZOLA" build$'
+        glob: ['.github/workflows/deploy.yml']
+        min: 1
+      - kind: count-min
+        pattern: 'ZOLA_SHA256: 7d77a4220a4f699cba2fc0e0c7859f780e887e269159ad4fab90e11ea16c906f'
+        glob: ['.github/workflows/ci.yml']
+        min: 1
+      - kind: count-min
+        pattern: 'ZOLA_SHA256: 7d77a4220a4f699cba2fc0e0c7859f780e887e269159ad4fab90e11ea16c906f'
+        glob: ['.github/workflows/deploy.yml']
+        min: 1
+      - kind: count-min
+        pattern: 'echo "\$ZOLA_SHA256  \$dir/\$asset" \| sha256sum -c -'
+        glob: ['.github/workflows/ci.yml']
+        min: 1
+      - kind: count-min
+        pattern: 'echo "\$ZOLA_SHA256  \$dir/\$asset" \| sha256sum -c -'
+        glob: ['.github/workflows/deploy.yml']
+        min: 1
+      - kind: count-min
+        pattern: 'if \[ "\$got" != "zola \$ZOLA_VERSION" \]; then'
+        glob: ['.github/workflows/ci.yml']
+        min: 2
+      - kind: count-min
+        pattern: 'if \[ "\$got" != "zola \$ZOLA_VERSION" \]; then'
+        glob: ['.github/workflows/deploy.yml']
+        min: 2

@@ -83,7 +83,7 @@ jobs:
       # CLI — only GitHub-hosted images do — so every gh call below failed
       # with "command not found" (exit 127), breaking this cron daily.
       # Drop a pinned gh binary into a user-writable dir, the same no-sudo
-      # pattern used for Zola via taiki-e/install-action. The durable fix is
+      # pattern as the pinned Zola install in ci.yml. The durable fix is
       # baking gh into the runner image; this is the repo-level remedy.
       - name: Install gh CLI
         run: |

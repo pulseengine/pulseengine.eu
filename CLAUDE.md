@@ -57,6 +57,7 @@ Fonts: Atkinson Hyperlegible Next (sans) + Mono, loaded from Google Fonts.
 - `main` is protected — always use PRs, never push directly
 - PRs merge through the GitHub merge queue: `gh pr merge --auto` (the queue squashes). Never `gh pr update-branch`; it strips commit signatures, and the queue tests against the latest main anyway
 - CI runs `zola build` on PRs; deploy runs on push to `main` (tar + scp to Netcup)
+- CI calls zola only by absolute path, as `"$ZOLA"`, after a sha256-checked install of the pinned release into `$RUNNER_TEMP` — never a bare `zola`, because self-hosted runners carry an old zola on PATH (smithy#43). Bump `ZOLA_VERSION` and `ZOLA_SHA256` together in both `ci.yml` and `deploy.yml`
 - Commit messages: Conventional Commits (`feat:`, `fix:`, `docs:`, etc.)
 - After merge, deploy takes ~20s — check with `gh run list --workflow=deploy.yml`
 
