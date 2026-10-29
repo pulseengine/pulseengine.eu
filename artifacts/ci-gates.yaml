@@ -83,6 +83,8 @@ artifacts:
         target: REQ-SKILL-FRONTMATTER-YAML
       - type: satisfies
         target: REQ-REFACTOR-DECISION
+      - type: satisfies
+        target: REQ-HOOK-ZSH-SHELL-OPTIONS
   - id: REQ-LINKS
     type: requirement
     title: Every internal link in the built site resolves
@@ -799,3 +801,28 @@ artifacts:
     links:
       - type: verifies
         target: REQ-REFACTOR-DECISION
+
+  - id: REQ-HOOK-ZSH-SHELL-OPTIONS
+    type: requirement
+    title: SessionStart makes zsh stop failing agent Bash calls on unmatched globs and =word
+    description: >-
+      Owner-approved 2026-10-29 from a study of archived agent Bash calls: about 2,200 failed on zsh NOMATCH (an unmatched `--include=*.ext` glob, a `?` in an unquoted URL, `--format=%G?`) or EQUALS (`echo ===`, `[ "$a" == "$b" ]`), many with the status hidden by a pipe. A SessionStart hook in the plugin appends `if [ -n "$ZSH_VERSION" ]; then setopt no_nomatch no_equals; fi` to $CLAUDE_ENV_FILE, which Claude Code runs before every Bash command in the same shell. It is a no-op under bash and leaves exit status 0 (an `&&` form would leave 1 and fail anything chained after the file). It appends at most one copy however often SessionStart fires (startup, resume, clear, compact), never truncates the file, keeps another hook's unterminated last line intact, and exits 0 without writing when CLAUDE_ENV_FILE is unset. pipefail is measured and deliberately not set.
+    status: verified
+    release: 0.46.1
+    category: functional
+    priority: should
+    fields:
+      category: functional
+
+  - id: VER-HOOK-ZSH-SHELL-OPTIONS
+    type: verification
+    title: scripts/check-hook-shell-options.py runs the real hook against the real zsh and bash, plus claim HOOK-ZSH-SHELL-OPTIONS
+    description: >-
+      The script runs the hook against a temp CLAUDE_ENV_FILE and checks, each probe in its own shell from an empty directory: plain `zsh -f` without the file fails `echo ===` and `echo x --include=*.nomatchext` (control, so the check is not vacuous); after sourcing the file both succeed and print the words literally; three runs (startup, resume, compact) leave exactly one copy of the line; a prior unterminated export survives byte for byte and still works; `bash --norc` with `set -e` sourcing the file prints nothing extra, keeps status 0 and keeps globbing unchanged; with CLAUDE_ENV_FILE unset nothing is written anywhere. Without zsh it exits 2, not 0. Claim HOOK-ZSH-SHELL-OPTIONS keeps the hook wired once under SessionStart, the guarded line and idempotency check in the hook, no truncating write, no pipefail in any hook, and the script as a CI step. Negative-controlled 2026-10-29: 8 hook mutants each exit 1 on the script (no_equals dropped, no_nomatch dropped, `&&` form, unguarded setopt, idempotency guard dropped, `>` for `>>`, newline fix dropped, CLAUDE_ENV_FILE guard dropped) and 7 mutants each exit 1 on claim-check (CI step removed, hook unwired, hook removed from SessionStart, truncating write, pipefail added, idempotency guard dropped, README pipefail sentence dropped); all restored by re-editing. Live: a fresh `claude -p` session with the plugin dir ran `echo ===` and the unmatched glob with is_error false and `setopt` listing noequals and nonomatch; the control session without it failed with `== not found`.
+    status: verified
+    release: 0.46.1
+    method: automated-test
+    test-location: scripts/check-hook-shell-options.py
+    links:
+      - type: verifies
+        target: REQ-HOOK-ZSH-SHELL-OPTIONS

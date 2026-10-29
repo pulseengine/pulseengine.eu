@@ -1800,3 +1800,58 @@ claims:
                'claude-tooling/plugins/pulseengine-claude/skills/r[!e]*/SKILL.md',
                'claude-tooling/plugins/pulseengine-claude/skills/re[!f]*/SKILL.md']
         max: 0
+
+  # ── SessionStart sets zsh no_nomatch/no_equals for agent Bash calls ────────
+  # Transcript study 2026-10-29: about 2,200 agent Bash calls failed on zsh
+  # NOMATCH (`--include=*.py`, `?` in a URL) or EQUALS (`echo ===`), many with
+  # the status hidden by a pipe. The README says the plugin fixes this; the
+  # claim holds only while the hook is wired, writes the guarded line, appends
+  # rather than truncates, leaves pipefail alone, and its behavioural test runs
+  # in CI. The behaviour itself (control fails, fixed succeeds, once, bash
+  # no-op) is scripts/check-hook-shell-options.py.
+  - id: HOOK-ZSH-SHELL-OPTIONS
+    doc: claude-tooling/plugins/pulseengine-claude/README.md
+    text: "`if [ -n \"$ZSH_VERSION\" ]; then setopt no_nomatch no_equals; fi`"
+    evidence:
+      - kind: verbatim
+        text: "Appended once however often SessionStart fires, never truncating what other hooks wrote. `pipefail` is deliberately not set."
+      # wired exactly once, as a SessionStart command
+      - kind: count-min
+        pattern: 'bash \$\{CLAUDE_PLUGIN_ROOT\}/hooks/persist-shell-options\.sh'
+        glob: ['claude-tooling/plugins/pulseengine-claude/hooks/hooks.json']
+        min: 1
+      - kind: count-max
+        pattern: 'bash \$\{CLAUDE_PLUGIN_ROOT\}/hooks/persist-shell-options\.sh'
+        glob: ['claude-tooling/plugins/pulseengine-claude/hooks/hooks.json']
+        max: 1
+      - kind: count-min
+        pattern: '(?s)"SessionStart": \[(?:(?!"PreCompact").)*persist-shell-options\.sh'
+        glob: ['claude-tooling/plugins/pulseengine-claude/hooks/hooks.json']
+        min: 1
+      # the hook writes the guarded line, appending, behind an idempotency check
+      - kind: count-min
+        pattern: "line='if \\[ -n \"\\$ZSH_VERSION\" \\]; then setopt no_nomatch no_equals; fi'"
+        glob: ['claude-tooling/plugins/pulseengine-claude/hooks/persist-shell-options.sh']
+        min: 1
+      - kind: count-min
+        pattern: 'grep -qxF -- "\$line" "\$f"'
+        glob: ['claude-tooling/plugins/pulseengine-claude/hooks/persist-shell-options.sh']
+        min: 1
+      - kind: count-max
+        pattern: '(?<!>)>\s*"\$f"'
+        glob: ['claude-tooling/plugins/pulseengine-claude/hooks/persist-shell-options.sh']
+        max: 0
+      # pipefail is measured and not enabled (see VER-HOOK-ZSH-SHELL-OPTIONS)
+      - kind: count-max
+        pattern: '(?i)setopt[^\n]*pipefail|set -o pipefail'
+        glob: ['claude-tooling/plugins/pulseengine-claude/hooks/*.sh']
+        max: 0
+      # the behavioural test is a CI step on every PR
+      - kind: count-min
+        pattern: '\n +python3 scripts/check-hook-shell-options\.py\n'
+        glob: ['.github/workflows/ci.yml']
+        min: 1
+      - kind: count-max
+        pattern: '\n +python3 scripts/check-hook-shell-options\.py\n'
+        glob: ['.github/workflows/ci.yml']
+        max: 1
