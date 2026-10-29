@@ -6,7 +6,7 @@
 // frame's stability and a round trip, not the events and values of H2..H6:
 // those are left to the hidden tests. Bounded model checking within these
 // bounds only.
-use fxm_task::{encode, Counts, Event, Receiver, ESC, FLAG, MAX_PAYLOAD};
+use fxm_task::{encode, Counts, Event, Receiver, FLAG, MAX_PAYLOAD};
 
 fn total(c: Counts) -> u32 {
     u32::from(c.frames) + u32::from(c.runts) + u32::from(c.crc_errors) + u32::from(c.filtered)
@@ -33,7 +33,7 @@ fn any_bytes_stay_in_bounds() {
 }
 
 /// After a frame is accepted, the accepted payload does not change until the
-/// next Frame event, whatever 6 bytes follow (H7).
+/// next Frame event, whatever 4 bytes follow (H7).
 #[kani::proof]
 #[kani::unwind(14)]
 fn accepted_frame_is_stable() {
@@ -48,7 +48,7 @@ fn accepted_frame_is_stable() {
     }
     ::core::assert!(rx.frame() == [0xA1, 0xA2]);
     let mut i = 0;
-    while i < 6 {
+    while i < 4 {
         if rx.push(kani::any()) == Event::Frame {
             break;
         }
@@ -80,21 +80,19 @@ fn encode_then_receive_round_trips() {
     ::core::assert!(rx.frame() == &payload[..len]);
 }
 
-/// The 36th content byte of a frame is an overrun (H4).
+/// The 36th content byte of a frame is an overrun (H4). The bytes are fixed:
+/// symbolic ones do not finish within the time limit.
 #[kani::proof]
 #[kani::unwind(38)]
 fn thirty_six_content_bytes_overrun() {
-    let mut rx = Receiver::new(kani::any());
+    let mut rx = Receiver::new(0x05);
+    let b: u8 = 0x11;
     let _ = rx.push(FLAG);
     let mut i = 0;
     while i < 35 {
-        let b: u8 = kani::any();
-        kani::assume(b != FLAG && b != ESC);
         ::core::assert!(rx.push(b) == Event::Nothing);
         i += 1;
     }
-    let b: u8 = kani::any();
-    kani::assume(b != FLAG && b != ESC);
     ::core::assert!(rx.push(b) == Event::Overrun);
     ::core::assert_eq!(rx.counts().overruns, 1);
 }

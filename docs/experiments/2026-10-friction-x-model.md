@@ -745,7 +745,73 @@ re-pilot on harder tasks after the weekly quota reset (2026-11-03 18:00 UTC).
     final answer against the hidden suite and reading the failing cases.
   - **Spend:** see the log. Notional figures, from `modelUsage`.
 
-  CALIBRATION-LOG-PLACEHOLDER
+- **Calibration log.** Every run is one ungated `fxm.py run`. A pass is the
+  hidden suite at 100%. Every failure was recompiled against the hidden suite
+  and its failing cases read.
+
+  | round | design | runs | haiku F0 | haiku F2 | opus F0 | opus F2 | notional cost |
+  |---|---|---|---|---|---|---|---|
+  | 1 | t11: one biquad section. t12: a one-shot parser with ordered checks and resync | 8 | 2/2 | 2/2 | 2/2 | 2/2 | $0.37 |
+  | 2 | t11: decimating, with block processing that stops when the output is full. t12: the byte-at-a-time receiver | 20 | 9/10 | 4/4 | 6/6 | not run | $0.64 |
+  | 3 | round 2's design; specs with the redundant sentences removed (below) | 32 | 10/10 | 10/10 | 6/6 | 6/6 | $1.00 |
+
+  - Every pass was clean at the first answer: one iteration at F2 too.
+  - Round 2's one failure (t11, haiku, F0) was not a semantics miss. The
+    answer was the single word `placeholder`, which does not compile.
+  - Round 2 stopped early, after 20 of 32 runs, once the outcome was clear.
+    Runs cut off by the stop recorded no cost and are not counted.
+  - **Round 3 removed only sentences that a remaining sentence already
+    settles.** Each one, with what still settles it:
+    - t11:
+      - "Nothing may overflow, trap or panic" (intro) and "Each product is
+        an integer product of two 16-bit values. Nothing is rounded, wrapped
+        or clamped while `acc` is computed": B2's "computed exactly, as a
+        mathematical integer".
+      - B3's six worked examples: B3's rule (nearest, ties to even).
+      - "it never wraps": "The count stops at 65535".
+      - "Every input sample updates the state, whether or not its output is
+        kept": B5 ("After each sample") and B6 ("After a sample is
+        filtered").
+      - The M = 1 and M = 3 examples: B6's phase rule, with the phase at 0
+        after B1 and B9.
+      - "A sample that would not emit is always taken, even when the output
+        is full": B8's stop rule, which is the only reason not to take a
+        sample.
+    - t12:
+      - The intro's "must never read or write outside its own buffers ...":
+        a safety statement. The hidden suite checks behaviour, and the
+        Rust prompt's "cannot panic" stays.
+      - "So a frame has 3 to 35 content bytes": the sentence before it.
+      - The per-rule "returns `NOTHING`" in H2 and H3. One sentence now
+        says that a byte returns `NOTHING` unless a sentence says otherwise.
+      - "including `ESC`" (H2): "every byte except `FLAG` is ignored".
+      - "So `ESC ESC` gives 0x5D, and `ESC 0x5E` gives 0x7E": H3's "whatever
+        that byte is".
+      - "(flags may repeat)" and "no count changes" (H5.1): H5.1 gives
+        `NOTHING`, and counts change only where a sentence says so.
+      - "even one with no content" and "(the receiver does not hunt)" (H6):
+        H6 discards the open frame and opens a new one. H6 now begins "In an
+        open frame", because without "including `ESC`" in H2 it could be
+        read as applying while hunting. That is a scope, not a new rule.
+      - "byte for byte, whatever is pushed in between" (H7): "It stays the
+        same until the next `FRAME`".
+      - "it never wraps" (H8).
+      - The header's comment on `state` that suggested the states: now
+        "yours".
+  - **Spend:** 60 runs, $2.00 in all, notional, from `modelUsage`. On the
+    subscription nothing is billed per token.
+  - **Outcome: the target band was not reached.** No design brought haiku
+    below 9 of 10 at F0 on either task. So the re-pilot is likely at or near
+    the ceiling again.
+    - Per the rule above there is no round 4. The tasks are frozen as they
+      stand, so that the re-pilot the owner scheduled runs on reviewed
+      material.
+    - If the re-pilot also sits at the ceiling, step 5 applies again, and the
+      owner decides how to go on.
+    - What the three rounds suggest, as a reading and not a result: at this
+      size, a fully specified task is transcribed correctly. Neither more
+      stated rules (round 2) nor fewer redundant sentences (round 3) moved
+      haiku.
 
 - **The F0 and F1 prompts: a narrow fix, not identical prompts.** In the first
   pilot the two C prompts differed in two ways: the level text, which is the
@@ -784,6 +850,12 @@ re-pilot on harder tasks after the weekly quota reset (2026-11-03 18:00 UTC).
   - The self-test and `check-tasks` run it on every task.
   - Negative controls: renaming `sat_count` in t11's spec, or `Overrun` in
     t12's, fails it, naming the missing name.
+- **A checker false positive, for the record.** cppcheck 2.22.0's MISRA
+  add-on reported rule 7.3 (a lowercase `l` literal suffix) on a variable
+  named `full` in t11's C reference. Renaming it fixed that, and the rule
+  set is unchanged. An answer that names a variable this way gets the same
+  finding at F1. This is one more way the F1 checker is not qualified (see
+  Limits).
 - **The C suites' extra case.** As with t01's R8, t11's and t12's C suites have
   one more case than their Rust suites, for the C-only null-pointer rule (B11,
   H11). The counts are stated under the oracle above.
