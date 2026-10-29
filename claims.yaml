@@ -1925,3 +1925,84 @@ claims:
         pattern: '\("union in signature", "def f\(x: int \| None\) -> None:'
         glob: ['scripts/check-py-floor.py']
         min: 1
+
+  # ── delegate-by-cost names its trigger and says haiku, not one rung down ────
+  # The 2026-10-29 transcript study (REQ-DELEGATE-BY-COST-TRIGGER) found the
+  # skill invoked 0 times in 1,531 sessions: only its description steered, and
+  # most down-routing went opus -> sonnet, where cache reads (the bulk of
+  # delegated tokens) cost half, not a twentieth. The description must carry the
+  # trigger moment and the haiku rule; the body the cache-read reason; and the
+  # old "read the ladder relative to the session" advice must not return.
+  - id: DELEGATE-BY-COST-TRIGGER-AND-HAIKU-RULE
+    doc: claude-tooling/plugins/pulseengine-claude/skills/delegate-by-cost/SKILL.md
+    text: 'description: "Use this skill BEFORE EVERY Agent (Task) call, to choose `model:`'
+    evidence:
+      - kind: verbatim
+        text: "mechanical work with an exact check (grep, census, count, extract, file:line list, build-and-test against a red/green test) goes to `model: haiku`; `sonnet` only where the subtask needs judgment that is not top-tier"
+      - kind: verbatim
+        text: "haiku's cache read costs a twentieth of opus's (a quarter past 100K-token prompts) while sonnet's costs half"
+      - kind: verbatim
+        text: "**Every Agent call gets an explicit `model:`.**"
+      - kind: verbatim
+        text: "Delegated work is dominated by **cache reads**"
+      - kind: verbatim
+        text: "| `haiku` (prompt ≤ 100K) | $0.10 | $0.01 | $0.50 |"
+      - kind: verbatim
+        text: "| `sonnet` | $2 | $0.10 | $10 |"
+      - kind: verbatim
+        text: "| `opus` | $4 | $0.20 | $20 |"
+      - kind: verbatim
+        text: "**At the top rung, one attempt, then stop and ask the user**"
+      - kind: verbatim
+        text: "**Escalate one rung at a time**"
+      - kind: count-max
+        pattern: 'relative to the session''s own model|"one rung down" from'
+        glob: ['claude-tooling/plugins/pulseengine-claude/**/*.md']
+        max: 0
+      - kind: count-min
+        pattern: 'choose `model:` before every Agent call'
+        glob: ['claude-tooling/plugins/pulseengine-claude/README.md']
+        min: 1
+      - kind: count-min
+        pattern: '\*\*Every\s+Agent call names its `model:`\*\*'
+        glob: ['claude-tooling/plugins/pulseengine-claude/memory/pulseengine-operating-contract.md']
+        min: 1
+
+  # ── The Agent model-reminder hook adds context and never blocks ─────────────
+  # REQ-AGENT-MODEL-REMINDER. The hook may only add additionalContext: a
+  # permissionDecision of any value (even "allow", which skips the user's
+  # permission flow), an updatedInput, or a non-zero exit would turn a reminder
+  # into control over the call. The behaviour is tested by
+  # scripts/check-agent-model-reminder.py; this keeps the wiring and the test.
+  - id: AGENT-MODEL-REMINDER-NEVER-BLOCKS
+    doc: claude-tooling/plugins/pulseengine-claude/README.md
+    text: "It only adds context: it never denies, approves or rewrites the call"
+    evidence:
+      - kind: count-min
+        pattern: '"PreToolUse": \[\s*\{\s*"matcher": "Agent\|Task",\s*"hooks": \[\s*\{\s*"type": "command",\s*"command": "bash \$\{CLAUDE_PLUGIN_ROOT\}/hooks/agent-model-reminder\.sh"'
+        glob: ['claude-tooling/plugins/pulseengine-claude/hooks/hooks.json']
+        min: 1
+      - kind: count-max
+        pattern: 'agent-model-reminder\.sh'
+        glob: ['claude-tooling/plugins/pulseengine-claude/hooks/hooks.json']
+        max: 1
+      - kind: count-max
+        pattern: '"(?:permissionDecision|updatedInput|decision|continue)"'
+        glob: ['claude-tooling/plugins/pulseengine-claude/hooks/agent-model-reminder.py']
+        max: 0
+      - kind: count-max
+        pattern: 'exit\s+[1-9]|sys\.exit\([1-9]'
+        glob: ['claude-tooling/plugins/pulseengine-claude/hooks/agent-model-reminder.sh', 'claude-tooling/plugins/pulseengine-claude/hooks/agent-model-reminder.py']
+        max: 0
+      - kind: count-min
+        pattern: '2>/dev/null\nexit 0\n'
+        glob: ['claude-tooling/plugins/pulseengine-claude/hooks/agent-model-reminder.sh']
+        min: 1
+      - kind: count-min
+        pattern: '\n +python3 scripts/check-agent-model-reminder\.py\n'
+        glob: ['.github/workflows/ci.yml']
+        min: 1
+      - kind: count-max
+        pattern: '\n +python3 scripts/check-agent-model-reminder\.py\n'
+        glob: ['.github/workflows/ci.yml']
+        max: 1

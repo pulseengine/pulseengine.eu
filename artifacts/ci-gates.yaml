@@ -87,6 +87,10 @@ artifacts:
         target: REQ-HOOK-ZSH-SHELL-OPTIONS
       - type: satisfies
         target: REQ-SCRIPT-PORTABILITY
+      - type: satisfies
+        target: REQ-DELEGATE-BY-COST-TRIGGER
+      - type: satisfies
+        target: REQ-AGENT-MODEL-REMINDER
   - id: REQ-LINKS
     type: requirement
     title: Every internal link in the built site resolves
@@ -853,3 +857,53 @@ artifacts:
     links:
       - type: verifies
         target: REQ-SCRIPT-PORTABILITY
+
+  - id: REQ-DELEGATE-BY-COST-TRIGGER
+    type: requirement
+    title: delegate-by-cost fires at the Agent call and sends mechanical work to haiku
+    description: >-
+      Owner-approved 2026-10-29 from a transcript study of 1,531 sessions: the skill was invoked 0 times and only its one-paragraph description steered; explicit `model:` on Agent calls rose from 19% to 54% after it shipped, mostly where the user spelled out the ladder, and was decaying (41 of 177 down-routed in W44); 187 post-ship Agent calls without `model:` ran on opus, Explore use fell from 143 to 3, and the escalation half ran once. Down-routed subagent traffic was 613M cache-read tokens against 3.5M output, and on the published rates (pricing page, 2026-10-29) the cache read is $0.20/MTok on opus, $0.10 on sonnet and $0.01 on haiku up to 100K-token prompts ($0.05 above), so opus to sonnet halves the cache-read bill where haiku removes about 95% (75% past 100K). The bundled claude-api skill (Claude Code 2.1.311, shared/models.md) gives sonnet's cache read as $0.20; the pricing page's $0.10 (0.05x input) is used. Explore's built-in default resolved to an older haiku at ten times the current haiku's input and cache-read rates, so the skill pairs Explore with `model: haiku`. The description names the trigger moment (before every Agent call, choose `model:`) and the rule (from an opus or fable parent, mechanical work with an exact check to haiku, sonnet only for judgment short of top-tier) in a double-quoted YAML scalar; the body gives the cache-read reason with a dated rate table, and keeps the oracle-first procedure, the escalation ladder and the stop-at-top-ask-user terminus. The README and the operating contract carry the same rule; the old "read the ladder relative to the session's own model" advice is gone. The plugin ships no agents/ directory, so no agent definition carried a tier to set.
+    status: verified
+    release: 0.47.0
+    category: functional
+    priority: should
+    fields:
+      category: functional
+
+  - id: VER-DELEGATE-BY-COST-TRIGGER
+    type: verification
+    title: claim DELEGATE-BY-COST-TRIGGER-AND-HAIKU-RULE and check-skill-frontmatter.py
+    description: >-
+      claim-check requires the trigger phrase at the start of the description, the haiku rule and the cache-read ratio in it, the explicit-model rule, the cache-read reason, the haiku, sonnet and opus rate rows, the stop-and-ask and one-rung-at-a-time steps verbatim in the skill, the README and contract pointers, and no "relative to the session's own model" or "one rung down" advice anywhere in the plugin's markdown; check-skill-frontmatter.py parses the description with yaml.safe_load (under the 1024-character limit). Negative-controlled on 2026-10-29: 8 mutants each exit 1 on claim-check (trigger dropped, haiku rule softened to sonnet, cache-read reason dropped, sonnet cache price drifted to $0.20, stop-and-ask replaced, one-rung-down advice re-added, README pointer dropped, contract rule dropped); all restored by re-editing, and claim-check exits 0 again.
+    status: verified
+    release: 0.47.0
+    method: automated-test
+    test-location: claims.yaml
+    links:
+      - type: verifies
+        target: REQ-DELEGATE-BY-COST-TRIGGER
+
+  - id: REQ-AGENT-MODEL-REMINDER
+    type: requirement
+    title: A PreToolUse hook reminds the agent to choose `model:` on an Agent call, and never blocks it
+    description: >-
+      Owner-approved 2026-10-29 with REQ-DELEGATE-BY-COST-TRIGGER: since a skill's body was never read, the rule is put in front of the agent at the one moment it applies. hooks/agent-model-reminder.sh (PreToolUse, matcher Agent|Task) runs agent-model-reminder.py (python3 3.9, stdlib, no network, no files) and, when `model` is missing and `subagent_type` is absent, general-purpose or claude, prints only hookSpecificOutput.additionalContext with a one-line reminder. It is silent on every other case (model set, fork, Explore, Plan, claude-code-guide, any plugin or project agent, whose own frontmatter `model:` it cannot see, a non-Agent tool, malformed or empty input). It never prints permissionDecision (no value, not even allow, which would skip the user's permission flow), updatedInput, decision or continue, and the wrapper always exits 0 with stderr silenced, so a missing or crashing python3 is not a hook error. Claude Code adds PreToolUse context with the tool result, so the reminder shapes the next Agent call, not the one that triggered it. Annoyance measured over the local transcript archive (a 30-day window, not the 1,531-session study; 2026-10-29, deduplicated by tool_use id): of 2,193 Agent calls in 19 sessions it would have fired on 1,486 (67.8%: general-purpose 1,272, no subagent_type 191, claude 23), up to 367 times in one session (median 51 per firing session), which is why the reminder is one short line.
+    status: verified
+    release: 0.47.0
+    category: functional
+    priority: should
+    fields:
+      category: functional
+
+  - id: VER-AGENT-MODEL-REMINDER
+    type: verification
+    title: scripts/check-agent-model-reminder.py runs the real hook, plus claim AGENT-MODEL-REMINDER-NEVER-BLOCKS
+    description: >-
+      The script runs the real wrapper under bash with 19 event fixtures: 6 must print exactly the additionalContext shape naming haiku (no subagent_type, general-purpose, claude, model "" and null, old tool name Task) and 13 must print nothing (model set twice, fork, Explore, Plan, claude-code-guide, a plugin and a project agent, the Bash tool, non-object tool_input, malformed JSON, empty stdin, a JSON array); every run exits 0 with empty stderr. It also checks the wrapper exits 0 silently with python3 off PATH and with a python3 that crashes with a traceback, the .py alone on malformed input, the slowest run under 2 s (35 ms measured), and hooks.json wiring once under PreToolUse with a matcher naming Agent. Passes under /usr/bin/python3 3.9.6. Negative-controlled on 2026-10-29: 14 mutants each exit 1 on the script (emits allow, deny, updatedInput; wrapper exits 2; wrapper passes python's status; reminds when model is set, on fork, on Explore; silent on general-purpose, on no subagent_type; crashes on bad JSON; stderr leaks; unwired; matcher drops Agent) and 8 each exit 1 on claim-check (unwired, wired twice, emits allow, emits updatedInput, wrapper exits 2, wrapper exit 0 dropped, CI step removed, README never-blocks sentence dropped); all restored by re-editing and exit 0 again. Live 2026-10-29: a fresh `claude -p` session with this plugin dir (haiku parent) made one general-purpose Agent call without `model:` and one with `model: haiku`; the transcript carries a hook_additional_context attachment with the reminder on the first call only, and both subagents ran and returned (ALPHA, BETA). The control session that loaded the installed 0.46.1 plugin showed no reminder.
+    status: verified
+    release: 0.47.0
+    method: automated-test
+    test-location: scripts/check-agent-model-reminder.py
+    links:
+      - type: verifies
+        target: REQ-AGENT-MODEL-REMINDER

@@ -275,6 +275,17 @@ jobs:
           fi
           python3 scripts/check-hook-shell-options.py
 
+      # The PreToolUse(Agent) hook that reminds the agent to choose `model:`
+      # (REQ-AGENT-MODEL-REMINDER). Runs the real wrapper: it must fire on an
+      # Agent call that would inherit the parent's model, stay silent on every
+      # other case (model set, fork, Explore, plugin agents, bad input), and
+      # never print anything but additionalContext or exit non-zero, so it can
+      # never deny, approve or rewrite a call.
+      - name: Check the Agent model-reminder hook never blocks
+        run: |
+          set -euo pipefail
+          python3 scripts/check-agent-model-reminder.py
+
       # External review of #232 found a compiled .pyc in that PR and a second
       # one tracked for longer, with all ten gates green over both: each asked
       # whether a claim matched the tree, none asked what was in it.

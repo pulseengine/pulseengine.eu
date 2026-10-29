@@ -1,5 +1,5 @@
 {
-  "description": "Always-on PulseEngine context: at session start inject the methodology memory, situational awareness (git state, repo category, resumed working context), and — in a rivet project — the traceability state plus the rivet command surface to use instead of grepping artifact YAML; write `setopt no_nomatch no_equals` (zsh only, once) into $CLAUDE_ENV_FILE so an unmatched glob or an `=word` stops failing the agent's Bash calls; persist a working-context checkpoint on session end and before compaction so work resumes instead of starting cold; at session start list the factory-notice answers waiting and, inside the owner's decision windows only, the decisions the attention budget surfaces, and at session end post an automatic summary when the agent wrote none and flush the notice outbox to warte.",
+  "description": "Always-on PulseEngine context: at session start inject the methodology memory, situational awareness (git state, repo category, resumed working context), and — in a rivet project — the traceability state plus the rivet command surface to use instead of grepping artifact YAML; write `setopt no_nomatch no_equals` (zsh only, once) into $CLAUDE_ENV_FILE so an unmatched glob or an `=word` stops failing the agent's Bash calls; persist a working-context checkpoint on session end and before compaction so work resumes instead of starting cold; at session start list the factory-notice answers waiting and, inside the owner's decision windows only, the decisions the attention budget surfaces, and at session end post an automatic summary when the agent wrote none and flush the notice outbox to warte; and before every Agent call that has no `model:` and would inherit the parent's model, add a non-blocking reminder to choose a tier per delegate-by-cost (never denies, approves or rewrites the call).",
   "hooks": {
     "SessionStart": [
       {
@@ -27,6 +27,18 @@
           {
             "type": "command",
             "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/factory-notice.sh start",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Agent|Task",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/agent-model-reminder.sh",
             "timeout": 5
           }
         ]
