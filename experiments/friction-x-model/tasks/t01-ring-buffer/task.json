@@ -1,0 +1,15 @@
+{
+  "id": "t01-ring-buffer",
+  "c": {
+    "header": "rb.h",
+    "solution": "rb.c"
+  },
+  "rust": {
+    "crate": "fxm_task"
+  },
+  "kani_probe": {
+    "why": "a change to the reference that must make at least one fixed harness fail",
+    "old": "if self.count == CAPACITY {\n            return false;",
+    "new": "if self.count > CAPACITY {\n            return false;"
+  }
+}

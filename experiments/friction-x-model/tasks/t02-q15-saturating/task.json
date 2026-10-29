@@ -1,0 +1,15 @@
+{
+  "id": "t02-q15-saturating",
+  "c": {
+    "header": "q15.h",
+    "solution": "q15.c"
+  },
+  "rust": {
+    "crate": "fxm_task"
+  },
+  "kani_probe": {
+    "why": "a change to the reference that must make at least one fixed harness fail",
+    "old": "a.saturating_neg()",
+    "new": "-a"
+  }
+}
