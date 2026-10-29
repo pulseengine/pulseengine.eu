@@ -1,10 +1,11 @@
 # Experiment: friction × model, v2 (brownfield)
 
-Drafted 2026-10-29, after v1 closed at the ceiling and before any v2 task
-exists. **Status: draft pre-registration. Nothing here runs before the owner
-has decided the open questions below, and no task is frozen before it passes
-calibration.** The design is bound by `claims.yaml`
-(`EXPERIMENT-FRICTION-BROWNFIELD-DRAFTED`).
+Pre-registered 2026-10-29, after v1 closed at the ceiling and before any v2
+task exists. **Status: pre-registered; the owner's decisions are recorded
+below. Calibration and the harness pilot are authorised. The full run is not:
+it needs its own owner decision, made on measured per-run costs. No task is
+frozen before it passes calibration.** The design is bound by `claims.yaml`
+(`EXPERIMENT-FRICTION-BROWNFIELD-PREREGISTERED`).
 
 This is the second version of the experiment pre-registered in
 [`2026-10-friction-x-model.md`](2026-10-friction-x-model.md) (v1, from
@@ -37,8 +38,8 @@ behaviour spec. The full numbers are in v1's dated section
 - **Calibration of t11 and t12 (60 runs, three rounds, $2.00 notional):** no
   design brought haiku below 9 of 10 at F0. Every pass was clean at the first
   answer, at F2 too.
-- **G1 (silencing per answer) was 0 in every cell** (owner-reported; no PR
-  states it).
+- **G1 (silencing per answer) was 0 in every one of the 20 cells,** 0 of 132
+  answers, and pilot 1 cost $4.34 notional for 120 runs (v1 pilot report, `fxm.py report` at fc7b316~ / dd887aa).
 
 The reading: a small, fully specified greenfield task is transcribed
 correctly. There is nothing for friction to fix and nothing to silence, so
@@ -119,7 +120,7 @@ in Rust**, and one change request that applies to both.
 - **The change request.** A feature or a bug report, written as an issue would
   be. A correct implementation touches at least 3 files and at least one
   invariant. Bug reports give the symptom, not the cause.
-- **Six tasks**, four features and two bug fixes (a proposal, for the owner).
+- **Six tasks**, four features and two bug fixes (owner decision, 2026-10-29).
   The C and Rust twins of one task share the change request and the hidden
   vectors, as v1's tasks did.
 
@@ -151,7 +152,7 @@ seen it.**
 |---|---|---|---|
 | PulseEngine's own repos at a pinned old commit | fine | **high.** Public on GitHub. A pinned old commit is worse, not better: the later commit that implements the change has had longer to reach training data | mostly Rust, little embedded C; largely agent-written, and our post "Agents don't tidy up" found that agent-written projects refactor far less than human-written ones; we know the code, so we would write change requests that favour it |
 | Permissive OSS embedded code (MIT, BSD, Apache-2.0), obscure projects | attribution and NOTICE duties; republishing derived code; must be checked per file | **high for the change.** If the change request is a real upstream change, the fix is public. If it is not, the code base still is | real history and real noise; renaming identifiers does not hide structure from a model that has seen it |
-| **Synthetic but realistic, built for v2** | ours | **low for the code and the fix.** Neither exists before the run | realism must be built in; written by a model of the same family as the subjects, unless decided otherwise |
+| **Synthetic but realistic, built for v2** | ours | **low for the code and the fix.** Neither exists before the run | realism must be built in; written by a non-Claude model (decided), so not by the subjects' family |
 
 **Recommendation: synthetic code bases, built for v2 and kept private until the
 full run ends.**
@@ -169,11 +170,33 @@ full run ends.**
   change are not. Legacy texture is added on purpose: mixed naming, a
   deviation-commented hack, an unused parameter kept for an old API, a module
   split that no longer fits.
-- **Same-family authorship, a confound to decide.** Code written by a Claude
-  model may be easier for Claude models to read. Options, for the owner: a
-  non-Claude model writes the code base and a person reviews it; or a Claude
-  model writes it, a person reviews it, and the authorship is reported as a
-  limit. Either way the change request and the invariants are written by hand.
+- **Written by a non-Claude model (owner decision, 2026-10-29).** Code
+  written by a Claude model may be easier for Claude models to read, so the
+  code bases are written by a non-Claude model.
+  - **The authoring tool is Mistral Vibe,** Mistral's command-line coding
+    agent, on the bench machine, in auto-approve mode. Its budget is its own,
+    separate from the Claude quota, so authoring is not in the notional cost
+    figures below.
+  - **Recorded per task:** `vibe --version`, the model Vibe reports, the
+    auto-approve setting, and the sha256 of every prompt used.
+  - **The boundary for auto-approve.** Each code base is written in its own
+    fresh directory on the bench machine's data volume. There is no clone of
+    a repository with a remote. No credentials or tokens are in its
+    environment, no `gh`, and no git push. Network access is only what Vibe
+    itself needs.
+  - **Nothing it produces is trusted.** Acceptance is decided by the
+    mechanical review below, never by Vibe's own report.
+  - **A known risk from this factory:** Mistral-drafted text has had
+    fabricated references. So the specs and comments Vibe writes get the
+    same mechanical checks as its code, and no claim is taken from its
+    prose.
+  - **Review is mechanical:** the build, the visible and hidden suites, the
+    analyser noise counts against the task's noise budget, and the invariant
+    checks of `check-tasks`. A reviewer also re-derives the feature-ablation
+    split (baseline plus reference gives back the complete system, and the
+    hidden and visible suites are disjoint). Nothing is accepted on a reading
+    alone.
+  - The change request and the invariants are written by hand.
 
 ## The matrix
 
@@ -215,8 +238,8 @@ Only `[new]` findings count towards the stop. Pre-existing findings in files
 the agent did not touch are shown as a count per file and rule; in touched
 files they are listed in full.
 
-This is a design choice, for the owner to confirm. The alternative is to show
-only new findings. That is cleaner, but it removes the situation the third
+Decided by the owner on 2026-10-29, so that G2 is measurable. The alternative
+was to show only new findings. That is cleaner, but it removes the situation the third
 question is about: a report with noise in it, and an agent deciding whether to
 fix, silence or leave it. Our post "Agents don't tidy up" found that agents
 work on what a gate checks; a report full of other people's findings is exactly that test.
@@ -425,8 +448,8 @@ fable 5.1 $10 / $0.25 / $50.
 
 **The anchor.** v1's calibration ran 22 opus and 38 haiku runs of about one
 call each for $2.00. With about 5K input tokens per call, that fits about 3.5K
-output tokens per call, thinking included. That is consistent with the
-owner-reported $0.03 to $0.05 per small run averaged over models.
+output tokens per call, thinking included. That is consistent with pilot 1:
+$4.34 for 120 runs, about $0.036 a run over all four models (v1 pilot report, `fxm.py report` at fc7b316~ / dd887aa).
 
 **The assumptions, all to be measured in calibration:**
 
@@ -459,8 +482,8 @@ owner-reported $0.03 to $0.05 per small run averaged over models.
   haiku costs under $10 in every case. The calibration criteria themselves (B0
   band and B1 headroom) cost about $3 a round; the opus floor guard is most
   of the calibration figure.
-- **Not in the figures:** building the six twin code bases. That is agent and
-  owner time on the subscription, with no measured anchor yet.
+- **Not in the figures:** writing the six twin code bases. Mistral Vibe does
+  it on its own budget, separate from the Claude quota.
 
 The arithmetic is `experiments/friction-brownfield/cost.py`, which prints
 every figure above from the assumptions above. It calls no API.
@@ -499,26 +522,27 @@ New, in `experiments/friction-brownfield/`, in later PRs:
 
 `fxm.py`'s v1 constants, tasks and claims do not change.
 
-## For the owner to decide
+## Owner decisions, 2026-10-29
 
-1. **Code-base source.** Recommended: synthetic, private until the full run is
-   reported. And who writes them: a non-Claude model with review, or a Claude
-   model with the authorship reported as a limit.
-2. **Budget cap**, notional: the planning figure is about $55 calibration, $30
-   harness pilot, $800 full run; worst case about $2,500 for the full run.
-   Options that cut it: drop fable (about 62% of the full run), or 3
-   repetitions instead of 5 (18 runs per cell instead of 30).
-3. **Timeline**, in quota weeks. Building and reviewing six twin code bases
-   comes first; calibration measures how much of a week one round takes.
-4. **The B2 report:** full report with tags (recommended) or new findings
-   only.
-5. **The task mix:** six tasks, four features and two bug fixes.
-6. **The answer format:** `{path, old, new}` edits (recommended) or whole
-   files.
-7. **v1's t03 to t10:** not written, and not needed for v2. Recommended: they
-   are dropped, and v1 stays closed.
-8. **Two additions to the calibration rule you set:** the B1 headroom
-   criterion (haiku fails at least 1 of 5 at C-B1 and R-B1), and twins in band
-   together. Both are proposed here, not yet agreed.
-9. **The v2 levels themselves:** B1 runs the build and the visible tests, and
-   the refutation is stated against B1, not B0.
+Decided on #318, before any v2 task exists:
+
+1. **Code bases:** synthetic, written by Mistral Vibe in auto-approve mode on
+   the bench machine, inside the boundary above, with mechanical review:
+   build, visible and hidden tests, analyser noise counts, invariant checks,
+   and a re-derived feature-ablation split. `vibe --version`, the model it
+   reports and the hashes of its prompts are recorded per task. Vibe's budget
+   is separate from the Claude quota.
+2. **Budget:** calibration and the harness pilot, about $85 notional, are
+   authorised now. **The full run, about $800 notional, is not authorised.** It
+   needs a separate owner decision, made on the per-run costs measured in
+   calibration and the harness pilot.
+3. **The B2 report** shows the full checker report, every finding tagged new
+   or pre-existing, so that G2 is measurable.
+4. **Accepted as proposed:** six tasks, four features and two bug fixes;
+   `{path, old, new}` edit answers; v1's t03 to t10 dropped; levels B0 to B3,
+   with the refutation stated against B1; both added calibration criteria
+   (haiku fails at least 1 of 5 at B1; a task's C and Rust twins are in band
+   together or not at all).
+
+Still open: the timeline, in quota weeks. Calibration measures how much of a
+week one round takes.

@@ -854,18 +854,39 @@ claims:
         glob: ['.github/workflows/ci.yml']
         min: 1
 
-  # ── v1 closed at the ceiling; v2 (brownfield) drafted, not run ──────────────
+  # ── v1 closed at the ceiling; v2 (brownfield) pre-registered, not run ───────
   # v1's pilot and calibration sat at the ceiling, so v1 is closed with a dated
-  # negative result and the cancelled re-pilot recorded. v2 is a draft: the
+  # negative result and the cancelled re-pilot recorded. In v2 the
   # calibration band, the oracle's independence, the hypotheses and the
   # refutation are fixed in text before any v2 task exists, and the cost figures
   # come from a committed script, not from prose. No ^/$ anchors: whole-file.
-  - id: EXPERIMENT-FRICTION-BROWNFIELD-DRAFTED
+  - id: EXPERIMENT-FRICTION-BROWNFIELD-PREREGISTERED
     doc: docs/experiments/2026-11-friction-brownfield.md
-    text: "Status: draft pre-registration."
+    text: "Calibration and the harness pilot are authorised. The full run is not"
     evidence:
       - kind: count-min
-        pattern: '\*\*Status: draft pre-registration\. Nothing here runs before the owner\s+has decided the open questions below, and no task is frozen before it passes\s+calibration\.\*\*'
+        pattern: '\*\*Status: pre-registered; the owner''s decisions are recorded\s+below\. Calibration and the harness pilot are authorised\. The full run is not:\s+it needs its own owner decision, made on measured per-run costs\.'
+        glob: ['docs/experiments/2026-11-friction-brownfield.md']
+        min: 1
+      - kind: count-min
+        pattern: '\*\*The full run, about \$800 notional, is not authorised\.\*\*'
+        glob: ['docs/experiments/2026-11-friction-brownfield.md']
+        min: 1
+      # The code-base author and the boundary its auto-approve mode runs in.
+      - kind: count-min
+        pattern: '\*\*The authoring tool is Mistral Vibe,\*\*'
+        glob: ['docs/experiments/2026-11-friction-brownfield.md']
+        min: 1
+      - kind: count-min
+        pattern: 'No credentials or tokens are in its\s+environment, no `gh`, and no git push\.'
+        glob: ['docs/experiments/2026-11-friction-brownfield.md']
+        min: 1
+      - kind: count-min
+        pattern: '\*\*Nothing it produces is trusted\.\*\*'
+        glob: ['docs/experiments/2026-11-friction-brownfield.md']
+        min: 1
+      - kind: count-min
+        pattern: 'separate from the Claude quota, so authoring is not in the notional cost'
         glob: ['docs/experiments/2026-11-friction-brownfield.md']
         min: 1
       # v1 records its own end; the README says the re-pilot did not run.
@@ -878,9 +899,21 @@ claims:
         glob: ['docs/experiments/2026-10-friction-x-model.md']
         min: 1
       - kind: count-min
-        pattern: 'are owner-reported, and no PR\s+states them\.'
+        pattern: '\*\*G1: 0 silencing answers in every one of the 20 cells\*\* \(0 of 6 to 0 of 9\s+answers per cell, 0 of 132 answers in all\)\.'
         glob: ['docs/experiments/2026-10-friction-x-model.md']
         min: 1
+      - kind: count-min
+        pattern: '\*\*Notional cost \$4\.34 for 120 runs\*\* \(about \$0\.036 a run\)'
+        glob: ['docs/experiments/2026-10-friction-x-model.md']
+        min: 1
+      - kind: count-min
+        pattern: 'v1 pilot report, `fxm\.py report` at fc7b316~ / dd887aa'
+        glob: ['docs/experiments/2026-10-friction-x-model.md']
+        min: 1
+      - kind: count-max
+        pattern: 'owner-reported'
+        glob: ['docs/experiments/2026-1[01]-friction-*.md']
+        max: 0
       - kind: count-min
         pattern: '\*\*Cancelled 2026-10-29 \(owner decision\)\.\*\*'
         glob: ['experiments/friction-x-model/README.md']
