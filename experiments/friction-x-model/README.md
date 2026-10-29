@@ -90,6 +90,7 @@ re-run:
 
 ```sh
 cd experiments/friction-x-model
+export FXM_NOTICE=<path to notice.py>   # optional; without it, nothing is posted
 nohup python3 fxm.py matrix --pilot --wait-on-limit > "$WORK/pilot.log" 2>&1 < /dev/null & disown
 ```
 

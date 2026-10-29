@@ -466,7 +466,7 @@ def visible_files(task, level):
     if LANG[level] == "c":
         # The caller is public material, shown at F0 and F1 alike so the two C rows stay symmetric.
         return [(task["c"]["header"], (d / "c" / task["c"]["header"]).read_text()),
-                (f'{task["c"]["caller"]} (a caller of the whole API; cppcheck analyses it together with your file)',
+                (f'{task["c"]["caller"]} (a fixed caller of every function in {task["c"]["header"]})',
                  (d / "c" / task["c"]["caller"]).read_text())]
     files = []
     if level == "F4":
@@ -600,12 +600,14 @@ def ask(runner, model, prompt):
                 raise CouldNotRun(f"the Claude Code CLI ({CLAUDE_CLI}) is not installed")
         res, limits = cli_result(p.stdout)
         text = str((res or {}).get("result") or p.stderr or "")[:300]
+        # A structured rejected limit wins over login text, so a limit is waited on, never a stop.
+        if any(i.get("status") == "rejected" for i in limits):
+            raise UsageLimit(f"usage limit reached: {text}", limit_resets_at(limits, text))
         failed = res is None or res.get("is_error") or p.returncode != 0
         if failed and ((res or {}).get("api_error_status") == 401
                        or LOGIN_TEXT.search(text) or LOGIN_TEXT.search(str(p.stderr or "")[:300])):
             raise LoginFailure(f"the Claude Code CLI is not logged in, or its token is invalid: {text}")
-        if any(i.get("status") == "rejected" for i in limits) or (
-                (res is None or res.get("is_error")) and LIMIT_TEXT.search(text)):
+        if (res is None or res.get("is_error")) and LIMIT_TEXT.search(text):
             raise UsageLimit(f"usage limit reached: {text}", limit_resets_at(limits, text))
         if res is not None and p.returncode == 0 and not res.get("is_error"):
             used = res.get("modelUsage") or {}
@@ -1932,6 +1934,8 @@ def self_test(with_tools=False):
                 hdr = (tk["dir"] / "c" / tk["c"]["header"]).read_text()
                 check(f"{tid}: F0 and F1 both show the caller TU",
                       all(caller in build_prompt(tk, lv, []) for lv in ("F0", "F1")))
+                check(f"{tid}: the F0 prompt still names no checker (the caller adds no hint)",
+                      not re.search(r"cppcheck|8\.7|translation unit", build_prompt(tk, "F0", []), re.I))
                 check(f"{tid}: the caller calls exactly the functions the header declares {task_caller_drift(tk)}",
                       not task_caller_drift(tk))
                 calls = [n for n in re.findall(r"\b([A-Za-z_]\w*)[ \t]*\(", c_strip(caller))

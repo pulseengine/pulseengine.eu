@@ -613,11 +613,11 @@ claims:
         glob: ['docs/experiments/2026-10-friction-x-model.md']
         min: 1
       - kind: count-min
-        pattern: '(?m)^990d94fcf2354448717a29ef68c81773dcdbfd59b6ea30033fdd593e20f38757  tasks/t01-ring-buffer/c/api_use\.c$'
+        pattern: '(?m)^4c8ae71f59703ddc0ad359f971fa45e56f798d7b172d51a626d797225ce4dfb8  tasks/t01-ring-buffer/c/api_use\.c$'
         glob: ['experiments/friction-x-model/frozen.sha256']
         min: 1
       - kind: count-min
-        pattern: '(?m)^fa128904638de3bf0dfb983f12fe9407bc5d7d01cffac8a936acd39d849ad7db  tasks/t02-q15-saturating/c/api_use\.c$'
+        pattern: '(?m)^5681b7eed44aba68d4c31f0f05a88d86ae16a2a588dfe71ca8ab02bfaa14437c  tasks/t02-q15-saturating/c/api_use\.c$'
         glob: ['experiments/friction-x-model/frozen.sha256']
         min: 1
       - kind: count-min

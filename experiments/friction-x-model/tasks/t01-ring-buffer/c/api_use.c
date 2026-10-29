@@ -1,7 +1,4 @@
-/* A fixed caller of every function declared in rb.h, and nothing else.
- * cppcheck analyses it together with rb.c, so its whole-program MISRA check
- * sees that the API is called from another translation unit (rule 8.7).
- * It is not a test: it is never compiled or run, and checks no behaviour. */
+/* Calls every function declared in rb.h, and nothing else. Not a test. */
 #include <stdbool.h>
 #include <stdint.h>
 #include "rb.h"
