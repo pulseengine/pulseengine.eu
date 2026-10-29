@@ -51,6 +51,7 @@ python3 fxm.py run --task t01-ring-buffer --level F3 --model claude-haiku-5-5 --
 # Records of a single `run` are ungated and `report` excludes them.
 python3 fxm.py matrix --pilot
 python3 fxm.py report
+python3 fxm.py verify-transcripts      # re-hash every stored transcript file against its record
 
 python3 fxm.py gen-vectors             # only when a reference model changes: rewrites vectors + frozen.sha256
 ```
