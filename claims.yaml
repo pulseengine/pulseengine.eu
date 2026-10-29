@@ -1855,3 +1855,51 @@ claims:
         pattern: '\n +python3 scripts/check-hook-shell-options\.py\n'
         glob: ['.github/workflows/ci.yml']
         max: 1
+
+  # ── Committed scripts run on the macOS floor (bash 3.2, python3 3.9) ────────
+  # macOS runs committed scripts with /bin/bash 3.2 and /usr/bin/python3 3.9;
+  # CI ran only newer tools, so a script using tomllib or `X | None` was green
+  # here and died on the Mac (REQ-SCRIPT-PORTABILITY). The build job must run
+  # the pinned shellcheck by path and the floor checker under 3.9, self-test
+  # first; no bare `shellcheck` call may stand in for the pinned one.
+  - id: CI-SCRIPT-PORTABILITY-FLOOR
+    doc: CLAUDE.md
+    text: "Committed scripts must run on the macOS floor, bash 3.2 and python3 3.9"
+    evidence:
+      - kind: count-max
+        pattern: '(?m)^\s*(?:-\s*)?(?:run:\s*)?shellcheck\s'
+        glob: ['.github/workflows/*.yml']
+        max: 0
+      - kind: count-min
+        pattern: 'SHELLCHECK_SHA256: b7af85e41cc99489dcc21d66c6d5f3685138f06d34651e6d34b42ec6d54fe6f6'
+        glob: ['.github/workflows/ci.yml']
+        min: 1
+      - kind: count-min
+        pattern: 'echo "\$SHELLCHECK_SHA256  \$dir/\$asset" \| sha256sum -c -'
+        glob: ['.github/workflows/ci.yml']
+        min: 1
+      - kind: count-min
+        pattern: '(?m)^\s*git ls-files -z ''\*\.sh'' ''\*\.bash'' \| xargs -0 -r "\$SHELLCHECK" -S warning$'
+        glob: ['.github/workflows/ci.yml']
+        min: 1
+      - kind: count-min
+        pattern: '(?m)^\s*python-version: "3\.9"$'
+        glob: ['.github/workflows/ci.yml']
+        min: 1
+      - kind: count-min
+        pattern: '(?m)^\s*"\$PY39" scripts/check-py-floor\.py --self-test$'
+        glob: ['.github/workflows/ci.yml']
+        min: 1
+      - kind: count-min
+        pattern: '(?m)^\s*git ls-files -z ''\*\.py'' \| xargs -0 -r "\$PY39" scripts/check-py-floor\.py$'
+        glob: ['.github/workflows/ci.yml']
+        min: 1
+      # The checker keeps the two classes that broke on the Mac as red fixtures.
+      - kind: count-min
+        pattern: '\("unguarded tomllib", "import tomllib\\n", True\)'
+        glob: ['scripts/check-py-floor.py']
+        min: 1
+      - kind: count-min
+        pattern: '\("union in signature", "def f\(x: int \| None\) -> None:'
+        glob: ['scripts/check-py-floor.py']
+        min: 1

@@ -1,8 +1,16 @@
 #!/usr/bin/env python3
 """Validate blog post frontmatter for required fields and consistency."""
 
+from __future__ import annotations
+
 import sys
-import tomllib
+try:
+    import tomllib
+except ModuleNotFoundError:  # Python < 3.11, e.g. macOS /usr/bin/python3 (3.9)
+    try:
+        import tomli as tomllib
+    except ModuleNotFoundError:
+        sys.exit("validate-frontmatter.py: needs Python 3.11+ (tomllib) or the tomli package")
 from pathlib import Path
 
 REQUIRED_FIELDS = ["title", "description", "date"]

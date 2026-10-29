@@ -29,7 +29,13 @@ from __future__ import annotations
 import json
 import pathlib
 import sys
-import tomllib
+try:
+    import tomllib
+except ModuleNotFoundError:  # Python < 3.11, e.g. macOS /usr/bin/python3 (3.9)
+    try:
+        import tomli as tomllib
+    except ModuleNotFoundError:
+        sys.exit("prune-report-versions.py: needs Python 3.11+ (tomllib) or the tomli package")
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 CONFIG = ROOT / "reports.toml"
