@@ -79,6 +79,8 @@ artifacts:
         target: REQ-ISSUE-TEXT-IS-DATA
       - type: satisfies
         target: REQ-ISSUE-TEXT-HARDENED
+      - type: satisfies
+        target: REQ-SKILL-FRONTMATTER-YAML
   - id: REQ-LINKS
     type: requirement
     title: Every internal link in the built site resolves
@@ -745,3 +747,28 @@ artifacts:
     links:
       - type: verifies
         target: REQ-ISSUE-TEXT-HARDENED
+
+  - id: REQ-SKILL-FRONTMATTER-YAML
+    type: requirement
+    title: Every skill's frontmatter parses as strict YAML
+    description: >-
+      Extends REQ-SKILL-LOADS. Copilot CLI parses SKILL.md frontmatter with a strict YAML parser and refuses the whole skill on an error such as an unquoted ": " inside a plain-scalar description ("mapping values are not allowed"). Claude Code reads frontmatter leniently, so the defect is invisible there. Reported on 2026-10-29 for delegate-by-cost and verify-your-own-claims under plugin 0.40.0; factory-notice had the same defect. check-skill-frontmatter.py parses each block with yaml.safe_load, fails on any YAML error, and exits 2 if PyYAML is missing rather than passing unparsed.
+    status: verified
+    release: 0.45.3
+    category: functional
+    priority: must
+    fields:
+      category: functional
+
+  - id: VER-SKILL-FRONTMATTER-YAML
+    type: verification
+    title: check-skill-frontmatter.py strict parse, and claim SKILL-FRONTMATTER-STRICT-YAML
+    description: >-
+      CI runs scripts/check-skill-frontmatter.py, which parses every SKILL.md frontmatter block with yaml.safe_load: 22/22 parse at 0.45.3. Negative-controlled on 2026-10-29: an unquoted ": " put back into delegate-by-cost's description makes the check exit 1 with the strict-YAML error; replacing the parse in the script makes claim SKILL-FRONTMATTER-STRICT-YAML fail (43/44). Both were restored and checked green again.
+    status: verified
+    release: 0.45.3
+    method: automated-test
+    test-location: scripts/check-skill-frontmatter.py
+    links:
+      - type: verifies
+        target: REQ-SKILL-FRONTMATTER-YAML
