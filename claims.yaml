@@ -616,7 +616,7 @@ claims:
         glob: ['experiments/friction-x-model/fxm.py']
         min: 1
       - kind: count-min
-        pattern: 'if "#!\[no_std\]" not in attrs:\n\s+out\.append\(\(CONFIG_SPLIT, "the crate root must be #!\[no_std\]"\)\)'
+        pattern: 'if "#!\[no_std\]" not in attrs:\n\s+out\.append\(RUST_ATTR_RULES\["no_std"\]\[:2\]\)'
         glob: ['experiments/friction-x-model/fxm.py']
         min: 1
       - kind: count-min
@@ -683,6 +683,19 @@ claims:
         min: 1
       - kind: count-min
         pattern: 'if prev\.get\("status"\) == "ok" and prev\.get\("gate"\):'
+        glob: ['experiments/friction-x-model/fxm.py']
+        min: 1
+      # Focused verification (#303): the prompt states every enforced rule.
+      - kind: count-min
+        pattern: '"clippy outside a lint path; code that names the harness crate fxm_proofs; code whose macro "'
+        glob: ['experiments/friction-x-model/fxm.py']
+        min: 1
+      - kind: count-min
+        pattern: '"__CPPCHECK__, any reserved identifier\), an #include of any file other than the task''s own header "'
+        glob: ['experiments/friction-x-model/fxm.py']
+        min: 1
+      - kind: count-min
+        pattern: 'missing = \[t for t in told_rules\(LANG\[lv\]\) if t not in pr\]'
         glob: ['experiments/friction-x-model/fxm.py']
         min: 1
       # A final answer that reaches outside its file never counts as a pass.
