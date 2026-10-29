@@ -15,7 +15,12 @@ changed afterwards in 9221908 (repo-hygiene 0.2.0 -> 0.3.0) with no bump.
 The rule: any change under the plugin directory must be accompanied by, or
 followed by, a change to plugin.json's version.
 
-Exit: 0 version is current · 1 the plugin moved without a bump · 2 cannot check.
+A shallow clone exits 2, never 0: the commit that set the version can lie
+outside the fetched history, and on a depth-1 PR checkout the check used to
+pass vacuously by crediting the merge commit with the version line.
+
+Exit: 0 version is current · 1 the plugin moved without a bump · 2 cannot check
+(shallow clone, no commit sets the version, git failed).
 """
 
 from __future__ import annotations
@@ -43,6 +48,16 @@ def main() -> int:
         print(f"error: expected {MANIFEST.relative_to(ROOT)}", file=sys.stderr)
         return 2
     try:
+        # A shallow clone cannot see the commit that set the version: `log -S`
+        # then names the oldest commit it has (on a depth-1 PR checkout, the
+        # merge commit itself) and the check passes having compared nothing.
+        # Measured on #315, 2026-10-29: green in CI, exit 1 on full history.
+        if git("rev-parse", "--is-shallow-repository") != "false":
+            print("error: shallow clone — the commit that set the version may "
+                  "be outside the fetched history, so the check cannot tell "
+                  "you anything (use actions/checkout fetch-depth: 0)",
+                  file=sys.stderr)
+            return 2
         version = json.loads(MANIFEST.read_text())["version"]
         # the newest commit that changed the version LINE, not the file
         blame = git("log", "-1", "--format=%H", "-S", f'"version": "{version}"',

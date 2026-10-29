@@ -91,6 +91,12 @@ artifacts:
         target: REQ-DELEGATE-BY-COST-TRIGGER
       - type: satisfies
         target: REQ-AGENT-MODEL-REMINDER
+      - type: satisfies
+        target: REQ-FACTORY-NOTICE-CURL-FALLBACK
+      - type: satisfies
+        target: REQ-AGENT-MODEL-REMINDER-THROTTLE
+      - type: satisfies
+        target: REQ-PLUGIN-VERSION-GATE-FULL-HISTORY
   - id: REQ-LINKS
     type: requirement
     title: Every internal link in the built site resolves
@@ -907,3 +913,78 @@ artifacts:
     links:
       - type: verifies
         target: REQ-AGENT-MODEL-REMINDER
+
+  - id: REQ-FACTORY-NOTICE-CURL-FALLBACK
+    type: requirement
+    title: notice.py retries a DNS or connection failure via curl, and only that
+    description: >-
+      Owner decision 2026-10-29. On macOS, Local Network privacy is per binary: python3 can fail to resolve a .local host (urllib URLError wrapping socket.gaierror "nodename nor servname provided") or to reach a LAN host (EHOSTUNREACH), while Apple's /usr/bin/curl reaches it from the same shell. The existing fallback covered EHOSTUNREACH, ENETUNREACH and EPERM only, so the DNS case sent every notice to the outbox. notice.py now retries the same request once via curl when urllib's reason is a socket.gaierror or an OSError with errno EHOSTUNREACH, ENETUNREACH, EHOSTDOWN, ENETDOWN, ECONNREFUSED or EPERM. It never retries an HTTP status (HTTPError is handled first), a TLS error (ssl.SSLError is excluded before the errno test, because its errno 1 equals EPERM and a certificate failure must not be retried around), or a timeout. curl gets PULSEENGINE_WARTE_CACERT via --cacert and the body on stdin (--data-binary @-); no token or body is put in argv, and no host is hardcoded. A gaierror can arrive only after the resolver's own timeout, so the retry gets what is left of the caller's deadline and is skipped when that is spent, keeping a SessionEnd hook inside its budget. If curl fails too, the existing outbox semantics hold: the notice stays queued.
+    status: verified
+    release: 0.47.1
+    category: functional
+    priority: should
+    fields:
+      category: functional
+
+  - id: VER-FACTORY-NOTICE-CURL-FALLBACK
+    type: verification
+    title: notice.py --self-test fallback cases, plus claim FACTORY-NOTICE-CURL-FALLBACK
+    description: >-
+      The self-test (offline, against its in-process loopback stub) replaces urllib.request.urlopen with one that raises and counts calls to Warte._curl: a gaierror "nodename nor servname provided" and an EHOSTUNREACH are each retried via the real curl and the post lands in the stub; an HTTP 500, a TLS SSLCertVerificationError (errno 1) and a socket.timeout are each not retried; a gaierror that arrives after the time budget is spent is not retried either (the retry gets what is left of the deadline, not a fresh timeout); with urllib raising gaierror and curl failing too, post_notice reports outbox and the notice stays in the outbox. Passes under /usr/bin/python3 3.9.6. Claim FACTORY-NOTICE-CURL-FALLBACK keeps the TLS exclusion before the gaierror branch, the fallback condition, the stdin body, no Authorization/-u/--user/--oauth2-bearer in notice.py, the self-test cases and the SKILL.md sentences. Negative-controlled on 2026-10-29: 7 mutants each exit 1 on the self-test (gaierror not retried, TLS errors retried through the EPERM alias, everything retried, fallback removed, EHOSTUNREACH dropped, deadline recompute dropped, HTTP errors retried) and 6 each exit 1 on claim-check (TLS exclusion dropped, fallback condition widened, body moved to argv, a bearer header added to argv, outbox self-test dropped, SKILL outbox sentence changed); all restored by re-editing and exit 0 again.
+    status: verified
+    release: 0.47.1
+    method: automated-test
+    test-location: claude-tooling/plugins/pulseengine-claude/skills/factory-notice/notice.py
+    links:
+      - type: verifies
+        target: REQ-FACTORY-NOTICE-CURL-FALLBACK
+
+  - id: REQ-AGENT-MODEL-REMINDER-THROTTLE
+    type: requirement
+    title: The Agent model reminder is throttled per session and fails open
+    description: >-
+      Owner decision 2026-10-29 after REQ-AGENT-MODEL-REMINDER shipped in 0.47.0: unthrottled, the replay showed up to 367 reminders in one session. per session_id, remind on the first missing call and then on every 10th consecutive missing call after the last reminder (calls 1, 11, 21, ...); a call that sets `model:` resets the count; neutral calls (fork, Explore, plugin agents) neither count nor reset. State is one JSON file per session under $CLAUDE_PLUGIN_DATA/agent-model-reminder/ (documented as the plugin's persistent data dir and exported to hook commands), else $TMPDIR/pulseengine-claude/agent-model-reminder/, written atomically (temp file plus os.replace), with session ids outside [A-Za-z0-9_-] hashed and state older than 7 days pruned when a new session's file is created. Missing or corrupt state, an unwritable dir and a missing session_id fail open to a reminder; the call is never blocked. Replayed over the local 30-day transcript archive in timestamp order (2,195 Agent calls, 19 sessions; unthrottled 1,486 reminders, median 51, max 367): 131 reminders (6.0% of Agent calls), median 6 per firing session, p90 18, max 28.
+    status: verified
+    release: 0.47.1
+    category: functional
+    priority: should
+    fields:
+      category: functional
+
+  - id: VER-AGENT-MODEL-REMINDER-THROTTLE
+    type: verification
+    title: scripts/check-agent-model-reminder.py throttle checks, plus claim AGENT-MODEL-REMINDER-THROTTLED
+    description: >-
+      Every run writes state into a temp dir, never the real plugin data dir. The script checks 25 missing calls remind on 1, 11 and 21, a set call resets (reminders on 1 and 16), Explore neither counts nor resets, a set-first session still reminds on its first missing call, sessions are independent, five corrupt state files each remind and are rewritten valid, an unwritable dir and a missing session_id remind every call with exit 0, a hostile `../../` session_id leaves one file inside the state dir, the TMPDIR fallback, 7-day pruning and no leftover temp files; claim AGENT-MODEL-REMINDER-THROTTLED keeps the constant, the data dir, the atomic replace and the README and skill sentences. Negative-controlled: 24 mutants each exit 1 on the script (the 14 of VER-AGENT-MODEL-REMINDER plus throttle every 5, throttle off, set does not reset, corrupt state fails closed, unwritable dir raises, session_id unsanitized, no TMPDIR fallback, prune disabled, non-atomic temp left behind, state ignores session_id) and 6 each exit 1 on claim-check (constant changed, data dir dropped, os.replace swapped, README throttle and fail-open sentences dropped, skill sentence dropped); all restored by re-editing and exit 0 again. Live 2026-10-29: a fresh `claude -p` session with this plugin dir made four general-purpose Agent calls without `model:`; the transcript carries exactly one PreToolUse:Agent hook_additional_context, on the first call, and the state file for that session_id was written under $CLAUDE_PLUGIN_DATA/agent-model-reminder/ with {"n": 3}.
+    status: verified
+    release: 0.47.1
+    method: automated-test
+    test-location: scripts/check-agent-model-reminder.py
+    links:
+      - type: verifies
+        target: REQ-AGENT-MODEL-REMINDER-THROTTLE
+
+  - id: REQ-PLUGIN-VERSION-GATE-FULL-HISTORY
+    type: requirement
+    title: The version-currency gate cannot pass on a shallow clone, and CI gives it full history
+    description: >-
+      Found on #315, 2026-10-29: CI's build job checked out at the default depth 1, so check-plugin-version-current.py's `git log -S` credited the PR's own merge commit with the version line and reported "0 plugin file(s) changed since" while the same check on full history exited 1. REQ-PLUGIN-VERSION-CURRENT was therefore inert on every PR since it was wired, and only release.yml (fetch-depth 0) enforced it. The script now exits 2 when `git rev-parse --is-shallow-repository` is not "false", before reading any history, and the build job's checkout sets fetch-depth 0 so the check runs.
+    status: verified
+    release: 0.47.1
+    category: functional
+    priority: must
+    fields:
+      category: functional
+
+  - id: VER-PLUGIN-VERSION-GATE-FULL-HISTORY
+    type: verification
+    title: simulated depth-1 and full checkouts, plus claim PLUGIN-VERSION-GATE-FULL-HISTORY
+    description: >-
+      Negative-controlled on 2026-10-29 by cloning this branch locally as CI does, before the 0.47.1 bump, with plugin files changed after 0.47.0 was set: a depth-1 clone exits 2 ("shallow clone"), and the same clone with the shallow guard removed exits 0 with "set in <merge commit>; 0 plugin file(s) changed since", reproducing the vacuous pass; a full clone exits 1 naming the 5 changed files, guarded or not. After the bump the full clone exits 0 and the depth-1 clone still exits 2. Claim PLUGIN-VERSION-GATE-FULL-HISTORY keeps the shallow check in the script ahead of the history read and `fetch-depth: 0` on the build job's checkout, and the CI step itself; 5 mutants each exit 1 on claim-check (guard removed, guard returning 0, fetch-depth dropped, fetch-depth 1, CI step replaced), all restored by re-editing.
+    status: verified
+    release: 0.47.1
+    method: automated-test
+    test-location: scripts/check-plugin-version-current.py
+    links:
+      - type: verifies
+        target: REQ-PLUGIN-VERSION-GATE-FULL-HISTORY
