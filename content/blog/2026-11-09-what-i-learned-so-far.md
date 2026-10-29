@@ -29,15 +29,16 @@ Four posts in two weeks, written before anything had been measured from the outs
 opening post promised a proof for every transformation and a qualification that products would
 inherit. The rivet post reported coverage figures of 100% and 97%, which count links between
 artifacts, not results. The formal-verification post said proof effort had dropped by orders
-of magnitude. The honest parts were already there: each post had a section on what was open.
-Seven months later, on 27 and 28 October, only *Hello, World*'s opening and engine paragraphs
-and the footers were corrected in place. The other overclaims were narrowed by later posts, not
+of magnitude. Only the formal-verification post had an explicit section on what was open; the
+others had at most a roadmap. Seven months later, on 27 and 28 October, only *Hello, World*'s
+opening and engine paragraphs, one sentence in the rivet post and the footers were corrected
+in place. The other overclaims were narrowed by later posts, not
 edited, so a reader of the March posts alone still gets the March picture.
 
 - **[Hello, World](@/blog/2026-03-02-hello-world.md)**, 2 Mar. *Expected:* a home for "This
   Week in PulseEngine" roundups, deep-dives and design notes, opening on a proof for each
   transformation and an inherited qualification. *Found:* none of the 29 posts is a roundup.
-  *Changed:* corrected 27 Oct (#263, #267): loom is translation-validated per run, synth is
+  *Changed:* corrected 27 and 28 Oct (#263, #267): loom is translation-validated per run, synth is
   differentially tested and not proven, nothing is qualified, and sigil signs artifacts while
   the end-to-end attestation chain is still being built. The roundup promise: not yet revisited.
 - **[meld v0.1.0](@/blog/2026-03-02-meld-v0.1.0.md)**, 2 Mar. *Expected:* static fusion
@@ -62,15 +63,15 @@ edited, so a reader of the March posts alone still gets the March picture.
   the MC/DC section was rewritten on 11 May when witness shipped. The rest was narrowed
   elsewhere: the 12 Jul post states that several proofs run over hand-transcribed models and
   some modules are admitted stubs; the overdoing table, corrected in October (#220), counts sanitizers in
-  2 of 13 Rust repos; gale had 0 recorded results on 26 Oct. "Orders of magnitude" was never
-  measured, and the 5 Nov post says I publish no productivity figures: not yet revisited.
+  2 of 13 Rust repos; gale had 0 recorded results on 26 Oct. No later post measures
+  "orders of magnitude", and the 5 Nov post says "We do not publish productivity figures": not yet revisited.
 
 ## April: method
 
 Six posts that turned the March promise into a method. The core is the oracle-gated pattern:
 a narrow prompt, a mechanical check that either fires or does not, parallel agents and a
-fresh-session validator before anything lands. The first real run found three bugs in its own
-oracle, which is the best evidence the pattern works on itself. The pattern later became the
+fresh-session validator before anything lands. In the slop hunt the second round exposed three
+bugs in the first round's oracle, which is evidence the pattern can check itself. The pattern later became the
 plugin's skills (May, per the [timeline](@/timeline.md)). What did not hold was the status
 reporting: tables in April described adoption that an October count cut back, and two
 arguments, the union of three patterns and the variant-pruning inversion, have stayed
@@ -87,14 +88,14 @@ arguments without a measurement.
 - **[Spec-driven development is half the loop](@/blog/2026-04-23-spec-driven-development-is-half-the-loop.md)**,
   23 Apr. *Expected:* a QA agent reading the spec back is a soft oracle; replace it with a
   mechanical one. *Found:* two sigil pipelines, one that found a swallowed `cert_count` parse
-  error (PR #87) and one that closed 9 of 12 `rivet validate` errors (PR #90). *Changed:* house
-  style and footnotes on 15 Oct (#227). The plan for `spar-codegen` to emit build files from the
+  error (PR #87) and one that closed 9 of 12 `rivet validate` errors (PR #90). *Changed:* one
+  link fixed on 15 Oct (#227). The plan for `spar-codegen` to emit build files from the
   AADL model, so the model drives the build: not yet revisited in any later post.
 - **[Mythos slop-hunt](@/blog/2026-04-25-mythos-slop-hunt.md)**, 25 Apr. *Expected:* the same
-  scaffold can hunt typed-but-unwired code. *Found:* round one exposed three bugs in the oracle
-  (file-level trailer credit, a `cfg` that fabricated lint errors, blindness to inline
-  annotations); round two deleted about 370 lines, wired 3 requirements and moved rivet's
-  coverage from 36.9% to 39.5% (PR #205); one agent invented a fifth symbol that grep refuted.
+  scaffold can hunt typed-but-unwired code. *Found:* the second round exposed three bugs in the
+  first round's oracle (file-level trailer credit, a `cfg` that fabricated lint errors,
+  blindness to inline annotations); PR #205 as a whole deleted about 370 lines, wired 3
+  requirements and moved rivet's coverage from 36.9% to 39.5%; one agent invented a fifth symbol that grep refuted.
   *Changed:* link fixes only (#169, #227). "Weeks of human review" for the same depth is an
   estimate: not yet revisited.
 - **[Three patterns colliding](@/blog/2026-04-25-three-patterns-colliding.md)**, 25 Apr.
@@ -115,20 +116,21 @@ arguments without a measurement.
 - **[MC/DC for AI-authored Rust is tractable](@/blog/2026-04-30-variant-pruning-rust-mcdc.md)**,
   30 Apr. *Expected:* five layers of variant pruning make MC/DC for Rust "strictly less"
   effort than for C. *Found:* an argument with a multiplicative formula, its independence
-  assumption stated, and no layer-5 tool yet. *Changed:* witness shipped Wasm-level MC/DC in
-  May. The 21 Oct post records that relay's witness coverage had silently stopped being
+  assumption stated, and no layer-5 tool yet. *Changed:* on 11 May the formal-verification
+  post reported witness v0.14 shipping Wasm-level MC/DC; later posts call it MC/DC-style branch
+  coverage. The 21 Oct post records that relay's witness coverage had silently stopped being
   produced (#397). The "strictly less" claim has no measurement: not yet revisited.
 
 ## May to July: reality
 
-Nine posts, all measurements. The first published a wrong prediction, and the rest kept the
+Nine posts, mostly measurements. The first published a wrong prediction, and the rest kept the
 habit: say what the number was, what it was measured on, and what it does not show. The
-dissolved OS ran on real chips at 1.73× native against a 10 to 20% goal. A prover with a
-benchmark score of 100% failed on our hardest proof and never produced a false one. The seams
-post introduced the three words I still use for maturity: wired, demonstrated, manual. The two
+dissolved OS ran on a real STM32F100 at 1.73× native against a 10 to 20% goal. A prover whose
+makers report 100% on miniF2F did not converge on our hardest proof and never produced a false
+one. The seams post introduced three words for maturity: wired, demonstrated, manual. The two
 floating-point posts set the pattern of publishing what is not proven and then closing it.
-June had no posts, although the timeline records it as the month gust first ran bit-identical
-on three chips.
+June had no posts, although the timeline records gust booting bit-identical on three chips
+that month.
 
 - **[Cross-language LTO on Cortex-M](@/blog/2026-05-01-cross-language-lto-three-quiet-barriers.md)**,
   1 May. *Expected:* 10 to 30% faster handoffs from inlining Rust into Zephyr's C. *Found:* LTO
@@ -165,7 +167,7 @@ on three chips.
   demonstrated; the proof gate wired with an asterisk, because several proofs cover
   hand-transcribed models; the flight stack only in simulation. Two rules: "verified" names a
   property and a checker, and every hand-written bridge is named as trusted base. *Changed:*
-  this is the first post that narrows March and April wording.
+  this is the first post in this list to name hand-transcribed models and admitted stubs.
 - **[From a browser tab to a real drone](@/blog/2026-07-13-browser-to-bare-metal-to-drone.md)**,
   13 Jul. *Expected:* one component set on four substrates, with an honest label on each
   boundary. *Found:* wasm to native is differentially tested, not proven; gust runs
@@ -232,8 +234,9 @@ would make me concede.
   feature share fell in 16 (p = 0.006) and coupling fell, the fix share rise was not
   significant; rivet's surfaces computed the same fact differently; at least 26 issue titles
   describe checks that pass without checking; open issues grew from 6 to 34 in rivet and 8 to
-  67 in relay, mostly filed by the agents. *Changed:* the decision-queue ratchet it introduced
-  (#232) was still unarmed on 28 Oct: not yet revisited.
+  67 in relay, mostly filed by the agents. *Changed:* the SAFe and orchestrator posts both
+  restate that the decision-queue ratchet (#232) is merged and not armed; arming it is still
+  open.
 - **[Agents don't tidy up](@/blog/2026-10-22-agents-dont-tidy-up.md)**, 22 Oct. *Expected:* a
   baseline against projects written by people. *Found:* judged from diffs, Hubris and
   Cranelift refactor in 25 and 30% of commits, the agent projects in 3 to 13%; fix share,
@@ -294,7 +297,7 @@ Model natively; rivet's Kani proofs and Verus specs on core data structures, and
 driving the build; the "weeks of human review" estimate; "no LLM hallucinations"; the "strictly
 less" MC/DC effort; LTO's Renode numbers under a "real hardware" method and its missing fourth
 variant; example-kvs's stub gate; the "verified OS" title; the composed sine and cosine bound
-with argument reduction; the unarmed decision ratchet; and an estimate from measured durations.
+with argument reduction; arming the decision ratchet; and an estimate from measured durations.
 
 ## What changed in how I work
 
