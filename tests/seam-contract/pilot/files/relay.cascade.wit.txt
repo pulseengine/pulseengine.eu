@@ -1,0 +1,701 @@
+package pulseengine:falcon-cascade@0.12.0;
+
+/// Falcon control cascade — Component Model edition.
+///
+/// Each controller is a typed component exporting one interface.
+/// The `cascade` world imports all five and exports the top-level
+/// `step`; `wac` wires the graph (falcon-cascade.wac). This is the
+/// v0.7 rework: the v0.6 raw-`#[export_name]` scalar shortcut is
+/// replaced by real Component Model components so the cascade
+/// composes declaratively.
+///
+/// Records use flat f32 fields (not tuple<>) — the canonical ABI is
+/// then a flat scalar list, which keeps both wac composition and the
+/// eventual synth → ARM lowering simple.
+
+interface types {
+    /// EKF state estimate. quaternion is body-to-NED (w,x,y,z);
+    /// position/velocity are NED metres / m·s⁻¹; body-rates wx/wy/wz
+    /// are the gyro reading (rad/s) passed through for the rate loop.
+    record vehicle-state {
+        qw: f32, qx: f32, qy: f32, qz: f32,
+        pos-n: f32, pos-e: f32, pos-d: f32,
+        vel-n: f32, vel-e: f32, vel-d: f32,
+        wx: f32, wy: f32, wz: f32,
+        innovation: f32,
+    }
+
+    /// FLIGHT STATE PUBLISHED FOR OBSERVERS — the RETURN direction of the
+    /// seam (SWREQ-FALCON-TRANSPORT-P01). `step` hands back motor commands and
+    /// nothing else, so the verified MAVLink telemetry stack had nothing to
+    /// read, no log could be written, and a shadow flight produced no
+    /// comparable evidence. This is what an observer reads.
+    ///
+    /// WHY u32 AND NOT u64 (integrator request, jess#167, taken before any
+    /// publish). `LDRD` is NOT single-copy atomic on ARMv7-M, so a 64-bit
+    /// counter can tear mid-read and the two halves can land such that head
+    /// coincidentally equals tail — the seqlock then reports coherent on a torn
+    /// body. A 32-bit load is single-copy atomic, so the comparison means what
+    /// it says. An in-process harness cannot observe this, which is exactly why
+    /// the integrator's architecture knowledge outranks our measurement here.
+    /// Wrap is handled by comparing equality, never ordering.
+    ///
+    /// SEQLOCK. `tick-head` is written FIRST and `tick-tail` LAST, so a reader
+    /// on another core reads tail, then the body, then head, and RETRIES if the
+    /// two counters disagree. Shape specified by the integrator (jess#167):
+    /// without it a second export can return a body that never corresponded to
+    /// any single tick — a torn read across the core boundary, which on a
+    /// cached OCRAM region yields stale numbers with NO fault at all.
+    ///
+    /// FIXED LAYOUT, NO `option<>`, NO LISTS. Absence is carried by `valid`,
+    /// a bitmask, not by a discriminant whose position moves. Variable-shape
+    /// data across a cache boundary is exactly where tearing bites.
+    ///
+    /// The tick is MONOTONIC and never resets, so a reader can judge staleness
+    /// against its own clock instead of trusting freshness — and the CADENCE is
+    /// deliberately unspecified here. jess declined to invent one ("no falcon
+    /// code has executed on an RT1176"), so the observed rate is computed from
+    /// the tick delta on the first shadow flight rather than agreed by two
+    /// parties who have not measured it.
+    record flight-state {
+        /// Seqlock head. Equal to `tick-tail` iff the body is coherent.
+        tick-head: u32,
+        /// Body→NED attitude (unit quaternion, Hamilton scalar-first).
+        qw: f32, qx: f32, qy: f32, qz: f32,
+        /// NED position (m); `pos-d` is negative up.
+        pos-n: f32, pos-e: f32, pos-d: f32,
+        /// NED velocity (m/s).
+        vel-n: f32, vel-e: f32, vel-d: f32,
+        /// Body rates (rad/s).
+        wx: f32, wy: f32, wz: f32,
+        /// Estimated gyro bias (rad/s) — a shadow flight compares this against
+        /// the reference filter's, and it is where a divergence shows first.
+        bgx: f32, bgy: f32, bgz: f32,
+        /// Estimator innovation magnitude — the trust signal.
+        innovation: f32,
+        /// Isolated failed rotor, 0-3; 0xFF when none. Flat, not `option<u8>`.
+        failed-rotor: u8,
+        /// FLIGHT MODE (SUPERVISOR-P01 clause 2). The `relay-fsm` discriminant:
+        ///   0 disarmed  1 armed  2 takeoff  3 loiter
+        ///   4 mission   5 land   6 rtl      7 terminated
+        ///
+        /// `disarmed` AND `terminated` ARE DISTINCT AND MUST STAY SO (clause 3).
+        /// `disarmed` is a SAFE on-ground state; `terminated` is a deliberate
+        /// AIRBORNE thrust cut that nothing recovers from without an on-ground
+        /// reset. A decoder that collapses them reports a terminated vehicle as
+        /// safely disarmed — the absence-looks-like-data shape this project has
+        /// already paid for twice (#413 a battery read as healthy, #452 an
+        /// accelerometer read as gravity).
+        ///
+        /// MEASURED, NOT ASSERTED: this byte lands at offset 73, in padding that
+        /// already existed between `failed-rotor` (72) and the u32s, so MODE
+        /// COSTS ZERO BYTES. `failsafe` below then aligns to 76 and pushes
+        /// `valid` to 80 and `tick-tail` to 84 — the record grows 84 -> 88, all
+        /// of it `failsafe`. The offsets are asserted against the GENERATED
+        /// bindings in `wasm/cm/cascade/tests/`, not trusted from this comment.
+        ///
+        /// The numbering is `relay_fsm::Mode`'s IMPLICIT discriminant order and
+        /// that enum carries no `#[repr]`, so a reordering upstream would
+        /// silently change these wire values. That is why the pinning test
+        /// asserts each variant by name rather than counting.
+        mode: u8,
+        /// ACTIVE FAILSAFE CAUSES (SUPERVISOR-P01 clause 2) — a bitmask, not an
+        /// enum, because several are live at once and the supervisor's own
+        /// breach term ORs geofence with battery, so an enum would have to pick
+        /// a winner and discard the rest.
+        ///   bit 0 rtl-latched     1 batt-low        2 batt-critical
+        ///   bit 3 batt-silent     4 geofence-breach 5 runaway-arming
+        ///   bit 6 wind-arming     7 arm-blocked
+        ///
+        /// `mode` is the OUTCOME; this is the CAUSE. Without it a consumer sees
+        /// the vehicle divert and cannot tell a flat pack from a geofence
+        /// breach from a wind failsafe. Mirrors
+        /// `FlightSupervisor::failsafe_flags()` bit for bit; every bit is a
+        /// condition `step` already acts on, and each is pinned by test.
+        failsafe: u32,
+        /// Which fields above are meaningful this tick. Bit 0 attitude,
+        /// 1 position, 2 velocity, 3 rates, 4 gyro bias, 5 innovation,
+        /// 6 failed-rotor, 7 mode, 8 failsafe. A clear bit means NOT MEASURED,
+        /// never "zero".
+        valid: u32,
+        /// Seqlock tail, written last. See `tick-head`.
+        tick-tail: u32,
+    }
+
+    /// Raw IMU sample — body-frame accel (m/s²) + gyro (rad/s).
+    record imu-sample {
+        ax: f32, ay: f32, az: f32,
+        gx: f32, gy: f32, gz: f32,
+    }
+
+    /// Attitude setpoint — body-to-NED quaternion + collective thrust.
+    record attitude-setpoint {
+        qw: f32, qx: f32, qy: f32, qz: f32,
+        thrust: f32,
+    }
+
+    /// Body-rate setpoint (rad/s) + collective thrust.
+    record rate-setpoint {
+        rx: f32, ry: f32, rz: f32,
+        thrust: f32,
+    }
+
+    /// Body-frame torque setpoint (N·m) + collective thrust.
+    record torque-setpoint {
+        tx: f32, ty: f32, tz: f32,
+        thrust: f32,
+    }
+
+    /// Per-motor PWM for the falcon-quad airframe, each in [0, 1].
+    record motor-pwm {
+        m1: f32, m2: f32, m3: f32, m4: f32,
+    }
+
+    /// Mission waypoint — NED target position + heading.
+    record waypoint {
+        north: f32, east: f32, down: f32, yaw: f32,
+    }
+
+    /// A 3-vector; the frame is named by the field that uses it.
+    record vec3 {
+        x: f32, y: f32, z: f32,
+    }
+
+    /// Everything the flight core needs for ONE tick.
+    ///
+    /// v0.8 replaces the bare `imu-sample`, because v0.7 could not express two
+    /// things a host must be able to say — both found by actually driving the
+    /// published components rather than by reading the interface.
+    ///
+    /// `dt-s` — the host's ACTUAL control period. v0.7 had no way to state it,
+    /// so every stage hardcoded its own and they disagreed with each other by up
+    /// to 20x (estimator 1 ms, position 20 ms, attitude 4 ms, rate 1 ms) while
+    /// the cascade called all five once per tick. Measured on the SITL plant,
+    /// holding 2.0 m: 1000 Hz -> 0.00 m error, 400 Hz -> 10.43 m, 250 Hz -> 27.17 m,
+    /// with no error signal of any kind.
+    ///
+    /// The aiding measurements — v0.7 took the IMU alone, so position was
+    /// observable only by dead reckoning. The flight core fuses GNSS, the
+    /// magnetometer and an absolute heading; a seam that cannot carry them
+    /// cannot carry the flight core. Every field is `option<>`, and all-`none`
+    /// is a valid IMU-only host that simply inherits the drift.
+    record sensor-frame {
+        imu: imu-sample,
+        dt-s: f32,
+        /// NED position fix (m) — GNSS or equivalent.
+        position-ned: option<vec3>,
+        /// Body-frame magnetometer. Any consistent unit; normalised internally.
+        mag-body: option<vec3>,
+        /// Absolute heading (rad, NED). An alternative to `mag-body` for hosts
+        /// that already resolve yaw; both correct the same unobservable state.
+        heading-rad: option<f32>,
+        /// Per-rotor ESC telemetry (bidirectional DShot, or equivalent).
+        ///
+        /// v0.10. Without it the rotor-out FDI is INERT: a rotor loss goes
+        /// undetected, because the information never crosses the boundary. The
+        /// native backend has always fed it; the seam simply had no field, so
+        /// the capability was verified in falcon-core and unreachable from a
+        /// component — the same orphan-signal shape as the hardcoded tick
+        /// period and the missing calibration.
+        ///
+        /// Note this was invisible to the wasm/native differential too: both
+        /// sides received `none` and agreed perfectly. An equivalence test is
+        /// blind to a channel neither side receives.
+        ///
+        /// `none` = no telemetry, and the FDI falls back to its RPM-free path.
+        motor-rpm: option<rotor-rpm>,
+        /// Pack voltage (V), or `none` when the host has no battery sense.
+        ///
+        /// AN OPTION, NOT A SENTINEL, and that is the load-bearing part. The
+        /// supervisor declares the pack ON FIRST SIGHT: until a reading arrives
+        /// `batt_seen` is false and a silent pack CANNOT raise a failsafe,
+        /// which is what stops "no sense at all" reading as "the pack died". A
+        /// 0.0 sentinel would destroy that distinction and a healthy default
+        /// would restore the fail-unsafe behaviour #413 already corrected.
+        ///
+        /// NECESSARY FOR ARMING BUT NOT SUFFICIENT — and the first claim here
+        /// said otherwise, so it is worth being precise about.
+        ///
+        /// `FlightBackend::read_battery_v` DEFAULTS to `None` and the cascade
+        /// backend overrides 7 of the trait's 12 methods but not that one, so
+        /// `update_preflight` sets `battery_ok = batt_present && ..` with
+        /// `batt_present == false`, `all_pass()` ANDs it, and the `BatteryOk`
+        /// row refuses. That part is real: this field is a PREREQUISITE for
+        /// clause (1), not a feature of it.
+        ///
+        /// WHAT IT DOES NOT DO ALONE is make the component armable. A host that
+        /// warms its estimator before arming — what a real GCS does, and what
+        /// `step_estimate_only` exists for — is refused by `CalibrationPresent`
+        /// unless it also sent a VALID `pilot.configure-calibration`, because
+        /// `update_preflight` derives that row from "a valid calibration has
+        /// been explicitly configured". Until that entry point existed the
+        /// component could only be armed BEFORE its first `step`, judged
+        /// against `FlightSupervisor::new`'s bring-up defaults; that path is
+        /// now CLOSED (#609 finding 2: a never-stepped supervisor declares
+        /// every row a step feeds as failing). So a host arms the way a real
+        /// GCS does: configure (with a calibration), step with a battery
+        /// reading until the estimator converges, then `arm` against the
+        /// measured table. Pinned natively by
+        /// `a_warmed_host_arms_only_with_a_configured_valid_calibration` in
+        /// `crates/falcon-core/tests/supervisor_seam_contract.rs`.
+        ///
+        /// FREE, MEASURED: `controller#step` flattens to 26 params today
+        /// (sensor-frame 22 + waypoint 4) against `MAX_FLAT_PARAMS = 16`, so it
+        /// is ALREADY INDIRECT by 10; this takes it to 28 and cannot change the
+        /// calling convention. kiln independently lowered the shipped component
+        /// at 26 (pulseengine/jess#287), agreeing with the field-by-field count.
+        battery-v: option<f32>,
+    }
+
+    /// Per-rotor measured speed, in the airframe's motor order — the same order
+    /// as `motor-pwm`. A flat record rather than a list: no allocation, and it
+    /// lowers to a flat scalar sequence like every other record here.
+    record rotor-rpm {
+        m1: s32, m2: s32, m3: s32, m4: s32,
+    }
+
+    /// Airframe calibration — the numbers the control law needs and CANNOT
+    /// derive from the sensor stream.
+    ///
+    /// v0.9 exists because the v0.8 component could fly NOTHING but its own
+    /// defaults: every value below was frozen at construction, so no host could
+    /// correct them from outside and no amount of retuning could make the
+    /// published component hold altitude on a real plant.
+    ///
+    /// MEASURED on the gz falcon-quad, 2 m hold, 2000 ticks @ 250 Hz, one
+    /// knob at a time against the tuned native reference (0.16 m hold error):
+    ///
+    ///   hover-thrust 0.585 -> 0.5, tuning kept  : 2.65 m, est_z -58.8 m
+    ///   tuning dropped, hover-thrust kept       : 0.66 m, est_z  -1.3 m
+    ///   both (i.e. exactly the v0.8 defaults)   : 1.91 m, never left the ground
+    ///
+    /// Both groups are load-bearing and `hover-thrust` dominates: at 0.5 the
+    /// airframe cannot lift, the estimator is then driven by a specific force
+    /// that never matches the commanded one, and the altitude estimate diverges
+    /// by an order of magnitude. That is the failure mode a host MUST be able
+    /// to correct, and before v0.9 it could not.
+    record vehicle-config {
+        /// Normalised collective throttle that holds THIS airframe in a steady
+        /// hover. The dominant term — see the measurements above. gz
+        /// falcon-quad 0.585; the SITL mock plant 0.49.
+        hover-thrust: f32,
+        /// Control-loop rate (Hz). AUTHORITATIVE: the estimator and the ADRC
+        /// observer are discretised on it. `sensor-frame.dt-s` remains the
+        /// per-tick integration step (it varies); this is the design rate. A
+        /// host that supplies neither inherits a guess, which is how the v0.7
+        /// stages ended up 20x apart.
+        loop-rate-hz: f32,
+        /// Position-measurement variance (m²). The default over-trusts a real
+        /// GNSS: on a long static hover the covariance collapses, the outlier
+        /// gate then rejects correct fixes, and the estimate goes deaf. 0.25
+        /// for the gz NavSat.
+        pos-var: f32,
+        /// Additive process-noise floor (variance/s) on velocity. Keeps the
+        /// δv↔δp correlation alive so a long hover cannot starve the filter.
+        process-floor-vel: f32,
+        /// Additive process-noise floor (variance/s) on position.
+        process-floor-pos: f32,
+        /// Altitude-loop proportional gain.
+        altitude-kp: f32,
+        /// Altitude-loop derivative gain.
+        altitude-kd: f32,
+        /// Altitude-loop integral gain, trimming the residual hover-feedforward
+        /// error. Safe only once the loop is damped and the estimate tracks.
+        altitude-ki: f32,
+        /// Horizontal position-loop integral gain. 0 disables it.
+        position-ki: f32,
+    }
+}
+
+/// State estimator — wraps relay-ekf (Mahony complementary filter).
+interface ekf {
+    use types.{imu-sample, vehicle-state};
+    estimate: func(imu: imu-sample) -> vehicle-state;
+}
+
+/// Position controller — wraps relay-pos.
+interface position {
+    use types.{vehicle-state, waypoint, attitude-setpoint};
+    tick: func(state: vehicle-state, target: waypoint) -> attitude-setpoint;
+}
+
+/// Attitude controller — wraps relay-att.
+interface attitude {
+    use types.{vehicle-state, attitude-setpoint, rate-setpoint};
+    tick: func(state: vehicle-state, sp: attitude-setpoint) -> rate-setpoint;
+}
+
+/// Rate controller — wraps relay-rate (body-rate PID).
+interface rate {
+    use types.{vehicle-state, rate-setpoint, torque-setpoint};
+    tick: func(state: vehicle-state, sp: rate-setpoint) -> torque-setpoint;
+}
+
+/// Control allocator — wraps relay-mix-quad (X-config mixer).
+interface mixer {
+    use types.{torque-setpoint, motor-pwm};
+    mix: func(torque: torque-setpoint) -> motor-pwm;
+}
+
+// ── leaf component worlds — one controller each ───────────────────
+world ekf-component      { export ekf; }
+world position-component { export position; }
+world attitude-component { export attitude; }
+world rate-component     { export rate; }
+world mixer-component    { export mixer; }
+
+// ── cascade orchestrator ──────────────────────────────────────────
+/// Top-level cascade entry point. A single-func interface (rather
+/// than a bare world-level export) so the cascade component is
+/// structurally uniform with the five leaf components — and so the
+/// wit-bindgen export macro is generated the same, interface-shaped
+/// way the leaf components rely on.
+interface controller {
+    use types.{sensor-frame, waypoint, motor-pwm, vehicle-config};
+    /// One full flight-core tick: estimate, fuse whatever aiding the frame
+    /// carries, then geometric SE(3) attitude → ADRC rate → mixer, with the
+    /// rotor-out FDI and the supervisor's altitude/position loops.
+    ///
+    /// `target` is the MISSION LEG, read only in Mission mode (a one-leg
+    /// mission; arriving at it ends the mission with an RTL). In every other
+    /// mode the supervisor derives the position setpoint itself and `target`
+    /// is ignored: Takeoff and Loiter hold a horizontal point LATCHED ON ENTRY
+    /// (Takeoff latches the launch point and Loiter after it keeps that point;
+    /// Mission → Loiter latches where the vehicle is when it pauses), at
+    /// `cruise-alt`; Rtl flies home; Land descends over home, or where it is
+    /// after a rotor loss; the motors-off modes command nothing.
+    step: func(sensors: sensor-frame, target: waypoint) -> motor-pwm;
+
+    /// Install this vehicle's calibration.
+    ///
+    /// Call ONCE before the first `step`. A later call RE-INITIALISES the
+    /// supervisor and control core — estimator state included — because a
+    /// partially-applied configuration is worse than an explicit reset.
+    ///
+    /// THAT RE-INITIALISATION IS ONLY PERFORMED ON THE GROUND (#609). It is
+    /// applied only while the supervisor is `disarmed` and holds no latch a
+    /// rebuild would reset (an isolated rotor, a navigation-integrity latch, a
+    /// latched low/critical battery). In every other mode — `armed`, any
+    /// airborne mode, `terminated` — and on a latched `disarmed` vehicle, the
+    /// call is REJECTED: `cfg` is discarded, not queued, and the running
+    /// supervisor is untouched. A rebuild produces a `disarmed` supervisor that
+    /// commands zero motors, so accepting it in flight would cut the motors,
+    /// and accepting it in `terminated` would leave the absorbing state. The
+    /// rejection is silent (this function returns nothing); a host re-sends
+    /// once `flight-state.mode` reads `disarmed`.
+    ///
+    /// A host that never calls this keeps the built-in defaults, which fly the
+    /// SITL mock plant and nothing else.
+    configure: func(cfg: vehicle-config);
+}
+
+/// Imports the five controller interfaces, exports `controller`.
+/// The implementation calls estimate → position → attitude → rate
+/// → mixer in order. wac satisfies the imports from the leaf
+/// components (BUILD.bazel `wac_plug`).
+/// v0.8: the cascade component wraps falcon-core's FlightCore directly, so it
+/// imports NOTHING. The five-stage decomposition it used to compose was a
+/// wasm-side invention that never corresponded to the flight architecture —
+/// which is exactly how it drifted onto the legacy PID controllers while
+/// falcon-core moved to geometric SE(3) + ADRC, unnoticed for three months
+/// (#388). One component, one tick, one clock, and the same control law the
+/// vehicle flies.
+/// THE RETURN DIRECTION (SWREQ-FALCON-TRANSPORT-P01).
+///
+/// A SECOND EXPORT, deliberately not a return value on `step`. jess#167: on the
+/// M4 you must be able to read state WITHOUT running a control tick, or the act
+/// of observing executes the controller and changes what it observes. It also
+/// keeps `step`'s lowered symbol byte-stable, which matters because jess's
+/// baselines are byte-identity claims about lowered objects.
+interface observer {
+    use types.{flight-state};
+
+    /// The most recent published state. Cheap, side-effect-free, and safe to
+    /// call at a cadence unrelated to the control loop.
+    ///
+    /// Read it as a seqlock: compare `tick-tail` against `tick-head` and retry
+    /// if they differ. A single in-process caller cannot observe a tear, but a
+    /// reader on another core across shared memory can, and that is the case
+    /// this shape exists for.
+    read-state: func() -> flight-state;
+}
+
+/// PILOT / GCS COMMAND CHANNEL (SUPERVISOR-P01 clause 1 + 4) — a THIRD
+/// interface, deliberately, and that shape is the stakeholder's decision
+/// (pulseengine/jess#167): of the three candidates it is the only one with a
+/// byte-identity measurement behind it. Adding a new interface beside the
+/// existing ones was measured byte-free for the per-stage set at @0.11.0;
+/// adding an export to an EXISTING interface was not, and neither side was
+/// willing to hand over a baseline guarantee nobody had tested.
+///
+/// The supervisor's CONFIGURATION lives here too rather than in
+/// `vehicle-config`, and that is a measurement, not tidiness.
+/// `configure(cfg: vehicle-config)` flattens to 9 params today; the four
+/// constructor inputs below would have taken it to 15 against
+/// `MAX_FLAT_PARAMS = 16` — one field of margin, while clause (4) still wants
+/// more. Growing a parameter record across that line silently changes the
+/// calling convention from flattened scalars to a pointer, and the canonical
+/// ABI passes GARBAGE rather than erroring when a caller assumed the other
+/// form. `vehicle-config` therefore stays at 9 and keeps its byte-identity.
+///
+/// THE CALIBRATION HAS ITS OWN ENTRY POINT, `configure-calibration`, rather
+/// than a field of `supervisor-config` — the maintainer's decision of
+/// 2026-10-21 (relay#586), announced on jess#167. Measured reason: folded in,
+/// `supervisor-config` would grow from 6 flat params to 24 and cross
+/// `MAX_FLAT_PARAMS`, changing `configure-supervisor` from scalars to a
+/// pointer. As its own function `configure-supervisor` keeps its 6-scalar
+/// lowering. `configure-calibration` itself is 18 flat params since the
+/// soft-iron off-diagonal (jess#167, 2026-10-28) and is therefore passed
+/// INDIRECTLY — see that function.
+interface pilot {
+    use types.{vec3};
+
+    /// The supervisor's constructor inputs:
+    /// `FlightSupervisor::new(home, fence-radius, cruise-alt, low-batt-v)`.
+    ///
+    /// The seam carried NONE of these, so the published component could only
+    /// ever run a bare `FlightCore`. A SUPERVISOR ON DEFAULTS IS WORSE THAN NO
+    /// SUPERVISOR — a 0 m geofence about a (0,0,0) home latches an RTL on the
+    /// first tick — which is why these land in the same change that wires it
+    /// in rather than in a follow-up.
+    ///
+    /// VALIDATED AS A WHOLE, NEVER CLAMPED (#609). If ANY field is outside its
+    /// own definition below — `home` non-finite; `fence-radius`, `cruise-alt`
+    /// or `low-batt-v` non-finite or not > 0 — the configuration is treated
+    /// exactly as if `configure-supervisor` had never been called: the
+    /// configuration-dependent failsafes stay inactive and the
+    /// `FailsafeConfigured` pre-arm row is FALSE, so `arm` is REFUSED: the
+    /// mode stays `disarmed`, and from the next `step` bit 7 (`arm-blocked`)
+    /// of `flight-state.failsafe` is set. Earlier builds instead mapped such
+    /// values to permissive ones (a NaN fence to "no geofence", a NaN or
+    /// negative low-batt-v to "no battery failsafe") and still armed.
+    record supervisor-config {
+        /// Home / launch point, NED metres: the geofence centre AND the RTL
+        /// destination. Both, from one field — they are the same point.
+        /// Must be finite.
+        home: vec3,
+        /// Geofence radius in metres about `home`, finite and > 0. Exceeding
+        /// it latches an RTL (bit 4 of `flight-state.failsafe`).
+        fence-radius: f32,
+        /// Cruise altitude in metres AGL, and it is **POSITIVE** — the one
+        /// field in this package that is NOT NED-signed.
+        ///
+        /// CHECKED, not inferred, because the surrounding convention made the
+        /// wrong answer look obvious. `falcon-core` documents the constructor
+        /// argument as "`cruise_alt` m AGL" and the supervisor NEGATES it itself
+        /// when it builds the setpoint (`[p0, p1, -cruise_alt]` for Takeoff,
+        /// Loiter, Rtl and Land). So passing -30.0 here to mean "30 m up" would
+        /// command +30.0 NED — thirty metres BELOW the ground. Every in-tree
+        /// call site passes a positive value.
+        ///
+        /// A non-positive (or non-finite) value is therefore rejected rather
+        /// than clamped — the whole configuration is refused and arming with
+        /// it is impossible: zero or negative is not a conservative cruise
+        /// altitude, it is a commanded descent into the ground.
+        cruise-alt: f32,
+        /// Pack LOW threshold in volts for the WHOLE battery, not per cell;
+        /// the estimator derives its per-cell fallbacks from this. Finite and
+        /// > 0: a zero or negative threshold could never be crossed, so the
+        /// battery failsafe would be silently off.
+        low-batt-v: f32,
+    }
+
+    /// `relay_calib::CalParams`, field for field and with its semantics —
+    /// nothing added. Applied to the RAW frame before the estimator:
+    ///   gyro  = raw − gyro-bias
+    ///   accel = accel-scale ∘ (raw − accel-bias)      (∘ = per-axis product)
+    ///   mag   = S · (raw − mag-offset)
+    /// where S is the SYMMETRIC soft-iron matrix
+    ///         | sx  xy  xz |    [sx, sy, sz] = mag-scale
+    ///     S = | xy  sy  yz |    [xy, xz, yz] = mag-offdiag
+    ///         | xz  yz  sz |
+    /// — PX4's `Magnetometer::Correct` without its rotation and power
+    /// compensation, `_scale * (data - _offset)`, with `_scale` built from
+    /// `CAL_MAGn_{X,Y,Z}SCALE` (diagonal) and `CAL_MAGn_{X,Y,Z}ODIAG`
+    /// (off-diagonal) in the same order.
+    ///
+    /// WHAT THIS CALIBRATION IS: RESIDUAL / BOARD-LEVEL TERMS ONLY. The
+    /// calibration of each PHYSICAL sensor is applied BELOW this seam, per
+    /// sensor instance and before any selection or vote, so that it follows
+    /// the sensor when the selection fails over to another instance:
+    ///   * for a sensor relay decodes, in relay's decode/voting stage, from
+    ///     per-instance values the integrator/host supplies and persists;
+    ///   * for a sensor that arrives already calibrated (e.g. a DroneCAN node
+    ///     that calibrates on board), not at all.
+    /// The single `sensor-calibration` here is applied to the frame that
+    /// stage produces, whichever instance that came from. It must NOT carry
+    /// one physical sensor's own calibration: after a failover it would be
+    /// applied to a different sensor. (A per-instance calibration entry point
+    /// on relay's decode/voting component is a separate follow-up.)
+    ///
+    /// THE IDENTITY (all biases/offsets 0, all scales 1, all off-diagonal 0)
+    /// IS A VALID CALIBRATION, meaning "calibrated upstream, no residual". It
+    /// satisfies `CalibrationPresent` like any other valid calibration. See
+    /// `configure-calibration` for what that obliges a host to do.
+    ///
+    /// FRAME. Every term is applied in the BODY frame, to a sample the host
+    /// has already rotated into it (`mag-body`, and the IMU likewise). PX4
+    /// calibrates in the SENSOR frame and rotates afterwards, so values taken
+    /// from a sensor-frame calibration (PX4's `CAL_*` parameters) carry over
+    /// exactly only as follows:
+    ///   * BIASES and `mag-offset` are vectors: a sensor-frame offset `o` is
+    ///     exactly the body-frame offset `R·o`, for ANY mount rotation `R`;
+    ///   * the FULL soft-iron matrix is also exact for any mount, as
+    ///     `S_body = R · S_sensor · Rᵀ`. But that generally MOVES terms
+    ///     between the diagonal and the off-diagonal, and even an
+    ///     axis-permuting mount flips off-diagonal SIGNS (ROTATION_PITCH_180
+    ///     negates xy and yz). So send the rotated body-frame matrix, never
+    ///     the sensor-frame `CAL_MAGn_*SCALE` / `*ODIAG` copied over;
+    ///   * DIAGONAL-ONLY terms (`accel-scale`, and `mag-scale` with
+    ///     `mag-offdiag` zero) equal the sensor-frame ones, axes permuted,
+    ///     ONLY for an AXIS-PERMUTING mount, i.e. one that only swaps or flips
+    ///     axes. ROTATION_PITCH_180, ROTATION_YAW_180 and ROTATION_YAW_270 are
+    ///     examples (the IMU mounts of a Pixhawk 6X-RT, for one). For any
+    ///     other mount, e.g. ROTATION_YAW_45, a sensor-frame diagonal scale
+    ///     becomes a body-frame matrix WITH off-diagonal terms, and it has no
+    ///     exact diagonal body-frame equivalent.
+    ///
+    /// VALIDATED, NEVER CLAMPED (`relay_calib::CalParams::is_valid`): every
+    /// component must be finite, every `accel-scale` > 0, and the soft-iron
+    /// matrix S POSITIVE DEFINITE — its leading minors sx, sx·sy − xy² and
+    /// det S all > 0 and finite; with `mag-offdiag` zero that is exactly
+    /// "every `mag-scale` > 0", the rule before the off-diagonal existed. A
+    /// zero or negative scale erases or mirrors an axis; a singular or
+    /// indefinite S does the same to a field direction, so heading would be
+    /// lost or turn the wrong way. See `configure-calibration` for what an
+    /// invalid one does.
+    record sensor-calibration {
+        /// Gyro zero-rate bias, rad/s (subtracted).
+        gyro-bias: vec3,
+        /// Accelerometer zero-g bias, m/s² (subtracted).
+        accel-bias: vec3,
+        /// Accelerometer per-axis scale factor, unitless (multiplied after
+        /// de-biasing). > 0.
+        accel-scale: vec3,
+        /// Magnetometer hard-iron offset, in the SAME unit the host sends
+        /// `sensor-frame.mag-body` in (subtracted before normalisation).
+        mag-offset: vec3,
+        /// Magnetometer soft-iron matrix DIAGONAL [sx, sy, sz], unitless.
+        /// > 0 (and see the positive-definiteness rule above).
+        mag-scale: vec3,
+        /// Magnetometer soft-iron matrix OFF-DIAGONAL, symmetric, unitless,
+        /// ORDERED `x = xy` (S01 = S10), `y = xz` (S02 = S20), `z = yz`
+        /// (S12 = S21) — PX4's `CAL_MAGn_XODIAG`, `YODIAG`, `ZODIAG`, in the
+        /// order of PX4's `Magnetometer::set_offdiagonal`. `{0, 0, 0}` is the
+        /// diagonal soft-iron, and reproduces the pre-off-diagonal output bit
+        /// for bit.
+        mag-offdiag: vec3,
+    }
+
+    /// A command a PILOT or GCS may legitimately issue.
+    ///
+    /// DELIBERATELY NARROWER THAN `relay_fsm::Event`, which has 12 variants.
+    /// The four withheld — `reached-altitude`, `reached-home`, `touchdown` and
+    /// `failsafe` — are PHYSICAL OBSERVATIONS the supervisor derives from its
+    /// own estimated state, not requests. A host able to inject `touchdown`
+    /// could disarm a vehicle in the air; one able to inject `failsafe` could
+    /// raise a diversion with no cause recorded in `failsafe`. The seam does
+    /// not offer a host the ability to lie to the mode machine about physics.
+    enum pilot-command {
+        /// Arm. Gated by the 20-row pre-arm table; refusal is observable as
+        /// bit 7 of `flight-state.failsafe`.
+        arm,
+        request-takeoff,
+        request-mission,
+        request-loiter,
+        request-rtl,
+        request-land,
+        request-disarm,
+        /// FLIGHT TERMINATION — the last-resort motor cut. From ANY state this
+        /// forces `terminated` and overrides every other transition. Offered to
+        /// a host because a GCS kill switch is a legitimate pilot authority;
+        /// nothing recovers from it without an on-ground reset.
+        terminate,
+    }
+
+    /// Install the supervisor's configuration.
+    ///
+    /// Call before the first `step`, as with `controller.configure`. A later
+    /// call rebuilds the supervisor under EXACTLY the same rule: only while it
+    /// is `disarmed` and unlatched; otherwise it is silently REJECTED and `cfg`
+    /// discarded (#609 — see `controller.configure`). It can therefore never
+    /// cut the motors in flight, never leave `terminated`, and never clear an
+    /// isolated-rotor latch.
+    ///
+    /// A host that never calls it gets NO supervisor configuration: the
+    /// configuration-dependent failsafes stay inactive and arming is refused
+    /// (`FailsafeConfigured`).
+    configure-supervisor: func(cfg: supervisor-config);
+
+    /// Install the IMU / magnetometer calibration (relay#586, #609).
+    ///
+    /// WHY IT EXISTS. Before this nothing in the seam carried a calibration,
+    /// so a supervisor that had been stepped was refused on the
+    /// `CalibrationPresent` row for ever. Since #609 a never-stepped
+    /// supervisor refuses every arm, so without this the component could not
+    /// be armed at all.
+    ///
+    /// WHAT `CalibrationPresent` MEANS — explicit state, NOT a comparison
+    /// against the identity (jess#167):
+    ///   * never called                    -> FALSE: `arm` is refused;
+    ///   * called with a VALID calibration -> TRUE, the IDENTITY included;
+    ///   * called with an INVALID one      -> FALSE, and an earlier valid one
+    ///     is revoked (below).
+    ///
+    /// AN EXPLICIT IDENTITY MEANS "CALIBRATED UPSTREAM". The pre-arm table
+    /// cannot tell a host that measured "no residual" from one that sent the
+    /// identity without measuring anything, so the only thing standing
+    /// between an uncalibrated vehicle and an armed one is this contract:
+    ///   * a host MUST NOT send the identity as a default or a placeholder;
+    ///   * it sends the identity only when its sensors are calibrated below
+    ///     this seam and no residual remains;
+    ///   * a host that has no calibration MUST NOT call this function at all,
+    ///     and arming then stays refused.
+    ///
+    /// INSTALLED IN PLACE, no rebuild: estimator state, the published tick and
+    /// every latch are kept. It is ACCEPTED ONLY WHILE `disarmed` — in any other
+    /// mode (`armed`, airborne, `terminated`) the call is REJECTED and `cal`
+    /// discarded, because changing what the estimator subtracts from the raw
+    /// IMU mid-flight would step the attitude estimate under the controller.
+    /// A calibration sent before the supervisor exists is kept and installed
+    /// when it is built, and it survives a later `configure` /
+    /// `configure-supervisor` rebuild.
+    ///
+    /// An INVALID calibration (any component non-finite, an `accel-scale` not
+    /// > 0, or a soft-iron matrix that is not positive definite — see
+    /// `sensor-calibration`) is NOT installed: the identity is applied in its
+    /// place, the calibration counts as NOT configured, and any earlier valid
+    /// one is REVOKED, so `CalibrationPresent` is false and `arm` refused. The
+    /// latest thing the host sent was broken, and the vehicle must not fly on
+    /// an older one.
+    ///
+    /// FLATTENING: 18 f32 (six vec3), OVER `MAX_FLAT_PARAMS = 16`, so this
+    /// export is lowered INDIRECTLY: the core function takes one `i32`
+    /// pointer and the host writes the 72-byte record into the component's
+    /// memory through `cabi_realloc` before the call (measured on the built
+    /// component; it was 15 scalars before the off-diagonal). That spilled
+    /// argument area is reclaimed per call by falcon-cm-rt's `CallScope`
+    /// (#574), so repeated calls do not exhaust the component's arena.
+    configure-calibration: func(cal: sensor-calibration);
+
+    /// Deliver one pilot command to the mode machine.
+    ///
+    /// `level` and `throttle-low` are the RC arming interlocks the HOST holds
+    /// and the component cannot observe: stick position is not in the sensor
+    /// frame. They are passed per command rather than stored because they are
+    /// properties of the moment the command was issued.
+    ///
+    /// NOTE, because it ships in this component and a consumer should not have
+    /// to discover it: the core currently hardcodes `have_position: true` in
+    /// its gate construction (`falcon-core` `FlightSupervisor::command`), so
+    /// the "never RTL with position lost" clause of FSAFE-P01 is NOT reachable
+    /// through this seam yet. That is a core limitation this interface exposes
+    /// rather than introduces, and it is tracked separately.
+    command: func(cmd: pilot-command, level: bool, throttle-low: bool);
+}
+
+world cascade {
+    export controller;
+    export observer;
+    export pilot;
+}

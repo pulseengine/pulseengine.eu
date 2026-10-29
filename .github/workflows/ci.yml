@@ -253,6 +253,42 @@ jobs:
       - name: Check the factory notice inbox rejects unsafe answers
         run: python3 claude-tooling/plugins/pulseengine-claude/skills/factory-notice/notice.py --self-test
 
+      # The seam-contract checker (REQ-SEAM-CONTRACT-CHECK). Offline: one
+      # negative control per rule must exit 1 with that rule named, API
+      # failures must exit 2 (the real curl and urllib paths run against a
+      # loopback stub, comment pagination included), and the pilot run checks
+      # the four drone-seam blocks, as posted on jess#62, jess#167, relay#572 and
+      # relay#589 on 2026-10-29, against relay and jess files fetched that day:
+      # all four must pass, and the same relay#589 block with the issue's old
+      # @0.11.0 must go red on interface-version (the drift the pilot found).
+      # The live check against GitHub is seam-check.yml, not a PR check.
+      - name: Check the seam-contract checker can still fail
+        run: |
+          set -euo pipefail
+          S=claude-tooling/plugins/pulseengine-claude/skills/seam-contract/seam-check.py
+          P=tests/seam-contract/pilot
+          python3 "$S" --self-test
+          rc=0
+          python3 "$S" --fixtures "$P" --now 2026-10-29 --format json > "$RUNNER_TEMP/pilot.json" || rc=$?
+          sed 's/version: "0\.12\.0"/version: "0.11.0"/' "$P/blocks/relay-589.md" > "$RUNNER_TEMP/drift.md"
+          drc=0
+          python3 "$S" --fixtures "$P" --block "$RUNNER_TEMP/drift.md" --now 2026-10-29 --format json \
+            > "$RUNNER_TEMP/drift.json" || drc=$?
+          python3 - "$RUNNER_TEMP/pilot.json" "$rc" "$RUNNER_TEMP/drift.json" "$drc" <<'PY'
+          import json, sys
+          def failing(path):
+              r = json.load(open(path))
+              return r, {s["id"]: sorted({v["rule"] for v in s["violations"]}) for s in r["seams"] if s["violations"]}
+          r, pilot = failing(sys.argv[1])
+          _, drift = failing(sys.argv[3])
+          want = {"relay-jess/estimator-identity": ["interface-version"]}
+          ok = sys.argv[2] == "0" and len(r["seams"]) == 4 and pilot == {}
+          ok = ok and sys.argv[4] == "1" and drift == want
+          print("pilot: exit %s, %d seams, failing %s; drift control: exit %s, failing %s"
+                % (sys.argv[2], len(r["seams"]), pilot, sys.argv[4], drift))
+          sys.exit(0 if ok else 1)
+          PY
+
       # The SessionStart hook that writes `setopt no_nomatch no_equals` into
       # $CLAUDE_ENV_FILE (REQ-HOOK-ZSH-SHELL-OPTIONS). Runs the real hook and the
       # real zsh: plain zsh must still fail `echo ===` and an unmatched glob

@@ -2120,3 +2120,113 @@ claims:
         pattern: '\n        run: python3 scripts/check-plugin-version-current\.py\n'
         glob: ['.github/workflows/ci.yml']
         min: 1
+
+  # ── seam-contract: the cross-repo contract is a checked block, not prose ────
+  # Owner-approved 2026-10-29 (REQ-SEAM-CONTRACT-CHECK): the four drone seams
+  # were written by hand in issues and only jess's pin guard was mechanical.
+  # The checker must be able to fail on every rule, must never read an API
+  # failure or an empty search as a pass, and must not need gh.
+  - id: SEAM-CONTRACT-CHECK-CANNOT-PASS-SILENTLY
+    doc: claude-tooling/plugins/pulseengine-claude/skills/seam-contract/SKILL.md
+    text: "Treat exit 2 as unknown, never as green."
+    evidence:
+      - kind: verbatim
+        text: "zero seams checked is not a pass"
+      - kind: count-min
+        pattern: 'no seam blocks found: nothing was checked, which is not a pass'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/seam-contract/seam-check.py']
+        min: 1
+      - kind: count-min
+        pattern: 'issue search returned incomplete_results; refusing a partial answer'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/seam-contract/seam-check.py']
+        min: 1
+      - kind: count-min
+        pattern: 'rel="next"'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/seam-contract/seam-check.py']
+        min: 1
+      - kind: count-min
+        pattern: 'ok = ok and rule in fired'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/seam-contract/seam-check.py']
+        min: 1
+      - kind: count-min
+        pattern: 'python3 "\$S" --self-test'
+        glob: ['.github/workflows/ci.yml']
+        min: 1
+      - kind: count-min
+        pattern: 'want = \{"relay-jess/estimator-identity": \["interface-version"\]\}'
+        glob: ['.github/workflows/ci.yml']
+        min: 1
+
+  - id: SEAM-CONTRACT-LIVE-CHECK-NOT-A-PR-GATE
+    doc: claude-tooling/plugins/pulseengine-claude/skills/seam-contract/SKILL.md
+    text: "It is deliberately not a required PR check"
+    evidence:
+      - kind: file-exists
+        path: .github/workflows/seam-check.yml
+      - kind: count-max
+        pattern: 'pull_request|merge_group'
+        glob: ['.github/workflows/seam-check.yml']
+        max: 0
+      - kind: count-min
+        pattern: 'workflow_dispatch:'
+        glob: ['.github/workflows/seam-check.yml']
+        min: 1
+      - kind: count-min
+        pattern: 'cron: "41 6 \* \* 1"'
+        glob: ['.github/workflows/seam-check.yml']
+        min: 1
+
+  - id: SEAM-CONTRACT-NO-GH-TOKEN-STAYS-HOME
+    doc: claude-tooling/plugins/pulseengine-claude/skills/seam-contract/SKILL.md
+    text: "It is sent only to the GitHub API host."
+    evidence:
+      - kind: count-max
+        pattern: '\["gh",\s*"(?!auth")'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/seam-contract/seam-check.py']
+        max: 0
+      - kind: count-min
+        pattern: 'return None  # never send a GitHub token to any other host'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/seam-contract/seam-check.py']
+        min: 1
+      - kind: count-min
+        pattern: '"-H", "@" \+ hfile'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/seam-contract/seam-check.py']
+        min: 1
+
+  - id: SEAM-CONTRACT-SINGLE-SOURCE
+    doc: claude-tooling/plugins/pulseengine-claude/skills/release-execution/SKILL.md
+    text: "The block format and the rules live in `seam-contract`, not here."
+    evidence:
+      - kind: verbatim
+        text: "`seam-check.py --party <owner/this-repo>` from [`seam-contract`]"
+      - kind: count-min
+        pattern: 'seam-check\.py --party <owner/this-repo> --format json'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/issue-hunt/SKILL.md']
+        min: 1
+      - kind: count-max
+        pattern: 'every open question has an owner who is a side of the seam'
+        glob: ['claude-tooling/plugins/pulseengine-claude/**/*.md']
+        max: 1
+      - kind: count-max
+        pattern: 'implemented_by: "relay#590"'
+        glob: ['claude-tooling/plugins/pulseengine-claude/**/*.md']
+        max: 1
+
+  - id: SEAM-CONTRACT-PILOT-FIXTURES-PINNED
+    doc: tests/seam-contract/pilot/world.json
+    text: "relay main 8cb289500d32508a5f426fa299acb9cff9d74b85 and jess main 3abbdfd4b6cf6769d5a4c70525bb6de78dd88a0e"
+    evidence:
+      - kind: file-exists
+        path: tests/seam-contract/pilot/files/relay.cascade.wit.txt
+      - kind: count-min
+        pattern: 'package pulseengine:falcon-cascade@0\.12\.0;'
+        glob: ['tests/seam-contract/pilot/files/relay.cascade.wit.txt']
+        min: 1
+      - kind: count-min
+        pattern: 'version: "0\.12\.0"'
+        glob: ['tests/seam-contract/pilot/blocks/relay-589.md']
+        min: 1
+      - kind: count-max
+        pattern: 'files/[^"]*\.(sh|py)"'
+        glob: ['tests/seam-contract/pilot/world.json']
+        max: 0

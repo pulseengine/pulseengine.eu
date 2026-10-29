@@ -1,0 +1,32 @@
+{
+  "_about": "Pilot: the four seam contracts from the 2026-10-28 orchestrator post, as seam blocks (blocks/*.md, the exact comments posted on 2026-10-29, owner-approved) and checked offline against the real provider files. Files fetched 2026-10-29 at relay main 8cb289500d32508a5f426fa299acb9cff9d74b85 and jess main 3abbdfd4b6cf6769d5a4c70525bb6de78dd88a0e. Guard scripts are presence-only entries (null): the guard rule checks existence, and a tracked .sh would be shellchecked as ours. Issue bodies are not copied; the block lives in the posted comment.",
+  "default_branch": {"pulseengine/relay": "main", "pulseengine/jess": "main"},
+  "issues": [
+    {"repo": "pulseengine/jess", "number": 62, "labels": ["seam"], "url": "https://github.com/pulseengine/jess/issues/62",
+     "body": "(issue body not copied; it carries no seam block)",
+     "comments": [{"id": "proposed", "created_at": "2026-10-29T00:00:00Z", "body_file": "blocks/jess-62.md"}]},
+    {"repo": "pulseengine/jess", "number": 167, "labels": ["seam"], "url": "https://github.com/pulseengine/jess/issues/167",
+     "body": "(issue body not copied; it carries no seam block)",
+     "comments": [{"id": "proposed", "created_at": "2026-10-29T00:00:00Z", "body_file": "blocks/jess-167.md"}]},
+    {"repo": "pulseengine/relay", "number": 572, "labels": ["seam"], "url": "https://github.com/pulseengine/relay/issues/572",
+     "body": "(issue body not copied; it carries no seam block)",
+     "comments": [{"id": "proposed", "created_at": "2026-10-29T00:00:00Z", "body_file": "blocks/relay-572.md"}]},
+    {"repo": "pulseengine/relay", "number": 589, "labels": ["seam"], "url": "https://github.com/pulseengine/relay/issues/589",
+     "body": "(issue body not copied; it carries no seam block)",
+     "comments": [{"id": "proposed", "created_at": "2026-10-29T00:00:00Z", "body_file": "blocks/relay-589.md"}]}
+  ],
+  "files": {
+    "pulseengine/relay": {
+      "wit/falcon-cascade/cascade.wit": "files/relay.cascade.wit.txt",
+      "crates/falcon-hitl/src/wire.rs": "files/relay.wire.rs.txt",
+      "docs/TRANSPORT-BINDING.md": "files/relay.TRANSPORT-BINDING.md.txt",
+      "crates/relay-hal/src/lib.rs": "files/relay.relay-hal.lib.rs.txt",
+      "scripts/build-components.sh": "files/relay.build-components.sh.txt"
+    },
+    "pulseengine/jess": {
+      "tools/deps/check-estimator-identity.sh": null,
+      "tools/abi/check-observer-layout.py": null,
+      "tools/publish-gate/check-consumable.sh": null
+    }
+  }
+}
