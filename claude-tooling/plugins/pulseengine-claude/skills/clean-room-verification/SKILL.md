@@ -3,7 +3,7 @@ name: clean-room-verification
 description: This skill should be used whenever findings, audits, code-review results, claims, or analysis output need to be validated before reporting — including "verify this", "double-check this", "audit", "is this actually true", "before I report this", "before we merge this", or whenever an agent's summary needs independent confirmation. ALWAYS use this skill before delivering non-trivial inspection results, before claiming a property holds, and whenever agent-produced hashes, digests, versions, file paths, or flag names appear in a report.
 metadata:
   author: pulseengine.eu
-  version: "0.4.0"
+  version: "0.4.1"
 ---
 
 # Clean-room verification
@@ -102,4 +102,4 @@ When the reviewer is an AI added to a PR as a cloud reviewer:
 
 ## Where this is referenced from
 
-`oracle-gate-a-change` and `pulseengine-feature-loop` both point here for their verify step; `release-execution`'s independence gate and `publication-review`'s reviewers point here for the fork rule and the independence record. The pattern is single-source-of-truth here; if you're inlining the procedure elsewhere, you're duplicating a known dependency.
+`oracle-gate-a-change` and `pulseengine-feature-loop` both point here for their verify step; `release-execution`'s independence gate and `publication-review`'s reviewers point here for the fork rule and the independence record; [`refactor-decision`], which checks its own scope first (not in pulseengine/rivet or pulseengine/spar before 2027-02-01), points here before a refactor is reported as behaviour-preserving. The pattern is single-source-of-truth here; if you're inlining the procedure elsewhere, you're duplicating a known dependency.

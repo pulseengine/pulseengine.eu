@@ -3,7 +3,7 @@ name: oracle-gate-a-change
 description: This skill should be used whenever proposing, designing, landing, or evaluating a consequential change on a PulseEngine project (rivet, spar, witness, sigil, meld, loom, synth, wohl) — including "propose a change", "add a feature", "fix a bug", "is this safe to land", "what verifies this", "what's the gate", "how do we know this is correct", "before merging this", or whenever a code change needs a mechanical check to back it. ALWAYS use this skill before claiming a property holds and before recommending a change be merged.
 metadata:
   author: pulseengine.eu
-  version: "0.6.0"
+  version: "0.6.1"
 ---
 
 # Oracle-gate a change
@@ -245,4 +245,4 @@ inert. Each of these has cost real time in this org:
 
 ## Where this composes
 
-`pulseengine-feature-loop` runs this skill per change inside the feature loop. `release-execution` expects every PR in the queue to have passed through this gate before merge. Verification of the oracle-passed claim flows to [`clean-room-verification`].
+`pulseengine-feature-loop` runs this skill per change inside the feature loop. `release-execution` expects every PR in the queue to have passed through this gate before merge. Verification of the oracle-passed claim flows to [`clean-room-verification`]. When a change would add a second copy of a rule or a second path for a decision, [`refactor-decision`] says what to do; it checks its own scope first (not in pulseengine/rivet or pulseengine/spar before 2027-02-01).

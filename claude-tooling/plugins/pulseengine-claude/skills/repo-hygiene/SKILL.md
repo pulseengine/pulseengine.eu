@@ -3,7 +3,7 @@ name: repo-hygiene
 description: This skill should be used to run a complete hygiene sweep over a repo after a release or on a standing cadence — stale worktrees, dead local/remote branches (including squash-merge artifacts git cannot see as merged), ancient stashes, agent build caches, status noise, and the open-issue board. Use it when the user says "clean up", "hygiene", "check worktrees and branches", "what's stale", or when a release tick finishes and residue has accumulated. It is quiesce-gated so it is safe to run inside a live multi-agent campaign. Closure is evidence-based — an issue closes on a tagged release, or on the deploy run for its merge SHA in a repo that has no tags, or with a rationale when obsolete or captured elsewhere; otherwise it stays open with a "remaining:" note, or is marked perennial if it is a living surface rather than a task — never silently. Composes with issue-hunt (the board is its watermark surface), release-execution (fire this as the release tail), and the operating contract.
 metadata:
   author: pulseengine.eu
-  version: "0.4.1"
+  version: "0.4.2"
 ---
 
 # Repo hygiene — the post-release residue sweep
@@ -234,6 +234,9 @@ Fire this as the **tail of [`release-execution`]** (residue is freshest and the
 worktree/branch set is unambiguous) or on the [`issue-hunt`] loop's idle tick —
 both skills invoke it at those points. The issue-board step is the same surface
 issue-hunt watermarks: hygiene closes what shipped; issue-hunt triages what's new.
+A sweep that finds the same file fixed again and again hands it to
+[`refactor-decision`], which checks its own scope first
+(not in pulseengine/rivet or pulseengine/spar before 2027-02-01); hygiene itself refactors nothing.
 
 - **Report-then-act on unattended runs.** At scale a pass proposes dozens of `-D`
   plus remote deletes; emit the **full disposition list first** (mirroring

@@ -3,7 +3,7 @@ name: pulseengine-feature-loop
 description: This skill should be used when doing a feature end-to-end on a PulseEngine project (rivet, spar, witness, sigil, meld, loom, synth, wohl, kiln) — including "implement a feature", "add a new requirement", "extend the architecture", "write a new pass", "ship a feature end-to-end", "do this properly with traceability", "model-driven implementation", or any feature work that should pass through the full AADL → WIT → typed traceability → oracle-gated code → MC/DC → attestation → verify loop. ALWAYS use this skill when the user authorizes feature work on a PulseEngine project and the work touches more than a single file.
 metadata:
   author: pulseengine.eu
-  version: "0.7.2"
+  version: "0.7.3"
 ---
 
 # PulseEngine feature loop
@@ -12,7 +12,7 @@ metadata:
 
 End-to-end feature work on a PulseEngine project where the methodology actually composes: spar (AADL architecture) → rivet (typed traceability) → code (agent-written, oracle-gated) → witness (MC/DC on Wasm) → sigil (signed attestation) → smithy (clean-room verify). This is the "MBSE is mandatory infrastructure for AI-authored safety code" claim made concrete.
 
-Use this when the feature touches more than one layer of the stack. Single-file refactors don't need the full loop; reach for [`oracle-gate-a-change`] alone.
+Use this when the feature touches more than one layer of the stack. Single-file refactors don't need the full loop; reach for [`oracle-gate-a-change`] alone. Whether to refactor before or during a feature, and how, is [`refactor-decision`]'s call; it checks its own scope first (not in pulseengine/rivet or pulseengine/spar before 2027-02-01).
 
 ## Standing practice across every step
 

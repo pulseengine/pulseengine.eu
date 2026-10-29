@@ -3,7 +3,7 @@ name: ci-status
 description: This skill should be used whenever an agent is about to open a pull request, and whenever it is about to wait on a pull request's or branch's CI — "is CI green yet", "wait for the checks", "merge when green", a pending_gates entry, a release tag waiting on its run — and before it polls GitHub in a loop. Before opening a PR it checks whether the repo's CI queue admits one (open, batch onto the session's own PR, or hold locally). When waiting, it asks the CI fleet's read-only status API first (configured by environment variable, never written into a repo), reads the answer's status and start estimate, and schedules the next wake-up from the API's own recheck interval. When an API is not configured or not reachable it says so once and falls back to GitHub (`gh pr checks`, or the repo's queued-run count). Composes with issue-hunt (pending_gates), pulseengine-feature-loop (merge when green), release-execution (waiting on a tag's run) and the operating contract (one PR per repo per session for trivial changes).
 metadata:
   author: pulseengine.eu
-  version: "0.2.1"
+  version: "0.2.2"
 ---
 
 # CI status: ask the fleet before polling GitHub
@@ -78,6 +78,11 @@ gh pr checks <n> --repo pulseengine/<repo>
 | 0 | all checks passed |
 | 1 | something failed, **or** there are no checks at all |
 | 8 | some checks are still pending |
+
+A merge-queue ejection of a PR that was green on its own is read through
+[`refactor-decision`] → "Merge queue: two greens can be red together" before it
+is re-queued; refactor-decision checks its own scope first
+(not in pulseengine/rivet or pulseengine/spar before 2027-02-01).
 
 "no checks reported" means no workflow runs on pull requests in that repository.
 Say so; it is not a failure, and there is nothing to wait for. The self-hosted

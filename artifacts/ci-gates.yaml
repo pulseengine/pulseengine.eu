@@ -81,6 +81,8 @@ artifacts:
         target: REQ-ISSUE-TEXT-HARDENED
       - type: satisfies
         target: REQ-SKILL-FRONTMATTER-YAML
+      - type: satisfies
+        target: REQ-REFACTOR-DECISION
   - id: REQ-LINKS
     type: requirement
     title: Every internal link in the built site resolves
@@ -772,3 +774,28 @@ artifacts:
     links:
       - type: verifies
         target: REQ-SKILL-FRONTMATTER-YAML
+
+  - id: REQ-REFACTOR-DECISION
+    type: requirement
+    title: The plugin says when and how to refactor, and excludes rivet and spar until 2027-02-01
+    description: >-
+      Owner decision 2026-10-29 on pulseengine.eu#294 (relay, 500 merges measured: rule C "second copy or path of a rule" strongest, rule A "2nd re-fix in a file within 60 merges" 1 of 6 firings true, rule D "3 or more review findings in one file" late but unambiguous). The new skill refactor-decision is the single source. Its first section says it does not apply in pulseengine/rivet or pulseengine/spar before 2027-02-01, because the pre-registered hotspot experiment (docs/experiments/2026-10-hotspot-trigger.md, window 2026-11..2027-01) promises no other process change there; it checks every remote of the checkout (SSH and HTTPS, an upstream remote included) and the UTC date; that grep alone decides which repositories are excluded, and a PR into either repository or a checkout with no remote is excluded too. Four triggers, each with its evidence: (a) preparatory refactoring as its own behaviour-preserving step before a feature that does not fit; (b) a second copy of a rule or a second path for one decision, answered by deleting the first copy or naming the one owner; (c) a re-fix chain or review cluster, which yields a recorded none/small/large decision with a reason and never an automatic refactor, preferring small when it removes the defect class and never splitting a file for size alone; (d) litter pickup bounded to code the change already edits, the skill's bounded exception to the contract's minimal-scope rule. How: no refactor lands without behaviour-preservation evidence (unchanged tests green before and after; for numeric or control code an old-vs-new differential run with identical outputs); refactoring is kept apart from behaviour change; every refactor names its purpose; "refactor X" without a purpose and a check is clarified, not executed (arXiv 2610.36346); a merge-queue ejection is read as a possible interaction defect, not a flake. Decisions are recorded on the issue or PR, as a rivet design-decision where the schema has one, pointed to from the working context, and a large decision goes to the owner through factory-notice. ci-status, pulseengine-feature-loop, oracle-gate-a-change, issue-hunt, repo-hygiene, clean-room-verification and the operating contract point to it, each pointer stating the rivet/spar exclusion, and carry none of its rules; no other skill and no memory file mentions litter pickup or preparatory refactoring; the contract, which is always-on memory and loads in rivet and spar, states the exclusion in its pointer and does not mention litter pickup. The experiment doc carries a dated note of the exclusion.
+    status: verified
+    release: 0.46.0
+    category: functional
+    priority: must
+    fields:
+      category: functional
+
+  - id: VER-REFACTOR-DECISION
+    type: verification
+    title: claims REFACTOR-DECISION-SCOPE-EXCLUDES-EXPERIMENT, -TRIGGERS-AND-RULES and -SINGLE-SOURCE
+    description: >-
+      claim-check requires the scope sentence as the first section of the skill's body, the all-remotes grep and the UTC date check verbatim, the grep-governs sentence and the PR-into and no-remote sentence (both naming rivet and spar), the exclusion in the skill description, and the dated note with 2027-02-01 in the experiment doc; the four trigger rules, prefer-small, size-is-not-a-reason, the behaviour-preservation rule, the differential run, keep-apart, named-purpose, the over-compliance rule with its quoted sentence, both halves of the arXiv 2511.04824 finding and the merge-queue rule verbatim; at most one occurrence of each of seven rule sentences across the plugin's markdown; a pointer to refactor-decision in each of the seven pointing files, one count per file, each carrying the rivet/spar exclusion, and no mention of litter or preparatory refactoring in the memory files or in any SKILL.md other than refactor-decision's. EXPERIMENT-HOTSPOT-TRIGGER-PREREGISTERED still holds. Negative-controlled on 2026-10-29: 34 mutants each exit 1 on claim-check and were restored by re-editing (scope date moved, scope no longer the first section, remote check reading origin only, date check moved, no-remote case dropped, spar dropped from the PR-into sentence and from the grep-governs sentence, exclusion dropped from the description, experiment note heading dropped, its date moved, each of the four triggers reworded, prefer-small inverted, size-not-a-reason inverted, behaviour evidence softened, differential run dropped, over-compliance and merge-queue rules reworded, rule C copied into oracle-gate-a-change, the over-compliance rule copied into the contract, the ci-status, issue-hunt and contract pointers dropped, the litter-pickup exception put back in the contract, the exclusion dropped from the contract's pointer and from the ci-status, clean-room-verification and feature-loop pointers, a preparatory-refactoring instruction added to oracle-gate-a-change, a litter instruction added to release-execution and to stpa-audit, and the structural-metrics half of the 2511.04824 finding dropped); the positive control of a pointer added to delegate-by-cost exits 0.
+    status: verified
+    release: 0.46.0
+    method: automated-test
+    test-location: claims.yaml
+    links:
+      - type: verifies
+        target: REQ-REFACTOR-DECISION
