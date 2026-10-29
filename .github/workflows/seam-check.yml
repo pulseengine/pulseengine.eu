@@ -1,0 +1,88 @@
+name: Seam check
+
+# The live seam-contract check (REQ-SEAM-CONTRACT-CHECK): every open issue in
+# the pulseengine org labelled `seam` must carry a ```seam block that passes
+# seam-check.py, resolved against the provider's and consumers' default
+# branches. The offline self-test and the pilot fixtures run in ci.yml on every
+# PR; this job reads live data, so it is weekly and on demand, and is NOT a
+# required PR check: a provider moving its interface turns this red for a
+# reason no PR here can fix.
+#
+# Until the owner posts the first seam blocks, this run is red with "no seam
+# blocks found": zero seams checked is not a pass, by design.
+#
+# GITHUB_TOKEN reads the org's public repos. A private repo it cannot read is
+# exit 2 (red), never a silent pass. Cost per run: one search page plus, per
+# seam issue, one comments page per 100 comments and one contents request per
+# interface file or guard, well inside the token's hourly limit.
+#
+# No `gh` anywhere (the self-hosted runners have none); the checker uses curl.
+on:
+  schedule:
+    - cron: "41 6 * * 1"   # Mondays 06:41 UTC
+  workflow_dispatch:
+    inputs:
+      party:
+        description: "OWNER/REPO: only the seams this repo provides or consumes (default: all)"
+        required: false
+
+permissions:
+  contents: read
+  issues: read
+
+concurrency:
+  group: seam-check
+  cancel-in-progress: false
+
+jobs:
+  live:
+    # The light pool, as ci.yml's build: its python3 has PyYAML, which the
+    # checker needs (it exits 2 without it, never a silent pass).
+    runs-on: [self-hosted, linux, x64, light]
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Check the checker can still fail
+        run: python3 claude-tooling/plugins/pulseengine-claude/skills/seam-contract/seam-check.py --self-test
+
+      - name: Check every seam contract in the org
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          PARTY: ${{ inputs.party }}
+        run: |
+          set -euo pipefail
+          S=claude-tooling/plugins/pulseengine-claude/skills/seam-contract/seam-check.py
+          args=()
+          if [ -n "${PARTY:-}" ]; then
+            case "$PARTY" in
+              */*) args+=(--party "$PARTY") ;;
+              *) echo "::error::party must be OWNER/REPO"; exit 2 ;;
+            esac
+          fi
+          rc=0
+          python3 "$S" "${args[@]}" --format json > "$RUNNER_TEMP/seams.json" || rc=$?
+          # The text form for the job summary, rendered from the same JSON
+          # (one live run, so the summary and the artifact cannot disagree).
+          python3 - "$RUNNER_TEMP/seams.json" <<'PY' | tee -a "$GITHUB_STEP_SUMMARY"
+          import json, sys
+          r = json.load(open(sys.argv[1]))
+          for s in r.get("seams", []):
+              src = s["source"]
+              tag = "FAIL" if s["violations"] else "WARN" if s["warnings"] else "PASS"
+              print("- %s `%s` %s#%s" % (tag, s.get("id"), src["repo"], src["issue"]))
+              for f in s["violations"] + s["warnings"]:
+                  print("  - [%s] %s" % (f["rule"], f["message"]))
+          for e in r.get("errors", []):
+              print("- error: %s" % e)
+          print("\nseam-check exit %s" % r.get("exit"))
+          PY
+          exit "$rc"
+
+      - name: Keep the JSON report
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: seam-check
+          path: ${{ runner.temp }}/seams.json
+          if-no-files-found: ignore

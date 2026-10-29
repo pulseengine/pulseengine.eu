@@ -3,7 +3,7 @@ name: issue-hunt
 description: This skill should be used to run an incremental bug/feature hunt over a repo's issue tracker — pick up everything NEW since the last pass (new issues and new comments), digest and triage it, work the actionable items through the verification chain, and accumulate toward a feature release. Use it when the user says "hunt the issues", "do a bug/feature hunt", "look into the issues and work them", "loop through the issues", "digest the new issues and comments since last time", or wants a standing loop (via /loop or a scheduled agent) that drives the tracker toward releases. One invocation is one pass; the "since last time" watermark is what makes it a loop rather than a full re-scan. Composes with release-planning (land + ship), the feature loop, and the operating contract.
 metadata:
   author: pulseengine.eu
-  version: "0.4.4"
+  version: "0.4.5"
 ---
 
 # Issue hunt — the incremental bug/feature delivery loop
@@ -87,6 +87,14 @@ digest the entire backlog.
      comments, `gh api repos/<R>/pulls/<N>/comments --paginate`.
    - **List every open PR not in `pending_gates`.** A PR the loop neither owns nor
      has seen is exactly the item a watermark misses; treat it as new.
+   - **Seam issues in other repos are ours too.** An issue carrying a ```` ```seam ````
+     block names a provider and consumers. If this repo is one of them, pull that
+     issue's new comments on every pass, whichever repo it lives in:
+     `seam-check.py --party <owner/this-repo> --format json` lists them under
+     `seams[].source`. The watermark covers only this repo. On jess#167, relay's
+     loop polled only relay, and jess's answer sat unread for 11.5 hours. A
+     comment that answers a seam question becomes a decision in the block, per
+     [`seam-contract`], which also owns the block format and the check.
    - **Filter your own echoes.** This loop comments on issues (triage notes,
      "landed in rivet", "fixed in #NN") — and every such comment bumps `updatedAt`,
      so the next pass re-pulls the issue and sees *its own* comment as "new". Drop

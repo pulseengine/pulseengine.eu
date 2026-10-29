@@ -3,7 +3,7 @@ name: release-execution
 description: This skill should be used when cutting, shipping, or finishing a release — including "ship it", "cut a release", "tag this", "release v0.X.Y", "take this to release", "work the PR queue to green", "finish the release tail", "publish", or any end-to-end release work that involves PRs, reviewers, merging, CI, tagging, GitHub Release, and crates.io publish. ALWAYS use this skill when the user authorizes autonomous release work or asks to "go as long as you can" on a release campaign.
 metadata:
   author: pulseengine.eu
-  version: "0.3.3"
+  version: "0.3.4"
 ---
 
 # Release execution
@@ -122,6 +122,13 @@ with a before/after table. The **path move** was not. Only the unannounced one c
 announcing one breaking change made the coordination feel handled. So make it a checklist item, not
 a judgement call: enumerate *every* published surface this release touches, not the one you happened
 to be thinking about.
+
+**Then run the seam check:** `seam-check.py --party <owner/this-repo>` from [`seam-contract`]. It
+checks every seam block this repo is a side of against the default branch. Exit 1 blocks the tag: a
+block names an interface version or symbol the release no longer has, or the seam is marked
+`broken`. Exit 2 (GitHub unreadable) also blocks the tag, because it is unknown, not green. A changed
+surface that has no block yet gets one in the same change, and its consumers are told on the issue
+before the tag. The block format and the rules live in `seam-contract`, not here.
 
 ### 5. Tag and release
 - **First assert the campaign invariants** ([`pulseengine-operating-contract`] → "Verify the machinery"): the protected branch's `required_status_checks.contexts` is non-empty (the gate is real), **HEAD's CI completed `success`** — not `cancelled` by a merge-train `cancel-in-progress`, which leaves the commit unverified — and everything previously claimed "released" actually carries a tag + a `success` run. A green-looking dashboard over an empty gate or a cancelled HEAD run is not a tag-able state.

@@ -97,6 +97,8 @@ artifacts:
         target: REQ-AGENT-MODEL-REMINDER-THROTTLE
       - type: satisfies
         target: REQ-PLUGIN-VERSION-GATE-FULL-HISTORY
+      - type: satisfies
+        target: REQ-SEAM-CONTRACT-CHECK
   - id: REQ-LINKS
     type: requirement
     title: Every internal link in the built site resolves
@@ -988,3 +990,28 @@ artifacts:
     links:
       - type: verifies
         target: REQ-PLUGIN-VERSION-GATE-FULL-HISTORY
+
+  - id: REQ-SEAM-CONTRACT-CHECK
+    type: requirement
+    title: A seam contract between two repos is a checked block, and the check never passes silently
+    description: >-
+      Owner-approved 2026-10-29, one skill for inbound and outbound seams in place of the three greenlit coordination skills, with the transport kept on GitHub issues and swappable for agora later, and backed by a mechanical check rather than prose. The four drone seams (jess#62 HAL, jess#167 consumption, relay#572 HITL wire, relay#589 interface identity) were written by hand in issues, and only jess's pin-identity guard (jess#293) was mechanical. skills/seam-contract/SKILL.md defines a ```seam block (strict YAML, format 1) with a seam id, kind, status, provider repo and promise, consumer repos and bindings, optional guards (a path or a list) on either side, the interface reference (a WIT file with package and version, or a file with literal symbols), options with a recommendation, dated decisions with decided_by, implemented_by, and open questions that each name an owner repo that is a side of the seam. seam-check.py (python3 3.9, PyYAML, REST over curl or urllib, never gh) discovers open org issues labelled `seam`, reads every comment page, and checks: the block parses with no duplicate or unknown keys; required fields and their types; kind and status values; an owner repo on each side; an owner for every open question; a dated, non-future decision for decided and implemented; two or more options and a recommendation for options; implemented_by for implemented; the interface file on the provider's default branch, its WIT package and version and named interfaces, or its symbols; a named guard file in its repo; broken status, duplicate ids and a labelled issue without a block. A decision older than --stale-days that is not implemented warns, and --strict makes it fail. Exit 0 clean, 1 on a violation or when no seam is found, 2 when the evidence cannot be read (HTTP error, rate limit, unreadable repo, incomplete search results, missing PyYAML). The token goes only to the GitHub API host. release-execution 4c and issue-hunt point to it and carry none of its rules. seam-check.yml runs it live weekly and on demand and is not a PR check.
+    status: verified
+    release: 0.48.0
+    category: functional
+    priority: should
+    fields:
+      category: functional
+
+  - id: VER-SEAM-CONTRACT-CHECK
+    type: verification
+    title: seam-check.py --self-test, the pilot fixture run, and claims SEAM-CONTRACT-*
+    description: >-
+      The self-test runs 69 checks offline: 36 single-rule mutants of a good block, each of which must exit 1 with that rule named in the JSON output so that it cannot pass for another reason, such as finding no seam; 10 positive controls exit 0 (a guard list, body canonical over a later broken comment, the latest comment when the body has none, a stale warning without --strict, an implemented seam never stale); the no-seam, no-block, duplicate-id, strict-stale and --block drift cases exit 1; fixture search failure and an unreadable provider repo exit 2; and the real HTTP path runs under both curl and urllib against a loopback stub, where a block on comment page 2 exits 0 only if the Link header is followed, and search 500, rate limit, incomplete_results, a provider repo 404 and an interface file 500 each exit 2. A last case checks that the token is withheld from a non-GitHub host. ci.yml also runs the four drafted drone-seam blocks (the consumption block names two jess guards, tools/abi/check-observer-layout.py and tools/publish-gate/check-consumable.sh) against relay and jess files fetched on 2026-10-29 (relay 8cb2895, jess 3abbdfd) and requires exit 1 with exactly one failing seam, relay-jess/estimator-identity, on interface-version: relay#589 names ekf@0.11.0, while relay main is at @0.12.0. Run live on 2026-10-29 with --block, against the GitHub API, the result was the same, and discovery found no labelled seam (exit 1). Negative-controlled on 2026-10-29: 12 mutants of seam-check.py each exit 1 on its self-test (Link pagination dropped, incomplete_results accepted, a contents 500 read as absent, the version comparison, the question-owner rule, the future-date rule, the guard rule, the broken rule, the symbol rule, zero seams reported as exit 0, duplicate keys accepted, the token sent to any host), the first run of which found the contents-500 case untested and added it; 8 mutants each exit 1 on claim-check (the incomplete_results message, the exit-2 sentence, the zero-seams sentence, the 4c pointer, the issue-hunt pointer, the CI self-test call, the pilot expectation, a pull_request trigger on seam-check.yml). All restored by re-editing; the self-test and claim-check exit 0 again.
+    status: verified
+    release: 0.48.0
+    method: automated-test
+    test-location: claude-tooling/plugins/pulseengine-claude/skills/seam-contract/seam-check.py
+    links:
+      - type: verifies
+        target: REQ-SEAM-CONTRACT-CHECK
