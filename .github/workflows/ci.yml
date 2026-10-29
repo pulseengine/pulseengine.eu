@@ -338,6 +338,18 @@ jobs:
           set -euo pipefail
           python3 scripts/check-agent-model-reminder.py
 
+      # The PreToolUse(Bash) commit-merge-guard hook (REQ-COMMIT-MERGE-GUARD).
+      # Runs the real wrapper against throwaway git repos and a stub gh that
+      # answers from fixtures. HOME, GIT_CONFIG_GLOBAL and the plugin data dir
+      # are temp dirs and PATH is symlinks only, so the runner's own identity,
+      # tokens and network never reach it. Must deny the synth INC-2026-10-006
+      # identity and the smithy#45 --auto merge, allow protected and allow-listed
+      # cases, warn rather than block on API failure, and stay silent elsewhere.
+      - name: Check the commit-merge-guard hook denies only what it should
+        run: |
+          set -euo pipefail
+          python3 scripts/check-commit-merge-guard.py
+
       # External review of #232 found a compiled .pyc in that PR and a second
       # one tracked for longer, with all ten gates green over both: each asked
       # whether a claim matched the tree, none asked what was in it.
