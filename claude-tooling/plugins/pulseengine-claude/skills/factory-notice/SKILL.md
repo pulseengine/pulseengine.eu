@@ -168,6 +168,14 @@ it reads the cache that `poll`, `post` and `window-tick` keep fresh. The request
 uses the same client as every other warte call, curl fallback and time limit
 included.
 
+The curl fallback exists because macOS Local Network privacy is per binary:
+python3 can fail to resolve or reach a LAN host (`nodename nor servname
+provided`, or EHOSTUNREACH) that Apple's `/usr/bin/curl` reaches from the same
+shell. When urllib fails with a DNS or connection error, never an HTTP status,
+a TLS error or a timeout, the same request is retried once via `curl`, with
+`PULSEENGINE_WARTE_CACERT` as `--cacert` and the body on stdin. If curl fails
+too, the notice stays in the outbox.
+
 [`attention.schema.json`](attention.schema.json) (`schema_version: 1`) is the
 only definition of the schedule, for warte, the cache and the file alike. The
 defaults, which are also what the local file starts as:

@@ -2006,3 +2006,68 @@ claims:
         pattern: '\n +python3 scripts/check-agent-model-reminder\.py\n'
         glob: ['.github/workflows/ci.yml']
         max: 1
+
+  # ── The Agent model reminder is throttled per session, and fails open ───────
+  # Owner decision 2026-10-29 (extends REQ-AGENT-MODEL-REMINDER). Unthrottled,
+  # the heaviest local session would have been reminded 367 times. The count
+  # is per session_id in the plugin's data dir; scripts/check-agent-model-
+  # reminder.py tests the behaviour, this keeps the constants and the doc.
+  - id: AGENT-MODEL-REMINDER-THROTTLED
+    doc: claude-tooling/plugins/pulseengine-claude/README.md
+    text: "Throttled per session: it reminds on the first such call and then on every 10th consecutive one, and a call that sets `model:` resets the count."
+    evidence:
+      - kind: verbatim
+        text: "missing or corrupt state fails open to a reminder, never to a blocked call"
+      - kind: count-min
+        pattern: '\nEVERY = 10\n'
+        glob: ['claude-tooling/plugins/pulseengine-claude/hooks/agent-model-reminder.py']
+        min: 1
+      - kind: count-min
+        pattern: 'env\.get\("CLAUDE_PLUGIN_DATA", ""\)'
+        glob: ['claude-tooling/plugins/pulseengine-claude/hooks/agent-model-reminder.py']
+        min: 1
+      - kind: count-min
+        pattern: 'os\.replace\(tmp, path\)'
+        glob: ['claude-tooling/plugins/pulseengine-claude/hooks/agent-model-reminder.py']
+        min: 1
+      - kind: count-min
+        pattern: 'then every 10th consecutive one; a call that sets `model:` resets the count'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/delegate-by-cost/SKILL.md']
+        min: 1
+
+  # ── notice.py retries a DNS or connection failure via curl, nothing else ────
+  # REQ-FACTORY-NOTICE-CURL-FALLBACK. macOS Local Network privacy blocks python3
+  # (gaierror "nodename nor servname provided", or EHOSTUNREACH) for a LAN host
+  # that /usr/bin/curl reaches. The retry must cover those and must not cover
+  # an HTTP status or a TLS error (ssl.SSLError's errno 1 equals EPERM).
+  - id: FACTORY-NOTICE-CURL-FALLBACK
+    doc: claude-tooling/plugins/pulseengine-claude/skills/factory-notice/SKILL.md
+    text: "When urllib fails with a DNS or connection error, never an HTTP status,"
+    evidence:
+      - kind: verbatim
+        text: "If curl fails\ntoo, the notice stays in the outbox."
+      - kind: count-min
+        pattern: 'if isinstance\(reason, ssl\.SSLError\):\s+return False\s+if isinstance\(reason, socket\.gaierror\):\s+return True'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/factory-notice/notice.py']
+        min: 1
+      - kind: count-min
+        pattern: 'if _curl_retryable\(e\.reason\) and shutil\.which\("curl"\):'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/factory-notice/notice.py']
+        min: 1
+      # the body goes on stdin and the CA by path; no header carries a token
+      - kind: count-min
+        pattern: '"--data-binary", "@-"'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/factory-notice/notice.py']
+        min: 1
+      - kind: count-max
+        pattern: '(?i)"-H", "Authorization|"-u",|--user\b|--oauth2-bearer'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/factory-notice/notice.py']
+        max: 0
+      - kind: count-min
+        pattern: 'for label, reason in \(\("gaierror", gai\.reason\),'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/factory-notice/notice.py']
+        min: 1
+      - kind: count-min
+        pattern: 'warte: urllib and curl both failing keep the notice in the outbox'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/factory-notice/notice.py']
+        min: 1

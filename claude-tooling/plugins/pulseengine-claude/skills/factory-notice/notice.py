@@ -58,6 +58,7 @@ import pathlib
 import re
 import secrets
 import shutil
+import socket
 import ssl
 import subprocess
 import sys
@@ -338,6 +339,29 @@ def all_agents(root):
 
 # ── warte client ────────────────────────────────────────────────────────────
 
+# Connection-level errnos that mean "python3 could not reach the host", which
+# curl from the same shell may still do.
+_CURL_RETRY_ERRNOS = {errno.EHOSTUNREACH, errno.ENETUNREACH, errno.EHOSTDOWN, errno.ENETDOWN,
+                      errno.ECONNREFUSED, errno.EPERM}
+
+
+def _curl_retryable(reason):
+    """True when a URLError's reason is a DNS or connection failure, not TLS or a timeout.
+
+    Measured on macOS: Local Network privacy is per binary, so python3 gets
+    EHOSTUNREACH (2026-10-28) or, resolving a .local name, socket.gaierror
+    "nodename nor servname provided" (2026-10-29) for a LAN host that Apple's
+    /usr/bin/curl reaches from the same shell. Those are retried via curl. A
+    TLS error is not: ssl.SSLError carries errno 1, which equals EPERM, so it
+    is excluded first — a certificate failure must not be retried around. A
+    timeout carries no errno in the set, so it is not retried either.
+    """
+    if isinstance(reason, ssl.SSLError):
+        return False
+    if isinstance(reason, socket.gaierror):
+        return True
+    return isinstance(reason, OSError) and getattr(reason, "errno", None) in _CURL_RETRY_ERRNOS
+
 class Warte:
     """urllib client for warte's agent API. Says once when it is unavailable."""
 
@@ -387,12 +411,15 @@ class Warte:
                 raise WriteRefused(e.code) from None
             raise
         except urllib.error.URLError as e:
-            # Measured 2026-10-28 on macOS: python3 got EHOSTUNREACH for a LAN
-            # host that curl reached from the same shell, with and without the
-            # agent sandbox (probably per-binary Local Network privacy; not
-            # confirmed). Retry those errors, and only those, via curl.
-            if getattr(e.reason, "errno", None) in (errno.EHOSTUNREACH, errno.ENETUNREACH, errno.EPERM) \
-                    and shutil.which("curl"):
+            # HTTPError (4xx/5xx) is a URLError too and is handled above, so
+            # only a request that never got an HTTP answer reaches here.
+            if _curl_retryable(e.reason) and shutil.which("curl"):
+                # A gaierror can arrive only after the resolver's own timeout,
+                # so the retry gets what is left of the budget, not a fresh one.
+                if self.deadline is not None:
+                    t = min(t, self.deadline - time.monotonic())
+                    if t <= 0.05:
+                        raise TimeoutError("time budget spent") from None
                 return self._curl(method, path, data, t)
             raise
 
@@ -2000,6 +2027,61 @@ def self_test():
             check("warte: the curl transport posts and reads the same rows",
                   ok and len(state["data"]) == n_before + 1 and any((r["content"] or {}).get("id") == "curl-1"
                                                                    for r in rows))
+
+        # 3a. urllib fails to resolve or reach the host (macOS Local Network
+        # privacy): the same request is retried via curl against the stub; an
+        # HTTP status or a TLS error is never retried; curl failing too leaves
+        # the notice in the outbox.
+        real_urlopen, real_curl = urllib.request.urlopen, Warte._curl
+        curl_calls = []
+
+        def counting_curl(self, method, path, data, t):
+            curl_calls.append(path)
+            return real_curl(self, method, path, data, t)
+
+        def failing(exc):
+            def urlopen(*a, **k):
+                raise exc
+            return urlopen
+
+        Warte._curl = counting_curl
+        try:
+            gai = urllib.error.URLError(socket.gaierror(8, "nodename nor servname provided, or not known"))
+            for label, reason in (("gaierror", gai.reason),
+                                  ("EHOSTUNREACH", OSError(errno.EHOSTUNREACH, "No route to host"))):
+                if not shutil.which("curl"):
+                    break
+                urllib.request.urlopen = failing(urllib.error.URLError(reason))
+                curl_calls.clear()
+                wf, n_before = Warte(base, timeout=3, err=io.StringIO()), len(state["data"])
+                ok = wf.available() and wf.post("uuid-1", NOTICE_TYPE, dict(info, id=f"fb-{label}")) is not None
+                check(f"warte: urllib {label} is retried via curl and the post lands",
+                      ok and len(state["data"]) == n_before + 1 and "/api/health" in curl_calls)
+            for label, exc in (("HTTP 500", urllib.error.HTTPError(base, 500, "boom", {}, None)),
+                               ("TLS verify", urllib.error.URLError(ssl.SSLCertVerificationError(1, "bad cert"))),
+                               ("timeout", urllib.error.URLError(socket.timeout("timed out")))):
+                urllib.request.urlopen = failing(exc)
+                curl_calls.clear()
+                wf = Warte(base, timeout=3, err=io.StringIO())
+                check(f"warte: urllib {label} is not retried via curl", not wf.available() and not curl_calls)
+            # a resolver that used up the time budget: no curl retry on top
+            def slow_gai(*a, **k):
+                time.sleep(0.3)
+                raise gai
+            urllib.request.urlopen = slow_gai
+            curl_calls.clear()
+            wd = Warte(base, timeout=3, err=io.StringIO(), deadline=time.monotonic() + 0.32)
+            check("warte: a gaierror after the time budget is spent is not retried via curl",
+                  not wd.available() and not curl_calls)
+            urllib.request.urlopen = failing(gai)
+            Warte._curl = lambda self, *a: (_ for _ in ()).throw(ConnectionError("curl exit 6"))
+            sf = Store(tmp.name, "fallbacktest")
+            r = post_notice(sf, Warte(base, timeout=3, err=io.StringIO()), root_schema,
+                            dict(info, id=new_notice_id(), agent="fallbacktest"))
+            check("warte: urllib and curl both failing keep the notice in the outbox",
+                  r["warte"] == "outbox" and r["outbox"] == 1 and len(sf.outbox()) == 1)
+        finally:
+            urllib.request.urlopen, Warte._curl = real_urlopen, real_curl
 
         # 3b. the deployed warte answers 401 to writes without a bearer token
         state["require_auth"] = True

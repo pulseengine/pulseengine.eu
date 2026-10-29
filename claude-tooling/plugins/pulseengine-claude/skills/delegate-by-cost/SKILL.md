@@ -91,7 +91,8 @@ Workers do not re-delegate: one driver, one ladder, one oracle. When delegating 
 The plugin's PreToolUse hook on the Agent tool adds a one-line reminder to the session when an
 Agent call has no `model:` and its `subagent_type` is absent, `general-purpose` or `claude`. It
 never denies or alters the call. The reminder arrives with that call's result, so it shapes the
-*next* call, not the one that triggered it.
+*next* call, not the one that triggered it. It is throttled per session: the first such call,
+then every 10th consecutive one; a call that sets `model:` resets the count.
 
 ## What this is based on
 
