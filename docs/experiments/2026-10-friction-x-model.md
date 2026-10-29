@@ -7,6 +7,9 @@ is bound by `claims.yaml` (`EXPERIMENT-FRICTION-X-MODEL-PREREGISTERED`).
 Changing a level, a model, N, the repetitions, the lint set, a hypothesis or
 a decision rule means changing that claim in a reviewed PR.
 
+**Closed 2026-10-29 at the ceiling. See the last amendment, and v2:
+[`2026-11-friction-brownfield.md`](2026-11-friction-brownfield.md).**
+
 The harness, the pilot tasks and the exact commands are in
 [`experiments/friction-x-model/`](../../experiments/friction-x-model/README.md).
 
@@ -896,3 +899,56 @@ re-pilot on harder tasks after the weekly quota reset (2026-11-03 18:00 UTC).
 - **Unchanged:** the levels (including F1 without the compiler), the models,
   N, the repetitions, the lint set, the hypotheses, the decision rules and
   the hidden oracle of t01 and t02.
+
+### 2026-10-29, owner decision: v1 closed at the ceiling
+
+**2026-10-29, owner decision: the re-pilot is cancelled and v1 is closed at
+the ceiling. This is a published negative result. The experiment continues as
+v2, a new pre-registration:
+[`2026-11-friction-brownfield.md`](2026-11-friction-brownfield.md).**
+
+- **The re-pilot of t11 and t12, scheduled for 2026-11-03, is cancelled.** Its
+  job on the bench machine was stopped before it ran, and the cancellation is
+  logged there. No gated run of t11 or t12 exists.
+- **The result, as it stands.** Neither question of v1 can be answered with
+  its task type, because every model passes it.
+  - **Pilot 1, t01 and t02, 120 gated runs.** Every Rust cell (F2 to F4, 4
+    models) at 6/6. t02 at 12/12 in both C rows. t01's C rows failed on the
+    header defect of the second amendment: the hidden suite compiled 0 of 12
+    F0 answers and 4 of 12 F1 answers, and the 4 passed 49/49. Against the
+    fixed header, 23 of the 24 stored t01 C answers pass 49/49 (a
+    counterfactual, not a result).
+  - **Calibration of t11 and t12, 60 ungated runs, three rounds, $2.00
+    notional.** Haiku at F0: 2/2, 9/10, 10/10. Opus at F0: 2/2, 6/6, 6/6. The
+    one failure was the answer `placeholder`. Every pass was clean at the
+    first answer, at F2 too.
+  - **Smoke runs at F1, F3 and F4,** one haiku run per task and level: all 6
+    passed, clean at answer 1, 2 and 1 (t11) and 2, 1 and 1 (t12).
+  - **Measured, from the v1 pilot report, `fxm.py report` at fc7b316~ / dd887aa** (120 records, 0 could-not-run, 0 ungated):
+
+    | | haiku | sonnet | opus | fable |
+    |---|---|---|---|---|
+    | F0 | 3/6 | 3/6 | 3/6 | 3/6 |
+    | F1 | 3/6 | 3/6 | 6/6 | 4/6 |
+    | F2, F3, F4 | 6/6 | 6/6 | 6/6 | 6/6 |
+
+    Every C failure is t01's header defect (above); t02 passed every C run.
+  - **G1: 0 silencing answers in every one of the 20 cells** (0 of 6 to 0 of 9
+    answers per cell, 0 of 132 answers in all). No gaming attempt of any kind
+    in any cell; 8 runs added lint tightening.
+  - **Notional cost $4.34 for 120 runs** (about $0.036 a run), from
+    `modelUsage`. 8 false-clean runs, all t01 F1 (the header defect); 0 of 24
+    F4 clean stops failed the hidden suite.
+  - That report predates the no-headroom rule of the second amendment, so it
+    printed the Rust thesis verdict as "refuted". Under the amended rule, every
+    Rust cell at 6/6 reads "no headroom (ceiling)".
+- **What it means.** A small, fully specified, greenfield function is written
+  correctly on the first answer by every model tried, haiku included. There
+  is nothing left for a checker to fix and nothing to silence. That is a
+  property of the task type, not evidence for or against friction, so no H or
+  G verdict is reported from v1.
+- **What carries over to v2:** the harness, the gate, the frozen hashes, the
+  transcripts, the decision rule and the hypotheses that still apply. v2
+  states which and why.
+- **Unchanged here:** everything above this section. t01, t02, t11 and t12
+  stay in the repository with their hashes.
