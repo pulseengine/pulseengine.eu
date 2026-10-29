@@ -24,10 +24,40 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - name: Install Zola
-        uses: taiki-e/install-action@v2.87.21
-        with:
-          tool: zola@0.23.6
+      # Zola is pinned BY PATH, not by PATH lookup. On self-hosted runners an
+      # old zola (Tera v1) earlier on PATH shadowed the pinned one: the install
+      # step printed `zola 0.23.6`, then the bare `zola build` rejected the Tera
+      # v2 templates on main and ejected PR #298 from the merge queue (run
+      # 40843089563; pulseengine/smithy#43). So the binary lands in a job-local
+      # directory, is checked against a pinned sha256, and every call uses
+      # "$ZOLA" — never a bare `zola`.
+      #
+      # ZOLA_SHA256 is the release asset's `digest` for
+      # zola-v0.23.6-x86_64-unknown-linux-musl.tar.gz (the release ships no
+      # SHA256SUMS file), from https://github.com/getzola/zola/releases/tag/v0.23.6
+      # via `gh api repos/getzola/zola/releases/tags/v0.23.6 --jq '.assets[].digest'`,
+      # re-hashed locally on 2026-10-29. musl: static, so runner glibc drift
+      # cannot break it, and it is the asset CI ran before this pin.
+      - name: Install Zola (pinned by path and sha256)
+        env:
+          ZOLA_VERSION: 0.23.6
+          ZOLA_SHA256: 7d77a4220a4f699cba2fc0e0c7859f780e887e269159ad4fab90e11ea16c906f
+        run: |
+          set -euo pipefail
+          dir="$RUNNER_TEMP/zola-$ZOLA_VERSION"
+          asset="zola-v$ZOLA_VERSION-x86_64-unknown-linux-musl.tar.gz"
+          rm -rf "$dir" && mkdir -p "$dir"
+          curl -fsSL --retry 3 -o "$dir/$asset" \
+            "https://github.com/getzola/zola/releases/download/v$ZOLA_VERSION/$asset"
+          echo "$ZOLA_SHA256  $dir/$asset" | sha256sum -c -
+          tar xzf "$dir/$asset" -C "$dir" zola
+          got=$("$dir/zola" --version)
+          if [ "$got" != "zola $ZOLA_VERSION" ]; then
+            echo "::error::pinned zola reports '$got', expected 'zola $ZOLA_VERSION'"
+            exit 1
+          fi
+          echo "ZOLA=$dir/zola" >> "$GITHUB_ENV"
+          echo "ZOLA_VERSION=$ZOLA_VERSION" >> "$GITHUB_ENV"
 
       # The V for the gates themselves. rivet is pinned to the version the
       # signed varve layer ships, not "latest", so CI and a local run agree —
@@ -67,8 +97,26 @@ jobs:
       - name: Measure the hero evidence panel
         run: python3 scripts/build-evidence.py --require claims,rivet
 
+      # Re-asserts the pinned binary immediately before building, and reports
+      # any other zola on PATH at this point: later steps prepend to PATH (the
+      # rivet install adds ~/.local/bin), so a check at install time would see
+      # a clean PATH. The warning is diagnostics for pulseengine/smithy#43; the
+      # build never uses PATH lookup.
       - name: Build
-        run: zola build
+        run: |
+          set -euo pipefail
+          : "${ZOLA:?ZOLA is not set; the pinned install step did not run}"
+          got=$("$ZOLA" --version)
+          if [ "$got" != "zola $ZOLA_VERSION" ]; then
+            echo "::error::$ZOLA reports '$got', expected 'zola $ZOLA_VERSION'"
+            exit 1
+          fi
+          if other=$(command -v zola); then
+            if [ "$other" != "$ZOLA" ]; then
+              echo "::warning::another zola is on PATH and is NOT used: $other ($("$other" --version 2>&1 || true)); all on PATH: $(type -ap zola | xargs)"
+            fi
+          fi
+          "$ZOLA" build
 
       # `zola build` does not validate links, and `zola check
       # --skip-external-links` only understands Zola's `@/path.md` syntax —
