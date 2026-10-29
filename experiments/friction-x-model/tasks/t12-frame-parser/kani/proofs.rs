@@ -16,7 +16,7 @@ fn total(c: Counts) -> u32 {
 /// Any 8 bytes, for any address: no panic, the accepted frame stays within
 /// MAX_PAYLOAD, and each byte adds at most one to the counts in all (H2..H8).
 #[kani::proof]
-#[kani::unwind(40)]
+#[kani::unwind(10)]
 fn any_bytes_stay_in_bounds() {
     let mut rx = Receiver::new(kani::any());
     let mut before = total(rx.counts());

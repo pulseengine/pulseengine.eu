@@ -863,11 +863,14 @@ re-pilot on harder tasks after the weekly quota reset (2026-11-03 18:00 UTC).
   loop further than the bound (for example over its whole 35-byte buffer in
   t12) and then fail an unwinding assertion, which is a finding by design,
   as on t01.
-  - t12's harnesses that run arbitrary bytes, and the overrun harness,
-    unwind to 40, past both buffers.
-  - The round trip, the encode check and the stability harness keep 14. At
-    40 they take minutes each, and `cargo kani` has 900 s for all
-    harnesses together.
+  - Only t12's overrun harness, whose bytes are fixed, unwinds to 40, past
+    both buffers. The others keep 10 or 14.
+  - At 40, the arbitrary-bytes harness alone took over 3 minutes on the
+    bench machine, and the stability harness over 8 minutes on a laptop.
+    `cargo kani` has 900 s for all harnesses together. With 40 on those two,
+    the reference's F4 run passed 630 s and was still running.
+  - So an answer that loops over its whole buffer on every byte fails an
+    unwinding assertion at F4, even when it is correct.
   - The bounds are in the harness file, which the model sees at F4.
 - **The gate's scope has a negative control.** A self-test checks that the
   matrix gate runs `check-tasks` on every task and that the matrix runs only
