@@ -1,4 +1,4 @@
-The interface-identity contract in this issue, as a machine-checked block (`seam-check.py`, pulseengine.eu plugin 0.48.0). Drafted from this issue and the announcement on pulseengine/jess#167, up to 2026-10-29. The version is the one this issue names.
+This is the machine-checked form of the contract in this issue, checked by `seam-check` (pulseengine-claude plugin, `seam-contract` skill); to change the contract, edit the block below.
 
 ```seam
 format: 1
@@ -17,7 +17,7 @@ interface:
   - kind: wit
     path: wit/falcon-cascade/cascade.wit
     package: "pulseengine:falcon-cascade"
-    version: "0.11.0"
+    version: "0.12.0"
     interfaces: [ekf]
   - kind: file
     path: scripts/build-components.sh
@@ -38,4 +38,7 @@ decisions:
     date: "2026-10-21"
     ref: "relay#589 comment of 2026-10-21 17:12 UTC"
 implemented_by: "relay#590, merged 2026-10-22; announced on jess#167 2026-10-21"
+open_questions:
+  - q: "confirm jess's ekf-stage pin binds to pulseengine:falcon-cascade/ekf@0.12.0 (relay main; this issue and the guard's header name @0.11.0)"
+    owner: pulseengine/jess
 ```

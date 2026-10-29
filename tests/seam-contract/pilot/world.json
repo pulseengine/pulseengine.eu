@@ -1,5 +1,5 @@
 {
-  "_about": "Pilot: the four seam contracts from the 2026-10-28 orchestrator post, drafted as seam blocks (blocks/*.md, the text proposed for posting as a comment) and checked offline against the real provider files. Files fetched 2026-10-29 at relay main 8cb289500d32508a5f426fa299acb9cff9d74b85 and jess main 3abbdfd4b6cf6769d5a4c70525bb6de78dd88a0e. Guard scripts are presence-only entries (null): the guard rule checks existence, and a tracked .sh would be shellchecked as ours. Issue bodies are not copied; the block lives in a proposed comment.",
+  "_about": "Pilot: the four seam contracts from the 2026-10-28 orchestrator post, as seam blocks (blocks/*.md, the exact comments posted on 2026-10-29, owner-approved) and checked offline against the real provider files. Files fetched 2026-10-29 at relay main 8cb289500d32508a5f426fa299acb9cff9d74b85 and jess main 3abbdfd4b6cf6769d5a4c70525bb6de78dd88a0e. Guard scripts are presence-only entries (null): the guard rule checks existence, and a tracked .sh would be shellchecked as ours. Issue bodies are not copied; the block lives in the posted comment.",
   "default_branch": {"pulseengine/relay": "main", "pulseengine/jess": "main"},
   "issues": [
     {"repo": "pulseengine/jess", "number": 62, "labels": ["seam"], "url": "https://github.com/pulseengine/jess/issues/62",

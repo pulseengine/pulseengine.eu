@@ -1,4 +1,4 @@
-The consumption contract in this thread, as a machine-checked block (`seam-check.py`, pulseengine.eu plugin 0.48.0). Drafted from this issue's body and comments up to 2026-10-29.
+This is the machine-checked form of the contract in this issue, checked by `seam-check` (pulseengine-claude plugin, `seam-contract` skill); to change the contract, edit the block below.
 
 ```seam
 format: 1
@@ -38,10 +38,10 @@ decisions:
     decided_by: "relay maintainer"
     date: "2026-10-21"
     ref: "relay#586; jess#167 comment of 2026-10-21 18:17 UTC"
-  - summary: "calibration fields: the full 3x3 mag matrix (mag-offdiag), and pilot's sensor-calibration carries residual, board-level terms only"
-    decided_by: "relay proposed in relay#611, jess accepted"
+  - summary: "calibration fields: the full 3x3 mag matrix (mag-offdiag [xy, xz, yz]); pilot's sensor-calibration carries residual, board-level terms only. Ownership changed at jess's proposal: jess persists and supplies each IMU's calibration, relay applies it per instance in its decode/voting stage before the vote"
+    decided_by: "jess accepted relay's relay#611 shape and proposed the ownership split; relay adopted it"
     date: "2026-10-28"
-    ref: "jess#167 comment of 2026-10-28 15:00 UTC"
+    ref: "https://github.com/pulseengine/jess/issues/167#issuecomment-6472494618 (jess), https://github.com/pulseengine/jess/issues/167#issuecomment-6474440813 (relay adopts), https://github.com/pulseengine/jess/issues/167#issuecomment-6483762545 (jess confirms by measurement)"
 open_questions:
   - q: "battery-v: stays in sensor-frame, or moves to pilot as a setter (asked 2026-10-21)"
     owner: pulseengine/jess

@@ -2223,7 +2223,7 @@ claims:
         glob: ['tests/seam-contract/pilot/files/relay.cascade.wit.txt']
         min: 1
       - kind: count-min
-        pattern: 'version: "0\.11\.0"'
+        pattern: 'version: "0\.12\.0"'
         glob: ['tests/seam-contract/pilot/blocks/relay-589.md']
         min: 1
       - kind: count-max

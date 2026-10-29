@@ -1,4 +1,4 @@
-The HITL wire binding in this issue, as a machine-checked block (`seam-check.py`, pulseengine.eu plugin 0.48.0). Drafted from this issue and the binding v2 announcement on pulseengine/jess#167, up to 2026-10-29.
+This is the machine-checked form of the contract in this issue, checked by `seam-check` (pulseengine-claude plugin, `seam-contract` skill); to change the contract, edit the block below.
 
 ```seam
 format: 1
