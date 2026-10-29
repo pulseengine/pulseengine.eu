@@ -854,6 +854,123 @@ claims:
         glob: ['.github/workflows/ci.yml']
         min: 1
 
+  # ── v1 closed at the ceiling; v2 (brownfield) drafted, not run ──────────────
+  # v1's pilot and calibration sat at the ceiling, so v1 is closed with a dated
+  # negative result and the cancelled re-pilot recorded. v2 is a draft: the
+  # calibration band, the oracle's independence, the hypotheses and the
+  # refutation are fixed in text before any v2 task exists, and the cost figures
+  # come from a committed script, not from prose. No ^/$ anchors: whole-file.
+  - id: EXPERIMENT-FRICTION-BROWNFIELD-DRAFTED
+    doc: docs/experiments/2026-11-friction-brownfield.md
+    text: "Status: draft pre-registration."
+    evidence:
+      - kind: count-min
+        pattern: '\*\*Status: draft pre-registration\. Nothing here runs before the owner\s+has decided the open questions below, and no task is frozen before it passes\s+calibration\.\*\*'
+        glob: ['docs/experiments/2026-11-friction-brownfield.md']
+        min: 1
+      # v1 records its own end; the README says the re-pilot did not run.
+      - kind: count-min
+        pattern: '### 2026-10-29, owner decision: v1 closed at the ceiling'
+        glob: ['docs/experiments/2026-10-friction-x-model.md']
+        min: 1
+      - kind: count-min
+        pattern: '\*\*The re-pilot of t11 and t12, scheduled for 2026-11-03, is cancelled\.\*\*'
+        glob: ['docs/experiments/2026-10-friction-x-model.md']
+        min: 1
+      - kind: count-min
+        pattern: 'are owner-reported, and no PR\s+states them\.'
+        glob: ['docs/experiments/2026-10-friction-x-model.md']
+        min: 1
+      - kind: count-min
+        pattern: '\*\*Cancelled 2026-10-29 \(owner decision\)\.\*\*'
+        glob: ['experiments/friction-x-model/README.md']
+        min: 1
+      # The calibration rule, stated before any task is built.
+      - kind: count-min
+        pattern: '\*\*Calibration rule: before a task is frozen, haiku at B0 must pass between 20%\s+and 70% of at least 5 runs, in each language, or the task is revised or\s+dropped\.\*\*'
+        glob: ['docs/experiments/2026-11-friction-brownfield.md']
+        min: 1
+      - kind: count-min
+        pattern: '\*\*At most 3 rounds\.\*\*'
+        glob: ['docs/experiments/2026-11-friction-brownfield.md']
+        min: 1
+      - kind: count-min
+        pattern: '\*\*If fewer than 4 of the 6 tasks are in the band after round\s+3, the full run does not start;\*\*'
+        glob: ['docs/experiments/2026-11-friction-brownfield.md']
+        min: 1
+      # The oracle is not a friction tool and does not overlap the visible tests.
+      - kind: count-min
+        pattern: '\*\*The primary oracle is two hidden suites the model never sees, the\s+regression suite and the new-behaviour suite\.\*\* Neither is any of the friction\s+tools, and neither shares a case with the visible tests\.'
+        glob: ['docs/experiments/2026-11-friction-brownfield.md']
+        min: 1
+      - kind: count-min
+        pattern: 'the baseline \*\*fails\*\* the new-behaviour suite \(the change is not a no-op\)'
+        glob: ['docs/experiments/2026-11-friction-brownfield.md']
+        min: 1
+      # v1's t01 defect class: the public material names what the oracle uses.
+      - kind: count-min
+        pattern: '\*\*every name the hidden suites and the Kani harnesses use that the baseline\s+lacks\*\*'
+        glob: ['docs/experiments/2026-11-friction-brownfield.md']
+        min: 1
+      # Headroom at B1 too, since the refutation compares the top row with B1.
+      - kind: count-min
+        pattern: 'haiku at C-B1 and at\s+R-B1 must fail at least 1 of 5 runs, per task and language'
+        glob: ['docs/experiments/2026-11-friction-brownfield.md']
+        min: 1
+      - kind: count-min
+        pattern: 'CAL_B1 = 5 '
+        glob: ['experiments/friction-brownfield/cost.py']
+        min: 1
+      # v1's closing numbers, verbatim.
+      - kind: count-min
+        pattern: 'Haiku at F0: 2/2, 9/10, 10/10\. Opus at F0: 2/2, 6/6, 6/6\.'
+        glob: ['docs/experiments/2026-10-friction-x-model.md']
+        min: 1
+      # Hypotheses and refutation, stated in advance.
+      - kind: count-min
+        pattern: '\*\*H1:\*\* for every model, C-B0 ≤ C-B1 ≤ C-B2'
+        glob: ['docs/experiments/2026-11-friction-brownfield.md']
+        min: 1
+      - kind: count-min
+        pattern: '\*\*H2:\*\* for every model, R-B0 ≤ R-B1 ≤ R-B2 ≤ R-B3'
+        glob: ['docs/experiments/2026-11-friction-brownfield.md']
+        min: 1
+      - kind: count-min
+        pattern: '\*\*H4:\*\* Haiku@R-B3 ≥ Opus@R-B1'
+        glob: ['docs/experiments/2026-11-friction-brownfield.md']
+        min: 1
+      - kind: count-min
+        pattern: '\*\*H5 \(replaced\):\*\* Haiku@C-B2 ≥ Opus@C-B0'
+        glob: ['docs/experiments/2026-11-friction-brownfield.md']
+        min: 1
+      - kind: count-min
+        pattern: '\*\*G2 \(new\):\*\* the share of runs that remove pre-existing findings outside the necessary area is at least as high at B2 as at B1'
+        glob: ['docs/experiments/2026-11-friction-brownfield.md']
+        min: 1
+      - kind: count-min
+        pattern: '\*\*For a language, if for at least 3 of the 4 models the top row''s pass rate\s+is at or below B1''s\*\*'
+        glob: ['docs/experiments/2026-11-friction-brownfield.md']
+        min: 1
+      - kind: count-min
+        pattern: '\*\*The decision rule is v1''s, unchanged:\*\*'
+        glob: ['docs/experiments/2026-11-friction-brownfield.md']
+        min: 1
+      # The cost figures are re-derivable: the script holds the matrix shape.
+      - kind: file-exists
+        path: experiments/friction-brownfield/cost.py
+      - kind: count-min
+        pattern: 'TASKS, REPS = 6, 5\n'
+        glob: ['experiments/friction-brownfield/cost.py']
+        min: 1
+      - kind: count-min
+        pattern: 'ONESHOT_ROWS, LOOP_ROWS = 2, 5 '
+        glob: ['experiments/friction-brownfield/cost.py']
+        min: 1
+      - kind: count-min
+        pattern: '\*\*The middle column is the planning figure:\*\* about \$55 for calibration,\s+\$30 for the harness pilot, \$800 for the full run\.'
+        glob: ['docs/experiments/2026-11-friction-brownfield.md']
+        min: 1
+
   # ── CI status: the procedure is public, the infrastructure is not ───────────
   # The ci-status skill asks a self-hosted fleet's status API. Its host lives on
   # a private network and is configured only by environment variable. The

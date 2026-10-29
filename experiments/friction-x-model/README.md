@@ -105,6 +105,12 @@ nohup python3 fxm.py matrix --pilot --wait-on-limit > "$WORK/pilot.log" 2>&1 < /
 
 ### The re-pilot (t11 and t12, after 2026-11-03 18:00 UTC)
 
+**Cancelled 2026-10-29 (owner decision).** The job below was stopped on the
+bench machine before it ran. v1 is closed at the ceiling, and the experiment
+continues as v2:
+[`docs/experiments/2026-11-friction-brownfield.md`](../../docs/experiments/2026-11-friction-brownfield.md).
+The rest of this section records how the re-pilot was set up.
+
 The re-pilot runs from its own clone, `$WORK/repilot/pulseengine.eu`, so its
 `results/` holds only re-pilot records. `report` pools everything in a
 results directory, and the first pilot's checkout already holds gated t01 and
