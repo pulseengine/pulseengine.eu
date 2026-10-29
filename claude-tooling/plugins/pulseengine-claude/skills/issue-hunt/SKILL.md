@@ -3,7 +3,7 @@ name: issue-hunt
 description: This skill should be used to run an incremental bug/feature hunt over a repo's issue tracker — pick up everything NEW since the last pass (new issues and new comments), digest and triage it, work the actionable items through the verification chain, and accumulate toward a feature release. Use it when the user says "hunt the issues", "do a bug/feature hunt", "look into the issues and work them", "loop through the issues", "digest the new issues and comments since last time", or wants a standing loop (via /loop or a scheduled agent) that drives the tracker toward releases. One invocation is one pass; the "since last time" watermark is what makes it a loop rather than a full re-scan. Composes with release-planning (land + ship), the feature loop, and the operating contract.
 metadata:
   author: pulseengine.eu
-  version: "0.4.3"
+  version: "0.4.4"
 ---
 
 # Issue hunt — the incremental bug/feature delivery loop
@@ -114,6 +114,9 @@ digest the entire backlog.
      constraint it must not break.
    - a comment that changes an **in-flight** item's scope re-opens *that* item;
      it doesn't spawn a new one.
+   - a bug whose fix would repair an earlier fix, or a cluster of findings in
+     one file: see [`refactor-decision`], which checks its own scope first
+     (not in pulseengine/rivet or pulseengine/spar before 2027-02-01).
 3. **Land actionable items in rivet, assigned to a release** — [`release-planning`]
    Part A: a requirement / decision / test, `release: vX.Y`, status, linked into
    the trace so a regression re-opens the right requirement. needs-info → ask on

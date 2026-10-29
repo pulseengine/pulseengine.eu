@@ -1634,3 +1634,169 @@ claims:
         pattern: 'if \[ "\$got" != "zola \$ZOLA_VERSION" \]; then'
         glob: ['.github/workflows/deploy.yml']
         min: 2
+
+  # ── refactor-decision: scoped out of the hotspot experiment ─────────────────
+  # docs/experiments/2026-10-hotspot-trigger.md promises "No other process
+  # change in rivet or spar during the window" (2026-11..2027-01), and the
+  # plugin loads in both. The skill's first section excludes them until
+  # 2027-02-01 and tells the agent how to check; the experiment doc records it.
+  # Dropping either half fails here.
+  - id: REFACTOR-DECISION-SCOPE-EXCLUDES-EXPERIMENT
+    doc: claude-tooling/plugins/pulseengine-claude/skills/refactor-decision/SKILL.md
+    text: "**Does not apply in pulseengine/rivet or pulseengine/spar before 2027-02-01 (pre-registered experiment,"
+    evidence:
+      - kind: verbatim
+        text: "There, record nothing and change nothing under this skill.**"
+      # The scope is the first section of the body, before any trigger.
+      - kind: count-min
+        pattern: '(?s)\A---\n.*?\n---\n\n# [^\n]+\n\n## Scope: check this first\n\n\*\*Does not apply in pulseengine/rivet or pulseengine/spar before 2027-02-01'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/refactor-decision/SKILL.md']
+        min: 1
+      # Every remote, both URL forms, and the UTC date.
+      - kind: verbatim
+        text: "git remote -v | grep -Eiq '[:/]pulseengine/(rivet|spar)(\\.git)?/?[[:space:]]' && echo EXCLUDED-REPO"
+      - kind: verbatim
+        text: "[[ \"$(date -u +%Y-%m-%d)\" < \"2027-02-01\" ]] && echo BEFORE-2027-02-01"
+      - kind: verbatim
+        text: "The grep governs which repositories are excluded:\na remote naming pulseengine/rivet or pulseengine/spar, and nothing else."
+      - kind: verbatim
+        text: "Before 2027-02-01 the same holds when the change is a PR into pulseengine/rivet or pulseengine/spar opened from another checkout, and when the checkout has no remote at all."
+      # Visible before the body loads.
+      - kind: count-min
+        pattern: '(?m)^description: .*It does NOT apply in pulseengine/rivet or pulseengine/spar before 2027-02-01'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/refactor-decision/SKILL.md']
+        min: 1
+      # The experiment doc carries the dated note.
+      - kind: count-min
+        pattern: '## Note, 2026-10-29: the plugin gained refactor-decision'
+        glob: ['docs/experiments/2026-10-hotspot-trigger.md']
+        min: 1
+      - kind: count-min
+        pattern: 'does not apply in pulseengine/rivet or pulseengine/spar before\s+2027-02-01'
+        glob: ['docs/experiments/2026-10-hotspot-trigger.md']
+        min: 1
+
+  # ── refactor-decision: the four triggers and the how-rules ──────────────────
+  # Measured on relay (pulseengine.eu#294). Rules A and D were noisy or late, so
+  # they ask for a recorded decision, never an automatic refactor.
+  - id: REFACTOR-DECISION-TRIGGERS-AND-RULES
+    doc: claude-tooling/plugins/pulseengine-claude/skills/refactor-decision/SKILL.md
+    text: "## When"
+    evidence:
+      - kind: verbatim
+        text: "**Make the change easy in its own behaviour-preserving step, then make the change.**"
+      - kind: verbatim
+        text: "**Delete the first copy, or name the one owner the others delegate to.**"
+      - kind: verbatim
+        text: "**A fix-of-a-fix chain or a review cluster triggers a recorded decision, never a refactor.**"
+      - kind: verbatim
+        text: "**Pick up litter only inside the code the change already touches.**"
+      - kind: count-min
+        pattern: 'The decision is none, small or large, with a one-line reason\.\s+Prefer small when\s+it removes the defect class'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/refactor-decision/SKILL.md']
+        min: 1
+      - kind: count-min
+        pattern: 'Size alone is not a reason to split a file'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/refactor-decision/SKILL.md']
+        min: 1
+      - kind: verbatim
+        text: "**No refactor lands without evidence that behaviour did not change.**"
+      - kind: count-min
+        pattern: 'run old and new over the same inputs and compare\s+the outputs exactly'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/refactor-decision/SKILL.md']
+        min: 1
+      - kind: verbatim
+        text: "**Keep refactoring and behaviour change apart.**"
+      - kind: verbatim
+        text: "**Never refactor without a named purpose.**"
+      - kind: verbatim
+        text: "**\"Refactor X\" without a named purpose and a check is clarified, not executed.**"
+      - kind: verbatim
+        text: "\"Every model kept\nediting, rewriting up to 31x the original codebase before first stopping\""
+      - kind: verbatim
+        text: "**A merge-queue ejection is a possible interaction defect, not a flake.**"
+      - kind: verbatim
+        text: "\"small but\nstatistically significant improvements in structural metrics\""
+
+  # ── refactor-decision is the single source ──────────────────────────────────
+  # Every other skill and the contract point to it and carry none of its rules,
+  # so the rivet/spar exclusion cannot leak through an inline copy.
+  - id: REFACTOR-DECISION-SINGLE-SOURCE
+    doc: claude-tooling/plugins/pulseengine-claude/skills/refactor-decision/SKILL.md
+    text: "## Merge queue: two greens can be red together"
+    evidence:
+      - kind: count-max
+        pattern: 'Make the change easy in its own behaviour-preserving step'
+        glob: ['claude-tooling/plugins/pulseengine-claude/**/*.md']
+        max: 1
+      - kind: count-max
+        pattern: 'Delete the first copy, or name the one owner'
+        glob: ['claude-tooling/plugins/pulseengine-claude/**/*.md']
+        max: 1
+      - kind: count-max
+        pattern: 'triggers a recorded decision, never a refactor'
+        glob: ['claude-tooling/plugins/pulseengine-claude/**/*.md']
+        max: 1
+      - kind: count-max
+        pattern: 'Pick up litter only inside'
+        glob: ['claude-tooling/plugins/pulseengine-claude/**/*.md']
+        max: 1
+      - kind: count-max
+        pattern: 'No refactor lands without evidence'
+        glob: ['claude-tooling/plugins/pulseengine-claude/**/*.md']
+        max: 1
+      - kind: count-max
+        pattern: 'without a named purpose and a check is clarified'
+        glob: ['claude-tooling/plugins/pulseengine-claude/**/*.md']
+        max: 1
+      - kind: count-max
+        pattern: 'possible interaction defect, not a flake'
+        glob: ['claude-tooling/plugins/pulseengine-claude/**/*.md']
+        max: 1
+      # The pointers, one count per file.
+      - kind: count-min
+        pattern: '\[`refactor-decision`\] → "Merge queue: two greens can be red together"'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/ci-status/SKILL.md']
+        min: 1
+      - kind: count-min
+        pattern: '(?s)\[`refactor-decision`\][^.]*?checks its own scope first\s+\(not in\s+pulseengine/rivet or\s+pulseengine/spar before 2027-02-01\)'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/ci-status/SKILL.md']
+        min: 1
+      - kind: count-min
+        pattern: '(?s)\[`refactor-decision`\][^.]*?checks its own scope first\s+\(not in\s+pulseengine/rivet or\s+pulseengine/spar before 2027-02-01\)'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/pulseengine-feature-loop/SKILL.md']
+        min: 1
+      - kind: count-min
+        pattern: '(?s)\[`refactor-decision`\][^.]*?checks its own scope first\s+\(not in\s+pulseengine/rivet or\s+pulseengine/spar before 2027-02-01\)'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/oracle-gate-a-change/SKILL.md']
+        min: 1
+      - kind: count-min
+        pattern: '(?s)\[`refactor-decision`\][^.]*?checks its own scope first\s+\(not in\s+pulseengine/rivet or\s+pulseengine/spar before 2027-02-01\)'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/issue-hunt/SKILL.md']
+        min: 1
+      - kind: count-min
+        pattern: '(?s)\[`refactor-decision`\][^.]*?checks its own scope first\s+\(not in\s+pulseengine/rivet or\s+pulseengine/spar before 2027-02-01\)'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/repo-hygiene/SKILL.md']
+        min: 1
+      - kind: count-min
+        pattern: '(?s)\[`refactor-decision`\][^.]*?checks its own scope first\s+\(not in\s+pulseengine/rivet or\s+pulseengine/spar before 2027-02-01\)'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/clean-room-verification/SKILL.md']
+        min: 1
+      # The contract is always-on memory and loads in rivet and spar too, so its
+      # pointer states the exclusion and carries no refactoring rule at all.
+      - kind: count-min
+        pattern: '\[`refactor-decision`\], which does not apply in pulseengine/rivet or pulseengine/spar before 2027-02-01'
+        glob: ['claude-tooling/plugins/pulseengine-claude/memory/pulseengine-operating-contract.md']
+        min: 1
+      - kind: count-max
+        pattern: '(?i)litter|preparatory'
+        glob: ['claude-tooling/plugins/pulseengine-claude/memory/*.md']
+        max: 0
+      # ...nor any other skill: every SKILL.md except those whose directory
+      # starts with "ref" (refactor-decision is the only one).
+      - kind: count-max
+        pattern: '(?i)litter|preparatory'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/[!r]*/SKILL.md',
+               'claude-tooling/plugins/pulseengine-claude/skills/r[!e]*/SKILL.md',
+               'claude-tooling/plugins/pulseengine-claude/skills/re[!f]*/SKILL.md']
+        max: 0

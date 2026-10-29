@@ -71,3 +71,19 @@ counts, never from one month. Until the trigger ships, each file is marked
 `pre-window`. The model calls run on the owner's Claude subscription through
 the Claude Code CLI, and the job is inert until the `CLAUDE_CODE_OAUTH_TOKEN`
 secret exists.
+
+## Note, 2026-10-29: the plugin gained refactor-decision
+
+On 2026-10-29 the pulseengine-claude plugin (0.46.0) gained the
+`refactor-decision` skill, which tells agents when and how to refactor. The
+plugin also loads in rivet and spar, so the skill's first instruction excludes
+both: it does not apply in pulseengine/rivet or pulseengine/spar before
+2027-02-01, and there it records nothing and changes nothing. The skill checks
+the repository's remotes and the UTC date before it applies. This keeps the "No
+other process change in rivet or spar during the window" condition above, as
+far as an instruction an agent follows can keep it. It is not a mechanical
+guarantee: a `refactor-decision` mention in a rivet or spar PR or issue during
+the window would be a deviation from this protocol, and nothing checks for one
+automatically.
+`claims.yaml` (`REFACTOR-DECISION-SCOPE-EXCLUDES-EXPERIMENT`) fails the build if
+this exclusion is dropped from the skill or from this note.

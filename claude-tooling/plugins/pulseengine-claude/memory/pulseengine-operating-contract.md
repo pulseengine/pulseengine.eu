@@ -201,7 +201,8 @@ fork on its recommendation because nobody answered.
 Don't add features, refactor, or introduce abstractions beyond what the task
 requires; don't design for hypothetical futures. Only validate at true system
 boundaries (user input, external APIs), not internal code. Adjacent improvements
-are a scope grant the user makes, not one you take.
+are a scope grant the user makes, not one you take. When a refactor is in scope is
+defined by [`refactor-decision`], which does not apply in pulseengine/rivet or pulseengine/spar before 2027-02-01.
 
 ## Ask the tool, don't parse its files
 Before reaching for `grep`, `jq`, `yq`, `sed` or a path glob over a PulseEngine tool's own data,
@@ -264,7 +265,7 @@ skill is in exactly one class.)
   [`clean-room-verification`].
 - **Cross-cutting / standing practice** — `oracle-gate-a-change`,
   `report-tool-friction`, `capture-session-learnings`, `verify-your-own-claims`,
-  `evidence-transfer`, `delegate-by-cost`, `factory-notice`. Not a task you "run" as
+  `evidence-transfer`, `delegate-by-cost`, `factory-notice`, `refactor-decision`. Not a task you "run" as
   driver-or-explorer; they fire *inside* other skills (oracle-gate per change) or
   as always-on practice (file friction as you hit it; capture learnings before
   they're lost). They inherit the disposition of whatever skill they're running
