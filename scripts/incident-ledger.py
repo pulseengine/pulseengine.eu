@@ -99,6 +99,7 @@ ROLLUP_RED = {"FAILURE", "ERROR"}
 HOTFIX_DAYS = 14
 STABLE_DAYS = 3                           # older than this: cache forever
 ESCAPES = ("main-red", "revert", "hotfix-ref", "merge-guard", "ledger")
+STRICT = tuple(k for k in ESCAPES if k != "hotfix-ref")   # without the heuristic
 CATCHES = ("pr-red", "mq-ejected")
 NET_CLASSES = (
     "no-test", "vacuous-gate", "skipped-or-non-required-check",
@@ -410,7 +411,8 @@ def _plus(iso: str, seconds: int) -> str:
 def outcome(u: dict) -> dict:
     kinds = {s["kind"] for s in u["signals"]}
     esc = bool(kinds & set(ESCAPES))
-    return {"escape": esc, "caught": bool(kinds & set(CATCHES)),
+    return {"escape": esc, "strict": bool(kinds & set(STRICT)),
+            "caught": bool(kinds & set(CATCHES)),
             "incident": esc or "mq-ejected" in kinds}
 
 
@@ -427,6 +429,7 @@ def aggregate(units: list, key) -> dict:
         cau = sum(x["caught"] for x in o)
         out[g] = {"merges": n,
                   "escape": rate(esc, n),
+                  "strict": rate(sum(x["strict"] for x in o), n),
                   "incident": rate(sum(x["incident"] for x in o), n),
                   "caught": rate(cau, n),
                   "catch_share": rate(cau, cau + esc)}
@@ -777,10 +780,12 @@ def incident_rows(units: list, entries: list, titles=False) -> list:
 
 def _md_table(title: str, agg: dict, col: str) -> list:
     lines = [f"### {title}", "",
-             f"| {col} | merges | escape /100 [95% CI] | incident /100 (owner def.) "
-             "| caught /100 | catch share % |", "|---|---:|---|---|---|---|"]
+             f"| {col} | merges | escape /100 [95% CI] | strict escape /100 "
+             "| incident /100 (owner def.) | caught /100 | catch share % |",
+             "|---|---:|---|---|---|---|---|"]
     for g, a in agg.items():
         lines.append(f"| {g} | {a['merges']} | {fmt_rate(a['escape'])} | "
+                     f"{fmt_rate(a['strict'])} | "
                      f"{fmt_rate(a['incident'])} | {fmt_rate(a['caught'])} | "
                      f"{fmt_rate(a['catch_share'])} |")
     return lines + [""]
@@ -800,6 +805,8 @@ def render_md(res: dict) -> str:
          f"- Escape rate (post-merge: main-red, revert, hotfix-ref, merge-guard, "
          f"or a ledger entry of kind escape): "
          f"**{fmt_rate(h['escape'])}** per 100 merges",
+         f"- Strict escape rate, the same without hotfix-ref (a heuristic; see "
+         f"Method): **{fmt_rate(h['strict'])}**",
          f"- Incident rate, owner definition (escape or merge-queue ejection): "
          f"**{fmt_rate(h['incident'])}**",
          f"- Caught before merge (red PR commit later fixed, or queue ejection on "
@@ -839,8 +846,10 @@ def render_md(res: dict) -> str:
     L += ["", f"Seed recall (mechanically detectable seeds found by the sweep): "
           f"{res['seed_recall']}", ""]
     L += ["## Net-failure classes", "",
-          "Triaged entries by `net.class`; every untriaged mechanical incident is "
-          "`unclassified (manual)` until someone fills fields 2 to 4.", ""]
+          "Ledger entries of every kind (escape, near-miss, catch) by `net.class`, "
+          "plus every untriaged mechanical escape as `unclassified (manual)` until "
+          "someone fills fields 2 to 4. With this few triaged entries, the order "
+          "among the triaged classes says nothing yet.", ""]
     for k, v in res["net_classes"]:
         L.append(f"- {k}: {v}")
     L += ["", "## Mechanical incidents", "",
@@ -857,11 +866,24 @@ def render_md(res: dict) -> str:
         L.append(f"| {r['repo']} | {pr} | {r['sha']} | {r['date']} | {r['model']} | "
                  f"{r['type']} | {sig} | {', '.join(r['ledger']) or 'untriaged'} |"
                  f"{title}")
-    L += ["", "## Method and blind spots", "", res["method"], ""]
+    L += ["", "## Method and blind spots", "", res["method"], "", CALIBRATION, ""]
     return "\n".join(L)
 
 
 METHOD = (__doc__.split("Rates are")[0].split("Signals,")[1]).strip()
+# Instrument checks made by hand on the first run (2026-10-29). Re-measure and
+# re-date these when the rules change; they are not re-derived on each run.
+CALIBRATION = (
+    "Calibration, first run, 2026-10-29, by hand. hotfix-ref: of 15 randomly "
+    "sampled links, 9 named a real defect in the referenced merge and 6 were "
+    "mentions (a reference point, a fix credited to that PR, a list), so "
+    "precision is about 60% and the strict escape rate leaves it out. "
+    "merged-red-head: 4 sampled heads were red on an advisory check (2), a "
+    "failing audit on a dependabot bump (1) and failing clippy and tests on a "
+    "dependabot bump (1), so the flag mixes real overrides with advisory reds. "
+    "merged-before-ci: 4 of 4 sampled had pull_request checks still running at "
+    "mergedAt (required or not), all of which later passed or were cancelled."
+)
 
 
 def summarise(units: list, entries: list, window: dict, repos: list,
@@ -869,7 +891,8 @@ def summarise(units: list, entries: list, window: dict, repos: list,
     sc = collections.Counter(s["kind"] for u in units for s in u["signals"])
     fc = collections.Counter(f for u in units for f in u["flags"])
     allagg = aggregate(units, lambda u: "all")["all"] if units else \
-        {k: rate(0, 0) for k in ("escape", "incident", "caught", "catch_share")}
+        {k: rate(0, 0) for k in ("escape", "strict", "incident", "caught",
+                                 "catch_share")}
     inc = incident_rows(units, entries, titles)
     led = []
     for e in entries:
@@ -882,8 +905,7 @@ def summarise(units: list, entries: list, window: dict, repos: list,
     detectable = [e for e in led if "_found" in e]
     recall = (f"{sum(e['_found'] for e in detectable)}/{len(detectable)}"
               if detectable else "n/a")
-    nets = collections.Counter(e["net"]["class"] for e in entries
-                               if e["kind"] == "escape")
+    nets = collections.Counter(e["net"]["class"] for e in entries)
     untriaged = sum(1 for r in inc if r["escape"] and not r["ledger"])
     nets["unclassified (manual)"] += untriaged
     return {
@@ -946,7 +968,7 @@ def cmd_run(a) -> int:
     res["units"] = [public_unit(u) for u in units]
     res["api"] = {"requests": gh.requests, "cache_hits": gh.cache_hits}
     if a.json:
-        pathlib.Path(a.json).write_text(json.dumps(res, indent=1) + "\n")
+        pathlib.Path(a.json).write_text(json.dumps(res, separators=(",", ":")) + "\n")
     md = render_md(res)
     if a.md:
         pathlib.Path(a.md).write_text(md + "\n")
@@ -1166,7 +1188,7 @@ def self_test() -> int:
     check(u2["signals"] == [] and "merged-red-head" in u2["flags"],
           f"a red head is merged-red-head, not a catch: {u2}")
     o = outcome(u)
-    check(o == {"escape": False, "caught": True, "incident": True},
+    check(o == {"escape": False, "strict": False, "caught": True, "incident": True},
           f"ejection must be a catch and an owner-def incident, not an escape: {o}")
     agg = aggregate([dict(signals=[], flags=[], g="x") for _ in range(20)],
                     lambda v: v["g"])["x"]
@@ -1176,6 +1198,10 @@ def self_test() -> int:
         [{"signals": [], "flags": [], "g": 1} for _ in range(99)]
     a1 = aggregate(mix, lambda v: v["g"])[1]
     check(a1["escape"]["k"] == 1, "a unit with two signals counts once")
+    hx = [{"signals": [{"kind": "hotfix-ref"}], "flags": [], "g": 1}]
+    a2 = aggregate(hx, lambda v: v["g"])[1]
+    check(a2["escape"]["k"] == 1 and a2["strict"]["k"] == 0,
+          "strict escape must exclude hotfix-ref")
 
     # 6. ledger closure rule
     good = {"id": "I1", "kind": "escape", "status": "closed",
