@@ -2444,6 +2444,24 @@ def self_test(with_tools=False):
                       and json.loads(man[0].read_text())["check_tasks_exit"] == 1)
                 code = cmd_matrix(mx, runner=st, tools=gtools, check=lambda tids: (print("0 failed, 2 skipped"), 3)[1])
                 check("matrix refuses to start when check-tasks skipped anything (exit 3)", code == 1 and not st.calls)
+                # Amendment 2026-10-29/30: the gate checks every task, not only the ones the matrix runs,
+                # so the potency controls that exist only on t01 and t02 still gate the pilot.
+                gated = []
+                mg = argparse.Namespace(**{**vars(mx), "results": str(pathlib.Path(work) / "mg")})
+                _, gman = gate_matrix(mg, check=lambda tids: (gated.append(list(tids)), print("0 failed, 0 skipped"), 0)[2])
+                gm = json.loads(gman.read_text())
+                check("the matrix gate runs check-tasks on every task, and the matrix runs only the pilot tasks",
+                      gated == [list(all_tasks())] and set(FIRST_PILOT_TASKS) <= set(gated[0])
+                      and gm["checked_tasks"] == list(all_tasks()) and gm["tasks"] == list(PILOT_TASKS))
+                saved_all = all_tasks
+                try:
+                    globals()["all_tasks"] = lambda: PILOT_TASKS      # the pre-amendment scope
+                    gated.clear()
+                    gate_matrix(mg, check=lambda tids: (gated.append(list(tids)), print("0 failed, 0 skipped"), 0)[2])
+                    check("negative control: a gate scoped to the pilot tasks drops t01 and t02, and the check sees it",
+                          not set(FIRST_PILOT_TASKS) <= set(gated[0]))
+                finally:
+                    globals()["all_tasks"] = saved_all
                 st = Stub([result(ref, m)] * 4)
                 code = cmd_matrix(mx, runner=st, tools=gtools, check=lambda tids: (print("0 failed, 0 skipped"), 0)[1])
                 man = sorted((pathlib.Path(mx.results) / "manifests").glob("*.json"))

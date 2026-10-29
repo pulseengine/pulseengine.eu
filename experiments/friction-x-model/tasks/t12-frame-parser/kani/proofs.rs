@@ -16,7 +16,7 @@ fn total(c: Counts) -> u32 {
 /// Any 8 bytes, for any address: no panic, the accepted frame stays within
 /// MAX_PAYLOAD, and each byte adds at most one to the counts in all (H2..H8).
 #[kani::proof]
-#[kani::unwind(10)]
+#[kani::unwind(40)]
 fn any_bytes_stay_in_bounds() {
     let mut rx = Receiver::new(kani::any());
     let mut before = total(rx.counts());
@@ -35,7 +35,7 @@ fn any_bytes_stay_in_bounds() {
 /// After a frame is accepted, the accepted payload does not change until the
 /// next Frame event, whatever 4 bytes follow (H7).
 #[kani::proof]
-#[kani::unwind(14)]
+#[kani::unwind(40)]
 fn accepted_frame_is_stable() {
     let mut wire = [0_u8; 12];
     let n = encode(5, &[0xA1, 0xA2], &mut wire);
@@ -83,7 +83,7 @@ fn encode_then_receive_round_trips() {
 /// The 36th content byte of a frame is an overrun (H4). The bytes are fixed:
 /// symbolic ones do not finish within the time limit.
 #[kani::proof]
-#[kani::unwind(38)]
+#[kani::unwind(40)]
 fn thirty_six_content_bytes_overrun() {
     let mut rx = Receiver::new(0x05);
     let b: u8 = 0x11;

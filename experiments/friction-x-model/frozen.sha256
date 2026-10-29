@@ -54,7 +54,7 @@ a893345b057a54272d8c834c3ef2a4b2871df8d0c45d9eb1225305e9ceaa2600  tasks/t12-fram
 8874cdef9a1e0d9fd65eb651920704aaa336c224062c0e007486bcd2a465e1db  tasks/t12-frame-parser/hidden/test_main.c
 135733aaedd60e8e0f679011b4f3a95f01898efa74b78445d5887393d75e1c61  tasks/t12-frame-parser/hidden/vectors.h
 11eb839dd901d5912fbbc8ea718e7bf947e77a9438132e94b3b2368d53fca182  tasks/t12-frame-parser/hidden/vectors.rs
-0174c54b54e3087cd155ab6c0ae6c91abd3ba332ddddff4153822faa7df2b267  tasks/t12-frame-parser/kani/proofs.rs
+64059006f6c6b165a5c5f513c2dea8a35e3158ae766b612cf61e21f4aa128db1  tasks/t12-frame-parser/kani/proofs.rs
 9c83b7454313f7802ffa9065fa9a540268869b0ff8a2d59a994e16d65fe1093b  tasks/t12-frame-parser/mutant/lib.rs
 48859fedbc1d0f996a890f885f52499915b67804c9f73aaada2b34191e4ccd97  tasks/t12-frame-parser/mutant/solution.c
 0c2aec86e77228e7ce783cc4b08ea3ec6d5c25be167d85b6c287c6b563160987  tasks/t12-frame-parser/reference/lib.rs

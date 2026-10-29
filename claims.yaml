@@ -496,7 +496,7 @@ claims:
         glob: ['experiments/friction-x-model/frozen.sha256']
         min: 1
       - kind: count-min
-        pattern: '(?m)^0174c54b54e3087cd155ab6c0ae6c91abd3ba332ddddff4153822faa7df2b267  tasks/t12-frame-parser/kani/proofs\.rs$'
+        pattern: '(?m)^64059006f6c6b165a5c5f513c2dea8a35e3158ae766b612cf61e21f4aa128db1  tasks/t12-frame-parser/kani/proofs\.rs$'
         glob: ['experiments/friction-x-model/frozen.sha256']
         min: 1
       - kind: count-min
