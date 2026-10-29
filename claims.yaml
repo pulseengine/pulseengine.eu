@@ -2422,3 +2422,66 @@ claims:
         pattern: 'files/[^"]*\.(sh|py)"'
         glob: ['tests/seam-contract/pilot/world.json']
         max: 0
+
+  # ── The incident ledger closes an entry only on a negative control ──────────
+  # REQ-INCIDENT-LEDGER. An entry closed on a promise ("fixed in #N") is how a
+  # ledger turns into a list of things nobody re-checked. The rule lives in the
+  # script and runs in the required build job, on fixtures and on the ledger.
+  - id: INCIDENT-LEDGER-CLOSES-ONLY-ON-EVIDENCE
+    doc: docs/incidents/ledger.yaml
+    text: "CLOSED only when (4) links a merged PR"
+    evidence:
+      - kind: count-min
+        pattern: 'closed needs countermeasure\.negative_control'
+        glob: ['scripts/incident-ledger.py']
+        min: 1
+      - kind: count-min
+        pattern: 'closed needs countermeasure\.merged: true'
+        glob: ['scripts/incident-ledger.py']
+        min: 1
+      - kind: count-min
+        pattern: 'run: python3 scripts/incident-ledger\.py check-ledger'
+        glob: ['.github/workflows/ci.yml']
+        min: 1
+      - kind: count-min
+        pattern: 'run: python3 scripts/incident-ledger\.py --self-test'
+        glob: ['.github/workflows/ci.yml']
+        min: 1
+
+  # ── Incident rates carry intervals, and an ejection is never an escape ──────
+  # A bare count read as a trend is the claim this ledger exists to answer. The
+  # z value and the hand-computed 0/20 fixture pin the interval; the ejection
+  # fixture pins that a queue catch cannot inflate the escape rate.
+  - id: INCIDENT-LEDGER-RATES-WITH-INTERVALS
+    doc: docs/incidents/report.md
+    text: "Wilson 95% interval"
+    evidence:
+      - kind: count-min
+        pattern: 'Z95 = 1\.959963984540054'
+        glob: ['scripts/incident-ledger.py']
+        min: 1
+      - kind: count-min
+        pattern: 'abs\(hi - 0\.16113\) < 1e-4'
+        glob: ['scripts/incident-ledger.py']
+        min: 1
+      - kind: count-min
+        pattern: 'ejection must be a catch and an owner-def incident, not an escape'
+        glob: ['scripts/incident-ledger.py']
+        min: 1
+
+  # ── The committed report carries no titles and no local paths ──────────────
+  # --titles exists for local triage. Its output must never be the committed one,
+  # and the cache directory must never leak into it.
+  - id: INCIDENT-LEDGER-NO-TITLES-OR-PATHS
+    doc: docs/incidents/report.md
+    text: "PR titles are not published here"
+    evidence:
+      - kind: count-max
+        pattern: '\| title \|'
+        glob: ['docs/incidents/report.md']
+        max: 0
+      - kind: count-max
+        pattern: '(/Users/|/private/tmp|/Volumes/|\.cache/pulseengine)'
+        glob: ['docs/incidents/*']
+        max: 0
+

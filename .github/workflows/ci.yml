@@ -253,6 +253,16 @@ jobs:
       - name: Check the factory notice inbox rejects unsafe answers
         run: python3 claude-tooling/plugins/pulseengine-claude/skills/factory-notice/notice.py --self-test
 
+      # The incident ledger (REQ-INCIDENT-LEDGER): rate math, attribution and the
+      # closure rule on fixtures, then the curated ledger itself. Both offline.
+      # The org-wide sweep needs the API, so it is run by hand and its report is
+      # committed as a dated snapshot; it is not a PR check.
+      - name: Check the incident ledger's math and attribution can still fail
+        run: python3 scripts/incident-ledger.py --self-test
+
+      - name: Check the incident ledger closes entries only on a negative control
+        run: python3 scripts/incident-ledger.py check-ledger
+
       # The seam-contract checker (REQ-SEAM-CONTRACT-CHECK). Offline: one
       # negative control per rule must exit 1 with that rule named, API
       # failures must exit 2 (the real curl and urllib paths run against a

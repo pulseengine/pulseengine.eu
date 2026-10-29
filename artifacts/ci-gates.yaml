@@ -99,6 +99,8 @@ artifacts:
         target: REQ-PLUGIN-VERSION-GATE-FULL-HISTORY
       - type: satisfies
         target: REQ-SEAM-CONTRACT-CHECK
+      - type: satisfies
+        target: REQ-INCIDENT-LEDGER
   - id: REQ-LINKS
     type: requirement
     title: Every internal link in the built site resolves
@@ -1015,3 +1017,45 @@ artifacts:
     links:
       - type: verifies
         target: REQ-SEAM-CONTRACT-CHECK
+
+  - id: REQ-INCIDENT-LEDGER
+    type: requirement
+    title: Escape and catch rates per 100 merges, with intervals, and a ledger that closes only on a negative control
+    description: >-
+      Owner request 2026-10-29: answer claims like "AI raised outages 30%" at this org's scale with rates, not anecdotes. scripts/incident-ledger.py takes the unit as a merge to a repo's default branch (first-parent commits from treeless bare clones, grouped per PR), derives post-merge escape signals (main-red charged to the commit that starts a red streak per workflow, push and merge_group events only; revert by sha or subject; hotfix-ref from a later fix or revert within 14 days, inventory lines of 3+ PR numbers ignored; merge-guard alarm issues; a ledger entry of kind escape) and pre-merge catch signals (a red PR commit before the head; a merge-queue ejection on failed checks), and reports units-with-a-signal per 100 merges with Wilson 95% intervals by repo, month, authoring class (from Co-Authored-By Claude trailers, Claude-Session links and anthropic.com authors; mixed, unnamed, bot and human-only as their own classes) and Conventional Commit type, plus catch share = caught / (caught + escaped). A merge-queue ejection is a catch, never an escape; it enters only the separately labelled owner-definition incident rate. docs/incidents/ledger.yaml holds the four fields per entry (change, net, why, countermeasure); `check-ledger` rejects an entry marked closed unless its countermeasure links a merged PR and a negative control with a link, and `run` re-checks merged against GitHub. API use is serial, at most 1 request/s, cached on disk outside the repo with ETags on REST, with backoff on 403/429. Committed output carries no PR titles and no local paths.
+    status: verified
+    release: 0.48.0
+    category: functional
+    priority: should
+    fields:
+      category: functional
+
+  - id: DD-INCIDENT-LEDGER-NOT-RIVET
+    type: design-decision
+    title: Incident ledger entries are a YAML file in docs/, not rivet artifacts
+    description: >-
+      The ledger's entries are not rivet artifacts.
+    status: approved
+    fields:
+      decision: >-
+        Keep the curated ledger in docs/incidents/ledger.yaml with its own shape check (incident-ledger.py check-ledger, run in CI), and trace only the requirement and its verification in rivet.
+      rationale: >-
+        With common+dev under rivet 0.39.0 the one candidate type is ai-found-defect, defined as a defect from an AI authoring step that rivet's own detection machinery caught. An escape is a defect nothing caught, the ledger needs a human-only class alongside the AI ones, and its four fields (change, net, why, countermeasure with a negative control) would each be an unknown-field diagnostic. The file sits outside artifacts/ because artifacts/ is the generic-yaml source and would be parsed as artifacts.
+      alternatives: >-
+        ai-found-defect with everything in notes (loses the checked structure and mislabels escapes and human-only changes); a project-local schema (more process than nine-requirement scope justifies, and a schema change would ride on the signed layer's rivet version).
+    links:
+      - type: satisfies
+        target: REQ-INCIDENT-LEDGER
+
+  - id: VER-INCIDENT-LEDGER
+    type: verification
+    title: incident-ledger.py --self-test, check-ledger, and claims INCIDENT-LEDGER-*
+    description: >-
+      Offline, in ci.yml's required build job. The self-test checks Wilson against hand-computed values (0/20 has an upper bound of 16.11 per 100; 3/100 gives [1.03, 8.45]; n=0 is n/a). It builds a throwaway git repo with squash, true-merge, Revert-subject, sha-only revert, inventory-line, direct-push and dependabot commits, and checks the first-parent unit count, the PR numbers, the authoring classes (named, parenthetical, mixed, unnamed, session-only, anthropic author, bot, human-only), revert and hotfix linkage, and the no-pr flag. It checks main-red streak attribution with cancelled, schedule and other-workflow suites mixed in; pr-red, mq-ejected and merged-before-ci from a PR fixture; a red head as merged-red-head and not a catch; red before and red at the head as no catch (pr-red counts only red that later went green); an ejection as a catch and never an escape; a unit with two signals counted once; the strict escape rate leaving out hotfix-ref; a ledger escape counted and a near-miss not; the closure rule (no negative control, a control without a link, an unmerged countermeasure, a non-URL PR, an unknown net class and a duplicate id are each rejected); and no titles or local paths in the default report. Negative-controlled on 2026-10-29 with 18 source mutants, all killed (exit 1): Wilson z, streak attribution, the event filter, the mixed class, the negative-control link rule, the merged rule, ejection counted as an escape, the inventory rule, the withheld-title rule, signals counted instead of units, a near-miss counted, --first-parent dropped, the revert regex, the hotfix window, pr-red without a green head, the late-merge flag, hotfix-ref counted in the strict rate, and titles on by default. The first round left three survivors (the event filter, the revert regex, pr-red over the head); each got a fixture. When pr-red began requiring a green head, the mutant that included the head in the earlier commits became equivalent and was replaced by one that drops the green-head condition. The final round killed all 18. All were restored by re-editing, and the self-test exits 0 again on 3.14 and on /usr/bin/python3 3.9.6. Seed recall on the first 90-day run: the sweep found the two mechanically detectable seeds, the pulseengine.eu#298 ejection and the smithy#45 merge-guard alarm, on its own.
+    status: verified
+    release: 0.48.0
+    method: automated-test
+    test-location: scripts/incident-ledger.py
+    links:
+      - type: verifies
+        target: REQ-INCIDENT-LEDGER

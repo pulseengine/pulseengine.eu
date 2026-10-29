@@ -1,0 +1,218 @@
+# Incident ledger: the curated half. scripts/incident-ledger.py finds incidents
+# mechanically (main-red, revert, hotfix-ref, merge-guard, merge-queue ejection);
+# this file holds the four fields a script cannot fill on its own.
+#
+# Why not rivet artifacts: rivet 0.39.0 with common+dev has one candidate type,
+# `ai-found-defect`. It is defined as a defect introduced by an AI step that
+# rivet's own detection machinery CAUGHT. An escape is by definition a defect
+# nothing caught, the ledger needs a human-only class, and the four fields would
+# all be unknown-field diagnostics. Recorded as DD-INCIDENT-LEDGER-NOT-RIVET in
+# artifacts/ci-gates.yaml. The file lives in docs/, not artifacts/,
+# because artifacts/ is rivet's generic-yaml source and would be parsed as one.
+#
+# Entry shape (checked by `incident-ledger.py check-ledger`, in CI):
+#   id, kind (escape | near-miss | catch), status (open | closed)
+#   change:          (1) which change: repo, pr or merge_sha or commits, model,
+#                    session (if the commit carries one)
+#   net:             (2) which net was missing or failed: class, source
+#   why:             (3) classifier, evidence links, source
+#   countermeasure:  (4) gate, pr, merged, negative_control
+#   expect_mechanical: signal kinds the sweep must find on its own (seed recall)
+#
+# CLOSED only when (4) links a merged PR AND negative_control links evidence of
+# the new gate going red on the old bug. `run` re-checks `merged` against GitHub.
+# `source: manual` marks a field a person (or agent) wrote; `mechanical` one the
+# sweep derived.
+#
+# kind: escape entries that match a merge add a `ledger` signal to it, so a
+# manually found escape counts in the escape rate. near-miss and catch do not.
+
+entries:
+  - id: INC-2026-10-001
+    kind: escape
+    status: closed
+    change:
+      repo: pulseengine.eu
+      pr: 303
+      merge_sha: 730ae22
+      model: claude-opus-5.5
+      session: https://claude.ai/code/session_01G5qpB7zvxLvdrvn5YRyj4R
+    net:
+      class: no-test
+      source: manual
+      note: >-
+        The friction-x-model pilot harness landed without a run of check-tasks
+        against the real cppcheck. Its first real run failed on both C references.
+    why:
+      classifier: "checker saw one translation unit, so MISRA 8.7 fired on every public function"
+      source: manual
+      evidence:
+        - https://github.com/pulseengine/pulseengine.eu/pull/311
+    countermeasure:
+      gate: "fxm check-tasks: fixed caller TU per C task, caller drift check, 8.7 negative control"
+      pr: https://github.com/pulseengine/pulseengine.eu/pull/311
+      merged: true
+      negative_control: >-
+        https://github.com/pulseengine/pulseengine.eu/pull/311 (body, "8.7
+        negative control": an exported helper outside the header must be
+        reported under 8.7; the drift-check probes fail on a dropped call, an
+        extra call and a new header function)
+
+  - id: INC-2026-10-002
+    kind: escape
+    status: closed
+    change:
+      repo: pulseengine.eu
+      pr: 303
+      merge_sha: 730ae22
+      model: claude-opus-5.5
+      session: https://claude.ai/code/session_01G5qpB7zvxLvdrvn5YRyj4R
+    net:
+      class: no-test
+      source: manual
+      note: >-
+        No check that the reference compiles against the shipped task header
+        alone. The reference included <stddef.h>, rb.h did not, so 19 of 20
+        failing pilot answers stopped at an undeclared NULL and pilot H1 on t01 is
+        confounded.
+    why:
+      classifier: "reference passed on an include the shipped header did not give"
+      source: manual
+      evidence:
+        - https://github.com/pulseengine/pulseengine.eu/pull/314
+    countermeasure:
+      gate: "fxm check-tasks: the reference with every include but the task header removed must pass; a potency probe must fail to compile"
+      pr: https://github.com/pulseengine/pulseengine.eu/pull/314
+      merged: true
+      negative_control: >-
+        https://github.com/pulseengine/pulseengine.eu/pull/314 (body, "Negative
+        control": check-tasks with the new fxm.py against the pilot's t01 files
+        reports 2 failed; with the PR's files 0 failed)
+
+  - id: INC-2026-10-003
+    kind: near-miss
+    status: closed
+    change:
+      repo: pulseengine.eu
+      pr: 216
+      merge_sha: 5baf97a
+      model: claude-opus-5
+      session: https://claude.ai/code/session_01G5qpB7zvxLvdrvn5YRyj4R
+    net:
+      class: vacuous-gate
+      source: manual
+      note: >-
+        check-plugin-version-current.py, introduced with the release spine in
+        #216, ran in a depth-1 checkout and credited the PR's own merge commit
+        with the version line. It passed without comparing anything. #315 does
+        not name #216 as the origin; that link is inferred from #216's body.
+    why:
+      classifier: "gate could not fail: shallow clone"
+      source: manual
+      evidence:
+        - https://github.com/pulseengine/pulseengine.eu/pull/315
+        - https://github.com/pulseengine/pulseengine.eu/pull/216
+    countermeasure:
+      gate: "check-plugin-version-current.py refuses a shallow history (exit 2); CI fetches full history; claim PLUGIN-VERSION-GATE-FULL-HISTORY"
+      pr: https://github.com/pulseengine/pulseengine.eu/pull/315
+      merged: true
+      negative_control: >-
+        https://github.com/pulseengine/pulseengine.eu/pull/315 (body, "Negative
+        control": before the bump, exit 2 shallow and exit 1 on full history;
+        exit 0 with the guard removed reproduces the vacuous pass; 5 of 5
+        claim mutants exit 1)
+
+  - id: INC-2026-10-004
+    kind: escape
+    status: open
+    expect_mechanical: [merge-guard]
+    change:
+      repo: smithy
+      pr: 45
+      merge_sha: 67ad04da5c2e
+      model: claude-opus-5.5
+    net:
+      class: merged-without-ci
+      source: manual
+      note: >-
+        Merged with `gh pr merge --auto` ahead of the required workflows,
+        instead of through the automerge label. They later finished green, so
+        no defect landed: the net failed, the change did not. Recorded by the
+        owner as a human-override.
+    why:
+      classifier: "merge path bypassed the required checks (--auto instead of the automerge label)"
+      source: manual
+      evidence:
+        - https://github.com/pulseengine/smithy/issues/46
+    countermeasure:
+      gate: "automerge label + merge-guard (smithy#36, #37). Detective, not preventive: it predates #45, raised the alarm, and did not stop the merge"
+      pr: https://github.com/pulseengine/smithy/pull/36
+      merged: true
+      negative_control: >-
+        Open, not closed: the guard went red on this merge (smithy#46), but it
+        existed before #45, so it did not prevent it. Closing needs a gate that
+        makes `--auto` unable to merge ahead of the required workflows.
+
+  - id: INC-2026-10-005
+    kind: catch
+    status: closed
+    expect_mechanical: [mq-ejected]
+    change:
+      repo: pulseengine.eu
+      pr: 298
+      merge_sha: bb4fc555b67d
+      model: claude-opus-5.5
+      session: https://claude.ai/code/session_01G5qpB7zvxLvdrvn5YRyj4R
+    net:
+      class: wrong-system
+      source: manual
+      note: >-
+        Not a defect in #298. A self-hosted runner had an old zola (Tera v1) on
+        PATH; the install step reported the pinned version, then a bare `zola
+        build` ran the old one and rejected Tera v2 templates already on main.
+        The merge queue ejected #298 (failed_checks). The queue worked; the
+        instrument ran on the wrong binary.
+    why:
+      classifier: "ran on wrong system: PATH lookup found a stale tool"
+      source: manual
+      evidence:
+        - https://github.com/pulseengine/pulseengine.eu/pull/308
+        - https://github.com/pulseengine/pulseengine.eu/pull/298
+    countermeasure:
+      gate: "zola installed by path and sha256 into $RUNNER_TEMP, called only as \"$ZOLA\"; claim CI-ZOLA-PINNED-BY-PATH"
+      pr: https://github.com/pulseengine/pulseengine.eu/pull/308
+      merged: true
+      negative_control: >-
+        https://github.com/pulseengine/pulseengine.eu/pull/308 (body: with ZOLA
+        pointing at the old binary the step failed; a bad sha failed
+        sha256sum -c; a bare `zola build`, a removed sha256sum line, an appended
+        `run: zola check` and a changed sha each turned claim-check red)
+
+  - id: INC-2026-10-006
+    kind: near-miss
+    status: open
+    change:
+      repo: synth
+      commits: "PR branch commits of synth#1537 (2026-10-14) through synth#1621 (2026-10-29), among others"
+      model: mixed
+    net:
+      class: wrong-object
+      source: manual
+      note: >-
+        PR branch commits were authored by a stray local git identity (name
+        and email a single letter), so GitHub reports signature state NO_USER:
+        unverified. The PRs squash-merge and GitHub signs the squash commit,
+        so main shows only verified commits and no main-side check sees the
+        branch identity. Verified on 2026-10-29 over the 60 most recently
+        updated synth PRs: every unverified commit was of this identity.
+    why:
+      classifier: "gate checks the wrong object: signing is enforced on main's squash commit, not on what was authored"
+      source: manual
+      evidence:
+        - https://github.com/pulseengine/synth/pull/1537
+        - https://github.com/pulseengine/synth/pull/1621
+    countermeasure:
+      gate: "none yet. Candidates: a PR check that every commit is verified and authored by an expected identity; fix the worktree identity at the source"
+      pr: ""
+      merged: false
+      negative_control: ""
