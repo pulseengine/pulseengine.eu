@@ -1,0 +1,16 @@
+{
+  "id": "t11-biquad-q15",
+  "c": {
+    "header": "bq.h",
+    "solution": "bq.c",
+    "caller": "api_use.c"
+  },
+  "rust": {
+    "crate": "fxm_task"
+  },
+  "kani_probe": {
+    "why": "a change to the reference that must make at least one fixed harness fail: a 32-bit accumulator overflows (B2)",
+    "old": "type Acc = i64;",
+    "new": "type Acc = i32;"
+  }
+}

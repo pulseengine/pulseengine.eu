@@ -28,8 +28,17 @@ tasks/<id>/
   mutant/                    a wrong solution: must fail the hidden suite
 ```
 
-Pilot tasks: `t01-ring-buffer` (bounded byte FIFO) and `t02-q15-saturating`
-(saturating Q15 arithmetic).
+Pilot tasks: `t11-biquad-q15` (a decimating direct-form-I biquad in Q15/Q14:
+exact accumulator, ties-to-even rounding, a saturation count, and block
+processing that stops when the output is full) and `t12-frame-parser` (a
+byte-at-a-time receiver for a byte-stuffed framed link: hunting, escapes,
+abort, overrun, runts, CRC-16, an address filter and a stable accepted
+frame). They replaced
+the first pilot's `t01-ring-buffer` and `t02-q15-saturating`, which hit the
+ceiling (pilot step 5; see the 2026-10-29/30 amendment). t01 and t02 stay
+here unchanged. `matrix` no longer runs them, but `check-tasks`, and so the
+matrix gate, still checks every task in `tasks/`, because some potency
+controls run on t01 and t02 only.
 
 The harness is Python stdlib only. It runs offline, except for the
 `claude` CLI calls.
@@ -42,12 +51,12 @@ cd experiments/friction-x-model
 python3 fxm.py self-test               # stub model, stub tools: no API, no toolchain (runs in CI)
 python3 fxm.py self-test --with-tools  # also the real oracle on reference and mutant (needs cc, cargo)
 python3 fxm.py check-tools             # each pinned tool and its version; SKIPPED/MISMATCH exits 3
-python3 fxm.py check-tasks             # oracle and friction potency; 0 failed AND 0 skipped required
+python3 fxm.py check-tasks             # every task: oracle and friction potency; 0 failed AND 0 skipped required
 
 # one run
 python3 fxm.py run --task t01-ring-buffer --level F3 --model claude-haiku-5-5 --rep 1
 
-# the pilot: 2 tasks x 5 levels x 4 models x 3 reps = 120 runs; resumable.
+# the pilot: 2 tasks (t11, t12) x 5 levels x 4 models x 3 reps = 120 runs; resumable.
 # matrix first runs check-tasks and refuses to start unless it reports 0 failed AND 0 skipped;
 # the result goes to results/manifests/<utc>-NN.json, which every run record names.
 # Records of a single `run` are ungated and `report` excludes them.
@@ -94,6 +103,39 @@ export FXM_NOTICE=<path to notice.py>   # optional; without it, nothing is poste
 nohup python3 fxm.py matrix --pilot --wait-on-limit > "$WORK/pilot.log" 2>&1 < /dev/null & disown
 ```
 
+### The re-pilot (t11 and t12, after 2026-11-03 18:00 UTC)
+
+The re-pilot runs from its own clone, `$WORK/repilot/pulseengine.eu`, so its
+`results/` holds only re-pilot records. `report` pools everything in a
+results directory, and the first pilot's checkout already holds gated t01 and
+t02 records. A script on the bench machine, `$WORK/repilot/repilot.sh`
+(not in the repository), does this:
+- sleeps until 2026-11-03T18:30Z, checking the clock every 5 minutes;
+- reads, at wake time, the commit to run from `$WORK/repilot/commit` (the
+  PR's merge commit; without that file, `origin/main`) and the expected hash
+  of `frozen.sha256` from `$WORK/repilot/frozen.expected`. It checks out the
+  commit and refuses to start unless the hash matches. That hash covers the
+  tasks, not `fxm.py`;
+- sets `FXM_BUILD_DIR` and `TMPDIR` to `$HOME/.cache/fxm-tmp` on the
+  internal disk, and refuses to start with less than 5 GB free there;
+- runs `check-tools`, `self-test --with-tools` and `check-tasks`, in that
+  order, and refuses to start unless each exits 0;
+- with `FXM_NOTICE` set to the clone's `notice.py`, runs
+  `python3 fxm.py matrix --pilot --wait-on-limit`.
+
+It logs to `$WORK/repilot/repilot.log`, and `matrix` logs to
+`$WORK/repilot/pilot.log`. It runs under `caffeinate -i`, so the machine does
+not sleep. **To restart it after a reboot, or after it stopped:**
+
+```sh
+cd "$WORK/repilot"
+nohup caffeinate -i ./repilot.sh > /dev/null 2>&1 < /dev/null & disown
+```
+
+It skips the wait once the start time has passed. `matrix` skips every cell
+that is already ok and re-runs a cell that was cut off. To cancel it, kill the
+script's PID (the first line of `repilot.log`) and its `fxm.py` child.
+
 Each run writes `results/<task>/<level>/<model>/rep<k>.json`, with every
 iteration's findings, token usage and notional cost. The record also holds
 the final code, the hidden-suite result, residual findings, the toolchain
@@ -122,6 +164,23 @@ own file:
 `results/` is git-ignored and is never committed. Reports publish aggregates
 only: cell tables, hypothesis verdicts and secondary measures. They never
 publish prompts, answers or code.
+
+**Where binaries are built: `FXM_BUILD_DIR`.** Every hidden-suite and
+sanitizer binary, cargo's and Kani's target directories, and the scratch
+directories of `check-tasks` and the self-test go to `FXM_BUILD_DIR`. It is
+also the default `--work`. Without it, they go to the system temp directory
+and `work/`. **On macOS it must be on an internal disk, never on a removable
+or external volume.** Each new binary run there over ssh raises a privacy
+prompt (Removable Volumes) on the bench machine's screen. Set `TMPDIR` to the
+same place. Each build directory is removed right after use. On the bench
+machine:
+
+```sh
+export FXM_BUILD_DIR="$HOME/.cache/fxm-tmp" TMPDIR="$HOME/.cache/fxm-tmp"
+df -h /          # keep at least 5 GB free on the internal disk; stop if less
+```
+
+Sources, results and transcripts may stay on the external volume.
 
 Environment overrides, for tool paths only: `FXM_CLAUDE`, `FXM_CC`,
 `FXM_CPPCHECK`, `FXM_RUST_TOOLCHAIN`, `FXM_MIRI_TOOLCHAIN`. `check-tools`
@@ -248,6 +307,17 @@ It also checks that the public material is enough to write an answer that
 compiles (pilot finding of 2026-10-29). Every standard header the fixed header
 or the reference includes must be named in the spec's C section. A negative
 control runs this check on t01's C section as the pilot ran it, and it fails.
+
+Two more public-material checks (amendment of 2026-10-29/30), in the
+self-test and in `check-tasks`, each with negative controls in the self-test:
+- every public name of the Rust reference that the hidden Rust driver uses
+  (items, fields, enum variants) must appear in the spec's Rust section. The
+  control renames `sat_count` in t11's spec and `Overrun` in t12's, and
+  the check names each;
+- the F0 and F1 prompts must differ by exactly the level text and the rules
+  paragraph, and neither may name a header or allow "standard headers" beyond
+  the ones the task names. The controls are the first pilot's rules clause
+  and an F1 level text with one extra sentence.
 
 It also checks `--wait-on-limit` with a stub model and a fake sleep:
 - a limit gives one wait until just after `resetsAt`, then a resume that
