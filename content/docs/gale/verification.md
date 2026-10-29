@@ -66,7 +66,7 @@ A green run of that workflow certifies less than "all proven", and the ledger na
 
 | Tool | What a green run means | What it does not mean |
 |------|------------------------|-----------------------|
-| Verus | The bodies Verus checked satisfy their requires/ensures contracts | That every line is checked: 133 `external_body` functions and 2 `assume_specification` calls are trusted, and CI does not pass `--no-cheating` |
+| Verus | The bodies Verus checked satisfy their requires/ensures contracts | That every line is checked: 135 `external_body` functions and 2 `assume_specification` calls (gale @ a097ff6, counted 2026-10-29) are trusted, and CI does not pass `--no-cheating` |
 | Rocq | Every file elaborates; 10 modules are fully proven with `Qed` | That `poll`, `sched` and `thread_lifecycle` are proven: their 74 theorems are `Admitted` stubs, which Rocq accepts. All Rocq proofs are over hand-written models, not the Rust |
 | Lean | The scheduling-theory theorems check | Anything about the implementation |
 | Kani | The harnesses hold within their bounds | That kernel properties hold for all inputs: most kernel harnesses assume a bound such as `count <= 20`. The uart-thin and gpio-thin driver decision cores are the exception, checked over the full input type; dma-own is bounded to a four-slot ring |
