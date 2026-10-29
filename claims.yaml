@@ -319,6 +319,26 @@ claims:
   # "Agents don't tidy up" says the criterion was fixed before the trigger
   # existed. That is only true while the recorded thresholds are the ones the
   # post states; moving a threshold must fail here, in review, not quietly.
+  - id: EXPERIMENT-REFACTOR-DECISION-RELAY-PREREGISTERED
+    doc: docs/experiments/2026-10-refactor-decision-relay.md
+    text: "Pre-registered 2026-10-29, before the `refactor-decision` skill ships"
+    evidence:
+      - kind: count-min
+        pattern: 'Pre-registered 2026-10-29, before the `refactor-decision` skill ships'
+        glob: ['docs/experiments/2026-10-refactor-decision-relay.md']
+        min: 1
+      - kind: count-min
+        pattern: 'below the baseline that the frozen tool restates for the same 500 merges'
+        glob: ['docs/experiments/2026-10-refactor-decision-relay.md']
+        min: 1
+      - kind: count-min
+        pattern: "The metric is the frozen tool's automated count, not a curated count"
+        glob: ['docs/experiments/2026-10-refactor-decision-relay.md']
+        min: 1
+      - kind: count-min
+        pattern: 'reported as exploratory, never as confirmation'
+        glob: ['docs/experiments/2026-10-refactor-decision-relay.md']
+        min: 1
   - id: EXPERIMENT-HOTSPOT-TRIGGER-PREREGISTERED
     doc: content/blog/2026-10-22-agents-dont-tidy-up.md
     text: "recorded in the repository as a checked claim, dated 22 October 2026"
