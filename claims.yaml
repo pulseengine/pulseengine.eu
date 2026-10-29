@@ -339,6 +339,18 @@ claims:
         pattern: 'reported as exploratory, never as confirmation'
         glob: ['docs/experiments/2026-10-refactor-decision-relay.md']
         min: 1
+  - id: EXPERIMENT-RELAY-ARM-INSTRUMENT-FROZEN
+    doc: docs/experiments/2026-10-refactor-decision-relay.md
+    text: "Frozen instrument (recorded 2026-10-29, before the window)"
+    evidence:
+      - kind: count-min
+        pattern: '35495ba523effc8428d8c358c89123ce27969b2e4b44c6bfcb7a4308cb776128'
+        glob: ['docs/experiments/2026-10-refactor-decision-relay.md']
+        min: 1
+      - kind: count-min
+        pattern: '\*\*3\.8 per 100\*\*: 19 raw pairs in 500 first-parent merges'
+        glob: ['docs/experiments/2026-10-refactor-decision-relay.md']
+        min: 1
   - id: EXPERIMENT-HOTSPOT-TRIGGER-PREREGISTERED
     doc: content/blog/2026-10-22-agents-dont-tidy-up.md
     text: "recorded in the repository as a checked claim, dated 22 October 2026"

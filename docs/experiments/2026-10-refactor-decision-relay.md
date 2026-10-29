@@ -42,8 +42,26 @@ sources, which stays stable through relay's squash merges, and by relay's
 
 | measure | baseline | status |
 |---|---|---|
-| **fix-of-a-fix pairs, automated count of the frozen tool, per 100 first-parent merges** (the metric) | the Python detector reports **24 raw pairs** in 500 first-parent merges (2026-04-12 to 2026-10-28), i.e. 4.8 per 100 | to be restated from the frozen Rust tool on the same 500 merges before 2026-11-01. That restated value is the baseline. |
-| fix share of merges | 78 of 500 (15.6%) overall; 23 to 51% per release since v1.130 | `fix`/`revert` subjects; the 3 hand-added fixes are excluded from the metric |
+| **fix-of-a-fix pairs, automated count of the frozen tool, per 100 first-parent merges** (the metric) | **3.8 per 100**: 19 raw pairs in 500 first-parent merges, relay `origin/main` at `55af1e9`, restated by the frozen tool on 2026-10-29 | **fixed baseline** |
+| fix share of merges | 75 of 500 (15.0%) by the frozen tool's automated rule (78 with the 3 curated additions); 23 to 51% per release since v1.130 | `fix`/`revert` subjects; the 3 hand-added fixes are excluded from the metric |
+
+**Frozen instrument (recorded 2026-10-29, before the window):**
+
+- **Tool:** `refactor-metrics` 1.0.0 (Rust), relay `tools/refactor-metrics/`, its own workspace.
+- **Branch head:** `tools/refactor-metrics` at `6d1a4b32ea26573c85495ce5af18e1138b0ea2bf`. The `main` SHA is added after relay's squash merge.
+- **Content hash:** `35495ba523effc8428d8c358c89123ce27969b2e4b44c6bfcb7a4308cb776128`, over 16 files. Recipe, run from relay's root:
+  `find tools/refactor-metrics -type f -not -path '*/target/*' -print0 | LC_ALL=C sort -z | xargs -0 shasum -a 256 | awk '{print $2" "$1}' | shasum -a 256`
+- **Git tree hash of the directory:** `396bb9578cfa27fde042511f33b6f02963f719c0`. It survives the squash merge as long as the files are unchanged.
+- **Equivalence with the Python detector:** a byte-identical report on the same 500 merges. All 500 per-commit rows, all 471 blame edges and all 24 pairs with their depths match. A check that drops `-w` fails.
+- **Window run:** after `git fetch --tags`:
+  `--repo <relay> --ref origin/main --since 2026-11-01 --until 2027-01-31 --format json`
+  The window is selected by committer date.
+
+**Correction to the earlier figure:**
+
+- The "24 pairs, 4.8 per 100" stated before the freeze included 3 hand-curated fix commits, now kept as the versioned file `curated-fixes.txt`.
+- The truly automated count is **19 pairs, 3.8 per 100**: 75 fixes (15.0%) and 15 re-fixing commits.
+- The curated list names only commits from before the window, so it cannot apply inside it. The comparable baseline for the automated metric is therefore **3.8 pairs per 100 merges**.
 
 The figure published in pulseengine.eu#294, 16 re-fixing commits, is **context
 only**. It came from manual curation: 3 fix commits added by hand that the
