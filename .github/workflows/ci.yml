@@ -331,8 +331,14 @@ jobs:
       - name: Check tracked Python runs on the 3.9 floor
         env:
           PY39: ${{ steps.py39.outputs.python-path }}
+        # update-environment: false also leaves LD_LIBRARY_PATH unset, and the
+        # toolcache interpreter is linked against its own libpython: without
+        # this it exits 127 ("libpython3.9.so.1.0: cannot open shared object
+        # file"), measured on the light pool.
         run: |
           set -euo pipefail
+          pylib="$(dirname "$(dirname "$PY39")")/lib"
+          export LD_LIBRARY_PATH="$pylib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
           "$PY39" -c 'import sys; assert sys.version_info[:2] == (3, 9), sys.version'
           "$PY39" scripts/check-py-floor.py --self-test
           git ls-files -z '*.py' | xargs -0 -r "$PY39" scripts/check-py-floor.py
