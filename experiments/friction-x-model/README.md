@@ -111,10 +111,13 @@ results directory, and the first pilot's checkout already holds gated t01 and
 t02 records. A script on the bench machine, `$WORK/repilot/repilot.sh`
 (not in the repository), does this:
 - sleeps until 2026-11-03T18:30Z, checking the clock every 5 minutes;
-- checks out the merge commit (pinned in the script once the merge queue has
-  merged; until then `origin/main`), and refuses to start unless the hash of
-  `frozen.sha256` is the expected one. That hash covers the tasks, not
-  `fxm.py`;
+- reads, at wake time, the commit to run from `$WORK/repilot/commit` (the
+  PR's merge commit; without that file, `origin/main`) and the expected hash
+  of `frozen.sha256` from `$WORK/repilot/frozen.expected`. It checks out the
+  commit and refuses to start unless the hash matches. That hash covers the
+  tasks, not `fxm.py`;
+- sets `FXM_BUILD_DIR` and `TMPDIR` to `$HOME/.cache/fxm-tmp` on the
+  internal disk, and refuses to start with less than 5 GB free there;
 - runs `check-tools`, `self-test --with-tools` and `check-tasks`, in that
   order, and refuses to start unless each exits 0;
 - with `FXM_NOTICE` set to the clone's `notice.py`, runs
@@ -161,6 +164,23 @@ own file:
 `results/` is git-ignored and is never committed. Reports publish aggregates
 only: cell tables, hypothesis verdicts and secondary measures. They never
 publish prompts, answers or code.
+
+**Where binaries are built: `FXM_BUILD_DIR`.** Every hidden-suite and
+sanitizer binary, cargo's and Kani's target directories, and the scratch
+directories of `check-tasks` and the self-test go to `FXM_BUILD_DIR`. It is
+also the default `--work`. Without it, they go to the system temp directory
+and `work/`. **On macOS it must be on an internal disk, never on a removable
+or external volume.** Each new binary run there over ssh raises a privacy
+prompt (Removable Volumes) on the bench machine's screen. Set `TMPDIR` to the
+same place. Each build directory is removed right after use. On the bench
+machine:
+
+```sh
+export FXM_BUILD_DIR="$HOME/.cache/fxm-tmp" TMPDIR="$HOME/.cache/fxm-tmp"
+df -h /          # keep at least 5 GB free on the internal disk; stop if less
+```
+
+Sources, results and transcripts may stay on the external volume.
 
 Environment overrides, for tool paths only: `FXM_CLAUDE`, `FXM_CC`,
 `FXM_CPPCHECK`, `FXM_RUST_TOOLCHAIN`, `FXM_MIRI_TOOLCHAIN`. `check-tools`

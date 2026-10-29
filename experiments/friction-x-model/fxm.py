@@ -101,6 +101,22 @@ KANI_VERSION = "cargo-kani 0.67.0"
 KANI_RUSTC_PREFIX = "rustc 1.93.0-nightly (53732d5e0 2025-11-20)"   # the toolchain Kani 0.67.0 ships
 KANI_HOME = pathlib.Path(os.environ.get("FXM_KANI_HOME", str(pathlib.Path.home() / ".kani" / "kani-0.67.0")))
 MIRI_TOOLCHAIN = os.environ.get("FXM_MIRI_TOOLCHAIN", "nightly-2026-09-23")
+
+
+# Where every binary is built and run: the hidden suites, the sanitizer
+# builds, cargo's and Kani's target directories, and check-tasks' scratch
+# directories. On macOS it must not be on a removable or external volume:
+# each new binary run there over ssh raises a privacy prompt (Removable
+# Volumes) on the bench machine's screen. FXM_BUILD_DIR sets it; it is also
+# the default --work. Every build directory is removed right after use.
+def apply_build_dir(path):
+    if path:
+        pathlib.Path(path).mkdir(parents=True, exist_ok=True)
+        tempfile.tempdir = str(path)
+    return path
+
+
+BUILD_DIR = apply_build_dir(os.environ.get("FXM_BUILD_DIR"))
 MIRI_RUSTC_PREFIX = "rustc 1.100.0-nightly (6bb1652a0 2026-09-22)"
 
 TIMEOUT = {"cli": 900, "build": 300, "clippy": 300, "kani": 900, "cppcheck": 300,
@@ -2038,6 +2054,16 @@ def self_test(with_tools=False):
                           all(CANARY.search(p.read_text()) for p in (t / "hidden").iterdir() if p.is_file()))
             task = load_task("t01-ring-buffer")
             m = "claude-haiku-5-5"
+            saved_tmp = tempfile.tempdir
+            try:
+                bd = pathlib.Path(work) / "build-dir"
+                apply_build_dir(str(bd))
+                with tempfile.TemporaryDirectory(prefix="fxm-check-") as probe:
+                    inside = pathlib.Path(probe).parent == bd
+                check("FXM_BUILD_DIR moves every scratch build directory there", inside and bd.is_dir())
+            finally:
+                tempfile.tempdir = saved_tmp
+            check("without FXM_BUILD_DIR nothing is moved", apply_build_dir(None) is None and tempfile.tempdir == saved_tmp)
 
             st = Stub([result("int x;", m)])
             tools, seen = stub_tools([])
@@ -2705,7 +2731,7 @@ def main():
     for name in ("run", "matrix"):
         s = sub.add_parser(name)
         s.add_argument("--results", default=str(HERE / "results"))
-        s.add_argument("--work", default=str(HERE / "work"))
+        s.add_argument("--work", default=str(pathlib.Path(BUILD_DIR) / "work") if BUILD_DIR else str(HERE / "work"))
         if name == "run":
             s.add_argument("--task", required=True, choices=[t.name for t in TASKS_DIR.iterdir() if t.is_dir()])
             s.add_argument("--level", required=True, choices=LEVELS)

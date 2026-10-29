@@ -850,6 +850,33 @@ re-pilot on harder tasks after the weekly quota reset (2026-11-03 18:00 UTC).
   - The self-test and `check-tasks` run it on every task.
   - Negative controls: renaming `sat_count` in t11's spec, or `Overrun` in
     t12's, fails it, naming the missing name.
+- **The friction levels on real answers, before freezing.** Calibration ran
+  only F0 and F2, and `check-tasks` runs only the reference. So one more
+  ungated haiku run per task went through each of F1, F3 and F4:
+  - t11: F1 clean at the first answer, F3 at the second, F4 at the first.
+  - t12: F1 at the second, F3 at the first, F4 SMOKE_T12_F4.
+  - Each one passed the hidden suite. Kani's wall time on the answers was
+    within its limit.
+- **Kani bounds, a known property of F4.** A harness's `#[kani::unwind]`
+  bound limits every loop the answer runs inside it. A correct answer can
+  loop further than the bound (for example over its whole 35-byte buffer in
+  t12) and then fail an unwinding assertion, which is a finding by design,
+  as on t01.
+  - t12's harnesses that run arbitrary bytes, and the overrun harness,
+    unwind to 40, past both buffers.
+  - The round trip, the encode check and the stability harness keep 14. At
+    40 they take minutes each, and `cargo kani` has 900 s for all
+    harnesses together.
+  - The bounds are in the harness file, which the model sees at F4.
+- **The gate's scope has a negative control.** A self-test checks that the
+  matrix gate runs `check-tasks` on every task and that the matrix runs only
+  the pilot tasks. With the gate scoped back to the pilot tasks, the check
+  sees t01 and t02 missing.
+- **Where binaries are built (harness fix, owner decision 2026-10-29).** On
+  the bench machine, every new binary run from the external volume over ssh
+  raised a macOS privacy prompt on its screen. `FXM_BUILD_DIR` now puts every
+  build and run directory on the internal disk; the re-pilot sets it. This
+  changes where the tools run, not what they run.
 - **A checker false positive, for the record.** cppcheck 2.22.0's MISRA
   add-on reported rule 7.3 (a lowercase `l` literal suffix) on a variable
   named `full` in t11's C reference. Renaming it fixed that, and the rule
