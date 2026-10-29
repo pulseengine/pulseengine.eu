@@ -868,6 +868,45 @@ def task_caller_drift(task):
     return caller_drift((d / task["c"]["header"]).read_text(), (d / task["c"]["caller"]).read_text())
 
 
+# The public material must be enough to write an answer that compiles (pilot
+# finding of 2026-10-29 in the pre-registration). t01's spec allowed only
+# <stdbool.h> and <stdint.h>, R8 asks for null checks, MISRA 11.9 makes NULL
+# the only null pointer constant, and NULL is in neither header. The reference
+# included <stddef.h>; 23 of 24 C answers did not, and failed to compile.
+SYS_INCLUDE = re.compile(r'(?m)^[ \t]*#[ \t]*include[ \t]*<([^>]+)>')
+
+
+def spec_c_section(spec):
+    m = re.search(r"(?ms)^## C[ \t]*\n(.*?)(?=^## |\Z)", spec)
+    return m[1] if m else ""
+
+
+def spec_include_drift(spec, header, reference):
+    """Problems, [] if none: every standard header the public header or the
+    reference includes must be named in the spec's C section, so the reference
+    uses nothing the model is not told it may use."""
+    named = set(re.findall(r"<([A-Za-z0-9_./]+\.h)>", spec_c_section(spec)))
+    out = [f"{who} includes <{h}>, which the spec's C section does not name"
+           for who, text in (("the header", header), ("the reference", reference))
+           for h in SYS_INCLUDE.findall(text) if h not in named]
+    if not named:
+        out.append("the spec's C section names no standard header")
+    return out
+
+
+def task_spec_include_drift(task):
+    d = task["dir"]
+    return spec_include_drift((d / "spec.md").read_text(), (d / "c" / task["c"]["header"]).read_text(),
+                              (d / "reference" / "solution.c").read_text())
+
+
+def header_only(src, header):
+    """src with every #include removed except the task's own header: what an
+    answer that trusts the fixed header for everything looks like."""
+    return re.sub(r'(?m)^[ \t]*#[ \t]*include[ \t]*[<"]([^>"]+)[>"][^\n]*\n',
+                  lambda m: m[0] if m[1] == header else "", src)
+
+
 def friction_cppcheck(task, root):
     """The one cppcheck invocation: F1 friction, the post-hoc MISRA measure and
     check-tasks all come through here. The fixed caller TU goes in with the
@@ -1182,27 +1221,43 @@ def hypotheses(c, models=None):
     return rows
 
 
+NO_HEADROOM_CEILING, NO_HEADROOM_FLOOR = "no headroom (ceiling)", "no headroom (floor)"
+
+
 def thesis_verdict(c, models=None):
     """Friction thesis refuted for a language if, for at least 3 of the 4
     models (three quarters of the columns, rounded up, if one is dropped), the
     top-friction row's pass rate is at or below the bottom row's. Refuted
-    overall only if both languages show it."""
+    overall only if both languages show it.
+
+    Pilot finding 2026-10-29: when every cell of both rows is at 100% (or every
+    one at 0%), "at or below" holds by a tie that no task could break. That
+    language is reported as "no headroom (ceiling)" or "(floor)", never as
+    refuted: the tasks cannot discriminate (pilot step 5)."""
     models = models or active_models()
     need = math.ceil(len(models) * 3 / 4)
     out = {}
     for lang, top, bottom in (("c", "F1", "F0"), ("rust", "F4", "F2")):
         have = [m for m in models if (top, m) in c and (bottom, m) in c]
         at_or_below = sum(1 for m in have if c[(top, m)][0] / c[(top, m)][1] <= c[(bottom, m)][0] / c[(bottom, m)][1])
+        both = [c[(lv, m)] for m in have for lv in (top, bottom)]
         out[lang] = ("incomplete" if len(have) < len(models)
+                     else NO_HEADROOM_CEILING if all(k == n for k, n in both)
+                     else NO_HEADROOM_FLOOR if all(k == 0 for k, _ in both)
                      else "refuted" if at_or_below >= need else "not refuted")
+    flat = {lang: v for lang, v in out.items() if v.startswith("no headroom")}
     if "incomplete" in out.values():
         out["overall"] = "incomplete"
     elif out["c"] == out["rust"] == "refuted":
         out["overall"] = "refuted"
     elif "refuted" in out.values():
         out["overall"] = "refuted for " + ("C" if out["c"] == "refuted" else "Rust") + " only"
+    elif len(flat) == 2:
+        out["overall"] = "no headroom"
     else:
         out["overall"] = "not refuted"
+    if flat and out["overall"] != "no headroom":
+        out["overall"] += "; no headroom in " + " and ".join("C" if k == "c" else "Rust" for k in flat)
     return out
 
 
@@ -1358,7 +1413,13 @@ def report(rdir):
               f"silencing answers {v['silencing_iterations']}/{v['iterations']}  UB runs {v['ub_runs']}/{v['runs']}")
     if DROPPED_MODELS:
         print(f"\ndropped columns: {', '.join(DROPPED_MODELS)}")
-    print("\nfriction thesis:", json.dumps(thesis_verdict(c)))
+    tv = thesis_verdict(c)
+    print("\nfriction thesis:", json.dumps(tv))
+    for lang, top, bottom in (("c", "F1", "F0"), ("rust", "F4", "F2")):
+        if tv[lang].startswith("no headroom"):
+            print(f"  {'C' if lang == 'c' else 'Rust'}: every {bottom} and {top} cell is at "
+                  f"{'100%' if tv[lang] == NO_HEADROOM_CEILING else '0%'}. The tasks cannot discriminate "
+                  f"here (pilot step 5); this is not evidence for or against the thesis.")
     print("model spread (descriptive):", json.dumps(model_spread(c)))
     ok = [r for r in recs if r.get("status") == "ok" and r.get("gate")]
     if ok:
@@ -1618,6 +1679,8 @@ def cmd_check_tasks(tids):
         print(tid)
         drift = task_caller_drift(task)
         say(not drift, f"C caller calls exactly the functions the header declares {drift}")
+        drift = task_spec_include_drift(task)
+        say(not drift, f"C spec names every standard header the header and the reference include {drift}")
         with tempfile.TemporaryDirectory(prefix="fxm-check-") as w:
             w = pathlib.Path(w)
             ref_c = (task["dir"] / "reference" / "solution.c").read_text()
@@ -1630,6 +1693,21 @@ def cmd_check_tasks(tids):
                 say(not res, f"C reference has no residual findings {res[:3]}")
                 h, _ = oracle_c(task, mut_c, w / "mc")
                 say(not h["pass"], f"C mutant fails the hidden suite ({h['passed']}/{h['total']})")
+                # Pilot finding 2026-10-29: the fixed header alone must be enough. The reference with
+                # every #include but the header's removed must still compile and pass the hidden suite.
+                hdr = task["c"]["header"]
+                h, _ = oracle_c(task, header_only(ref_c, hdr), w / "rh")
+                say(h["pass"], f"C reference passes the hidden suite with only {hdr} included "
+                               f"(compiled {h['compiled']}, {h['passed']}/{h['total']})")
+                # Potency: the same check on a header stripped of its own standard includes must fail.
+                pd = w / "rhp"
+                write_eval_dir(task, "c", header_only(ref_c, hdr), pd)
+                (pd / hdr).write_text(re.sub(r"(?m)^[ \t]*#[ \t]*include[ \t]*<[^>]+>[^\n]*\n", "",
+                                             (pd / hdr).read_text()))
+                rc, _, _ = run([CC, "-std=c11", "-fsyntax-only", "-I", ".", task["c"]["solution"]], pd,
+                               TIMEOUT["build"])
+                say(rc != 0, f"the header-only check can fail: without {hdr}'s standard includes the "
+                             f"reference does not compile (exit {rc})")
                 # Config split (second review, #303): one version for cppcheck, the other for cc.
                 body = lambda src: re.sub(r'(?m)^#include "[^"]+"\n', "", src)
                 for macro in ("__clang__", "__GNUC__", "__CPPCHECK__"):
@@ -1926,6 +2004,16 @@ def self_test(with_tools=False):
             check("F4 shows the fixed Kani harnesses; F3 does not",
                   "kani::proof" in p4 and "kani::proof" not in build_prompt(task, "F3", []))
             check("C rows show the fixed header", "typedef struct" in build_prompt(task, "F1", []))
+            # Negative control on the pilot's own t01 (2026-10-29): its C section allowed only
+            # <stdbool.h> and <stdint.h>, while the reference included <stddef.h> for NULL.
+            t01 = load_task("t01-ring-buffer")
+            old_spec = ("## C\n\nImplement the functions declared in `rb.h` (given, fixed: you may not change\n"
+                        "it) in one file, `rb.c`, in C11. No dynamic memory, no standard library calls\n"
+                        "beyond `<stdbool.h>` and `<stdint.h>`.\n\n## Rust\n\n`<stddef.h>`\n")
+            old_hdr = (t01["dir"] / "c" / "rb.h").read_text().replace("#include <stddef.h>\n", "")
+            check("the include check fails on the pilot's t01 as run (spec without <stddef.h>)",
+                  spec_include_drift(old_spec, old_hdr, (t01["dir"] / "reference" / "solution.c").read_text())
+                  == ["the reference includes <stddef.h>, which the spec's C section does not name"])
             # The caller TU (amendment 2026-10-29): public, symmetric across the C rows, exactly the
             # header's API, in the friction directory and never in the oracle's.
             for tid in PILOT_TASKS:
@@ -1947,6 +2035,16 @@ def self_test(with_tools=False):
                       any("not declared" in x for x in caller_drift(hdr, dropped)))
                 check(f"{tid}: the drift check fails when the header gains a function",
                       any("never called" in x for x in caller_drift(hdr + "\nint fxm_new(int x);\n", caller)))
+                # Pilot finding 2026-10-29: the spec names every standard header the reference uses.
+                spec = (tk["dir"] / "spec.md").read_text()
+                ref = (tk["dir"] / "reference" / "solution.c").read_text()
+                check(f"{tid}: the spec names every standard header the header and reference include "
+                      f"{task_spec_include_drift(tk)}", not task_spec_include_drift(tk))
+                check(f"{tid}: the include check fails when the reference includes a header the spec omits",
+                      any("<fxm_unnamed.h>" in x for x in spec_include_drift(spec, hdr, "#include <fxm_unnamed.h>\n" + ref)))
+                check(f"{tid}: header_only keeps only the task header",
+                      SYS_INCLUDE.findall(header_only(ref, tk["c"]["header"])) == []
+                      and f'#include "{tk["c"]["header"]}"' in header_only(ref, tk["c"]["header"]))
                 check(f"{tid}: the caller carries no hidden canary or vectors",
                       not CANARY.search(caller) and "FXM_STEPS" not in caller and "vectors.h" not in caller)
                 fd = write_friction_dir(tk, "F1", "int x;", pathlib.Path(work) / f"fd-{tid}")
@@ -2319,6 +2417,23 @@ def self_test(with_tools=False):
             check("decision: 5/30 vs 28/30 contradicted", compare((5, 30), (28, 30)) == "contradicted")
             c = {(lv, mm): (10, 30) for lv in LEVELS for mm in MODELS}
             check("thesis: flat rows refute it in both languages", thesis_verdict(c) == {"c": "refuted", "rust": "refuted", "overall": "refuted"})
+            # Pilot finding 2026-10-29: a tie at 100% (or 0%) in every cell is no headroom, not refuted.
+            full = {(lv, mm): (6, 6) for lv in LEVELS for mm in MODELS}
+            check("thesis: every cell at 6/6 is no headroom (ceiling), never refuted",
+                  thesis_verdict(full) == {"c": NO_HEADROOM_CEILING, "rust": NO_HEADROOM_CEILING,
+                                           "overall": "no headroom"})
+            check("thesis: every cell at 0/6 is no headroom (floor)",
+                  thesis_verdict({k: (0, 6) for k in full})["rust"] == NO_HEADROOM_FLOOR)
+            pilot = {**full, **{("F0", mm): (0, 6) for mm in MODELS}}
+            check("thesis: a Rust ceiling beside a C result is reported as such",
+                  thesis_verdict(pilot) == {"c": "not refuted", "rust": NO_HEADROOM_CEILING,
+                                            "overall": "not refuted; no headroom in Rust"})
+            one_off = {**full, ("F4", MODELS[0]): (5, 6)}
+            check("thesis: one Rust cell below 6/6 falls back to the pre-registered rule",
+                  thesis_verdict(one_off)["rust"] == "refuted")
+            mixed = {**full, **{("F2", mm): (0, 6) for mm in MODELS}}
+            check("thesis: top row at 100% and bottom at 0% is not a ceiling",
+                  thesis_verdict(mixed)["rust"] == "not refuted")
             c.update({("F4", mm): (25, 30) for mm in MODELS})
             c.update({("F1", mm): (25, 30) for mm in MODELS[:1]})
             check("thesis: F4 above F2 for all models is not refuted; F1 above F0 for 1 of 4 is refuted",

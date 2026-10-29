@@ -1,5 +1,5 @@
 4c8ae71f59703ddc0ad359f971fa45e56f798d7b172d51a626d797225ce4dfb8  tasks/t01-ring-buffer/c/api_use.c
-979c216256155bc7d118c3577f93029896a126d52ed5ed4cf5af351f2c54c53b  tasks/t01-ring-buffer/c/rb.h
+f1c26f8a79361c82d1ce385d1a2d4a295e4d9ddc061bd49797b511a03512ade5  tasks/t01-ring-buffer/c/rb.h
 8bc6ebfe93c6b89172c5d67c36bac309a3e45911b7071d459a0a78e261daf5af  tasks/t01-ring-buffer/c/stub.c
 60fbea1a11c3300038a9b63f67ca8ad5fa3fa5c1222852a88da482fd18845b40  tasks/t01-ring-buffer/hidden/gen_vectors.py
 ab4c1aa3730683c8de273b529cff9447e6d7786b18e219cc3f1ac09c537d5c6e  tasks/t01-ring-buffer/hidden/hidden.rs
@@ -12,7 +12,7 @@ c60aaca028244cc7e16af07d866ed9cee8d157d081733dddedac69bc5c8cf60d  tasks/t01-ring
 90255a9798e5921d89b87da055faf90ae47a5c2bed91a00342afdd16603f0e3d  tasks/t01-ring-buffer/reference/lib.rs
 42ef5e3be6f24bfa244acb5855616fe501a0f37458cc5db7f17321db82c185fa  tasks/t01-ring-buffer/reference/solution.c
 a7e2875c2555799e208cbfcd48e769f9601878011c5fbed26dd23a36034fa347  tasks/t01-ring-buffer/rust/stub.rs
-29afe1d4dcc71d2ac79eb411a3966868e5b484ec6cb4828e5b9c9d66a84a2c33  tasks/t01-ring-buffer/spec.md
+8d3502d3385dadd7bf64a10676c333b7381faa83bb8e35dc60bc906b2156e97b  tasks/t01-ring-buffer/spec.md
 14f188080cbad203b706196a6ab3b1ba575373c2465b23a5328f0404de7b7bd0  tasks/t01-ring-buffer/task.json
 5681b7eed44aba68d4c31f0f05a88d86ae16a2a588dfe71ca8ab02bfaa14437c  tasks/t02-q15-saturating/c/api_use.c
 6607a3fb4aeb7b32da8bbcfcaf4c2f2ea6b5ced9e34681b1827f708b845b229e  tasks/t02-q15-saturating/c/q15.h
