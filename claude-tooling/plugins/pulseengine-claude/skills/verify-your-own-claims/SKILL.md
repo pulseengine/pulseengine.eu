@@ -1,9 +1,9 @@
 ---
 name: verify-your-own-claims
-description: This skill should be used before reporting findings to a user, writing a PR body or issue comment, posting an audit result, or making any assertion about a codebase, a toolchain, or a system's state — especially a claim that GENERALIZES ("only X and Y do Z", "all of them pass"), asserts a CAUSE ("it fails because…"), asserts a NEGATIVE ("there is no…"), or reports a measurement as clean ("0 found", "all green"). ALWAYS use it when a claim rests on a grep, a search, a script you just wrote, or an API listing. It is the counterpart to [`claim-verification`], which gates a repo's documents with CI; this one covers the assertions you emit into a conversation, a PR body or an issue, where there is no build to fail — so the check has to be a procedure you run, not a gate that runs for you. Check 5 covers the environmental case: an instrument correct where it was written and inert where it ran, whose zero or silence is not a measurement — it catches false alarm as well as false confidence.
+description: "This skill should be used before reporting findings to a user, writing a PR body or issue comment, posting an audit result, or making any assertion about a codebase, a toolchain, or a system's state — especially a claim that GENERALIZES (\"only X and Y do Z\", \"all of them pass\"), asserts a CAUSE (\"it fails because…\"), asserts a NEGATIVE (\"there is no…\"), or reports a measurement as clean (\"0 found\", \"all green\"). ALWAYS use it when a claim rests on a grep, a search, a script you just wrote, or an API listing. It is the counterpart to [`claim-verification`], which gates a repo's documents with CI; this one covers the assertions you emit into a conversation, a PR body or an issue, where there is no build to fail — so the check has to be a procedure you run, not a gate that runs for you. Check 5 covers the environmental case: an instrument correct where it was written and inert where it ran, whose zero or silence is not a measurement — it catches false alarm as well as false confidence."
 metadata:
   author: pulseengine.eu
-  version: "0.1.0"
+  version: "0.1.1"
 ---
 
 # Verify your own claims

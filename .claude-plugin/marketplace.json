@@ -1,7 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
   "name": "pulseengine-eu",
-  "version": "0.45.2",
+  "version": "0.45.3",
   "description": "PulseEngine engineering plugins for Claude Code — verification + traceability + attestation methodology, the tool directory, and the procedural skills that compose them.",
   "owner": {
     "name": "PulseEngine",
@@ -11,7 +11,7 @@
     {
       "name": "pulseengine-claude",
       "description": "PulseEngine methodology as installable Claude Code tooling — philosophy + toolchain + repo-taxonomy + prose-conventions + generated-media + model-operating-contract memory, memory-persistence hooks (situational awareness at session start, working-context checkpoints across sessions/compaction), plus twenty-two procedural skills (clean-room verification, release execution with a V-model traceability gate, oracle-gating, the full feature loop, the standardized release-artifact pipeline, tool-friction reporting, session-learning capture, STPA/STPA-Sec hazard-analysis audit, backend-agnostic proof synthesis, full bidirectional traceability audit across the V, greenfield verification bootstrap, release planning with an issue-driven delivery loop, an incremental issue-hunt loop, a quiesce-gated post-release repo-hygiene sweep, a gate-potency audit that proves standing CI checks can still fail, a self-claim check for assertions that reach further than the instrument behind them, and an evidence-transfer check for the sibling class where a green, non-vacuous, TRUE result is about the wrong machine, a cost-tiered delegation ladder that routes a subtask down to the cheapest tier whose answer a mechanical oracle can check, and escalates only on a mechanical failure, a CI-status check that asks the fleet's status API before polling GitHub and falls back to gh pr checks when the API is not configured, and a publication review that gates blog posts and other public prose on a cold domain-expert, fact-checker and editor panel, blocking on any refuted quote, number or citation, and a factory notice inbox through which unattended agents report shipped, blocked and session summaries and post decisions as option dialogues, accepting only an offered option at the current revision, once).",
-      "version": "0.45.2",
+      "version": "0.45.3",
       "source": "./claude-tooling/plugins/pulseengine-claude",
       "category": "development"
     }

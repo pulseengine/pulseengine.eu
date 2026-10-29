@@ -1,9 +1,9 @@
 ---
 name: delegate-by-cost
-description: This skill should be used whenever work is about to run on a more capable (and more expensive) model than it requires — a repo-wide grep, a file census, a mechanical audit, "read these N files and report", a build-and-test loop — and whenever a chosen tier has failed a task two or three times and the question becomes "retry, escalate, or stop". Use it when the user says "this is cost saving", "use a cheaper model", "spawn a subagent to do it", "try haiku/sonnet first", or "escalate it". It routes a subtask DOWN to the cheapest tier that passes a mechanical check, verifies the result, and escalates UP one rung at a time only on mechanical failure, stopping at the top tier to ask the user rather than looping. The precondition is economic: the ladder saves money only when checking an answer is cheaper than producing it, and is a cost TRAP when it is not. Composes with oracle-gate-a-change, verify-your-own-claims (grade the worker, not its summary) and proof-synthesis (the retry loop).
+description: "This skill should be used whenever work is about to run on a more capable (and more expensive) model than it requires — a repo-wide grep, a file census, a mechanical audit, \"read these N files and report\", a build-and-test loop — and whenever a chosen tier has failed a task two or three times and the question becomes \"retry, escalate, or stop\". Use it when the user says \"this is cost saving\", \"use a cheaper model\", \"spawn a subagent to do it\", \"try haiku/sonnet first\", or \"escalate it\". It routes a subtask DOWN to the cheapest tier that passes a mechanical check, verifies the result, and escalates UP one rung at a time only on mechanical failure, stopping at the top tier to ask the user rather than looping. The precondition is economic: the ladder saves money only when checking an answer is cheaper than producing it, and is a cost TRAP when it is not. Composes with oracle-gate-a-change, verify-your-own-claims (grade the worker, not its summary) and proof-synthesis (the retry loop)."
 metadata:
   author: pulseengine.eu
-  version: "0.1.0"
+  version: "0.1.1"
 ---
 
 # Delegate by cost — the cheapest tier that passes the oracle
