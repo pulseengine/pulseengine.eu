@@ -247,6 +247,19 @@ jobs:
       - name: Check the factory notice inbox rejects unsafe answers
         run: python3 claude-tooling/plugins/pulseengine-claude/skills/factory-notice/notice.py --self-test
 
+      # The SessionStart hook that writes `setopt no_nomatch no_equals` into
+      # $CLAUDE_ENV_FILE (REQ-HOOK-ZSH-SHELL-OPTIONS). Runs the real hook and the
+      # real zsh: plain zsh must still fail `echo ===` and an unmatched glob
+      # (else the check is vacuous), zsh after the file must not, the line is
+      # written once, and bash sourcing it is a no-op. The test exits 2 without
+      # zsh rather than skip, so a runner without it goes red, not green.
+      - name: Check the zsh shell-options hook
+        run: |
+          if ! command -v zsh >/dev/null; then
+            sudo -n apt-get install -y -qq zsh >/dev/null 2>&1 || echo "::warning::zsh is not installed and could not be installed"
+          fi
+          python3 scripts/check-hook-shell-options.py
+
       # External review of #232 found a compiled .pyc in that PR and a second
       # one tracked for longer, with all ten gates green over both: each asked
       # whether a claim matched the tree, none asked what was in it.
