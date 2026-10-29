@@ -328,7 +328,11 @@ claims:
         glob: ['docs/experiments/2026-10-refactor-decision-relay.md']
         min: 1
       - kind: count-min
-        pattern: 'below the baseline of 3\.2 per 100 merges'
+        pattern: 'below the baseline that the frozen tool restates for the same 500 merges'
+        glob: ['docs/experiments/2026-10-refactor-decision-relay.md']
+        min: 1
+      - kind: count-min
+        pattern: "The metric is the frozen tool's automated count, not a curated count"
         glob: ['docs/experiments/2026-10-refactor-decision-relay.md']
         min: 1
       - kind: count-min
