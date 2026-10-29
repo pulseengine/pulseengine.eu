@@ -55,6 +55,7 @@ Fonts: Atkinson Hyperlegible Next (sans) + Mono, loaded from Google Fonts.
 ## Git workflow
 
 - `main` is protected — always use PRs, never push directly
+- PRs merge through the GitHub merge queue: `gh pr merge --auto` (the queue squashes). Never `gh pr update-branch`; it strips commit signatures, and the queue tests against the latest main anyway
 - CI runs `zola build` on PRs; deploy runs on push to `main` (tar + scp to Netcup)
 - Commit messages: Conventional Commits (`feat:`, `fix:`, `docs:`, etc.)
 - After merge, deploy takes ~20s — check with `gh run list --workflow=deploy.yml`
