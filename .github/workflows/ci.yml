@@ -253,10 +253,25 @@ jobs:
       # (else the check is vacuous), zsh after the file must not, the line is
       # written once, and bash sourcing it is a no-op. The test exits 2 without
       # zsh rather than skip, so a runner without it goes red, not green.
+      # The self-hosted runners have no zsh and no sudo, so it is unpacked from
+      # the distribution's own signed package into $RUNNER_TEMP (apt-get
+      # download + dpkg -x need no root); `zsh -f` needs only the binary.
       - name: Check the zsh shell-options hook
         run: |
+          set -euo pipefail
           if ! command -v zsh >/dev/null; then
-            sudo -n apt-get install -y -qq zsh >/dev/null 2>&1 || echo "::warning::zsh is not installed and could not be installed"
+            d="$RUNNER_TEMP/zsh-pkg"
+            mkdir -p "$d"
+            ( cd "$d" && apt-get download zsh >/dev/null 2>&1 ) \
+              || { sudo -n apt-get update -qq && sudo -n apt-get install -y -qq zsh; } >/dev/null 2>&1 \
+              || { echo "::error::zsh is not installed and could not be fetched"; exit 2; }
+            if ls "$d"/zsh_*.deb >/dev/null 2>&1; then
+              dpkg -x "$d"/zsh_*.deb "$d/root"
+              bin=$(find "$d/root" -type f -name 'zsh*' -perm -u+x -path '*/bin/*' | head -n 1)
+              mkdir -p "$d/bin"
+              ln -sf "$bin" "$d/bin/zsh"
+              export PATH="$d/bin:$PATH"
+            fi
           fi
           python3 scripts/check-hook-shell-options.py
 
