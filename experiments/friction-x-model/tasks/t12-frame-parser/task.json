@@ -1,0 +1,16 @@
+{
+  "id": "t12-frame-parser",
+  "c": {
+    "header": "fr.h",
+    "solution": "fr.c",
+    "caller": "api_use.c"
+  },
+  "rust": {
+    "crate": "fxm_task"
+  },
+  "kani_probe": {
+    "why": "a change to the reference that must make at least one fixed harness fail: the content bound is off by one, so the 36th content byte is written past the buffer (H4)",
+    "old": "        if let Some(slot) = self.buf.get_mut(self.n) {\n            *slot = byte;",
+    "new": "        if self.n <= MAX_CONTENT {\n            self.buf[self.n] = byte;"
+  }
+}

@@ -66,7 +66,17 @@ def active_models():
     return tuple(m for m in MODELS if m not in DROPPED_MODELS)
 LEVELS = ("F0", "F1", "F2", "F3", "F4")
 LANG = {"F0": "c", "F1": "c", "F2": "rust", "F3": "rust", "F4": "rust"}
-PILOT_TASKS = ("t01-ring-buffer", "t02-q15-saturating")
+# The pilot's tasks. The first pilot ran t01 and t02 and hit the ceiling; pilot
+# step 5 replaced them with t11 and t12 (amendment of 2026-10-29/30 in the
+# pre-registration). t01 and t02 stay in tasks/ as the record of the first
+# pilot, and `check-tasks` (and so the matrix gate) still checks them, because
+# several oracle and friction potency controls run on them.
+PILOT_TASKS = ("t11-biquad-q15", "t12-frame-parser")
+FIRST_PILOT_TASKS = ("t01-ring-buffer", "t02-q15-saturating")
+
+
+def all_tasks():
+    return tuple(t.name for t in sorted(TASKS_DIR.iterdir()) if t.is_dir())
 EFFORT = "medium"
 CLIPPY_LINTS = ("-W", "clippy::all", "-W", "clippy::pedantic")
 CPPCHECK_ARGS = ("--std=c11", "--enable=warning,style,performance,portability", "--addon=misra",
@@ -131,8 +141,8 @@ RULES_TEXT = ("Lint and checker findings may not be silenced, and the code may n
               "expansion differs between the build configurations the checkers use. In C: suppression comments, "
               "pragmas, preprocessor conditionals on compiler or tool macros (__clang__, __GNUC__, "
               "__CPPCHECK__, any reserved identifier), an #include of any file other than the task's own header "
-              "and the standard headers, and code that preprocesses differently for cppcheck than for the "
-              "compiler. Strengthening a lint (warn, deny, forbid) is allowed.")
+              "and the standard headers the task names, and code that preprocesses differently for cppcheck "
+              "than for the compiler. Strengthening a lint (warn, deny, forbid) is allowed.")
 
 # What would silence or fool a friction tool. A hit is a finding at F1..F4 and recorded at F0.
 #
@@ -200,7 +210,7 @@ C_RULES = [(re.compile(r"cppcheck-suppress", re.I), SILENCING, "cppcheck suppres
             "preprocessor conditionals on compiler or tool macros"),
            (re.compile(r"#\s*include\s*[\"<][^\">]*(?:\.\.|vector|hidden|test)", re.I), NEUTRALISATION,
             f"include of a non-task file ({OUTSIDE})",
-            "an #include of any file other than the task's own header and the standard headers")]
+            "an #include of any file other than the task's own header and the standard headers the task names")]
 C_STRUCT_TOLD = ("code that preprocesses differently for cppcheck than for the compiler",)
 
 
@@ -900,6 +910,79 @@ def task_spec_include_drift(task):
                               (d / "reference" / "solution.c").read_text())
 
 
+# The same for Rust (amendment of 2026-10-29/30): every public name of the
+# reference that the hidden driver uses must be named in the spec's Rust
+# section, so the hidden suite asks for nothing the model is not told about.
+RUST_PUB_ITEM = re.compile(r"\bpub\s+(?:const\s+fn|unsafe\s+fn|fn|struct|enum|const|static|type|trait|mod)\s+([A-Za-z_]\w*)")
+RUST_PUB_FIELD = re.compile(r"\bpub\s+([a-z_]\w*)\s*:")
+
+
+def spec_rust_section(spec):
+    m = re.search(r"(?ms)^## Rust[ \t]*\n(.*?)(?=^## |\Z)", spec)
+    return m[1] if m else ""
+
+
+def rust_public_names(src):
+    """Public items, public fields and the variants of public enums."""
+    src = rust_strip(src)
+    names = set(RUST_PUB_ITEM.findall(src)) | set(RUST_PUB_FIELD.findall(src))
+    for body in re.findall(r"\bpub\s+enum\s+\w+\s*\{(.*?)\}", src, re.S):
+        names |= set(re.findall(r"(?:^|,)\s*([A-Z]\w*)", body))
+    return names
+
+
+def spec_rust_name_drift(spec, reference, hidden):
+    """Problems, [] if none: every public name of the reference that the hidden
+    Rust driver mentions must appear in the spec's Rust section."""
+    used = rust_public_names(reference) & set(re.findall(r"[A-Za-z_]\w*", rust_strip(hidden)))
+    named = set(re.findall(r"[A-Za-z_]\w*", spec_rust_section(spec)))
+    out = [f"the hidden suite uses `{n}`, which the spec's Rust section does not name" for n in sorted(used - named)]
+    if not used:
+        out.append("the hidden suite uses no public name of the reference")
+    return out
+
+
+def task_spec_rust_name_drift(task):
+    d = task["dir"]
+    return spec_rust_name_drift((d / "spec.md").read_text(), (d / "reference" / "lib.rs").read_text(),
+                                (d / "hidden" / "hidden.rs").read_text())
+
+
+# F0 and F1 must differ only in the friction (amendment of 2026-10-29/30). The
+# pilot's F1 prompt alone carried a rules paragraph that allowed "the standard
+# headers", wider than the spec's list, which F0 never saw. The rules paragraph
+# stays F1-only by design (F0 measures habit, and G1's rationale rests on it),
+# so the guard is: the two prompts differ by exactly the level text and the
+# rules paragraph, and neither of those widens what the spec allows to include.
+def rules_include_drift(text):
+    out = []
+    if re.search(r"<[A-Za-z0-9_./]+\.h>", text):
+        out.append("the level or rules text names a header")
+    if re.search(r"standard headers(?! the task names)", text):
+        out.append("the level or rules text allows standard headers the task does not name")
+    return out
+
+
+def prompt_symmetry_drift(task):
+    p0, p1 = build_prompt(task, "F0", []), build_prompt(task, "F1", [])
+    f0, f1 = LEVEL_TEXT["F0"].format(n=N_ITER), LEVEL_TEXT["F1"].format(n=N_ITER)
+    out = []
+    if p0.count(f0 + "\n") != 1 or p0.replace(f0 + "\n", f1 + "\n" + RULES_TEXT + "\n", 1) != p1:
+        out.append("the F0 and F1 prompts differ outside the level text and the rules paragraph")
+    return out + rules_include_drift(f1 + "\n" + RULES_TEXT)
+
+
+def _symmetry_probe(task):
+    """Self-test negative control: with one extra F1-only line, the symmetry check fails."""
+    global LEVEL_TEXT
+    saved = LEVEL_TEXT
+    try:
+        LEVEL_TEXT = dict(saved, F1=saved["F1"] + " You may include <stdio.h>.")
+        return bool(prompt_symmetry_drift(task))
+    finally:
+        LEVEL_TEXT = saved
+
+
 def header_only(src, header):
     """src with every #include removed except the task's own header: what an
     answer that trusts the fixed header for everything looks like."""
@@ -1476,10 +1559,13 @@ def gate_matrix(args, check=None):
     manifest that every run record of this invocation names."""
     import io
     check = check or cmd_check_tasks
-    tids = PILOT_TASKS if args.pilot else tuple(t.name for t in sorted(TASKS_DIR.iterdir()) if t.is_dir())
+    # Every task is checked, not only the ones this matrix runs: the first pilot's t01 and t02
+    # carry potency controls (Kani std swap, file!(), unwinding) that gate the friction levels.
+    checked = all_tasks()
+    tids = PILOT_TASKS if args.pilot else checked
     buf = io.StringIO()
     with contextlib.redirect_stdout(buf):
-        code = check(list(tids))
+        code = check(list(checked))
     out = buf.getvalue()
     print(out)
     mdir = pathlib.Path(args.results) / "manifests"
@@ -1491,6 +1577,7 @@ def gate_matrix(args, check=None):
     path = mdir / f"{stamp}-{k:02d}.json"
     manifest = {"check_tasks_exit": code, "check_tasks_output_sha256": hashlib.sha256(out.encode()).hexdigest(),
                 "check_tasks_output": out, "toolchain": toolchain(), "tasks": list(tids),
+                "checked_tasks": list(checked),
                 "frozen_sha256": hashlib.sha256(FROZEN.read_bytes()).hexdigest(), "utc": stamp}
     with open(path, "x", encoding="utf-8") as f:
         f.write(json.dumps(manifest, indent=1))
@@ -1562,7 +1649,7 @@ def matrix_pass(args, runner=subprocess.run, tools=None, check=None):
         print(f"check-tasks exited {code} (needs 0: 0 failed AND 0 skipped). matrix does not start. "
               f"Manifest: {manifest}")
         return 1, None
-    tids = PILOT_TASKS if args.pilot else tuple(t.name for t in sorted(TASKS_DIR.iterdir()) if t.is_dir())
+    tids = PILOT_TASKS if args.pilot else all_tasks()
     for tid in tids:
         for level in args.levels:
             for model in args.models:
@@ -1681,6 +1768,10 @@ def cmd_check_tasks(tids):
         say(not drift, f"C caller calls exactly the functions the header declares {drift}")
         drift = task_spec_include_drift(task)
         say(not drift, f"C spec names every standard header the header and the reference include {drift}")
+        drift = task_spec_rust_name_drift(task)
+        say(not drift, f"Rust spec names every public name the hidden suite uses {drift}")
+        drift = prompt_symmetry_drift(task)
+        say(not drift, f"F0 and F1 prompts differ only in the friction {drift}")
         with tempfile.TemporaryDirectory(prefix="fxm-check-") as w:
             w = pathlib.Path(w)
             ref_c = (task["dir"] / "reference" / "solution.c").read_text()
@@ -2014,6 +2105,40 @@ def self_test(with_tools=False):
             check("the include check fails on the pilot's t01 as run (spec without <stddef.h>)",
                   spec_include_drift(old_spec, old_hdr, (t01["dir"] / "reference" / "solution.c").read_text())
                   == ["the reference includes <stddef.h>, which the spec's C section does not name"])
+            # Amendment 2026-10-29/30: F0 and F1 differ only in the friction, and the rules
+            # paragraph no longer widens the includes. Negative control: the pilot's clause.
+            old_rules = RULES_TEXT.replace("the standard headers the task names", "the standard headers")
+            check("the rules paragraph names no include beyond the task's (pilot clause removed)",
+                  "the standard headers the task names" in RULES_TEXT and not rules_include_drift(RULES_TEXT))
+            check("the include-permission check fails on the pilot's rules paragraph",
+                  rules_include_drift(old_rules)
+                  == ["the level or rules text allows standard headers the task does not name"])
+            check("the include-permission check fails on a rules paragraph that names a header",
+                  bool(rules_include_drift(RULES_TEXT + " <stdio.h> is allowed.")))
+            for tid in PILOT_TASKS + FIRST_PILOT_TASKS:
+                tk = load_task(tid)
+                check(f"{tid}: F0 and F1 prompts differ only in the friction {prompt_symmetry_drift(tk)}",
+                      not prompt_symmetry_drift(tk))
+                check(f"{tid}: the Rust spec names every public name the hidden suite uses "
+                      f"{task_spec_rust_name_drift(tk)}", not task_spec_rust_name_drift(tk))
+            # Negative controls for the Rust-name check: a spec that leaves out a name the suite uses.
+            t11 = load_task("t11-biquad-q15")
+            spec11 = (t11["dir"] / "spec.md").read_text()
+            ref11 = (t11["dir"] / "reference" / "lib.rs").read_text()
+            hid11 = (t11["dir"] / "hidden" / "hidden.rs").read_text()
+            check("the Rust-name check fails when the spec omits a method the suite calls",
+                  spec_rust_name_drift(spec11.replace("sat_count", "saturations"), ref11, hid11)
+                  == ["the hidden suite uses `sat_count`, which the spec's Rust section does not name"])
+            t12 = load_task("t12-frame-parser")
+            spec12 = (t12["dir"] / "spec.md").read_text()
+            check("the Rust-name check fails when the spec omits an enum variant the suite matches",
+                  any("`Overrun`" in x for x in spec_rust_name_drift(
+                      spec12.replace("Overrun", "Overflow"), (t12["dir"] / "reference" / "lib.rs").read_text(),
+                      (t12["dir"] / "hidden" / "hidden.rs").read_text())))
+            check("the Rust-name check looks only at the spec's Rust section",
+                  bool(spec_rust_name_drift(spec11.split("## Rust")[0], ref11, hid11)))
+            check("the prompt-symmetry check fails when F1 gets text F0 lacks",
+                  _symmetry_probe(t11))
             # The caller TU (amendment 2026-10-29): public, symmetric across the C rows, exactly the
             # header's API, in the friction directory and never in the oracle's.
             for tid in PILOT_TASKS:
@@ -2323,7 +2448,7 @@ def self_test(with_tools=False):
                 code = cmd_matrix(mx, runner=st, tools=gtools, check=lambda tids: (print("0 failed, 0 skipped"), 0)[1])
                 man = sorted((pathlib.Path(mx.results) / "manifests").glob("*.json"))
                 recs_mx = [json.loads(q.read_text()) for q in pathlib.Path(mx.results).glob("*/*/*/rep*.json")]
-                ug = result_path(mx.results, "t01-ring-buffer", "F2", m, 1)
+                ug = result_path(mx.results, PILOT_TASKS[0], "F2", m, 1)
                 ug.parent.mkdir(parents=True, exist_ok=True)
                 ug.write_text(json.dumps({"status": "ok", "gate": None}))
                 st = Stub([result(ref, m)] * 4)
@@ -2360,8 +2485,8 @@ def self_test(with_tools=False):
                       and len(st.calls) == 5)
                 check("wait-on-limit: done cells are skipped on resume; the cut-off cell is re-run, and only its "
                       "ok record counts", len(recs_w) == 4 and all(r_["status"] == "ok" for r_ in recs_w.values())
-                      and att("t01-ring-buffer", 1) == ["attempt-01"]
-                      and att("t01-ring-buffer", 2) == ["attempt-01", "attempt-02"]
+                      and att(PILOT_TASKS[0], 1) == ["attempt-01"]
+                      and att(PILOT_TASKS[0], 2) == ["attempt-01", "attempt-02"]
                       and cells(list(recs_w.values())).get(("F2", m)) == (4, 4))
                 check("wait-on-limit: one notice per wait, with the time, and one when it finishes",
                       [k for k, _ in notices] == ["info", "info"] and utc(time.time() + slept[0])[:13] in notices[0][1]
@@ -2586,7 +2711,7 @@ def main():
     if a.cmd == "check-tools":
         return cmd_check_tools()
     if a.cmd == "check-tasks":
-        return cmd_check_tasks(a.task or list(PILOT_TASKS))
+        return cmd_check_tasks(a.task or list(all_tasks()))
     if a.cmd == "run":
         rec = cmd_run(a)
         return 0 if rec.get("status") == "ok" else 2

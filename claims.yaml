@@ -466,6 +466,48 @@ claims:
         pattern: '(?m)^0713cc1ea20fb7ec6c5abf2f9639c3e8ce26917196ae36f1a5551672faa18ed3  tasks/t02-q15-saturating/hidden/test_main\.c$'
         glob: ['experiments/friction-x-model/frozen.sha256']
         min: 1
+      # The re-pilot tasks (amendment 2026-10-29/30): harnesses and hidden oracle fixed in the bytes.
+      - kind: count-min
+        pattern: '(?m)^dd5553e084e5ed8649d1821b30740ce62135b2cf4a5c8e67c79284801f5ebf56  tasks/t11-biquad-q15/hidden/gen_vectors\.py$'
+        glob: ['experiments/friction-x-model/frozen.sha256']
+        min: 1
+      - kind: count-min
+        pattern: '(?m)^a13df7e7d4ed42f83a84b94d2310600d878bf26ea4ebff4b32b5aa76c631d364  tasks/t11-biquad-q15/hidden/hidden\.rs$'
+        glob: ['experiments/friction-x-model/frozen.sha256']
+        min: 1
+      - kind: count-min
+        pattern: '(?m)^856e7c6087abf443eb011a48977e99c84b9078cd5078c0327eaefe6d0824b2e4  tasks/t11-biquad-q15/hidden/test_main\.c$'
+        glob: ['experiments/friction-x-model/frozen.sha256']
+        min: 1
+      - kind: count-min
+        pattern: '(?m)^367d5185050d52bfdfc5f715270059358e91f4e77922253cf1df910de29653d1  tasks/t11-biquad-q15/kani/proofs\.rs$'
+        glob: ['experiments/friction-x-model/frozen.sha256']
+        min: 1
+      - kind: count-min
+        pattern: '(?m)^032c0ac9fa94c09a5aa89ce0e48368f1bb8d31bf56c464de008a425a335df1bf  tasks/t12-frame-parser/hidden/gen_vectors\.py$'
+        glob: ['experiments/friction-x-model/frozen.sha256']
+        min: 1
+      - kind: count-min
+        pattern: '(?m)^7d048051ba6ba601b5a0869d0b1cab417240562b05224f660692546a7063d49b  tasks/t12-frame-parser/hidden/hidden\.rs$'
+        glob: ['experiments/friction-x-model/frozen.sha256']
+        min: 1
+      - kind: count-min
+        pattern: '(?m)^8874cdef9a1e0d9fd65eb651920704aaa336c224062c0e007486bcd2a465e1db  tasks/t12-frame-parser/hidden/test_main\.c$'
+        glob: ['experiments/friction-x-model/frozen.sha256']
+        min: 1
+      - kind: count-min
+        pattern: '(?m)^9c2e9da3e4b9ed7695d6c91bb264131d544da73161c033f7ea49fb6028b7cbdc  tasks/t12-frame-parser/kani/proofs\.rs$'
+        glob: ['experiments/friction-x-model/frozen.sha256']
+        min: 1
+      - kind: count-min
+        pattern: '(?m)^PILOT_TASKS = \("t11-biquad-q15", "t12-frame-parser"\)$'
+        glob: ['experiments/friction-x-model/fxm.py']
+        min: 1
+      - kind: count-min
+        pattern: '(?m)^### 2026-10-29/30, pilot step 5: ceiling; tasks replaced before the main run$'
+        glob: ['docs/experiments/2026-10-friction-x-model.md']
+        min: 1
+      # END re-pilot tasks
       # Expected directions and the refutation, stated in advance.
       - kind: count-min
         pattern: '\*\*H1\.\*\* For every model, F1 ≥ F0'

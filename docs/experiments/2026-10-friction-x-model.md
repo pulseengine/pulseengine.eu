@@ -7,7 +7,7 @@ is bound by `claims.yaml` (`EXPERIMENT-FRICTION-X-MODEL-PREREGISTERED`).
 Changing a level, a model, N, the repetitions, the lint set, a hypothesis or
 a decision rule means changing that claim in a reviewed PR.
 
-The harness, the two pilot tasks and the exact commands are in
+The harness, the pilot tasks and the exact commands are in
 [`experiments/friction-x-model/`](../../experiments/friction-x-model/README.md).
 
 ## Question
@@ -269,8 +269,10 @@ any of the friction tools.
 - One Python reference model per task generates the vectors. Both the C
   driver and the Rust driver read the same vectors. Every case names the spec
   sentence it checks.
-  - The one exception is t01's C suite. It has one more case, R8, the C-only
-    null-pointer rule, so it holds 49 cases against Rust's 48.
+  - The one exception is the C suites of t01, t11 and t12. Each has one more
+    case for its C-only null-pointer rule (t01 R8, t11 B11, t12 H11), so
+    t01 holds 49 cases against Rust's 48, t11 64 against 63 and t12 99
+    against 98.
   - This does not touch within-language comparisons. H5, which crosses
     languages, is already labelled confounded.
 - There are hand-written functional cases, and seeded random property
@@ -434,12 +436,15 @@ F4 ≥ F2).
 The full run has ten tasks. Each has one behaviour spec with numbered
 sentences, C and Rust signatures written from that spec, hidden vectors, fixed
 Kani harnesses, a reference solution and a mutant. For the pilot, only the
-first two are complete.
+pilot tasks are complete. (Amended 2026-10-29/30: t01 and t02 hit the
+ceiling and were replaced by t11 and t12. See [Amendments](#amendments).)
 
 | id | task | pilot |
 |---|---|---|
-| t01 | bounded byte ring buffer, capacity 16, no overwrite | **yes** |
-| t02 | saturating Q15 add, sub, mul (round half up), neg, abs | **yes** |
+| ~~t01~~ | bounded byte ring buffer, capacity 16, no overwrite (first pilot only; ceiling) | first |
+| ~~t02~~ | saturating Q15 add, sub, mul (round half up), neg, abs (first pilot only; ceiling) | first |
+| t11 | decimating biquad: Q15 samples, Q14 coefficients, exact accumulator, ties to even, saturation count, block processing that stops when the output is full | **yes** |
+| t12 | byte-at-a-time receiver for a byte-stuffed framed link: hunting, escapes, abort, overrun, runts, CRC-16, address filter, a stable accepted frame, saturating counts | **yes** |
 | t03 | CRC-16/CCITT-FALSE, bytewise, over a bounded slice | |
 | t04 | fixed-point PID step with output clamp and anti-windup | |
 | t05 | debounced button state machine with a tick input | |
@@ -518,8 +523,8 @@ Purpose: show that the harness runs end to end on the bench machine, that the
 oracle can fail, that every model id is accepted, and what a run costs. It is
 not evidence about H1 to H5.
 
-The pilot covers t01 and t02, all 5 levels and all 4 models, with 3
-repetitions each: 120 runs. It is done when all of these hold:
+The pilot covers t11 and t12 (amended 2026-10-29/30; the first pilot ran t01
+and t02), all 5 levels and all 4 models, with 3 repetitions each: 120 runs. It is done when all of these hold:
 
 1. `fxm.py check-tools` reports every pinned tool present and at its pin.
    **`matrix` enforces the next step in code.** It runs `check-tasks` first,
@@ -666,3 +671,125 @@ are re-run. Nothing here re-runs them.
 - **Unchanged:** the levels, the models, N, the repetitions, the lint set,
   the hypotheses, the decision rules outside the no-headroom case, and the
   hidden oracle.
+
+### 2026-10-29/30, pilot step 5: ceiling; tasks replaced before the main run
+
+**2026-10-29/30, pilot step 5: ceiling. The pilot tasks t01 and t02 are
+replaced by t11 and t12 before the main run. The prompts' include clause is
+narrowed. F1 still does not compile the answer.**
+
+This amendment was written after the first pilot and before any run of the
+main experiment. The owner decided on 2026-10-29 to apply pilot step 5 and to
+re-pilot on harder tasks after the weekly quota reset (2026-11-03 18:00 UTC).
+
+- **What the first pilot showed.**
+  - Every Rust cell (F2 to F4, 4 models) was at 6/6.
+  - In C, t02 passed 12/12 at F0 and at F1. t01's C rows failed on the
+    header defect fixed in the previous amendment. Compiled against the fixed
+    `rb.h`, 23 of its 24 stored C answers pass.
+  - **Step 5's literal trigger did not fire for C.** It asks for every pilot
+    cell at 6/6, and t01's C cells were not, because of the defect. The owner
+    applied step 5 to the whole task set anyway, on the Rust ceiling and the
+    C evidence above. This is recorded as an owner decision, not as the rule
+    firing.
+- **What changes.**
+  - The pilot runs t11 and t12 instead of t01 and t02. It keeps 2 tasks × 5
+    levels × 4 models × 3 repetitions = 120 runs.
+  - t01 and t02 stay in the repository unchanged, with their hashes. They
+    are not run again. `check-tasks`, and so the gate in front of `matrix`,
+    still checks every task, because some potency controls run on t01 and
+    t02 only (the Kani std swap, `file!()`, the unwinding probe).
+  - The main run's ten tasks become t03 to t12. t11 and t12 take the places
+    of t01 and t02, so the run stays at 600 runs.
+  - **Overlap, for the owner.** t12 contains a CRC-16 (t03's subject) and
+    parses an untrusted framed input (close to t06). t03 and t06 are not yet
+    written. Whether they are replaced is decided before the main run.
+- **Why these two tasks.** Each has a C and a Rust variant, built exactly like
+  the first pilot's: spec, fixed header and caller, stubs, Kani harnesses, a
+  reference and a mutant in each language, and one Python model for both
+  hidden suites.
+  - **t11, a decimating biquad.** It keeps every 2nd to 8th output and has
+    an exact accumulator, ties-to-even rounding, a saturating count, and
+    block processing that stops when the output is full.
+    - Five products of 16-bit values leave 32 bits. An `i32` accumulator
+      overflows: Kani's overflow check catches it (the task's Kani probe),
+      and in C it is undefined behaviour.
+  - **t12, a byte-at-a-time receiver for a byte-stuffed framed link.** It
+    handles hunting, escapes, abort, overrun, runts, CRC-16, an address
+    filter, a stable accepted frame and saturating counts.
+    - Untrusted input, fixed buffers and an ordered list of rejections are
+      the kind of code where MISRA, Clippy and Kani findings are real
+      defects.
+  - **Rejected: an ISR-safe SPSC queue.** Its difficulty is the concurrency
+    contract, and nothing here can check that:
+    - the hidden suite is single-threaded vectors;
+    - loom needs std and a dependency, and both are banned;
+    - Miri is residual only and never decides pass or fail;
+    - C memory ordering can only be documented.
+    The rest of it is t01 again.
+- **Calibration: tuning for headroom, disclosed.** The ceiling revision is the
+  one place where the pre-registration allows a task to be revised for
+  difficulty. The Tasks section's "may not be tuned to make any cell pass or
+  fail" binds t03 to t10. So that the revision could be shown to have
+  headroom, each design was run before it was frozen.
+  - **What was run.** Single `fxm.py run` calls on the bench machine. These
+    are ungated, so `report` excludes them, and they stay in a separate
+    results directory that the re-pilot never reads.
+  - **Scope.** Haiku and Opus only, at F0 (C) and F2 (Rust, the bottom Rust
+    row). Fable and Sonnet were not calibrated.
+  - **The target, written down before round 2.** Haiku at F0 passes 1 to 4
+    of 5 runs per task. Three Opus runs cannot tell 90% from 100%, so the
+    Opus target (below about 90%) is reported, not used as a criterion.
+  - **The rule.** At most 3 rounds. Only task difficulty changes; the
+    oracle's fairness does not. A failure is examined by recompiling the
+    final answer against the hidden suite and reading the failing cases.
+  - **Spend:** see the log. Notional figures, from `modelUsage`.
+
+  CALIBRATION-LOG-PLACEHOLDER
+
+- **The F0 and F1 prompts: a narrow fix, not identical prompts.** In the first
+  pilot the two C prompts differed in two ways: the level text, which is the
+  friction itself, and the rules paragraph. Only F1 had the rules paragraph,
+  and it allowed "the standard headers", more than the spec's list. That
+  confounded pilot H1 on t01 (previous amendment).
+  - **The fix.** The include clause now reads "the standard headers the task
+    names". Nothing else in the rules paragraph changes.
+  - **Why not give F0 the rules paragraph too.** Two frozen parts of the
+    design rest on F0 lacking it:
+    - F0 attempts "measure habit" (the paragraph before the kinds of attempt);
+    - G1's rationale says F1 to F4 state the no-suppression rule and F0 does
+      not.
+    Adding it to F0 would change what F0 measures and weaken G1. The rules
+    paragraph is part of what F1 adds, along with the checker.
+  - **Guard.** The self-test and `check-tasks` check every task: the F0 and
+    F1 prompts differ by exactly the level text and the rules paragraph, and
+    neither of those names a header or allows standard headers beyond the
+    task's. Negative controls in the self-test: the first pilot's clause
+    fails, and so does an F1 level text with one extra sentence.
+- **F1 does not compile the answer; unchanged, and recorded as a measurement
+  property.** 8 of the first pilot's 12 t01 F1 runs stopped clean on code that
+  did not compile, because cppcheck does not report an undeclared identifier.
+  - "The compiler is not run at F1" is part of the level's definition (#292's
+    arm B), and levels may not change after the pilot.
+  - So F1's clean stop means "cppcheck reports nothing", not "the code
+    compiles". Code that does not compile fails the hidden suite, and the
+    run is counted under false-clean (measure 6).
+  - The header defect behind those 8 runs is fixed, and the include clause
+    now matches the spec. So this should be rarer, but it can still happen,
+    and false-clean runs that did not compile are read that way.
+- **A new public-material guard, for Rust.** Every public name of the Rust
+  reference that the hidden Rust driver uses (items, fields and enum
+  variants) must appear in the spec's Rust section. This is the Rust side of
+  the header check, which was the defect class of the previous amendment.
+  - The self-test and `check-tasks` run it on every task.
+  - Negative controls: renaming `sat_count` in t11's spec, or `Overrun` in
+    t12's, fails it, naming the missing name.
+- **The C suites' extra case.** As with t01's R8, t11's and t12's C suites have
+  one more case than their Rust suites, for the C-only null-pointer rule (B11,
+  H11). The counts are stated under the oracle above.
+- **Hashes.** `frozen.sha256` adds t11's and t12's files. t01's and t02's
+  lines do not change. `claims.yaml` pins t11's and t12's Kani harnesses and
+  hidden suites, as it does t01's and t02's.
+- **Unchanged:** the levels (including F1 without the compiler), the models,
+  N, the repetitions, the lint set, the hypotheses, the decision rules and
+  the hidden oracle of t01 and t02.
