@@ -183,19 +183,24 @@ jobs:
             # stays BLOCKED, which previously reported a stuck PR as success
             # and left the post unpublished while the run went green.
             #
-            # With the pulseengine-actions-helper ruleset bypass in place the
-            # direct squash merge succeeds outright; --auto stays a genuine
-            # fallback for a future repo that adds required status checks.
+            # main merges through a merge queue. On a queue branch `gh pr
+            # merge` arms auto-merge while required checks are pending and
+            # enqueues the PR once they have passed; the queue then squashes
+            # it. Either way the PR is not MERGED when this returns, so both
+            # states count as pending below, not as stuck.
             gh pr merge "$pr_num" --squash --delete-branch \
               || gh pr merge "$pr_num" --auto --squash --delete-branch \
               || true
 
             state=$(gh pr view "$pr_num" --json state --jq '.state')
             auto=$(gh pr view "$pr_num" --json autoMergeRequest --jq '.autoMergeRequest != null')
+            queued=$(gh api graphql -F n="$pr_num" -f o="${REPO%%/*}" -f r="${REPO##*/}" \
+              -f query='query($o:String!,$r:String!,$n:Int!){repository(owner:$o,name:$r){pullRequest(number:$n){mergeQueueEntry{state}}}}' \
+              --jq '.data.repository.pullRequest.mergeQueueEntry != null' || echo false)
             if [ "$state" = "MERGED" ]; then
               published=$(echo "$published" | jq --arg s "$slug" --arg p "$pr_num" '. + [{slug: $s, pr: $p}]')
-            elif [ "$auto" = "true" ]; then
-              echo "::warning::PR #${pr_num} (${slug}) not merged yet — auto-merge is armed; it will land once required checks pass."
+            elif [ "$auto" = "true" ] || [ "$queued" = "true" ]; then
+              echo "::warning::PR #${pr_num} (${slug}) not merged yet — auto-merge armed=${auto}, in merge queue=${queued}; it lands once the queue's checks pass."
             else
               echo "::error::PR #${pr_num} (${slug}) did not merge (state=${state}, auto-merge not armed). Branch protection is likely blocking the pulseengine-actions-helper app — check the repo ruleset bypass."
               stuck=$(echo "$stuck" | jq --arg s "$slug" --arg p "$pr_num" '. + [{slug: $s, pr: $p}]')
