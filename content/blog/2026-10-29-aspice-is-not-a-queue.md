@@ -2,7 +2,7 @@
 title = "Read ASPICE as a pattern: 302 of gale's 329 software requirements have a check linked, none has a result"
 description = "Read as a pattern, ASPICE's engineering processes ask that every requirement be traceable to a verification measure that can fail, and to a recorded result. Measured in gale on 26 October 2026: 302 of 329 software requirements have a verification measure linked, none has a recorded result, and 25 requirements marked verified without results sit in releases rivet reports as cuttable."
 date = 2026-10-29
-draft = true
+draft = false
 ready = true
 [taxonomies]
 tags = ["aspice", "verification", "traceability", "process", "deep-dive"]
