@@ -7,6 +7,13 @@ concurrency:
 on:
   pull_request:
     branches: [main]
+  # GitHub merge queue: `build` is the required context, so this workflow must
+  # also run on the queue's merge_group event, or a queued PR waits on a check
+  # nothing reports until the queue's timeout evicts it. Both jobs run in the
+  # queue exactly as on a PR: they are cheap, and the queue commit is what
+  # lands. Concurrency: head_ref is empty in a queue run and github.ref is the
+  # entry's own gh-readonly-queue ref, so entries never cancel each other.
+  merge_group:
 
 jobs:
   build:
