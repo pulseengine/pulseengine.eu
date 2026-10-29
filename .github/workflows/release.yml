@@ -41,7 +41,7 @@ jobs:
   release:
     runs-on: [self-hosted, linux, x64, light]
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ inputs.tag || github.ref }}
           fetch-depth: 0          # the version-currency check reads history
