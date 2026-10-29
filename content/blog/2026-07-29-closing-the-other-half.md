@@ -215,3 +215,5 @@ the machine-checked bounds run as required checks. Toolchain: Gappa + Flocq +
 Coq-Interval, wired in through our Rocq build rules. This is work in progress:
 the composition and the argument-reduction bound are still open, and we will say
 so until they are not.*
+
+*Revisited on 29 October 2026: the cosine approximation bound merged the same day ([relay#320](https://github.com/pulseengine/relay/pull/320)). The composition and the argument-reduction bound are still open: both sit in one requirement, SWREQ-FALCON-MATHF32-P06, which is `proposed` and has been moved to later releases since July, now falcon v1.142.0 ([relay#438](https://github.com/pulseengine/relay/pull/438)); the tracking issue [relay#303](https://github.com/pulseengine/relay/issues/303) is open.*

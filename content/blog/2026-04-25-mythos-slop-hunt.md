@@ -237,3 +237,5 @@ The discipline transfers to any codebase that has typed validators and audit-gra
 The session that produced these took roughly six hours of wall time, almost entirely waiting on cargo builds in parallel worktrees. The bookkeeping the LLM agents did would have taken weeks of human review at the same depth — and a human reviewer would have produced prose, not typed audit artifacts.
 
 `scripts/mythos/` is the file. `rivet validate` is the oracle. `git log -L :symbol:file` is the trace. Everything else is discipline.
+
+*Revisited on 29 October 2026: "weeks of human review" was an estimate. No human review of the same depth was run for comparison, and no later post has measured one, so the roughly six hours of wall time are the only recorded number in that comparison.*
