@@ -85,6 +85,8 @@ artifacts:
         target: REQ-REFACTOR-DECISION
       - type: satisfies
         target: REQ-HOOK-ZSH-SHELL-OPTIONS
+      - type: satisfies
+        target: REQ-SCRIPT-PORTABILITY
   - id: REQ-LINKS
     type: requirement
     title: Every internal link in the built site resolves
@@ -826,3 +828,28 @@ artifacts:
     links:
       - type: verifies
         target: REQ-HOOK-ZSH-SHELL-OPTIONS
+
+  - id: REQ-SCRIPT-PORTABILITY
+    type: requirement
+    title: Committed shell and Python scripts run on the macOS floor (bash 3.2, python3 3.9)
+    description: >-
+      macOS runs committed scripts with /bin/bash 3.2 and /usr/bin/python3 3.9 while CI ran only newer tools, so a script could be green in CI and die on the Mac. Measured on 2026-10-29: scripts/check-report-freshness.py, prune-report-versions.py and validate-frontmatter.py exited 1 on 3.9 with "No module named 'tomllib'", and blog-autopublish.py with a TypeError from an `X | None` annotation. tomllib is now guarded (tomllib, else tomli, else a one-line "needs Python 3.11+ (tomllib) or the tomli package" exit), and the annotations have `from __future__ import annotations`. CI's required build job runs shellcheck 0.11.0 (pinned by sha256, called by path) at severity warning over tracked *.sh, and scripts/check-py-floor.py under setup-python 3.9 (update-environment false, by interpreter path) over tracked *.py, after the checker's own self-test.
+    status: verified
+    release: 0.46.1
+    category: functional
+    priority: must
+    fields:
+      category: functional
+
+  - id: VER-SCRIPT-PORTABILITY
+    type: verification
+    title: check-py-floor.py self-test and floor scan, shellcheck -S warning, and claim CI-SCRIPT-PORTABILITY-FLOOR
+    description: >-
+      scripts/check-py-floor.py --self-test runs 26 fixtures (under 3.9, 14 must be red and 12 green, a match statement being red only there), including a guarded tomllib, a version-guarded tomllib, `from __future__` plus unions, string and function-local annotations and set/int `|`, which must stay green. A leave-one-out sweep that neutralises each of its six subject functions turns the self-test red every time. Over the tree under /usr/bin/python3 3.9.6 the scan reports 5 findings before the fix and 0 after; shellcheck -S warning reports 0 over the 7 tracked .sh files. Negative-controlled on 2026-10-29 with the job's own commands: a SC2034 line appended to a tracked .sh, an unguarded `import tomllib`, and an `int | None` annotation in a file without the __future__ import each exit 1, and each was restored by re-editing and exits 0 again. claim CI-SCRIPT-PORTABILITY-FLOOR fails on a bare shellcheck call in any workflow, on a missing sha256 pin or check, and on a missing self-test or scan step.
+    status: verified
+    release: 0.46.1
+    method: automated-test
+    test-location: scripts/check-py-floor.py
+    links:
+      - type: verifies
+        target: REQ-SCRIPT-PORTABILITY

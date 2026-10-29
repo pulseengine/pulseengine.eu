@@ -58,6 +58,7 @@ Fonts: Atkinson Hyperlegible Next (sans) + Mono, loaded from Google Fonts.
 - PRs merge through the GitHub merge queue: `gh pr merge --auto` (the queue squashes). Never `gh pr update-branch`; it strips commit signatures, and the queue tests against the latest main anyway
 - CI runs `zola build` on PRs; deploy runs on push to `main` (tar + scp to Netcup)
 - CI calls zola only by absolute path, as `"$ZOLA"`, after a sha256-checked install of the pinned release into `$RUNNER_TEMP` — never a bare `zola`, because self-hosted runners carry an old zola on PATH (smithy#43). Bump `ZOLA_VERSION` and `ZOLA_SHA256` together in both `ci.yml` and `deploy.yml`
+- Committed scripts must run on the macOS floor, bash 3.2 and python3 3.9: CI's `build` job runs shellcheck `-S warning` (pinned by sha256, called as `"$SHELLCHECK"`) over tracked `*.sh` and `scripts/check-py-floor.py` under Python 3.9 over tracked `*.py`. Guard `tomllib` (fall back to `tomli`, else exit with a clear message) and add `from __future__ import annotations` before using `X | None`
 - Commit messages: Conventional Commits (`feat:`, `fix:`, `docs:`, etc.)
 - After merge, deploy takes ~20s — check with `gh run list --workflow=deploy.yml`
 

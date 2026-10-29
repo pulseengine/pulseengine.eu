@@ -30,6 +30,8 @@ title) and does not need to interpret arrays or tables. This avoids a
 dependency on `tomllib` and keeps the script readable.
 """
 
+from __future__ import annotations
+
 import argparse
 import datetime
 import json
