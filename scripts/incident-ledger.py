@@ -25,7 +25,8 @@ Signals, recorded per unit and never mixed silently:
                 (a manually found escape, e.g. a harness defect fixed later)
   catch (pre-merge):
     pr-red      a PR commit before the head had a FAILURE/ERROR status rollup and
-                the PR still merged (the red was fixed before merge)
+                the head's rollup is SUCCESS (red that later went green). Rollup
+                level, so it includes non-required checks
     mq-ejected  the PR was removed from the merge queue with reason failed_checks
   flags (nets, not incidents):
     merged-before-ci   a pull_request Actions suite on the head was still running
@@ -48,7 +49,9 @@ Authoring class, from the unit's commit messages and authors:
 
 Blind spots: a red-then-green re-run on the same sha shows only the last
 attempt, so flakes are invisible on both sides; the status rollup includes
-non-required checks; a revert or fix that names nothing is not linked; forks are
+non-required checks; a single-commit PR can only be caught by the queue; a fix
+force-pushed over a red commit erases that red from the PR's commit list; only
+the last 30 commits of a PR are read; a revert or fix that names nothing is not linked; forks are
 excluded (their history is upstream's).
 
 API use is deliberately gentle (secondary rate limits are a known problem in
@@ -374,11 +377,13 @@ def pr_signals(u: dict, pr: dict) -> None:
     commits = [c["commit"] for c in (pr.get("commits") or {}).get("nodes", [])]
     head = pr.get("headRefOid") or (commits[-1]["oid"] if commits else None)
     before = [c for c in commits if c["oid"] != head]
-    if any((c.get("statusCheckRollup") or {}).get("state") in ROLLUP_RED
-           for c in before):
-        u["signals"].append({"kind": "pr-red", "evidence": pr.get("url")})
     head_c = next((c for c in commits if c["oid"] == head), None)
-    if head_c and (head_c.get("statusCheckRollup") or {}).get("state") in ROLLUP_RED:
+    head_state = ((head_c or {}).get("statusCheckRollup") or {}).get("state")
+    # a catch is red that LATER WENT GREEN: an always-red advisory check is not one
+    if head_state == "SUCCESS" and any(
+            (c.get("statusCheckRollup") or {}).get("state") in ROLLUP_RED for c in before):
+        u["signals"].append({"kind": "pr-red", "evidence": pr.get("url")})
+    if head_state in ROLLUP_RED:
         u["flags"].append("merged-red-head")
     for ev in (pr.get("timelineItems") or {}).get("nodes", []):
         if ev.get("__typename") == "RemovedFromMergeQueueEvent" and \
@@ -819,7 +824,9 @@ def render_md(res: dict) -> str:
          ""]
     L += _md_table("By authoring class", res["by_model"], "class")
     L += ["`human-only` means no agent marker, not proven human: agents commit under "
-          "the owner's account.", ""]
+          "the owner's account. The classes are confounded by repo and month (one "
+          "model dominates each period and each repo mix), so this table is not a "
+          "model comparison; overlapping intervals mean no detectable difference.", ""]
     L += _md_table("By change type", res["by_type"], "type")
     L += _md_table("By month", res["by_month"], "month")
     L += _md_table("By repo", res["by_repo"], "repo")
@@ -1187,6 +1194,12 @@ def self_test() -> int:
     pr_signals(u2, pr2)
     check(u2["signals"] == [] and "merged-red-head" in u2["flags"],
           f"a red head is merged-red-head, not a catch: {u2}")
+    u3 = {"signals": [], "flags": []}
+    pr3 = json.loads(json.dumps(pr2))
+    pr3["commits"]["nodes"].insert(0, {"commit": {"oid": "a", "statusCheckRollup":
+                                                  {"state": "FAILURE"}}})
+    pr_signals(u3, pr3)
+    check(u3["signals"] == [], f"red before and red at the head is not a catch: {u3}")
     o = outcome(u)
     check(o == {"escape": False, "strict": False, "caught": True, "incident": True},
           f"ejection must be a catch and an owner-def incident, not an escape: {o}")

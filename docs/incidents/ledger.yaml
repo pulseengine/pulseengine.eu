@@ -7,7 +7,7 @@
 # rivet's own detection machinery CAUGHT. An escape is by definition a defect
 # nothing caught, the ledger needs a human-only class, and the four fields would
 # all be unknown-field diagnostics. Recorded as DD-INCIDENT-LEDGER-NOT-RIVET in
-# artifacts/incident-ledger.yaml. The file lives in docs/, not artifacts/,
+# artifacts/ci-gates.yaml. The file lives in docs/, not artifacts/,
 # because artifacts/ is rivet's generic-yaml source and would be parsed as one.
 #
 # Entry shape (checked by `incident-ledger.py check-ledger`, in CI):
@@ -135,11 +135,10 @@ entries:
       class: merged-without-ci
       source: manual
       note: >-
-        Merged with `gh pr merge --auto` while the repo's required workflows
-        were still running, instead of through the automerge label. They later
-        finished green, so no defect landed: the net failed, the change did not.
-        The brief told the agent to use --auto; the owner recorded that as his
-        error, so this is also a human-override.
+        Merged with `gh pr merge --auto` ahead of the required workflows,
+        instead of through the automerge label. They later finished green, so
+        no defect landed: the net failed, the change did not. Recorded by the
+        owner as a human-override.
     why:
       classifier: "merge path bypassed the required checks (--auto instead of the automerge label)"
       source: manual
