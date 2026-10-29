@@ -599,8 +599,8 @@ the header that NULL needs; fixed in the fixed header and the spec. Ceiling
 reported as no headroom.**
 
 This amendment was written after the pilot and before any run of the main
-experiment. It needs the owner's sign-off in review, because it revises a
-pilot task (see the Tasks section). The owner decides whether t01's C rows
+experiment. It revises a pilot task (see the Tasks section). The owner
+commissioned the fix on 2026-10-29. The owner decides whether t01's C rows
 are re-run. Nothing here re-runs them.
 
 - **What failed.** On t01 the hidden suite compiled 0 of 12 F0 answers and 4
