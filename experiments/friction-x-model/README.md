@@ -17,6 +17,8 @@ misra-rules-2.22.0.txt       the MISRA C:2012 rules cppcheck 2.22.0's add-on has
 tasks/<id>/
   spec.md                    behaviour spec, numbered sentences (shown to the model)
   c/<header>.h, c/stub.c     fixed C header and stub (shown)
+  c/api_use.c                fixed caller of the whole C API (shown at F0 and F1); cppcheck analyses
+                             it with the answer so rule 8.7 sees cross-TU calls. Never in the oracle.
   rust/stub.rs               Rust stub (shown)
   kani/proofs.rs             fixed Kani harnesses (shown at F4 only, never editable; built as a separate crate)
   hidden/                    the oracle; never shown, every file carries a canary
@@ -50,6 +52,7 @@ python3 fxm.py run --task t01-ring-buffer --level F3 --model claude-haiku-5-5 --
 # the result goes to results/manifests/<utc>-NN.json, which every run record names.
 # Records of a single `run` are ungated and `report` excludes them.
 python3 fxm.py matrix --pilot
+python3 fxm.py matrix --pilot --wait-on-limit   # unattended: sleeps through usage limits (see below)
 python3 fxm.py report
 python3 fxm.py verify-transcripts      # re-hash every stored transcript file against its record
 
@@ -57,7 +60,39 @@ python3 fxm.py gen-vectors             # only when a reference model changes: re
 ```
 
 Exit codes: 0 ok · 1 a check failed · 2 could not run · 3 incomplete (a tool
-was missing). A skipped check is never green.
+was missing) · 4 the Claude Code CLI is not logged in, or its token is
+invalid (`matrix` stops at once and never waits on it). A skipped check is
+never green.
+
+### Running unattended: `--wait-on-limit`
+
+Without the flag, `matrix` stops at a usage limit with exit 2, and running
+the same command again resumes. With it, `matrix` does that resume itself:
+- it sleeps until just after the reset: the CLI's `rate_limit_event`
+  `resetsAt`, else a "resets at 3pm" time in the message, else 30 minutes;
+- one wait is never longer than 6 hours; after that it simply tries again;
+- each wait is logged with UTC timestamps;
+- after a wait it starts a new pass, which re-runs `check-tasks` (a new
+  manifest), skips every cell already ok, and re-runs the cell the limit cut
+  off. That cell's could-not-run record is replaced and never counted.
+
+A login failure ("Not logged in", HTTP 401, an invalid or expired token) is
+exit 4, logged and posted, and never retried.
+
+When `FXM_NOTICE` names the factory-notice script (`notice.py`), `matrix`
+posts one notice per wait (with the time it wakes) and one when it finishes
+or stops. A failed post is logged and never stops the run.
+
+**After a reboot, restart it by hand.** It is not a launchd job, because
+macOS privacy controls block launchd jobs from the external volume. Cells
+that are ok are kept; a cell cut off by the reboot has no ok record and is
+re-run:
+
+```sh
+cd experiments/friction-x-model
+export FXM_NOTICE=<path to notice.py>   # optional; without it, nothing is posted
+nohup python3 fxm.py matrix --pilot --wait-on-limit > "$WORK/pilot.log" 2>&1 < /dev/null & disown
+```
 
 Each run writes `results/<task>/<level>/<model>/rep<k>.json`, with every
 iteration's findings, token usage and notional cost. The record also holds
@@ -153,9 +188,9 @@ python3 fxm.py check-tools            # every line "ok", exit 0
 python3 fxm.py self-test --with-tools # all checks passed
 python3 fxm.py check-tasks            # "0 failed, 0 skipped", exit 0
 
-# 7. the pilot
-python3 fxm.py matrix --pilot
-python3 fxm.py report
+# 7. the pilot, detached, sleeping through usage limits
+nohup python3 fxm.py matrix --pilot --wait-on-limit > "$WORK/pilot.log" 2>&1 < /dev/null & disown
+python3 fxm.py report             # when it has finished
 ```
 
 If `check-tasks` reports a finding on a reference solution, fix the reference
@@ -200,8 +235,24 @@ Without a model or a toolchain, the self-test checks:
 the stub model, in both languages. It also runs a violating-then-fixed answer
 pair through the loop to a clean stop.
 
+The self-test also checks the C caller TU (`c/api_use.c`):
+- it is shown at F0 and at F1;
+- it calls exactly the functions the header declares. Probes show this
+  drift check fails on a dropped call, on an extra call and on a new header
+  function;
+- it is in the friction directory, never in the oracle's;
+- cppcheck gets the answer and the caller, with the pinned arguments.
+
+It also checks `--wait-on-limit` with a stub model and a fake sleep:
+- a limit gives one wait until just after `resetsAt`, then a resume that
+  skips done cells and re-runs the cut-off cell;
+- a login failure stops with exit 4 after one call, with no wait;
+- the reset-time parsing and the wait cap.
+
 On the toolchain, `check-tasks` also checks that:
 - each friction level can fail, through a probe;
+- rule 8.7 still bites with the caller TU: an exported helper outside the
+  header is reported under 8.7 on its own lines and nowhere else;
 - F4 still fails when the model defines macros that shadow `assert!` and
   `assert_eq!`;
 - the expanded-source scan alone catches every lint-level bypass form under
