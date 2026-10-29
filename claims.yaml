@@ -2071,3 +2071,25 @@ claims:
         pattern: 'warte: urllib and curl both failing keep the notice in the outbox'
         glob: ['claude-tooling/plugins/pulseengine-claude/skills/factory-notice/notice.py']
         min: 1
+
+  # ── The version-currency gate cannot pass on a shallow clone ────────────────
+  # REQ-PLUGIN-VERSION-GATE-FULL-HISTORY. On CI's depth-1 checkout `git log -S`
+  # credited the PR's merge commit with the version line, so the check passed
+  # having compared nothing (#315). The script must refuse a shallow clone
+  # before it reads history, and the build job must fetch full history.
+  - id: PLUGIN-VERSION-GATE-FULL-HISTORY
+    doc: scripts/check-plugin-version-current.py
+    text: "A shallow clone exits 2, never 0"
+    evidence:
+      - kind: count-min
+        pattern: '(?s)if git\("rev-parse", "--is-shallow-repository"\) != "false":\s+print\(.{0,400}?file=sys\.stderr\)\s+return 2\s+version = json\.loads'
+        glob: ['scripts/check-plugin-version-current.py']
+        min: 1
+      - kind: count-min
+        pattern: 'runs-on: [^\n]*\n    steps:\n(?:      #[^\n]*\n)*      - uses: actions/checkout@v7\n        with:\n          fetch-depth: 0\n'
+        glob: ['.github/workflows/ci.yml']
+        min: 1
+      - kind: count-min
+        pattern: '\n        run: python3 scripts/check-plugin-version-current\.py\n'
+        glob: ['.github/workflows/ci.yml']
+        min: 1
