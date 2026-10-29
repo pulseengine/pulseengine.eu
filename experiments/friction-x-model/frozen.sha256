@@ -12,7 +12,7 @@ c60aaca028244cc7e16af07d866ed9cee8d157d081733dddedac69bc5c8cf60d  tasks/t01-ring
 42ef5e3be6f24bfa244acb5855616fe501a0f37458cc5db7f17321db82c185fa  tasks/t01-ring-buffer/reference/solution.c
 a7e2875c2555799e208cbfcd48e769f9601878011c5fbed26dd23a36034fa347  tasks/t01-ring-buffer/rust/stub.rs
 29afe1d4dcc71d2ac79eb411a3966868e5b484ec6cb4828e5b9c9d66a84a2c33  tasks/t01-ring-buffer/spec.md
-1b5f0677d9fd760ce53fb00f1154f8686fa2802d45fdcf859621b388c4b76de4  tasks/t01-ring-buffer/task.json
+23acdfc2963202c1fe4fdf8d816c68eb2cf8c9c6daecc31964b3025398f6c589  tasks/t01-ring-buffer/task.json
 6607a3fb4aeb7b32da8bbcfcaf4c2f2ea6b5ced9e34681b1827f708b845b229e  tasks/t02-q15-saturating/c/q15.h
 100dad1e536ed8de156bb1617c7902e7854469c2e577015156987af0f4668189  tasks/t02-q15-saturating/c/stub.c
 083da2cd8aec431e3719ca7e83dfb9c4a01bec4c885495956b323f170a62dab3  tasks/t02-q15-saturating/hidden/gen_vectors.py

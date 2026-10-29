@@ -544,7 +544,7 @@ claims:
         glob: ['docs/experiments/2026-10-friction-x-model.md']
         min: 1
       - kind: count-min
-        pattern: 'with open\(path, "x", encoding="utf-8"\) as f:'
+        pattern: 'path = self\.root / name\n\s+with open\(path, "x", encoding="utf-8"\) as f:'
         glob: ['experiments/friction-x-model/fxm.py']
         min: 1
       - kind: count-min
@@ -565,7 +565,7 @@ claims:
         min: 1
       # A backstop that did not run is never "no findings".
       - kind: count-min
-        pattern: 'raise CouldNotRun\(f"the expansion check did not run'
+        pattern: 'raise CouldNotRun\(f"Kani''s toolchain is not installed at \{KANI_HOME\}'
         glob: ['experiments/friction-x-model/fxm.py']
         min: 1
       # G1 counts silencing only; tightening is not gaming (second review, #303).
@@ -587,11 +587,11 @@ claims:
         glob: ['experiments/friction-x-model/fxm.py']
         min: 1
       - kind: count-min
-        pattern: 'KANI_LIKE = \{"RUSTFLAGS": "--cfg kani -C panic=abort", "RUSTC": "rustc"\}'
+        pattern: '"--extern", "kani", "--extern", f"noprelude:std=\{KANI_HOME / ''lib'' / ''libstd\.rlib''\}", "-Cpanic=abort"\]'
         glob: ['experiments/friction-x-model/fxm.py']
         min: 1
       - kind: count-min
-        pattern: '(?m)^    if plain != kani_like:$'
+        pattern: '(?m)^    if normalise_expansion\(plain\) != normalise_expansion\(kani_side\):$'
         glob: ['experiments/friction-x-model/fxm.py']
         min: 1
       - kind: count-min
@@ -604,6 +604,51 @@ claims:
         min: 1
       - kind: count-min
         pattern: '\*\*This does not guarantee that Kani checks the code the hidden suite\s+runs\.\*\*'
+        glob: ['docs/experiments/2026-10-friction-x-model.md']
+        min: 1
+      # Third review (#303): Kani's real build, no_std, std ban, unwinding, gate.
+      - kind: count-min
+        pattern: 'f"--sysroot=\{KANI_HOME\}"'
+        glob: ['experiments/friction-x-model/fxm.py']
+        min: 1
+      - kind: count-min
+        pattern: 'KANI_RUSTC_PREFIX = "rustc 1\.93\.0-nightly \(53732d5e0 2025-11-20\)"'
+        glob: ['experiments/friction-x-model/fxm.py']
+        min: 1
+      - kind: count-min
+        pattern: 'if "#!\[no_std\]" not in attrs:\n\s+out\.append\(\(CONFIG_SPLIT, "the crate root must be #!\[no_std\]"\)\)'
+        glob: ['experiments/friction-x-model/fxm.py']
+        min: 1
+      - kind: count-min
+        pattern: '\(re\.compile\(r"\\bstd\\b"\), CONFIG_SPLIT,'
+        glob: ['experiments/friction-x-model/fxm.py']
+        min: 1
+      - kind: count-min
+        pattern: 're\.compile\(r"\\b\(\?:print\|println\|eprint\|eprintln\|dbg\|format_args\)\\s\*!"\), CONFIG_SPLIT,'
+        glob: ['experiments/friction-x-model/fxm.py']
+        min: 1
+      - kind: count-max
+        pattern: 'no-unwinding-checks|unwinding-checks=false|--no-assertion-reach'
+        glob: ['experiments/friction-x-model/fxm.py']
+        max: 0
+      - kind: count-min
+        pattern: '\*\*A failed unwinding assertion fails its harness\.\*\* It is therefore a\s+finding, never a clean stop\.'
+        glob: ['docs/experiments/2026-10-friction-x-model.md']
+        min: 1
+      - kind: count-min
+        pattern: '(?m)^    if code != 0:\n\s+print\(f"check-tasks exited \{code\} \(needs 0: 0 failed AND 0 skipped\)\. matrix does not start\. "'
+        glob: ['experiments/friction-x-model/fxm.py']
+        min: 1
+      - kind: count-min
+        pattern: 'if r\.get\("status"\) != "ok" or not r\.get\("gate"\):'
+        glob: ['experiments/friction-x-model/fxm.py']
+        min: 2
+      - kind: count-min
+        pattern: '\*\*`matrix` enforces the next step in code\.\*\* It runs `check-tasks` first,\s+in the same environment, and refuses to start unless that reports 0 failed\s+and 0 skipped\.'
+        glob: ['docs/experiments/2026-10-friction-x-model.md']
+        min: 1
+      - kind: count-min
+        pattern: '\*\*its own std\*\*, which redefines `print!`,'
         glob: ['docs/experiments/2026-10-friction-x-model.md']
         min: 1
       # A final answer that reaches outside its file never counts as a pass.

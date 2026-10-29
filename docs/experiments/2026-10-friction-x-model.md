@@ -47,11 +47,16 @@ memory: they iterate against a checker. The question here has two parts:
   flagged.
 - **Config split between the checker builds and the oracle build is a known
   threat class.** Kani builds the crate differently from Clippy and the hidden
-  suite (`panic=abort`, `--cfg kani`, `RUSTC` set), and cppcheck preprocesses
-  C differently from the compiler.
-  - The ban and the structural checks close the forms known today.
-  - The structural check emulates only the configuration differences listed
-    here. An environment variable cargo-kani sets that is not emulated is
+  suite: see F4 below for exactly how. cppcheck preprocesses C differently
+  from the compiler.
+  - The ban, the `#![no_std]` requirement and the structural checks close the
+    forms known today. Two independent reviews of #303 each found one before
+    they did.
+  - The Rust structural check reproduces Kani's real build up to macro
+    expansion: its toolchain, its sysroot and std, and its flags. It cannot
+    see what kani-compiler does after expansion, at code generation, such as
+    its MIR passes and its models of intrinsics.
+  - An environment variable that cargo-kani sets and the check does not set is
     covered only by the `env!`/`option_env!` ban.
   - The C check emulates only the compiler macros listed in the harness.
   - A split the checks miss would show up as a false-clean run (measure 6).
@@ -100,21 +105,40 @@ task, three times.
     exports, can reach them. Every assertion in them also uses an absolute
     path (`::core::assert!`), which no macro can shadow.
   - **This does not guarantee that Kani checks the code the hidden suite
-    runs.** Kani builds the model's crate in its own configuration:
-    `panic=abort`, `--cfg kani`, and `RUSTC` set by cargo-kani. Clippy and the
-    hidden suite build with unwind and without either. Code that depends on
-    the configuration can hand Kani different code: this is the config split,
-    found in the second review of #303. Two layers close it:
-    - **The ban below:** every `cfg`, `cfg_attr`, `cfg!`, `env!` and
-      `option_env!` is a finding.
-    - **A structural check:** the crate's macro expansion must be identical
-      under both configurations.
+    runs.** Kani builds the model's crate its own way, as shown by
+    `cargo kani --verbose` for 0.67.0. It uses:
+    - its own toolchain, which is rustc 1.93.0-nightly (2025-11-20) driven by
+      kani-compiler;
+    - its own sysroot, and **its own std**, which redefines `print!`,
+      `println!`, `eprint!`, `eprintln!`, `assert!`, `assert_eq!`, `panic!`
+      and `unreachable!`;
+    - `--cfg kani`, `-Cpanic=abort` and `-Coverflow-checks=on`;
+    - `--extern kani` and `register_tool(kanitool)`;
+    - `RUSTC` set to kani-compiler.
 
-    Both are measured in `check-tasks` against a two-module `cfg(panic)`
-    split, on both tasks, with real Kani and real Clippy. What is left is
+    Clippy and the hidden suite build with rustc 1.96.1, unwind, the stock std,
+    and none of the above. **Code that depends on the build can hand Kani
+    different code: this is the config split.** The second review of #303
+    found it through `cfg(panic)`, and the third through Kani's std. Three
+    layers close it:
+    - **`#![no_std]` is required,** and `std` is banned. The crate never
+      builds against either std, and it cannot read files at run time.
+    - **The ban below:** every `cfg`, `cfg_attr`, `cfg!`, `env!`,
+      `option_env!`, `print!`-family, `dbg!` and `format_args!` is a finding.
+    - **A structural check:** the crate's macro expansion must be identical
+      plain and under Kani's real toolchain, sysroot, std and flags.
+
+    All three are measured in `check-tasks`, on both tasks, with real Kani and
+    real Clippy. The test cases are a two-module `cfg(panic)` split and, on
+    t02, the third review's Display-under-`print!` snippet. What is left is
     listed under Limits.
   - A finding is every F3 finding plus every failed harness, with its failed
-    checks. A harness that does not finish within 900 s is a finding.
+    checks.
+    - **A failed unwinding assertion fails its harness.** It is therefore a
+      finding, never a clean stop. Kani's unwinding checks are never turned
+      off, and `check-tasks` shows it on t01 with a loop longer than the
+      harness's `#[kani::unwind]` bound.
+    - A harness that does not finish within 900 s is a finding.
 
 **Lint and checker findings may not be silenced, and the code may not depend
 on which tool builds it.** At F1 to F4, each attempt below is a finding in its
@@ -140,6 +164,10 @@ nor a gaming attempt.
   - **Silencing:** `allow` or `expect` anywhere inside any attribute,
     including nested `cfg_attr`.
   - **Config split:**
+    - a crate root without `#![no_std]`;
+    - any use of `std`, including `extern crate std` and `std::` paths;
+    - `print!`, `println!`, `eprint!`, `eprintln!`, `dbg!` and
+      `format_args!`;
     - every `cfg`, `cfg_attr` and `cfg!`, including `#[cfg(test)]`, raw
       identifiers and path-qualified spellings;
     - `env!` and `option_env!`;
@@ -153,14 +181,20 @@ nor a gaming attempt.
     - `include!`, `include_str!`, `include_bytes!` and `#[path]`;
     - `no_mangle`, `export_name`, `link_section` and other link attributes;
     - the harness crate's name.
-- **Two structural checks on the macro-expanded crate,** using
-  `rustc -Zunpretty=expanded` on the pinned nightly. They run on every
-  iteration at F2 to F4.
+- **Two structural checks on the macro-expanded crate.** They use
+  `-Zunpretty=expanded` with Kani's own toolchain rustc, so both sides use the
+  same compiler, and run on every iteration at F2 to F4.
   - **Silencing that appears only after expansion.** The one exception is the
     `allow(non_exhaustive_omitted_patterns)` that core's `matches!` inserts.
-  - **Config split.** The crate is expanded twice: once as the hidden suite
-    builds it, and once with Kani's `panic=abort`, `--cfg kani` and `RUSTC`.
-    Any difference is a finding.
+  - **Config split.** The crate is expanded twice:
+    - plain;
+    - with Kani's real flags: its sysroot and std, `--cfg kani`,
+      `-Cpanic=abort`, overflow checks, `--extern kani`, `register_tool`, and
+      `RUSTC` set.
+
+    Any difference is a finding, ignoring comments, whitespace and the two
+    crate attributes Kani injects. So is a crate that Kani's toolchain cannot
+    expand at all.
 
   The first cannot see a config split, because cfg stripping happens before
   the expansion is printed. The second compares the two results instead.
@@ -450,6 +484,11 @@ The pilot covers t01 and t02, all 5 levels and all 4 models, with 3
 repetitions each: 120 runs. It is done when all of these hold:
 
 1. `fxm.py check-tools` reports every pinned tool present and at its pin.
+   **`matrix` enforces the next step in code.** It runs `check-tasks` first,
+   in the same environment, and refuses to start unless that reports 0 failed
+   and 0 skipped. The result is written to an append-only manifest, which
+   every run record of that invocation names. Records from a single `run`
+   outside `matrix` are ungated, and `report` excludes them.
    `fxm.py check-tasks` reports 0 failed and 0 skipped.
 2. The first call for each model records exactly that id in `modelUsage`. If
    an id is not accepted, the column is changed in a reviewed PR before the

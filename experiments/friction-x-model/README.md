@@ -45,7 +45,10 @@ python3 fxm.py check-tasks             # oracle and friction potency; 0 failed A
 # one run
 python3 fxm.py run --task t01-ring-buffer --level F3 --model claude-haiku-5-5 --rep 1
 
-# the pilot: 2 tasks x 5 levels x 4 models x 3 reps = 120 runs; resumable
+# the pilot: 2 tasks x 5 levels x 4 models x 3 reps = 120 runs; resumable.
+# matrix first runs check-tasks and refuses to start unless it reports 0 failed AND 0 skipped;
+# the result goes to results/manifests/<utc>-NN.json, which every run record names.
+# Records of a single `run` are ungated and `report` excludes them.
 python3 fxm.py matrix --pilot
 python3 fxm.py report
 
@@ -98,6 +101,7 @@ never downloaded.
 | cppcheck | 2.22.0, `addons/misra.py` sha256 `2955eca9db4b4e863977a6b075ba0361a9d433ba30f0a80ee6ddc5bd1599893d` | version string and file hash |
 | Rust (F2, F3, hidden tests) | 1.96.1 with clippy 0.1.96 | `rustc +1.96.1 --version` |
 | Kani (F4) | cargo-kani 0.67.0 | `cargo kani --version` |
+| Kani's own toolchain (structural check) | `~/.kani/kani-0.67.0/toolchain`, which reports `rustc 1.93.0-nightly (53732d5e0 2025-11-20)` (override with `FXM_KANI_HOME`) | the version string |
 | Miri (residual) | rustup `nightly-2026-09-23`, which reports `rustc 1.100.0-nightly (6bb1652a0 2026-09-22)` | the version string, not the name |
 | C compiler | the system `cc` (Apple clang on the bench machine), with ASan, UBSan and `--analyze` | recorded per run |
 
@@ -130,12 +134,12 @@ rm -rf "$WORK/cppcheck-src"
 # 3. Rust 1.96.1 + clippy, and the Miri nightly
 rustup toolchain install 1.96.1 --profile minimal --component clippy
 rustup toolchain install nightly-2026-09-23 --profile minimal --component miri
-# (this nightly also runs the expanded-source scan at F2-F4, every iteration)
 cargo +nightly-2026-09-23 miri setup
 
 # 4. Kani 0.67.0
 cargo +1.96.1 install --locked kani-verifier --version 0.67.0
-cargo kani setup
+cargo kani setup     # installs Kani's own toolchain, sysroot and std under ~/.kani/kani-0.67.0;
+                     # the structural config-split check uses them at F2-F4, every iteration
 
 # 5. Claude Code CLI 2.1.312, logged in to the owner's subscription
 npm install --prefix "$WORK/claude-code" --no-fund --no-audit @anthropic-ai/claude-code@2.1.312
@@ -207,6 +211,15 @@ On the toolchain, `check-tasks` also checks that:
     findings, so no clean stop. Kani alone reports 0 failed harnesses on it:
     that is the hole the structural check closes;
   - the structural check alone also catches an `option_env!("RUSTC")` split;
+  - on t02, the third review's "Kani std swap" (work hidden in a `Display` impl
+    under `print!`, which Kani's std never formats):
+    - Kani alone reports 0 failed harnesses on it;
+    - the structural check catches it, because it expands with Kani's real
+      std;
+    - the scan catches it too (no `#![no_std]`, `print!`);
+    - F4 reports it, and the hidden suite fails it;
+  - on t01, a loop longer than the harness's `#[kani::unwind]` bound fails the
+    unwinding assertion, which is a finding, never clean;
   - for C, `#ifdef __clang__`, `__GNUC__` and `__CPPCHECK__` splits are each
     caught by the scan and by the preprocessing check. With cppcheck
     installed, they are also run through F1.
