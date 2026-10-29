@@ -854,9 +854,10 @@ re-pilot on harder tasks after the weekly quota reset (2026-11-03 18:00 UTC).
   only F0 and F2, and `check-tasks` runs only the reference. So one more
   ungated haiku run per task went through each of F1, F3 and F4:
   - t11: F1 clean at the first answer, F3 at the second, F4 at the first.
-  - t12: F1 at the second, F3 at the first, F4 SMOKE_T12_F4.
-  - Each one passed the hidden suite. Kani's wall time on the answers was
-    within its limit.
+  - t12: F1 at the second, F3 at the first, F4 at the first.
+  - Each one passed the hidden suite. Kani finished within its 900 s limit
+    on every answer. t12's one F4 iteration took about 14 minutes of wall
+    time in all, with `check-tasks` running alongside it.
 - **Kani bounds, a known property of F4.** A harness's `#[kani::unwind]`
   bound limits every loop the answer runs inside it. A correct answer can
   loop further than the bound (for example over its whole 35-byte buffer in
