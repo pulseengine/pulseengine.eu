@@ -5,7 +5,7 @@ ab4c1aa3730683c8de273b529cff9447e6d7786b18e219cc3f1ac09c537d5c6e  tasks/t01-ring
 eee027deeb0e99930264ab511f151e72e8dd8813f40b07aae4d62b821368ee5d  tasks/t01-ring-buffer/hidden/test_main.c
 4e855b68d4d07f1945676ddca4acf0da31bc034662f024c57711031d4ca8ed73  tasks/t01-ring-buffer/hidden/vectors.h
 26c754e2ca357b9ba48c5df09ebf4a65137f65deee7cac5bd25e277a35b0a92a  tasks/t01-ring-buffer/hidden/vectors.rs
-36583ef0dc799a850f8d4d477610ce342a8323356c9876bcb774fb4cd6cfca4a  tasks/t01-ring-buffer/kani/proofs.rs
+8a07406a1c43a20cc082e60b415ed0cde1a2cb9832ffdac17e2043efb3d5d807  tasks/t01-ring-buffer/kani/proofs.rs
 c60aaca028244cc7e16af07d866ed9cee8d157d081733dddedac69bc5c8cf60d  tasks/t01-ring-buffer/mutant/lib.rs
 305cd75fb34235d6308b0b5fac8c451f7fbcbb6f89dfbd1ff9c1a0b90480ba92  tasks/t01-ring-buffer/mutant/solution.c
 90255a9798e5921d89b87da055faf90ae47a5c2bed91a00342afdd16603f0e3d  tasks/t01-ring-buffer/reference/lib.rs
@@ -20,7 +20,7 @@ a7e2875c2555799e208cbfcd48e769f9601878011c5fbed26dd23a36034fa347  tasks/t01-ring
 0713cc1ea20fb7ec6c5abf2f9639c3e8ce26917196ae36f1a5551672faa18ed3  tasks/t02-q15-saturating/hidden/test_main.c
 7f58f0061edb070f8e35d53fa390419b0a947836e7721f7040cf75f3d507c142  tasks/t02-q15-saturating/hidden/vectors.h
 3bd8183479c07f30fe505c5068506a43f05d1a19864d8436a916a33ee029d773  tasks/t02-q15-saturating/hidden/vectors.rs
-eb8ebc939a47647b9c2e9c67883863cf0f4c6dfc1b9be8f418c138a3a1703051  tasks/t02-q15-saturating/kani/proofs.rs
+0708b12d7e85aaebf627000a8095f99bd799e3d4cd568e5e72cb2304af602da9  tasks/t02-q15-saturating/kani/proofs.rs
 54041b7add0697b6f3faa9973c84c01e6437b02e34fe2138e4af2609a287bbe8  tasks/t02-q15-saturating/mutant/lib.rs
 caeed818d8ecd8a8afe566fe945b921e79c135807f6718de8f72d69692fe3978  tasks/t02-q15-saturating/mutant/solution.c
 f2cdba8345a1b7c4925f99d6566d6ec0f360cf9734d7e4824f23d7ea89b3b285  tasks/t02-q15-saturating/reference/lib.rs

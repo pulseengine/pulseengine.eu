@@ -18,7 +18,7 @@ tasks/<id>/
   spec.md                    behaviour spec, numbered sentences (shown to the model)
   c/<header>.h, c/stub.c     fixed C header and stub (shown)
   rust/stub.rs               Rust stub (shown)
-  kani/proofs.rs             fixed Kani harnesses (shown at F4 only, never editable)
+  kani/proofs.rs             fixed Kani harnesses (shown at F4 only, never editable; built as a separate crate)
   hidden/                    the oracle; never shown, every file carries a canary
     gen_vectors.py           one Python reference model -> vectors.h + vectors.rs
     test_main.c, hidden.rs   C and Rust drivers over the same vectors
@@ -62,6 +62,27 @@ versions and the hash of `frozen.sha256`. `matrix` skips a run that is
 already `ok` and re-runs one that is `could-not-run`. It stops cleanly at a
 usage limit, so running the same command again resumes. Scratch builds go
 to `work/`, which git ignores.
+
+The record also holds the secondary measures:
+- gaming attempts per iteration;
+- edit size;
+- findings count;
+- stalls;
+- the stop reason.
+
+**Every run's full model I/O is stored next to its record,** in
+`results/<task>/<level>/<model>/rep<k>.transcript/attempt-NN/`. Each
+iteration's prompt, raw `claude -p` JSON, answer and findings text get their
+own file:
+- each file is written once (append-only) and hashed in the record;
+- a re-run gets a new `attempt-NN`;
+- a canary check stops the run if hidden-test content ever appears in a
+  prompt or a transcript file.
+
+**Privacy: transcripts and run records stay on the bench machine.**
+`results/` is git-ignored and is never committed. Reports publish aggregates
+only: cell tables, hypothesis verdicts and secondary measures. They never
+publish prompts, answers or code.
 
 Environment overrides, for tool paths only: `FXM_CLAUDE`, `FXM_CC`,
 `FXM_CPPCHECK`, `FXM_RUST_TOOLCHAIN`, `FXM_MIRI_TOOLCHAIN`. `check-tools`
@@ -147,12 +168,34 @@ Without a model or a toolchain, the self-test checks:
 - no hidden file reaches any argv or stdin, at any level, for both tasks;
 - a model swap, a usage limit or a CLI failure is could-not-run, and a
   transient failure is retried;
-- the suppression scan;
+- the suppression scan:
+  - every bypass form in `RUST_BYPASSES` and `C_BYPASSES` is caught;
+  - nothing in `RUST_BENIGN` is flagged;
+  - the expanded-source allowlist;
+  - the harnesses use only absolute `::core::assert!` paths and named
+    imports;
+- a stub-model suppression attempt:
+  - it counts as a gaming attempt;
+  - it is fed back as a finding, so the loop goes on;
+  - its transcript files are stored, hashed and append-only;
+  - a re-run gets a new attempt directory;
+- stalls, edit size and stop reasons;
 - an edited Kani harness stops the run;
 - the committed vectors equal a fresh generation;
-- the Wilson intervals, the decision rule and the thesis verdict, on known
-  values.
+- on known values:
+  - the Wilson intervals;
+  - the decision rule;
+  - the thesis verdict, per language and overall, including with a dropped
+    column;
+  - the model spread.
 
-`--with-tools` adds the real oracle on the reference and the mutant through
-the stub model in both languages. It also runs a violating-then-fixed answer
+`--with-tools` adds the real oracle on the reference and the mutant, through
+the stub model, in both languages. It also runs a violating-then-fixed answer
 pair through the loop to a clean stop.
+
+On the toolchain, `check-tasks` also checks that:
+- each friction level can fail, through a probe;
+- F4 still fails when the model defines macros that shadow `assert!` and
+  `assert_eq!`;
+- the expanded-source scan alone catches every lint-level bypass form under
+  real rustc.
