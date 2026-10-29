@@ -351,6 +351,18 @@ claims:
         pattern: '\*\*3\.8 per 100\*\*: 19 raw pairs in 500 first-parent merges'
         glob: ['docs/experiments/2026-10-refactor-decision-relay.md']
         min: 1
+  - id: SKILL-FRONTMATTER-STRICT-YAML
+    doc: scripts/check-skill-frontmatter.py
+    text: "strict readers such as Copilot CLI REFUSE TO LOAD the skill"
+    evidence:
+      - kind: count-min
+        pattern: 'parsed = yaml\.safe_load\(m\.group\(1\)\)'
+        glob: ['scripts/check-skill-frontmatter.py']
+        min: 1
+      - kind: count-min
+        pattern: 'a gate that cannot parse must not pass'
+        glob: ['scripts/check-skill-frontmatter.py']
+        min: 1
   - id: EXPERIMENT-HOTSPOT-TRIGGER-PREREGISTERED
     doc: content/blog/2026-10-22-agents-dont-tidy-up.md
     text: "recorded in the repository as a checked claim, dated 22 October 2026"

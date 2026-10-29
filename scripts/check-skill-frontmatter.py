@@ -31,6 +31,12 @@ import pathlib
 import re
 import sys
 
+try:
+    import yaml
+except ImportError:  # a gate that cannot parse must not pass
+    print("error: PyYAML is required (pip install pyyaml)", file=sys.stderr)
+    sys.exit(2)
+
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 SKILLS = ROOT / "claude-tooling" / "plugins" / "pulseengine-claude" / "skills"
 
@@ -61,7 +67,25 @@ def main() -> int:
             problems.append(f"{d.name}: no YAML frontmatter block")
             continue
 
-        fields = {k: v.strip() for k, v in FIELD.findall(m.group(1))}
+        # A strict YAML parser must accept the block. Claude Code reads it
+        # leniently, but Copilot CLI uses a strict parser and refuses the whole
+        # skill on e.g. an unquoted ": " inside a plain-scalar description
+        # ("mapping values are not allowed"). A lenient regex read cannot see that.
+        try:
+            parsed = yaml.safe_load(m.group(1))
+        except yaml.YAMLError as e:
+            first = str(e).splitlines()[0]
+            problems.append(
+                f"{d.name}: frontmatter is not valid YAML ({first}) — "
+                f"strict readers such as Copilot CLI REFUSE TO LOAD the skill; "
+                f"quote the value or use a block scalar"
+            )
+            continue
+        if not isinstance(parsed, dict):
+            problems.append(f"{d.name}: frontmatter is not a YAML mapping")
+            continue
+        fields = {k: str(v).strip() for k, v in parsed.items()
+                  if k in ("name", "description") and v is not None}
 
         name = fields.get("name")
         if not name:

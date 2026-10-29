@@ -1,9 +1,9 @@
 ---
 name: factory-notice
-description: This skill should be used whenever an agent runs unattended (a dark-factory session, /loop, a scheduled agent, a delegated campaign) and reaches a moment the owner must know about or act on: a fork it would otherwise ask about, a blocker, something shipped, the end of a session. Use it when the user says "notify me", "post a notice", "ask me later", "don't wait for me", "check for my answers", "review my decisions" or "report into warte". It posts one versioned notice per event to warte when PULSEENGINE_WARTE_URL answers and always to a user-level local store. A needs-decision notice is an option dialogue (pros, cons, a recommendation); the agent does not take the fork, works on, and polls for the answer. An attention budget rations the owner: 3 flows ask at a time, the rest queue and are kept, questions reach him only in decision windows, and one digest plus `notice.py review` answer them in one sitting. Answers count only for an offered option at the current revision, once. Composes with issue-hunt.
+description: "This skill should be used whenever an agent runs unattended (a dark-factory session, /loop, a scheduled agent, a delegated campaign) and reaches a moment the owner must know about or act on: a fork it would otherwise ask about, a blocker, something shipped, the end of a session. Use it when the user says \"notify me\", \"post a notice\", \"ask me later\", \"don't wait for me\", \"check for my answers\", \"review my decisions\" or \"report into warte\". It posts one versioned notice per event to warte when PULSEENGINE_WARTE_URL answers and always to a user-level local store. A needs-decision notice is an option dialogue (pros, cons, a recommendation); the agent does not take the fork, works on, and polls for the answer. An attention budget rations the owner: 3 flows ask at a time, the rest queue and are kept, questions reach him only in decision windows, and one digest plus `notice.py review` answer them in one sitting. Answers count only for an offered option at the current revision, once. Composes with issue-hunt."
 metadata:
   author: pulseengine.eu
-  version: "0.2.0"
+  version: "0.2.1"
 ---
 
 # Factory notice: tell the owner what happened and where he must act
