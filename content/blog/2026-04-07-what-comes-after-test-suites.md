@@ -68,7 +68,7 @@ Formal verification of rivet's own core data structures — Verus specs and Kani
 
 [sigil](https://github.com/pulseengine/sigil) embeds cryptographic signatures inside WebAssembly modules. Verification works offline — no registry, no network. This matters for embedded systems and air-gapped environments where you cannot call out to a signing authority at verification time.
 
-The signing chain covers Sigstore keyless signing (OIDC → Fulcio → Rekor), SLSA L4 provenance predicates, and transformation attestations — so each step from source through fusion through optimization to binary is signed independently. Post-quantum signature support (SLH-DSA / FIPS 205) is in progress.
+The signing chain covers Sigstore keyless signing (OIDC → Fulcio → Rekor), SLSA provenance at L2 and L3, and transformation attestations — so each step from source through fusion through optimization to binary is signed independently. Post-quantum signature support (SLH-DSA / FIPS 205) is in progress.
 
 ### Keeping governance at velocity
 
@@ -113,3 +113,5 @@ The infrastructure has to exist before the velocity makes it impossible to retro
 *[PulseEngine](/) is a WebAssembly Component Model engine
 for safety-critical systems, with machine-checked proofs for parts of it
 (work in progress). Code at [github.com/pulseengine](https://github.com/pulseengine). All tools are open source under Apache-2.0 or MIT.*
+
+*Corrected on 29 October 2026: the sigil paragraph said the signing chain covers "SLSA L4 provenance predicates". SLSA v1.0 defines build levels L0 to L3 only; sigil withdrew its Level 4 claim after [sigil#216](https://github.com/pulseengine/sigil/issues/216), in v0.10.0 on 7 August, and the [23 April post](@/blog/2026-04-23-spec-driven-development-is-half-the-loop.md) already described sigil's provenance as L2 and L3.*

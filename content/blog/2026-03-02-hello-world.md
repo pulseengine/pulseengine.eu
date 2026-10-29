@@ -47,3 +47,5 @@ kiln interprets and executes components directly. synth transcodes them to nativ
 Subscribe to the [Atom feed](/atom.xml) to get new posts in your reader. Or check back here — we will keep things moving.
 
 *Corrected on 27 October 2026: the opening no longer claims a mathematical proof that each transformation is correct or a qualification products inherit today, and the engine paragraph no longer says sigil attests every transformation end to end.*
+
+*Revisited on 29 October 2026: none of the posts since this one is a "This Week in PulseEngine" roundup. The month-by-month [timeline](@/timeline.md) now records what changed across the org between posts.*

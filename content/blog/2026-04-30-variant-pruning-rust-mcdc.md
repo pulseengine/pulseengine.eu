@@ -137,3 +137,5 @@ What this post contributes, as far as I can tell, is the Rust + AI-authorship an
 *This post is part of [PulseEngine](/) — a WebAssembly Component Model engine
 for safety-critical systems, with machine-checked proofs for parts of it
 (work in progress). Prior posts in the arc: [Formal verification just became practical](/blog/formal-verification-ai-agents/), [What comes after test suites](/blog/what-comes-after-test-suites/), [Spec-driven development is half the loop](/blog/spec-driven-development-is-half-the-loop/).*
+
+*Revisited on 29 October 2026: "strictly less" is still an argument without a measurement, and no later post compares MC/DC effort for Rust and C on the same product. At the Wasm level this post describes, [witness](https://github.com/pulseengine/witness) now measures MC/DC-style branch coverage on the compiled components, but I found no Rust-against-C comparison produced with it.*

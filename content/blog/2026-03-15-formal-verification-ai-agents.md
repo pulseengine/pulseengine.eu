@@ -143,3 +143,5 @@ The proof is not in a paper. It is in the CI log.
 *This post is part of [PulseEngine](/) — a WebAssembly Component Model engine
 for safety-critical systems, with machine-checked proofs for parts of it
 (work in progress).*
+
+*Revisited on 29 October 2026: no later post has measured proof effort, so "orders of magnitude" is an impression from March, not a measurement. [Where the seams still show](@/blog/2026-07-12-where-the-seams-show.md) later recorded what the proofs cover: several verify a hand-transcribed model of the code rather than the shipped code, and parts of gale's scheduler are still admitted stubs.*

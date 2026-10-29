@@ -271,3 +271,5 @@ chips, with a path to a multi-tenant one that never grows what you trust.
 *Where this sits in the wider toolchain: [how it works](@/how-it-works.md).*
 
 *Corrected on 28 October 2026: the dissolve path was called "the certified hot path". Nothing in it is certified; it is the hot path that synth transcodes ahead of time into a static native image.*
+
+*Revisited on 29 October 2026: the title says more than the post shows. Its own table lists one kernel primitive, the semaphore, as shipped with Verus and Rocq proofs and the rest of the scheduler and primitives as in progress; the drivers carry Kani proofs, and the MPU work is a proven model of the region arithmetic that does not yet program an MPU. The title is kept so the link stays stable: read it as an OS composed from components, some of which are verified.*

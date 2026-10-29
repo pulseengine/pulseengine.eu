@@ -98,3 +98,5 @@ arrows didn't connect is the honest one.
 [playground-eclipse-score](https://github.com/pulseengine/playground-eclipse-score)
 / [example-kvs](https://github.com/pulseengine/example-kvs) for the two repos above.
 Not affiliated with the Eclipse Foundation.*
+
+*Revisited on 29 October 2026: example-kvs has not changed since this post. Its main branch is still the single commit from 24 May, its README still says the verification gate runs as a stub, and [PR #2](https://github.com/pulseengine/example-kvs/pull/2), which would build the AADL to WIT to `.wasm` chain end to end, has been open since 24 May with its last four CI runs failing.*

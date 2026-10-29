@@ -129,7 +129,7 @@ The librarian metaphor — *"the librarian writes index cards and essays, not re
 
 ## What this changes
 
-[PR #205](https://github.com/pulseengine/rivet/pull/205) is the union doing the work. The Mythos slop-hunt audit pipeline at `scripts/mythos/` ran the oracle-gated pattern over rivet's own codebase: it confirmed three orphan-slop chains (DD-064, DD-065, DD-066), wired three approved-but-unrealized requirements (REQ-027, REQ-006, FEAT-011) into live tested implementations, and moved traceability coverage from 87/236 (36.9%) to 94/238 (39.5%) on a single branch. Twelve typed artifacts, mechanical oracles confirming each, ~370 lines of orphan code deleted, no LLM hallucinations because the oracle either fires or it doesn't.
+[PR #205](https://github.com/pulseengine/rivet/pull/205) is the union doing the work. The Mythos slop-hunt audit pipeline at `scripts/mythos/` ran the oracle-gated pattern over rivet's own codebase: it confirmed three orphan-slop chains (DD-064, DD-065, DD-066), wired three approved-but-unrealized requirements (REQ-027, REQ-006, FEAT-011) into live tested implementations, and moved traceability coverage from 87/236 (36.9%) to 94/238 (39.5%) on a single branch. Twelve typed artifacts, mechanical oracles confirming each, ~370 lines of orphan code deleted, no hallucination survived, because the oracle either fires or it doesn't.
 
 That run does not happen — not in the same way, not with the same audit-readable evidence — if you take any one of the three pillars away. Without typed compliance, there is no place for the audit findings to land. Without oracle-gated agents, there is no mechanical signal separating real findings from confident-sounding hallucinations. Without LLM-maintained knowledge, there is no agent doing the labor that lets you do an audit at this depth in a session, instead of in a quarter.
 
@@ -138,3 +138,5 @@ That is the synthesis worth defending. Not as a roadmap claim, not as foresight,
 [^seo-warlord-comment]: Comment by `@SEO-Warlord` on Karpathy's gist, 2026-04-23. The thread itself is worth reading end-to-end — the architectural debate between "LLM Wiki" and "Zettelkasten" framings is more useful than the gist alone.
 
 [^gnusupport-comment]: Comment by `@gnusupport` on the same gist. The post is intemperate ("ARCHITECTURAL CRIME SCENE") but the underlying critique — un-audited LLM prose summarising LLM prose with no source provenance is dangerous — is the exact failure mode rivet's typed schema and `Provenance.reviewed_by` are designed to prevent.
+
+*Corrected on 29 October 2026: the PR #205 paragraph said the run produced "no LLM hallucinations". The [slop-hunt post](@/blog/2026-04-25-mythos-slop-hunt.md) on the same run records that one discovery agent proposed a fifth, non-existent symbol, which grep refuted before anything was deleted, so the sentence now says no hallucination survived.*
