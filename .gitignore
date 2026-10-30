@@ -32,3 +32,7 @@ __pycache__/
 # committed: a stale copy in git is exactly the silently-old number the panel
 # exists to refuse.
 data/evidence.json
+
+# Fixture dirs the hook checks create inside the checkout (outside every temp
+# root, on purpose) and remove; an interrupted run must not commit one.
+.hookfix-*/

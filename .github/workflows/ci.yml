@@ -350,10 +350,24 @@ jobs:
       # tokens and network never reach it. Must deny the synth INC-2026-10-006
       # identity and the smithy#45 --auto merge, allow protected and allow-listed
       # cases, warn rather than block on API failure, and stay silent elsewhere.
+      # 0.50.0 (REQ-GUARDS-050) extends the same script: --admin and API
+      # merges, red/pending direct merges, update-branch, unsigned commits and
+      # identity writes, tags and publishes off green main, host-shaped commit
+      # and PR text, PR admission advice, and the SessionStart signing probe.
+      # The signing cases need a fixture outside every temp root, so the script
+      # makes a .hookfix-* dir in the checkout and removes it.
       - name: Check the commit-merge-guard hook denies only what it should
         run: |
           set -euo pipefail
           python3 scripts/check-commit-merge-guard.py
+
+      # The PreToolUse(Edit|Write|MultiEdit) private-host-guard hook
+      # (REQ-GUARDS-050): asks on a host-shaped value written into a git repo,
+      # silent for temp dirs, ~/.claude, non-repos, ignored files, allow-lists.
+      - name: Check the private-host-guard hook asks only where it should
+        run: |
+          set -euo pipefail
+          python3 scripts/check-private-host-guard.py
 
       # External review of #232 found a compiled .pyc in that PR and a second
       # one tracked for longer, with all ten gates green over both: each asked
