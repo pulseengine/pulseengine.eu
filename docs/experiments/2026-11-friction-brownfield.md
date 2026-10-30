@@ -546,3 +546,114 @@ Decided on #318, before any v2 task exists:
 
 Still open: the timeline, in quota weeks. Calibration measures how much of a
 week one round takes.
+
+## 2026-10-30: first task authored; C twin accepted, Rust twin not, so not ready for calibration
+
+The first task, `b01-modbus-fc17`, is a Modbus RTU server with function code
+0x17 (Read/Write Multiple Registers) removed. 0x17 was chosen over 0x16 (Mask
+Write Register) because it crosses more of the code base and more of its
+invariants: two quantity fields with different limits (read 1 to 125, write 1
+to 121), a byte count that must match the write quantity, two address ranges
+checked against the holding-register map, the write performed before the
+read, and the shared exception and counter paths. Removing it leaves a
+baseline that answers 0x17 with exception 0x01, so the new-behaviour suite
+fails on the baseline by behaviour and not only by a missing name.
+
+**Acceptance checks** (`experiments/friction-brownfield/check_task.py`, one
+command and one exit code per check, run on the bench machine):
+
+| check | C | Rust |
+|---|---|---|
+| 1 baseline: builds clean, visible and regression pass | 0 | 0 |
+| 2 baseline fails the new-behaviour suite | 0 | 0 |
+| 3 reference: all suites pass, no new findings, Kani | 0 | **1** |
+| 4 invariant mutant: new passes, regression fails | 0 | 0 |
+| 5 visible-pass mutant fails a hidden suite | 0 | 0 |
+| 6 probes: a new finding from each real tool | 0 | **1** |
+| 7 visible and hidden suites share no case | 0 | **1** |
+| 8 new names are in the change request | 0 | 0 |
+| 9 prompt under the 90K-token cap | 0 | 0 |
+| 10 split re-derives, noise inside the budget | 0 | **1** |
+
+Rust check 8 first failed on a parser defect in the check (rustc 1.96 words
+error E0599 differently). The check was fixed and re-run, and its result is
+the 0 above. All 10 C negative controls passed: each one broke its check
+(exit 1), was reversed by the opposite edit, and the check exited 0 again.
+For Rust, the 6 negative controls of checks 1, 2, 4, 5, 8 and 9 passed. The
+controls for checks 3, 6, 7 and 10 cannot run, because those checks do not
+pass in the restored state.
+
+**Why the Rust twin fails:**
+
+- Check 3: the 0x17 code adds 14 Clippy findings. The 0x17 Kani harness
+  (`#[kani::unwind(450)]`) does not finish within 900 s. That was measured
+  with a load average of about 12 from unrelated jobs on the bench machine;
+  the CRC and frames harnesses took 3 s and 29 s in the same run.
+- Check 6 fails because of that harness: the B3 probe gets no Kani result.
+- Check 7: no whole case is shared. The stricter guard on hand-written
+  visible tests fails: an RTU receiver test sends a request byte for byte
+  identical to the follow-up step of a hidden regression case.
+- Check 10: three `#[allow(clippy::...)]` attributes name lints that do not
+  exist, which rustc reports as `unknown_lints` under Clippy.
+
+Vibe's own done gate had passed the Clippy comparison. The gate ran both
+Clippy runs on one cargo target directory, so the second run printed no
+fresh warnings. That is a defect in the gate we wrote for Vibe. The
+acceptance check uses separate directories.
+
+**Authoring** (`experiments/friction-brownfield/authoring/b01-modbus-fc17.json`):
+Mistral Vibe 3.0.2, model `mistral-medium-3.5` (`mistral-vibe-cli-latest`),
+`--auto-approve`, headless. One round is one invocation. The C twin took 4
+rounds, one more than the guidance of about 3. Rounds 1 and 3 ended with the
+model stopping on its own, so round 4 used an executable done gate in place
+of more wording. The Rust twin took 3 rounds. Its third round ended at HTTP
+402, "Vibe budget exhausted". Vibe reports $34.32 for all seven rounds, at
+its configured prices; that is not Mistral's bill. No further round can run
+until the Mistral budget is raised.
+
+**The authoring boundary, stated exactly.** Vibe's own `MISTRAL_API_KEY`
+was in its environment. An ssh session cannot unlock the keychain where
+Vibe keeps the key, so a launchd job in the GUI session read it and passed it
+through a FIFO; it was never written to disk. No other credential was in the
+environment: no `GITHUB_TOKEN`, no `CLAUDE_CODE_OAUTH_TOKEN`, no `gh`, and no
+git repository or remote. The boundary paragraph above ("No credentials or
+tokens are in its environment") is to be read with this exception.
+
+**What the task builder (Claude) changed after authoring.** None of these
+is code-base authorship:
+
+- The C Makefile lists its sources with `$(wildcard src/*.c)`, so that a new
+  source file builds without a Makefile edit, which the agent may not make.
+- The vector generator has a split filter. The hidden groups now share no
+  whole case with the visible group, and 0x10 at quantities 122 and 123 is
+  hidden-only. The authoring spec asked for both; the generator did not
+  deliver them. The filter removed 1 visible and 4 regression cases.
+- Noise budget, C: set at 20 to 50 MISRA findings before authoring, then
+  moved to 30 to 150 and to 150 to 250. The baseline has 196. The Rust budget
+  (20 to 150 Clippy warnings; the baseline has 125) did not move.
+
+Vibe rewrote the given `strip_fc17.py` in C rounds 1 to 3, although told not
+to. The checks never use it. From then on every given file was hash-checked
+before and after each round.
+
+**Sizes and prompt.**
+
+- C baseline: 2,344 lines (1,434 library, 910 visible tests), plus 332
+  lines of generated visible vectors.
+- Rust baseline: 2,409 lines (1,922 library, 487 visible tests), plus 274
+  lines of vectors.
+- Baseline prompt: 109,382 bytes for C and 92,478 for Rust. At a
+  pessimistic 2 bytes per token plus 8K, that is 62,691 and 54,239 tokens,
+  under the 90K cap. These are byte bounds, not token counts: no tokenizer
+  was called.
+
+**Not ready for calibration.** The twins move together, and the Rust twin
+fails 4 checks. To get there, the Rust 0x17 code must add no Clippy finding,
+the 0x17 Kani harness must finish within 900 s, the visible RTU test must
+use a frame that no hidden case uses, and the three unknown-lint `allow`s
+must name real lints. The generator needs one more case too:
+`n_fc17_read_qty_125` sends write quantity 0, so it tests exception 0x03,
+and the fc17 suite has no normal response at read quantity 125. Either Vibe makes these fixes in a fourth Rust round
+once its budget is raised, or the owner decides otherwise. The task's hashes
+are in `experiments/friction-brownfield/tasks.sha256`, as an authoring
+snapshot. They are not the pre-calibration freeze.

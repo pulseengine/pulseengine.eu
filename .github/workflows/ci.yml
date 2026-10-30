@@ -226,6 +226,11 @@ jobs:
       - name: Check the friction x model harness
         run: python3 experiments/friction-x-model/fxm.py self-test
 
+      # The v2 (brownfield) acceptance checks' pure parts: edit derive/apply,
+      # the feature-marker split, missing-name and literal parsers. No toolchain.
+      - name: Check the friction brownfield acceptance checks
+        run: python3 experiments/friction-brownfield/check_task.py self-test
+
       # The issue-hunt backlog brake's decision table (REQ-ISSUE-CLASS-RATCHET).
       # It lives here, in `build`, because `build` is the only context branch
       # protection actually requires — a job in its own path-filtered workflow
