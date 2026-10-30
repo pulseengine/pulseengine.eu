@@ -1,12 +1,14 @@
 ---
 name: delegate-by-cost
-description: "Use this skill BEFORE EVERY Agent (Task) call, to choose `model:`, and whenever a delegated tier has failed the same check twice and the question is retry, escalate or stop. From an opus or fable parent, mechanical work with an exact check (grep, census, count, extract, file:line list, build-and-test against a red/green test) goes to `model: haiku`; `sonnet` only where the subtask needs judgment that is not top-tier; a subagent with no `model:` runs at the parent's price by default. Delegated work is mostly cache reads, and haiku's cache read costs a twentieth of opus's (a quarter past 100K-token prompts) while sonnet's costs half. Escalate one rung at a time only on a mechanical failure, and at the top rung stop and ask the user. No cheap check, no delegation. Also fires on \"use a cheaper model\", \"try haiku first\", \"escalate it\". Composes with oracle-gate-a-change, verify-your-own-claims and proof-synthesis."
+description: "Use this skill BEFORE EVERY Agent (Task) call, to choose `model:`, and when a delegated tier fails the same check twice. Mechanical work with an exact check goes to `model: haiku`; sonnet only where judgment is needed."
 metadata:
   author: pulseengine.eu
   version: "0.2.0"
 ---
 
 # Delegate by cost — choose `model:` before every Agent call
+
+**When to use:** before every Agent call, to choose `model:`, and when a delegated tier has failed the same check twice and the question is retry, escalate or stop. Also fires on "use a cheaper model", "try haiku first" or "escalate it". The rule: mechanical work with an exact check (grep, census, count, extract, file:line list, build-and-test against a red/green test) goes to `model: haiku`; `sonnet` only where the subtask needs judgment that is not top-tier. Why: haiku's cache read costs a twentieth of opus's (a quarter past 100K-token prompts) while sonnet's costs half. Composes with oracle-gate-a-change, verify-your-own-claims and proof-synthesis.
 
 **Every Agent call gets an explicit `model:`.** A call without one runs on the parent's model and
 the parent's price (unless a default subagent model is configured); that is the default you are

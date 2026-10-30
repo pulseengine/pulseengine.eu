@@ -1,12 +1,14 @@
 ---
 name: traceability-audit
-description: This skill should be used to ensure the rivet traceability graph is COMPLETE and bidirectional across the whole V — requirement → architecture → design → code, and back up through unit, integration, and system/requirements-qualification tests — for ANY safety standard the project targets (DO-178C aerospace, ISO 26262 automotive, EN 50128 rail, IEC 61508 functional-safety, IEC 62304 medical, ASPICE, SOTIF, EU AI Act), including components certified to several at once. Use it both while authoring — adding findings and wiring their linkages as you go — and as the blocking check before a release. Use it whenever the question is "are all the rivet artifacts in and properly linked", "is every requirement designed/implemented/tested at each level", "did we capture this finding into rivet", or before tagging when the V-model gate must hold. It defines the closure rules the release V-model gate enforces; pair with oracle-gate-a-change (rivet check is the oracle) and proof-synthesis.
+description: This skill should be used to ensure the rivet traceability graph is complete and bidirectional across the whole V, for any safety standard the project targets (DO-178C, ISO 26262, IEC 61508, ASPICE and others). Use it when asking "are all the rivet artifacts in and properly linked", or as the blocking check before tagging.
 metadata:
   author: pulseengine.eu
   version: "0.4.0"
 ---
 
 # Traceability audit
+
+**When to use:** the rivet graph must be complete and bidirectional (requirement → architecture → design → code, and back through unit, integration and system tests) for any targeted standard: DO-178C, ISO 26262, EN 50128, IEC 61508, IEC 62304, ASPICE, SOTIF, EU AI Act, including components certified to several at once. Use it while authoring, when asking "is every requirement designed/implemented/tested at each level" or "did we capture this finding into rivet", and before tagging. It defines the closure rules the release V-model gate enforces; pair it with oracle-gate-a-change (rivet check is the oracle) and proof-synthesis.
 
 Certification credit — in *any* domain — comes from a **closed, bidirectional**
 trace: every requirement flows down to architecture, design, and code, and back

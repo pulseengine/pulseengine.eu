@@ -1,12 +1,14 @@
 ---
 name: clean-room-verification
-description: This skill should be used whenever findings, audits, code-review results, claims, or analysis output need to be validated before reporting — including "verify this", "double-check this", "audit", "is this actually true", "before I report this", "before we merge this", or whenever an agent's summary needs independent confirmation. ALWAYS use this skill before delivering non-trivial inspection results, before claiming a property holds, and whenever agent-produced hashes, digests, versions, file paths, or flag names appear in a report.
+description: This skill should be used whenever findings, audits, code-review results or analysis output need validating before reporting, such as "verify this", "double-check this", "is this actually true" or "before I report this". Use it before claiming a property holds.
 metadata:
   author: pulseengine.eu
   version: "0.4.1"
 ---
 
 # Clean-room verification
+
+**When to use:** before reporting audit or code-review results, before claiming a property holds, before we merge this, and whenever an agent's summary needs independent confirmation, or agent-produced hashes, digests, versions, file paths or flag names appear in a report.
 
 ## When this fires
 

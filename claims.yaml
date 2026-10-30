@@ -2689,3 +2689,62 @@ claims:
         pattern: 'admission_log\("fail: %s %s" % \(repo, type\(e\)\.__name__\)\)\n        return\n'
         glob: ['claude-tooling/plugins/pulseengine-claude/hooks/commit-merge-guard.py']
         min: 1
+
+  # ── The core contract arrives whole, and no hook can exceed the cap ─────────
+  # REQ-CORE-CONTRACT-WHOLE. The 48 KB methodology block was cut to a preview
+  # for five months. The memory hook now injects only the core, every
+  # SessionStart hook goes through lib-emit.sh, and CI runs every hook against
+  # the cap. scripts/check-hook-context-size.py tests behaviour; this keeps the
+  # cap, the wiring through the emitter and the CI step.
+  - id: CORE-CONTRACT-WHOLE
+    doc: claude-tooling/plugins/pulseengine-claude/README.md
+    text: "fails CI if any string the model would see exceeds 9,500 characters, or if the core arrives cut"
+    evidence:
+      - kind: count-min
+        pattern: '\nPULSEENGINE_CONTEXT_MAX=9500\n'
+        glob: ['claude-tooling/plugins/pulseengine-claude/hooks/lib-emit.sh']
+        min: 1
+      - kind: count-min
+        pattern: '\} \| emit_context [a-z-]+\n'
+        glob: ['claude-tooling/plugins/pulseengine-claude/hooks/inject-pulseengine-memory.sh', 'claude-tooling/plugins/pulseengine-claude/hooks/inject-situational-awareness.sh', 'claude-tooling/plugins/pulseengine-claude/hooks/inject-rivet-context.sh']
+        min: 3
+      - kind: count-max
+        pattern: 'jq -Rs'
+        glob: ['claude-tooling/plugins/pulseengine-claude/hooks/inject-pulseengine-memory.sh', 'claude-tooling/plugins/pulseengine-claude/hooks/inject-situational-awareness.sh', 'claude-tooling/plugins/pulseengine-claude/hooks/inject-rivet-context.sh']
+        max: 0
+      - kind: count-max
+        pattern: 'cat "\$f"'
+        glob: ['claude-tooling/plugins/pulseengine-claude/hooks/inject-pulseengine-memory.sh']
+        max: 0
+      - kind: count-min
+        pattern: 'CONTEXT_MAX = 9500'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/factory-notice/notice.py']
+        min: 1
+      - kind: count-min
+        pattern: '\n +python3 scripts/check-hook-context-size\.py\n'
+        glob: ['.github/workflows/ci.yml']
+        min: 1
+      - kind: count-max
+        pattern: '\n +python3 scripts/check-hook-context-size\.py\n'
+        glob: ['.github/workflows/ci.yml']
+        max: 1
+      - kind: count-min
+        pattern: '\nCAP = 9500\n'
+        glob: ['scripts/check-hook-context-size.py']
+        min: 1
+
+  # ── Skill descriptions stay short ───────────────────────────────────────────
+  # REQ-SKILL-DESC-CAP. Every session and every subagent pays for every skill
+  # description (~20k chars for 24 skills before 0.51.0).
+  - id: SKILL-DESC-CAP
+    doc: claude-tooling/plugins/pulseengine-claude/README.md
+    text: "Each skill's description is at most 350 characters"
+    evidence:
+      - kind: count-min
+        pattern: '\nDESC_CAP = 350 '
+        glob: ['scripts/check-skill-frontmatter.py']
+        min: 1
+      - kind: count-min
+        pattern: 'if n > DESC_CAP:'
+        glob: ['scripts/check-skill-frontmatter.py']
+        min: 1

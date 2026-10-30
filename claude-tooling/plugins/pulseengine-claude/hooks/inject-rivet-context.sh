@@ -12,11 +12,8 @@
 #
 # No network. Fails open: any error yields no injected context.
 
-emit() {
-  if command -v jq >/dev/null 2>&1; then
-    jq -Rs '{hookSpecificOutput: {hookEventName: "SessionStart", additionalContext: .}}'
-  fi
-}
+# shellcheck source=lib-emit.sh
+. "$(dirname "$0")/lib-emit.sh"
 
 command -v rivet >/dev/null 2>&1 || exit 0
 
@@ -48,15 +45,5 @@ gaps="$(rivet coverage 2>/dev/null | awk '
     printf '%s\n' "$gaps"
   fi
   echo
-  echo "**Use rivet's own commands — do not grep/jq/sed the artifact YAML.** The tool answers these"
-  echo "directly, and its built-in docs are versioned with the binary while a skill is not:"
-  echo
-  echo '    rivet docs [topic]    authoritative reference; `rivet docs cli` lists every command'
-  echo '    rivet get <ID>        one artifact resolved, with links and fields'
-  echo "    rivet query '(and (= type \"requirement\") (!= status \"verified\"))'"
-  echo '    rivet list | stats | coverage | trace <ID> | impact <ID> | bundle <ID>'
-  echo '    rivet add | link | modify | remove | next-id     mutate; never hand-edit YAML'
-  echo
-  echo "\`rivet context\` writes a fuller \`.rivet/agent-context.md\` (schema, link types, rules) —"
-  echo "run it deliberately when doing traceability work; note it creates an untracked file."
-} | emit
+  echo "Ask rivet, not the YAML: \`rivet docs cli\` lists every command. \`rivet context\` writes a fuller \`.rivet/agent-context.md\` (an untracked file)."
+} | emit_context rivet-context

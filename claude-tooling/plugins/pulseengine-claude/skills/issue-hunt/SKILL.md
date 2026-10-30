@@ -1,6 +1,6 @@
 ---
 name: issue-hunt
-description: This skill should be used to run an incremental bug/feature hunt over a repo's issue tracker — pick up everything NEW since the last pass (new issues and new comments), digest and triage it, work the actionable items through the verification chain, and accumulate toward a feature release. Use it when the user says "hunt the issues", "do a bug/feature hunt", "look into the issues and work them", "loop through the issues", "digest the new issues and comments since last time", or wants a standing loop (via /loop or a scheduled agent) that drives the tracker toward releases. One invocation is one pass; the "since last time" watermark is what makes it a loop rather than a full re-scan. Composes with release-planning (land + ship), the feature loop, and the operating contract.
+description: This skill should be used to run an incremental bug/feature hunt over a repo's issue tracker, picking up only what is NEW since the last pass. Use it when the user says "hunt the issues", "do a bug/feature hunt" or "loop through the issues", or wants a standing loop that drives the tracker toward releases.
 metadata:
   author: pulseengine.eu
   version: "0.4.5"
@@ -136,8 +136,8 @@ digest the entire backlog.
    [`pulseengine-operating-contract`]). If you open a PR but can't land it this
    pass (CI still running, a release fork you must pause at), **record it in
    `pending_gates`** with its `action_on_green` — don't end the pass on the
-   promise of a merge you didn't make. Before opening it, ask for admission
-   ([`ci-status`] → "Before opening a PR"); a pass's trivial fixes share one PR
+   promise of a merge you didn't make. The plugin's hook gives admission advice
+   on `gh pr create` ([`ci-status`] holds the rule); a pass's trivial fixes share one PR
    per repo (see [`pulseengine-operating-contract`] → "One PR per repo per
    session for trivial changes").
 5. **Advance the watermark** to this pass's start time, **and** update

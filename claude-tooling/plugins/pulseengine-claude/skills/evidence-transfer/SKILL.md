@@ -1,12 +1,14 @@
 ---
 name: evidence-transfer
-description: This skill should be used whenever a green result is about to be filed as evidence for a claim about a DIFFERENT system than the one it ran on — "on-target", "on silicon", "in production", "end-to-end", "the released binary", "verified on hardware". Use it when wiring an emulator/simulator/staging run into a requirement's verification chain, when a self-test ships inside the artifact it tests, when reviewing an inherited "on-target" gate, and at the campaign self-verify interval. The failure class is NOT a vacuous gate — the check runs, can go red, and reports something TRUE. It is about the wrong machine, which is harder to see precisely because the result is correct. Composes with gate-potency (checks that cannot fail), verify-your-own-claims (a claim must not exceed its instrument — here the instrument is the substrate), oracle-gate-a-change (the oracle you author), clean-room-verification (review it cold) and traceability-audit (where the bad inference lands).
+description: This skill should be used whenever a green result is about to be filed as evidence for a DIFFERENT system than the one it ran on, such as "on-target", "on silicon", "in production" or "verified on hardware". It catches the wrong machine, not a vacuous gate.
 metadata:
   author: pulseengine.eu
   version: "0.1.0"
 ---
 
 # Evidence transfer — is this green result about the machine you ship?
+
+**When to use:** a green result is about to be filed as evidence for a DIFFERENT system than the one it ran on ("on-target", "on silicon", "in production", "end-to-end", "verified on hardware"), when wiring an emulator, simulator or staging run into a requirement's chain, when a self-test ships inside the artifact it tests, and at the campaign self-verify interval. The failure class is NOT a vacuous gate: the check runs, can go red, and reports something TRUE. It is about the wrong machine. Composes with gate-potency, verify-your-own-claims, oracle-gate-a-change, clean-room-verification and traceability-audit.
 
 [`gate-potency`] covers the check that **cannot go red**. This skill covers its harder sibling:
 the check that **can** go red, **does** assert a real property, and reports something **true** —

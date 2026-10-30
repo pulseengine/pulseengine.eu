@@ -1,12 +1,14 @@
 ---
 name: seam-contract
-description: "This skill should be used at a seam between two repos, in either direction: BEFORE building against another repo's interface (a WIT package, a wire format, a published component, a trait crate); when asked to change something another repo binds to; when an issue in another repo addresses us or asks how we will consume something; and at release-execution step 4c, before a tag. It writes the contract as a ```seam block (strict YAML) in the owning issue, with an owner repo on each side, options and a recommendation before building, the decision with who and when, and an owner for every open question. seam-check.py then checks every block mechanically: required fields, owners, dated decisions, the interface file and WIT version on the provider's default branch, and the consumer's guard script. Exit 1 on a violation, 2 when GitHub cannot be read. Owner decisions go through factory-notice. Composes with release-execution (4c), issue-hunt and factory-notice."
+description: "This skill should be used at a seam between two repos: before building against another repo's interface, when asked to change something another repo binds to, or at release-execution step 4c before a tag. It writes the contract as a seam block in the owning issue, then checks it mechanically."
 metadata:
   author: pulseengine.eu
   version: "0.1.0"
 ---
 
 # Seam contract: write the interface between repos down, then check it
+
+**When to use:** before building against another repo's interface (a WIT package, wire format, published component or trait crate), when asked to change something another repo binds to, when an issue in another repo addresses us, and at release-execution step 4c before a tag. seam-check.py checks each block: required fields, owners, dated decisions, the interface file and WIT version on the provider's default branch, and the consumer's guard script. Owner decisions go through factory-notice. Composes with issue-hunt.
 
 A **seam** is the agreed interface between two repos: a WIT package, a wire
 frame, a trait crate, a published component's identity. One side, the

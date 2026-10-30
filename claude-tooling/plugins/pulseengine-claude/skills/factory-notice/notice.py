@@ -1534,6 +1534,27 @@ def _session_key(sid):
     return re.sub(r"[^A-Za-z0-9-]", "", str(sid or ""))[:80]
 
 
+CONTEXT_MAX = 9500  # Claude Code previews, not delivers, a longer additionalContext
+
+
+def clamp_context(text, name):
+    """Text that arrives whole: past CONTEXT_MAX, its head plus a pointer to the full copy."""
+    if len(text) <= CONTEXT_MAX:
+        return text
+    base = os.environ.get("CLAUDE_PLUGIN_DATA") or os.path.join(
+        os.environ.get("TMPDIR") or "/tmp", "pulseengine-claude")
+    spill = os.path.join(base, "context", name + ".md")
+    try:
+        os.makedirs(os.path.dirname(spill), exist_ok=True)
+        with open(spill, "w", encoding="utf-8") as f:
+            f.write(text)
+    except OSError:
+        spill = "(could not be written)"
+    head = text[:8800].rsplit("\n", 1)[0]
+    return head + ("\n\n[pulseengine-claude: this block was cut at %d characters so it arrives "
+                   "whole; the full text is in %s]" % (CONTEXT_MAX, spill))
+
+
 def hook_start(root_schema, inp, budget=3.0, out=None, now=None):
     """Local answers at once; warte's only if it answers inside the budget.
 
@@ -1606,7 +1627,7 @@ def hook_start(root_schema, inp, budget=3.0, out=None, now=None):
         body.append(f"The attention config is invalid ({cfg_problem}); the defaults are in use.")
     if shown or res["waiting"]:
         body.append(render_poll(dict(res, rejected=[], open=shown), script))
-    text = "\n".join(body)
+    text = clamp_context("\n".join(body), "factory-notice")
     print(json.dumps({"hookSpecificOutput": {"hookEventName": "SessionStart", "additionalContext": text}}),
           file=out or sys.stdout)
 

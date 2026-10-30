@@ -369,6 +369,16 @@ jobs:
           set -euo pipefail
           python3 scripts/check-private-host-guard.py
 
+      # Claude Code delivers an additionalContext string over ~10k chars as a
+      # ~2.3 KB preview; the methodology block was cut that way from June to
+      # October 2026 and nothing noticed (REQ-CORE-CONTRACT-WHOLE). Runs every
+      # hook in hooks.json under worst-case inputs; fails on any string over
+      # 9,500 chars and on a core contract that arrives cut.
+      - name: Check no hook hands Claude Code a context it would truncate
+        run: |
+          set -euo pipefail
+          python3 scripts/check-hook-context-size.py
+
       # External review of #232 found a compiled .pyc in that PR and a second
       # one tracked for longer, with all ten gates green over both: each asked
       # whether a claim matched the tree, none asked what was in it.

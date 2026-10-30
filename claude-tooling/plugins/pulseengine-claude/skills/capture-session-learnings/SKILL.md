@@ -1,12 +1,14 @@
 ---
 name: capture-session-learnings
-description: This skill should be used to distill durable knowledge out of a working session before it is lost — at the end of substantive work, before a likely compaction, when the user says "remember this" / "capture what we learned" / "update the working context", or whenever a pattern, decision, or gotcha recurs often enough to be worth keeping. It turns ephemeral session work into (1) an updated working-context checkpoint for resuming next time and (2) durable memory or a new/updated skill when the learning generalizes. The continuous-learning counterpart to the memory-persistence hooks shipped with this plugin.
+description: This skill should be used to distill durable knowledge out of a working session before it is lost, at the end of substantive work or before a likely compaction. Use it when the user says "remember this" or "capture what we learned". It updates the working-context checkpoint and durable memory.
 metadata:
   author: pulseengine.eu
   version: "0.1.0"
 ---
 
 # Capture session learnings
+
+**When to use:** at the end of substantive work, before a likely compaction, or when a pattern, decision or gotcha recurs often enough to keep. It is the continuous-learning counterpart to the memory-persistence hooks shipped with this plugin.
 
 Sessions accumulate three things worth keeping that otherwise evaporate at
 compaction or session end: **where the work stands** (resume state), **what

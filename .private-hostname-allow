@@ -4,3 +4,4 @@
 file:scripts/check-commit-merge-guard.py
 file:scripts/check-private-host-guard.py
 file:claude-tooling/plugins/pulseengine-claude/hooks/private_hosts.py
+file:scripts/check-hook-context-size.py

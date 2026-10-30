@@ -36,9 +36,10 @@ negative, or reports a measurement as clean: name the instrument, name what it
 is blind to, and print the denominator. See [`verify-your-own-claims`].
 
 ## Never merge around a red or absent gate
-Merging happens **only** through passing required status checks. Never merge to
-bypass, clear, or unblock a queue, and never because you judged the work done —
-only because the gate reported success. Reporting a release verified requires the
+The plugin's PreToolUse hook denies `--admin` and API merges and asks before a
+direct merge on red or pending checks; what it cannot see is why you merge.
+Never merge to clear or unblock a queue, and never because you judged the work
+done — only because the gate reported success. Reporting a release verified requires the
 green CI result, not the local oracles. For release work your turn ends at
 **"pushed, and checks requested."** When you do wait on a run, wait through
 `ci-status`: it reads the fleet's status API before polling GitHub.
@@ -117,10 +118,10 @@ When runners wedge, queues stall, or runs zombie, the signal is ambiguous:
 second trivial change in a repo becomes a commit on the PR this session already
 has open there, never a new PR and never a push onto another session's branch.
 **A cross-repo sweep (the same edit in N repos) is N PRs, each opened when its
-repo admits it, not all at once.** Before any `gh pr create`, check admission
-through [`ci-status`] → "Before opening a PR": it decides open, batch or hold,
-and a held change stays recorded until it is opened. A security fix, or a fix that
-turns a red `main` green, opens at once however small it is.
+repo admits it, not all at once.** The plugin's hook adds the fleet's admission
+advice on `gh pr create` ([`ci-status`] → "Before opening a PR" holds the rule). A
+security fix, or a fix that turns a red `main` green, opens at once however small
+it is.
 
 Why one PR costs more than one run: with strict up-to-date protection, each merge
 puts every other open PR in the repo behind `main`, and updating it re-runs its
@@ -142,7 +143,11 @@ subagent, or after a compaction that dropped the memory can run with the contrac
 **not loaded** — and "defer to the contract" then means the gate rules silently
 aren't present at the moment of the merge. That is the same class of bug as an
 empty branch-protection gate: a safety rule that exists in principle but isn't
-enforced at the point of action. So the policy is explicit:
+enforced at the point of action. Measured 2026-10-30, it was worse than that:
+this whole file was cut to a preview at every session start from June to
+October. Since 0.51.0 only `core/pulseengine-core.md` (under 9,500 chars,
+checked in CI) is injected; this file is read on demand, and the merge and
+admission asserts that hooks can check are hooks. So the policy is explicit:
 - **Execution-critical safety rules are intentionally redundant** (inline in the
   skill *and* here), and **each inline copy is labeled** as deliberate
   reachability-redundancy, kept in sync — not drift.
@@ -213,9 +218,8 @@ are instructional — read them rather than guessing syntax).
 
 Text-munging a tool's store is a **silent** failure mode: it reimplements one command badly, drifts
 the moment the schema moves, and yields untyped results that look authoritative. Measured instance:
-rivet exposes **52 commands** and these skills named **8** — so `rivet get`, `list`, `query`, `sql`,
-`impact`, `stats`, `bundle`, `next-id` and the whole `add`/`link`/`modify`/`remove` mutation family
-went unused in favour of ad-hoc greps, including by the agent writing this file.
+rivet exposed 52 commands and these skills named 8, so most went unused in favour of ad-hoc greps.
+`rivet docs cli` lists them; no hook checks this, so it stays a rule you hold.
 
 The tool's built-in docs are versioned with the binary; a skill is not. **When they disagree, the
 binary wins** — and the disagreement is a finding worth filing, not a detail to smooth over.
