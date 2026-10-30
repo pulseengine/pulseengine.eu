@@ -1010,6 +1010,54 @@ claims:
   # pattern names the SHAPES of a leak (an mDNS .local URL, the local CA
   # directory, a Caddy root certificate), not the host, because this file is
   # public too.
+
+  # ── v2's first task: authored, checked, not yet ready for calibration ─────
+  # The C twin passes all 10 acceptance checks, the Rust twin fails 4, and the
+  # twins move together. The authoring record and the boundary exception
+  # (Vibe's own key in its env) must stay stated as they were.
+  - id: EXPERIMENT-FRICTION-BROWNFIELD-B01-AUTHORED
+    doc: docs/experiments/2026-11-friction-brownfield.md
+    text: "first task authored; C twin accepted, Rust twin not, so not ready for calibration"
+    evidence:
+      - kind: count-min
+        pattern: '\*\*Not ready for calibration\.\*\* The twins move together, and the Rust twin\s+fails 4 checks\.'
+        glob: ['docs/experiments/2026-11-friction-brownfield.md']
+        min: 1
+      - kind: count-min
+        pattern: 'Vibe''s own `MISTRAL_API_KEY`\s+was in its environment\.'
+        glob: ['docs/experiments/2026-11-friction-brownfield.md']
+        min: 1
+      - kind: file-exists
+        path: experiments/friction-brownfield/check_task.py
+      - kind: count-min
+        pattern: 'def check10\('
+        glob: ['experiments/friction-brownfield/check_task.py']
+        min: 1
+      - kind: count-min
+        pattern: '"vibe_version": "3\.0\.2"'
+        glob: ['experiments/friction-brownfield/authoring/b01-modbus-fc17.json']
+        min: 1
+      - kind: count-min
+        pattern: '"model_alias_reported": "mistral-medium-3\.5"'
+        glob: ['experiments/friction-brownfield/authoring/b01-modbus-fc17.json']
+        min: 1
+      - kind: count-min
+        pattern: 'MISTRAL_API_KEY was in its environment'
+        glob: ['experiments/friction-brownfield/authoring/b01-modbus-fc17.json']
+        min: 1
+      - kind: count-min
+        pattern: '[0-9a-f]{64}  b01-modbus-fc17\.tar'
+        glob: ['experiments/friction-brownfield/tasks.sha256']
+        min: 1
+      - kind: count-min
+        pattern: 'experiments/friction-brownfield/check_task\.py self-test'
+        glob: ['.github/workflows/ci.yml']
+        min: 1
+      # The task material is private; no bench-machine host or path in the repo.
+      - kind: count-max
+        pattern: 'mini-one|/Volumes/|fxm2-build'
+        glob: ['experiments/friction-brownfield/**', 'docs/experiments/2026-11-friction-brownfield.md']
+        max: 0
   - id: CI-STATUS-NO-PRIVATE-HOST
     doc: claude-tooling/plugins/pulseengine-claude/skills/ci-status/SKILL.md
     text: "**never** written into this plugin, a skill, a memory file or any repository"

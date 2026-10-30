@@ -1,0 +1,58 @@
+{
+ "task": "b01-modbus-fc17",
+ "system": "Modbus RTU server (slave) library, C11 and Rust (no_std) twins",
+ "feature_removed": "function code 0x17, Read/Write Multiple Registers",
+ "recorded": "2026-10-30",
+ "author": {
+  "tool": "Mistral Vibe",
+  "vibe_version": "3.0.2",
+  "model_alias_reported": "mistral-medium-3.5",
+  "model_name_reported": "mistral-vibe-cli-latest",
+  "thinking": "high",
+  "auto_approve": "--auto-approve (export.json: enable_auto_approve true)",
+  "invocation": "headless: vibe --auto-approve --trust --output json --output-dir DIR --time-limit 5400 --max-price 25|30 --max-turns 400|800 --prompt-file PROMPT",
+  "source_of_these_fields": "Vibe's own export.json per round (vibe_version, config.active_model, config.models.*.name, limits, steps, cost_usd, outcome)"
+ },
+ "boundary": {
+  "workdir": "a fresh directory per twin on the bench machine's data volume, not a git repository, no remote",
+  "environment": "env -i with: HOME and VIBE_HOME (a scratch home and a separate Vibe config: auto-update off, no other projects' sessions), PATH (cargo, cppcheck, /usr/bin, /bin, /usr/sbin, /sbin; no gh), RUSTUP_HOME, CARGO_HOME, KANI_HOME, RUSTUP_AUTO_INSTALL=0, TMPDIR, CARGO_TARGET_DIR, BUILD_DIR, FXM_BUILD_DIR (all build output on the internal disk), TERM, LANG, MISTRAL_API_KEY",
+  "credentials": "Vibe's own MISTRAL_API_KEY was in its environment: Vibe reads it from the macOS keychain, which an ssh session cannot unlock, so a gui-domain launchd job read it and handed it over through a FIFO (never written to disk). No other credential: no GITHUB_TOKEN, no CLAUDE_CODE_OAUTH_TOKEN, no gh, no git push",
+  "smoke_test": "a probe round listed its environment variable names; none but MISTRAL_API_KEY is a credential"
+ },
+ "round_definition": "one round = one headless Vibe invocation; rounds 2+ are new invocations in the same directory with a prompt listing the defects an independent mechanical check found",
+ "rounds": [
+  {"twin": "c", "round": 1, "prompt_sha256": "c710facecff7f8f34de3a04d781024872d42740c25180a94bdcd7f883d85d0be", "steps": 114, "cost_usd": 2.06, "outcome": "finished", "ended": "stopped by itself, NOTES.md said PARTIAL", "mechanical_state_after": "make test crashed (bus error), 37 warnings, hidden suites did not compile, 321 MISRA findings, 1780 lines"},
+  {"twin": "c", "round": 2, "prompt_sha256": "014952b13cbf9fb6292e72f7120e26bb9dd9da637eb71332a83c5ec911ea14b2", "steps": 400, "cost_usd": 11.86, "outcome": "turn_limit", "ended": "turn limit 400", "mechanical_state_after": "builds and passes; 2 warnings; 196 MISRA on the baseline; the 0x17 code added 21 findings; the generator's fc17 group had 1 normal 0x17 response (malformed requests), so no case tested write-before-read"},
+  {"twin": "c", "round": 3, "prompt_sha256": "6ff0b1eb6845b364de8ebe5f8143449e14c958f3cf40a6cdcd6e9a3bc7207eae", "steps": 73, "cost_usd": 1.47, "outcome": "finished", "ended": "stopped by itself after fixing the warnings, estimating 8-15 hours of remaining work and asking a question", "mechanical_state_after": "warnings fixed; vectors and findings unchanged"},
+  {"twin": "c", "round": 4, "prompt_sha256": "87b953e399717c582d181c460f0f3ae053ad7d624617cd4b9fb0867c2a9bf0a9", "steps": 279, "cost_usd": 7.52, "outcome": "finished", "ended": "its done gate (done.sh) exits 0; re-run by us after the round", "beyond_guidance": "a fourth round, beyond the ~3 rounds of guidance: rounds 1 and 3 ended by the model stopping on its own, not on a capability limit, so round 4 changed the prompt's shape (one executable done gate, no human, scope cut to the two items that blocked checks) rather than its wording"},
+  {"twin": "rust", "round": 1, "prompt_sha256": "127b2609afa8d17d142d3b2f0858df060707a826126629ad39f54335e36a89ba", "steps": 278, "cost_usd": 6.76, "outcome": "finished", "ended": "done gate exits 0", "mechanical_state_after": "Kani harnesses weak: CRC only, no frame or 0x17 harness"},
+  {"twin": "rust", "round": 2, "prompt_sha256": "72bf0132ceb0960357cdd616d0b63617aad547ef82e08b6c329852da03c5c50d", "steps": 76, "cost_usd": 1.43, "outcome": "finished", "ended": "stopped by itself; NOTES.md claimed every check passed, the gate failed 2 (the library used alloc/Vec, which Kani 0.67 cannot verify here; the 0x17 harness sent no request)"},
+  {"twin": "rust", "round": 3, "prompt_sha256": "59d508ca5fdc29bf3ee2a30687ba53bf5546aac6c678b1192e9be1cbaba1c6a7", "steps": 117, "cost_usd": 3.22, "outcome": "infrastructure_failure", "ended": "HTTP 402 from Mistral: Vibe budget exhausted", "mechanical_state_after": "allocation-free; every gate item passes except Kani: the 0x17 harness (unwind 450) does not finish in 900 s"}
+ ],
+ "total_cost_usd": 34.32,
+ "cost_source": "sum of cost_usd from Vibe's export.json per round, at Vibe's configured model prices; not Mistral's bill",
+ "known_oracle_gaps": ["n_fc17_read_qty_125 sends write quantity 0, so it tests exception 0x03; the fc17 suite has no normal response at read quantity 125"],
+ "given_files_sha256": {
+  "strip_fc17.py": "5e655e87a5effeca2f0c85f6a749e38ed8aa92537dd1a13c72f820f517bd8dfb",
+  "done.sh (c, round 4)": "c0b7d58e72c23f18706cdd361f425885cb3a94538dcf86a4efcfca21d743e62d",
+  "check_vectors.py (c, round 4)": "6f35edd22dd49953091a6b0061bf21c1a711a9c455b83d49566efeda11e46172",
+  "done.sh (rust, round 1)": "a766398d7e909989c791b4856881de0b253a1faa4dfb3bae2550888eadcec53a",
+  "done.sh (rust, round 2)": "0a2fa61f3b8d016a467b498bf8ffcc19c896615b05a116a42cb648922d4a29cc",
+  "done.sh (rust, round 3)": "678ade9a4f2ed1145f3116d2b16be02957fe39114c005bcb21c3c59f38f9eaac",
+  "clippy_fp.py (rust)": "19e5d41b2dc6df22bba6adf8ea8619dc9c009b3318c8572422970a41479b8f83"
+ },
+ "boundary_events": [
+  "C rounds 1-3: Vibe rewrote the given strip_fc17.py although told not to (its hash before round 4 was 36f2a81f...). The acceptance checks never use it: check_task.py strips with its own implementation. From round 4 (C) and round 1 (Rust) every given file was hash-checked before and after each round and was unchanged.",
+  "Vibe's own reports were wrong twice (Rust round 2's NOTES.md said every check passed; C round 1 said the code was complete in parts it was not). Acceptance used only the mechanical checks."
+ ],
+ "post_authoring_edits_by_the_task_builder": [
+  "C Makefile: the hand-listed SRC_FILES became $(wildcard src/*.c), so a new source file builds without a Makefile edit, which the agent is not allowed to make. Without it the baseline (which has no src/mb_func_fc17.c) did not build.",
+  "Vector generator: a split-hygiene filter, so the hidden groups share no whole case with the visible group and 0x10 at quantity 122 and 123 is hidden-only (the authoring spec asked for both; the generator broke them). It removed 1 visible and 4 regression cases (visible 29, regression 42, fc17 22).",
+  "Vector generator, Rust writer: the &'static fix was made by Vibe in Rust round 1; the C and Rust twins share that one generator, which regenerates the C twin's vector files byte-identically.",
+  "Split rule: a source file with nothing but includes or imports outside its feature markers is new in the reference and absent from the baseline (src/mb_func_fc17.c)."
+ ],
+ "noise_budget_history": {
+  "c": "cppcheck MISRA findings on the baseline: 20..50 set before authoring; 30..150 before round 3; 150..250 before round 4 (final). Moved because rounds 1-3 could not bring the count down, and the doc fixes the budget only before calibration. Final: 196.",
+  "rust": "clippy all+pedantic warnings on the baseline: 20..150, set before Rust authoring and not moved. Final: 139."
+ }
+}
