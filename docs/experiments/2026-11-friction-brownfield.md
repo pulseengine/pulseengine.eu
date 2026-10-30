@@ -653,7 +653,87 @@ the 0x17 Kani harness must finish within 900 s, the visible RTU test must
 use a frame that no hidden case uses, and the three unknown-lint `allow`s
 must name real lints. The generator needs one more case too:
 `n_fc17_read_qty_125` sends write quantity 0, so it tests exception 0x03,
-and the fc17 suite has no normal response at read quantity 125. Either Vibe makes these fixes in a fourth Rust round
-once its budget is raised, or the owner decides otherwise. The task's hashes
+and the fc17 suite has no normal response at read quantity 125. Either Vibe
+makes these fixes in a fourth Rust round once its budget is raised, or the
+owner decides otherwise. The task's hashes
 are in `experiments/friction-brownfield/tasks.sha256`, as an authoring
 snapshot. They are not the pre-calibration freeze.
+
+## 2026-10-30, owner decisions on b01
+
+**1. b01's C noise budget is a recorded deviation.** The budget was fitted
+after authoring: it moved from 20 to 50 MISRA findings to 30 to 150 and to
+150 to 250 during C authoring. **b01-C noise is therefore not a
+pre-registered quantity.** A result that depends on it is reported with
+that caveat. The Rust budget was fixed before Rust authoring and did not
+move.
+
+**From now on, a task's noise budget is frozen before its first authoring
+round.** It is written into the public registry
+`experiments/friction-brownfield/noise-budgets.json` in a merged commit
+before the first round, and it never changes after that round starts.
+`check_task.py budgets` enforces this from the git history of the
+registry, and CI runs it:
+
+- a budget must first appear in a commit dated before the task's
+  `first_authoring_utc`;
+- no committed or working-tree version after that time may differ from it,
+  and moving a budget back does not erase the change in between;
+- a task that already broke the rule carries a `deviation` text and is
+  frozen from `frozen_from_utc` instead. b01 is the only such task, frozen
+  from 2026-10-30.
+
+Acceptance check 10 also requires the task's private `task.json` to carry
+exactly the registry's budget. The self-test covers each rule with a
+throwaway repository.
+
+**2. Kani on a quiet bench.** The 0x17 harness is re-measured alone, after
+the bench's 1-minute load average drops below 2. **It has not run: the
+bench was never quiet.** Two waits of 3 hours each, sampling every 2
+minutes, found no sample below 2: 2026-10-30 from 01:15 UTC (91 samples,
+1-minute load 9.4 to 12.1) and 2026-11-03 from 19:34 UTC (91 samples, 10.1
+to 54.5). The bench is shared with other long-running jobs. The 900 s
+timeout above therefore still stands, as a measurement under load.
+
+Either result leads to the same instruction. The fourth Rust round shrinks
+the harness to under 300 s alone (below), and the 900 s limit is then
+checked on the new harness. A quiet-bench measurement of the current
+harness would only tell whether the old harness was close.
+
+**3. No Vibe round before the owner adds Mistral budget (next week).** The
+fourth Rust round then starts from these instructions, in the same
+directory as round 3, with the given files hash-checked before and after
+the round, as before.
+
+- **Clippy.** The code inside the FC17 markers adds no Clippy warning
+  (all and pedantic). The 14 it adds now are in `src/frame.rs`: casts such
+  as `pdu[i] as u16` (`cast_lossless`) and `byte_count as u8`
+  (`cast_possible_truncation`). Use `u16::from` and checked or `try_from`
+  conversions, and do not add `allow` attributes inside the markers. The gate
+  compares Clippy on the full and the stripped tree with a separate cargo
+  target directory for each.
+- **Kani.** The 0x17 harness (`verify_fc17` in `hidden/kani/src/lib.rs`)
+  finishes in under 300 s on its own. Bound the loop depth: the request is
+  at most 19 bytes and both quantities are at most 3, so the loops on that
+  path need far fewer than the 450 unwindings now set. Only the server's
+  table set-up loops run longer, and they are concrete. All harnesses
+  together finish within 600 s, and the harness's assertions do not change.
+- **Visible tests.** No hand-written test under `tests/` sends a frame
+  that equals any request in the hidden vectors. The RTU receiver test now
+  sends `11 01 00 00 00 01 FF 5A`, which is a step of a hidden case. Use a
+  different, valid frame, for example another start address.
+- **Lint names.** The three `#[allow(...)]` attributes in `src/util.rs`
+  that name `clippy::unused_parens` and `clippy::non_camel_case_types`
+  name lints that do not exist. rustc reports them as `unknown_lints` under
+  Clippy. Name the real lints (`unused_parens` and `non_camel_case_types`
+  are rustc lints) or remove the attribute, and keep at least 3 item-level
+  `allow`s with a reason.
+- **Vectors.** `tools/gen_vectors.py` gets a fc17 case with a normal
+  response at read quantity 125 (with write quantity 1 or more). The
+  current `n_fc17_read_qty_125` sends write quantity 0 and only tests
+  exception 0x03. The generator is shared by both twins, so after the change
+  the C twin's vector files are regenerated too and both twins are
+  re-checked.
+
+The task builder re-runs all ten checks on both twins afterwards. Nothing
+Vibe reports is taken as a result.

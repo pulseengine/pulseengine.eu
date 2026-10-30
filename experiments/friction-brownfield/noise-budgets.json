@@ -1,0 +1,14 @@
+{
+ "about": "Noise budgets per task and language. Fixed here before a task's first authoring round and frozen from then on; check_task.py budgets enforces it from git history, and check 10 requires each task's private task.json to carry the same budget.",
+ "tasks": {
+  "b01-modbus-fc17": {
+   "deviation": "budget fitted after authoring: the C budget moved from 20..50 to 30..150 to 150..250 during authoring, so b01-C noise is not a pre-registered quantity. The Rust budget was set before Rust authoring and did not move.",
+   "first_authoring_utc": "2026-10-29T20:21:02Z",
+   "frozen_from_utc": "2026-10-30T00:00:00Z",
+   "budgets": {
+    "c": {"tool": "cppcheck", "rule_prefix": "misra-c2012-", "min": 150, "max": 250, "min_rules": 5, "min_files": 3, "min_marked": 4},
+    "rust": {"tool": "clippy", "rule_prefix": "clippy::", "min": 20, "max": 150, "min_rules": 5, "min_files": 3, "min_marked": 3}
+   }
+  }
+ }
+}

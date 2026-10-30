@@ -231,6 +231,12 @@ jobs:
       - name: Check the friction brownfield acceptance checks
         run: python3 experiments/friction-brownfield/check_task.py self-test
 
+      # Noise budgets are fixed before a task's first authoring round and
+      # frozen after it (owner decision 2026-10-30); read from git history,
+      # which this job has (fetch-depth 0).
+      - name: Check the friction brownfield noise budgets are frozen
+        run: python3 experiments/friction-brownfield/check_task.py budgets
+
       # The issue-hunt backlog brake's decision table (REQ-ISSUE-CLASS-RATCHET).
       # It lives here, in `build`, because `build` is the only context branch
       # protection actually requires — a job in its own path-filtered workflow

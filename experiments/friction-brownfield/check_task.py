@@ -12,6 +12,7 @@ one exit code (0 pass, 1 fail, 2 could not run):
     check_task.py derive BASE COMPLETE OUT   write the edit list BASE -> COMPLETE
     check_task.py assemble TASK_DIR LANG AUTHOR_TREE PATHS  split an authoring tree into the task layout
     check_task.py manifest TASK_DIR          sha256 of every task file (for tasks.sha256)
+    check_task.py budgets [REGISTRY]          noise budgets fixed before authoring, frozen after (git history)
     check_task.py vectors-sanity VECTORS_JSON  the oracle-of-the-oracle check alone
     check_task.py self-test                  pure-function tests, no toolchain needed
 
@@ -759,8 +760,12 @@ def check10(task, lang, T):
         touched = {e["path"] for e in json.loads((task / lang / "reference.edits.json").read_text())}
         lib = [p for p in touched if p.startswith(("src/", "include/"))]
         ok &= say(len(lib) >= 3, f"the reference touches {len(lib)} library files {sorted(lib)}")
-    base = T["findings"](task / lang / "repo")
     b = spec["noise_budget"]
+    reg = load_registry().get(json.loads((task / "task.json").read_text())["id"])
+    pub = (reg or {}).get("budgets", {}).get(lang)
+    same = pub is not None and all(b.get(k) == v for k, v in pub.items())
+    ok &= say(same, f"noise budget in task.json matches the public registry {REGISTRY.name}: {pub}")
+    base = T["findings"](task / lang / "repo")
     an = {k: n for k, n in base.items() if k[0] == b["tool"] and k[1].startswith(b["rule_prefix"])}
     total = sum(an.values())
     rules = {k[1] for k in an}
@@ -775,6 +780,80 @@ def check10(task, lang, T):
         marks += len(re.findall(b["marker_regex"], (task / lang / "repo" / f).read_text(encoding="utf-8")))
     ok &= say(marks >= b["min_marked"], f"noise: {marks} documented deviations/allows (min {b['min_marked']})")
     return ok
+
+
+# ── Noise budgets: public, fixed before authoring, frozen after ─────────────
+# Owner decision 2026-10-30: every task's noise budget is fixed in the public
+# registry before its first authoring round and never changes afterwards.
+# `budgets` checks that from git history, so it needs the full history
+# (CI checks out with fetch-depth 0). A task may carry a "deviation" text
+# instead (b01: fitted during authoring); it is then frozen from frozen_from_utc.
+REGISTRY = pathlib.Path(__file__).resolve().parent / "noise-budgets.json"
+BUDGET_KEYS = ("tool", "rule_prefix", "min", "max", "min_rules", "min_files", "min_marked")
+
+
+def load_registry(path=None):
+    p = pathlib.Path(path) if path else REGISTRY
+    return json.loads(p.read_text())["tasks"] if p.exists() else {}
+
+
+def utc(ts):
+    import datetime
+    return datetime.datetime.fromisoformat(ts.replace("Z", "+00:00"))
+
+
+def registry_versions(path):
+    """(commit time, parsed tasks) for every commit that touched the registry,
+    oldest first, then the working-tree version stamped now."""
+    import datetime
+    path = pathlib.Path(path).resolve()
+    top = subprocess.run(["git", "-C", str(path.parent), "rev-parse", "--show-toplevel"],
+                         stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True)
+    if top.returncode != 0:
+        raise CouldNotRun("the registry is not in a git work tree")
+    rel = path.relative_to(pathlib.Path(top.stdout.strip()).resolve())
+    log = subprocess.run(["git", "-C", top.stdout.strip(), "log", "--reverse", "--format=%H %cI", "--", str(rel)],
+                         stdout=subprocess.PIPE, text=True, check=True).stdout.split()
+    out = []
+    for sha, when in zip(log[0::2], log[1::2]):
+        blob = subprocess.run(["git", "-C", top.stdout.strip(), "show", f"{sha}:{rel}"], stdout=subprocess.PIPE,
+                              text=True)
+        if blob.returncode == 0:
+            out.append((utc(when), sha[:9], json.loads(blob.stdout)["tasks"]))
+    out.append((datetime.datetime.now(datetime.timezone.utc), "worktree", load_registry(path)))
+    return out
+
+
+def check_budgets(path=None):
+    """The freeze rule. Returns a list of problems."""
+    path = path or REGISTRY
+    versions = registry_versions(path)
+    current = versions[-1][2]
+    probs = []
+    for tid, t in current.items():
+        for lang, bud in t.get("budgets", {}).items():
+            missing = [k for k in BUDGET_KEYS if k not in bud]
+            if missing:
+                probs.append(f"{tid}/{lang}: budget lacks {missing}")
+        if t.get("deviation"):
+            frozen = t.get("frozen_from_utc")
+            if not frozen:
+                probs.append(f"{tid}: a deviation needs frozen_from_utc")
+                continue
+        else:
+            frozen = t.get("first_authoring_utc")
+            if frozen:
+                first = next((w for w, _, ts in versions if tid in ts and ts[tid].get("budgets") == t["budgets"]), None)
+                if first is None or not first < utc(frozen):
+                    probs.append(f"{tid}: budget first recorded {first} is not before the first authoring round "
+                                 f"{frozen}")
+        if not frozen:
+            continue
+        for when, sha, ts in versions:
+            if when > utc(frozen) and tid in ts and ts[tid].get("budgets") != t.get("budgets"):
+                probs.append(f"{tid}: budget at {sha} ({when:%Y-%m-%dT%H:%M:%SZ}) differs from the frozen one; "
+                             f"it may not change after {frozen}")
+    return probs
 
 
 CHECKS = {1: check1, 2: check2, 3: check3, 4: check4, 5: check5, 6: check6, 7: check7, 8: check8, 9: check9,
@@ -956,6 +1035,36 @@ def self_test():
       and not suite_result(1, "passed 3 failed 0\n")["ok"] and not suite_result(0, "no summary")["ok"],
       "suite summary needs exit 0, failed 0 and a summary line")
     t(not suite_result(0, "passed 0 failed 0\n")["ok"], "an empty suite does not pass")
+    with Work() as w:
+        def git(*a, when="2020-11-01T00:00:00Z"):
+            env = dict(os.environ, GIT_AUTHOR_DATE=when, GIT_COMMITTER_DATE=when, GIT_AUTHOR_NAME="t",
+                       GIT_AUTHOR_EMAIL="t@t", GIT_COMMITTER_NAME="t", GIT_COMMITTER_EMAIL="t@t")
+            subprocess.run(["git", "-C", str(w), "-c", "commit.gpgsign=false", *a], env=env, check=True,
+                           stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        bud = {"tool": "cppcheck", "rule_prefix": "misra-c2012-", "min": 10, "max": 50, "min_rules": 3,
+               "min_files": 2, "min_marked": 1}
+        reg = w / "noise-budgets.json"
+
+        def write(tasks):
+            reg.write_text(json.dumps({"tasks": tasks}))
+        git("init", "-q")
+        write({"t9": {"first_authoring_utc": "2020-11-05T00:00:00Z", "budgets": {"c": bud}}})
+        git("add", "-A")
+        git("commit", "-qm", "fix budget", when="2020-11-02T00:00:00Z")
+        t(check_budgets(reg) == [], "a budget fixed before authoring and unchanged passes")
+        write({"t9": {"first_authoring_utc": "2020-11-05T00:00:00Z", "budgets": {"c": dict(bud, max=60)}}})
+        t(check_budgets(reg) != [], "an uncommitted budget change after authoring fails")
+        git("commit", "-qam", "move budget", when="2020-11-06T00:00:00Z")
+        t(check_budgets(reg) != [], "a committed budget change after authoring fails")
+        write({"t9": {"first_authoring_utc": "2020-11-05T00:00:00Z", "budgets": {"c": bud}}})
+        git("commit", "-qam", "move it back", when="2020-11-07T00:00:00Z")
+        t(check_budgets(reg) != [], "moving it back does not erase the change in between")
+        write({"t9": {"first_authoring_utc": "2020-11-01T00:00:00Z", "budgets": {"c": dict(bud, max=70)}}})
+        t(any("not before" in p for p in check_budgets(reg)), "a budget first recorded after authoring fails")
+        write({"t9": {"deviation": "fitted", "budgets": {"c": bud}}})
+        t(any("frozen_from_utc" in p for p in check_budgets(reg)), "a deviation without a freeze time fails")
+        write({"t9": {"first_authoring_utc": None, "budgets": {"c": {"tool": "x"}}}})
+        t(any("lacks" in p for p in check_budgets(reg)), "an incomplete budget fails")
     print(f"self-test: {len(fails)} failed")
     return 1 if fails else 0
 
@@ -974,6 +1083,16 @@ def main(argv):
         pathlib.Path(argv[4]).write_text(json.dumps(edits, indent=1) + "\n", encoding="utf-8")
         print(f"{len(edits)} edits")
         return 0
+    if len(argv) in (2, 3) and argv[1] == "budgets":
+        try:
+            probs = check_budgets(argv[2] if len(argv) == 3 else None)
+        except CouldNotRun as x:
+            print(f"COULD-NOT-RUN {x}")
+            return 2
+        for x in probs:
+            print("FAIL " + x)
+        print(f"budgets: {len(probs)} problems")
+        return 1 if probs else 0
     if len(argv) == 3 and argv[1] == "vectors-sanity":
         probs = vector_sanity(json.loads(pathlib.Path(argv[2]).read_text()))
         for x in probs:
