@@ -1,0 +1,6 @@
+# Read by the pulseengine-claude private-host-guard hook (0.50.0). One rule per
+# line: a glob on the value, or file:<glob> on the repo-relative path.
+# The guard's own fixtures and patterns are made-up host-shaped values.
+file:scripts/check-commit-merge-guard.py
+file:scripts/check-private-host-guard.py
+file:claude-tooling/plugins/pulseengine-claude/hooks/private_hosts.py

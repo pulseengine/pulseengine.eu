@@ -2493,7 +2493,7 @@ claims:
   # the wiring, the output contract, the fail-open wrapper and the CI step.
   - id: COMMIT-MERGE-GUARD-FAILS-OPEN
     doc: claude-tooling/plugins/pulseengine-claude/README.md
-    text: "The hook prints a deny or a warning, never `allow`, and the wrapper exits 0 on every path"
+    text: "The hook prints a deny, an ask or a warning, never `allow`, and the wrapper exits 0 on every path"
     evidence:
       - kind: count-min
         pattern: '"matcher": "Bash",\s*"hooks": \[\s*\{\s*"type": "command",\s*"command": "bash \$\{CLAUDE_PLUGIN_ROOT\}/hooks/commit-merge-guard\.sh"'
@@ -2504,8 +2504,8 @@ claims:
         glob: ['claude-tooling/plugins/pulseengine-claude/hooks/hooks.json']
         max: 1
       - kind: count-max
-        pattern: '"(?:allow|ask|updatedInput|continue)"'
-        glob: ['claude-tooling/plugins/pulseengine-claude/hooks/commit-merge-guard.py']
+        pattern: '"(?:allow|updatedInput|continue)"'
+        glob: ['claude-tooling/plugins/pulseengine-claude/hooks/commit-merge-guard.py', 'claude-tooling/plugins/pulseengine-claude/hooks/private-host-guard.py', 'claude-tooling/plugins/pulseengine-claude/hooks/private_hosts.py']
         max: 0
       - kind: count-max
         pattern: 'exit\s+[1-9]|sys\.exit\([1-9]'
@@ -2550,3 +2550,94 @@ claims:
         glob: ['claude-tooling/plugins/pulseengine-claude/README.md']
         min: 1
 
+
+  # ── 0.50.0 guards: wired once each, ask-or-deny only, fail open ─────────────
+  # REQ-GUARDS-050. The Edit/Write host check is an ask, never a deny (a
+  # host-shaped value can be legitimate), the signing probe only speaks, and
+  # every wrapper exits 0 with stderr silenced so a crash never blocks.
+  # scripts/check-commit-merge-guard.py and scripts/check-private-host-guard.py
+  # test behaviour; this keeps the wiring, the output contract and the CI steps.
+  - id: GUARDS-050-WIRED-AND-FAIL-OPEN
+    doc: claude-tooling/plugins/pulseengine-claude/README.md
+    text: "Both wrappers and the probe exit 0 on every path"
+    evidence:
+      - kind: count-min
+        pattern: '"matcher": "Edit\|Write\|MultiEdit",\s*"hooks": \[\s*\{\s*"type": "command",\s*"command": "bash \$\{CLAUDE_PLUGIN_ROOT\}/hooks/private-host-guard\.sh"'
+        glob: ['claude-tooling/plugins/pulseengine-claude/hooks/hooks.json']
+        min: 1
+      - kind: count-max
+        pattern: 'private-host-guard\.sh|signing-probe\.sh'
+        glob: ['claude-tooling/plugins/pulseengine-claude/hooks/hooks.json']
+        max: 2
+      - kind: count-min
+        pattern: '"command": "bash \$\{CLAUDE_PLUGIN_ROOT\}/hooks/signing-probe\.sh"'
+        glob: ['claude-tooling/plugins/pulseengine-claude/hooks/hooks.json']
+        min: 1
+      - kind: count-max
+        pattern: '"deny"'
+        glob: ['claude-tooling/plugins/pulseengine-claude/hooks/private-host-guard.py']
+        max: 0
+      - kind: count-min
+        pattern: '"permissionDecision": "ask"'
+        glob: ['claude-tooling/plugins/pulseengine-claude/hooks/private-host-guard.py']
+        min: 1
+      - kind: count-max
+        pattern: 'exit\s+[1-9]|sys\.exit\([1-9]'
+        glob: ['claude-tooling/plugins/pulseengine-claude/hooks/private-host-guard.sh', 'claude-tooling/plugins/pulseengine-claude/hooks/private-host-guard.py', 'claude-tooling/plugins/pulseengine-claude/hooks/signing-probe.sh']
+        max: 0
+      - kind: count-min
+        pattern: '2>/dev/null\nexit 0\n'
+        glob: ['claude-tooling/plugins/pulseengine-claude/hooks/private-host-guard.sh']
+        min: 1
+      - kind: count-min
+        pattern: '\n +python3 scripts/check-private-host-guard\.py\n'
+        glob: ['.github/workflows/ci.yml']
+        min: 1
+      - kind: count-max
+        pattern: '\n +python3 scripts/check-private-host-guard\.py\n'
+        glob: ['.github/workflows/ci.yml']
+        max: 1
+
+  # ── 0.50.0 guards: the rules that must not quietly weaken ───────────────────
+  # --admin is denied before any API call; a server-side rebase is denied
+  # everywhere; check state is never read from the day cache (only repo facts
+  # are); an unconfirmed tag/publish asks rather than passing; the cache schema
+  # is versioned so a 0.49.0 entry without the queue field is re-fetched; the
+  # temp-dir exemption compares realpaths; and the host patterns take the home
+  # path from $HOME at run time rather than from a literal.
+  - id: GUARDS-050-RULES-HOLD
+    doc: claude-tooling/plugins/pulseengine-claude/README.md
+    text: "An API failure on a tag or publish asks, because irreversible means \"could not confirm\" is not green"
+    evidence:
+      - kind: count-min
+        pattern: '    if "--admin" in rest:\n        found\.deny = DENY_ADMIN\n        return\n'
+        glob: ['claude-tooling/plugins/pulseengine-claude/hooks/commit-merge-guard.py']
+        min: 1
+      - kind: count-min
+        pattern: '        if "--rebase" in rest:\n            found\.deny = DENY_REBASE\n'
+        glob: ['claude-tooling/plugins/pulseengine-claude/hooks/commit-merge-guard.py']
+        min: 1
+      - kind: count-min
+        pattern: 'and hit\.get\("v"\) == CACHE_V and'
+        glob: ['claude-tooling/plugins/pulseengine-claude/hooks/commit-merge-guard.py']
+        min: 1
+      - kind: count-min
+        pattern: 'so they are not "\n\s+"known to be green\."'
+        glob: ['claude-tooling/plugins/pulseengine-claude/hooks/commit-merge-guard.py']
+        min: 1
+      - kind: count-min
+        pattern: 'path, root = realpath\(path\), realpath\(root\)'
+        glob: ['claude-tooling/plugins/pulseengine-claude/hooks/private_hosts.py']
+        min: 1
+      - kind: count-min
+        pattern: 'os\.path\.expanduser\("~"\) if home is None else home'
+        glob: ['claude-tooling/plugins/pulseengine-claude/hooks/private_hosts.py']
+        min: 1
+      - kind: count-max
+        pattern: '/Users/[a-z]|/home/[a-z]'
+        glob: ['claude-tooling/plugins/pulseengine-claude/hooks/private_hosts.py', 'claude-tooling/plugins/pulseengine-claude/hooks/private-host-guard.py']
+        max: 0
+      - kind: count-min
+        pattern: 'admission_log\("fail: %s %s" % \(repo, type\(e\)\.__name__\)\)\n        return\n'
+        glob: ['claude-tooling/plugins/pulseengine-claude/hooks/commit-merge-guard.py']
+        min: 1

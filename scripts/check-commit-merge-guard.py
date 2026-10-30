@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # rivet: verifies REQ-COMMIT-MERGE-GUARD
+# rivet: verifies REQ-GUARDS-050
 """Check the PreToolUse(Bash) commit-merge-guard hook.
 
 Runs the real wrapper, hooks/commit-merge-guard.sh, under bash with each case's
@@ -37,6 +38,33 @@ directory of symlinks (git, python3, bash, cat, dirname) plus the stub.
   wired     hooks.json registers the wrapper once, under PreToolUse with
             matcher "Bash", after the Agent|Task entry.
 
+0.50.0 (REQ-GUARDS-050), in new_rules():
+  gate      --admin, REST PUT .../merge (gh api, curl) and GraphQL
+            mergePullRequest deny with no API call; a direct merge asks on a
+            red, pending or check-less head (by number, URL or current
+            branch), is silent on green, warns when checks are unreadable;
+  branch    update-branch --rebase, GraphQL REBASE and REST update_method=rebase
+            deny; plain and REST update-branch deny on a merge-queue repo, pass
+            on a non-queue repo, warn when rulesets are unreadable; a 0.49.0
+            cache entry without the queue field is re-fetched;
+  publish   v-tags, tag pushes, --tags, gh release create, cargo/npm publish
+            ask off the origin tip, on a red tip and on unreadable checks, pass
+            on a green tip; -l/-d/non-v tags/--dry-run/branch pushes are silent
+            with no API call;
+  signing   outside temp roots (a .hookfix-* dir in this checkout):
+            --no-gpg-sign, -c gpgsign=false, tag --no-sign, config gpgsign
+            false, config user.* writes (old and 2.46 syntax) and -c user.*
+            deny; reads, --unset (also with a value pattern) and other keys
+            pass; the same commands in a temp repo pass;
+  text      a host-shaped value in -m, a heredoc message or gh pr create
+            --body asks with masked values; a host in the cd/ssh part of the
+            command, settings.local.json and a version do not; both allow-lists
+            and temp repos are silent;
+  admission a local stub of the fleet API: queued runs and pools arrive as one
+            short context line; unset and unreachable are silent and logged;
+  probe     signing-probe.sh is silent when email, key and gpgsign are set and
+            prints one line under 400 chars naming what is missing otherwise.
+
 Exit: 0 all hold · 1 a check failed · 2 cannot check (no bash or git, no hook).
 """
 
@@ -45,10 +73,12 @@ from __future__ import annotations
 import json
 import os
 import pathlib
+import http.server as http_server
 import shutil
 import subprocess
 import sys
 import tempfile
+import threading
 import time
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
@@ -115,6 +145,12 @@ def fixtures():
     repo("deletiononly", UNPROT, http(200, [{"type": "deletion"}]))
     repo("rules500", UNPROT, http(500, {"message": "boom"}))
     repo("broken", UNPROT, http(200, []), repo_status=500)
+    repo("protrules500", PROT, http(500, {"message": "boom"}))
+    # PR heads on acme/protected: 7 green, 8 red, 9 pending, 10 no checks, 12 checks 500
+    for num, sha in ((7, "a" * 40), (8, "b" * 40), (9, "c" * 40), (10, "d" * 40), (12, "e" * 40)):
+        f["repos/acme/protected/pulls/%d" % num] = http(200, {"number": num, "head": {"sha": sha}})
+    f["repos/acme/protected/pulls?head=acme:feat-x&state=open&per_page=5"] = http(
+        200, [{"number": 7, "head": {"sha": "a" * 40}}])
     return f
 
 
@@ -156,7 +192,7 @@ class Env:
 
     def base(self, path_dir=None, **over):
         env = {k: v for k, v in os.environ.items()
-               if not k.startswith(("GIT_", "GH_", "GITHUB_", "CLAUDE_"))
+               if not k.startswith(("GIT_", "GH_", "GITHUB_", "CLAUDE_", "PULSEENGINE_"))
                and k not in ("HOME", "PATH", "XDG_CONFIG_HOME", "TMPDIR")}
         env.update({
             "HOME": str(self.home), "PATH": str(path_dir or self.links),
@@ -190,6 +226,52 @@ class Env:
 
     def reset_cache(self):
         shutil.rmtree(self.data / "commit-merge-guard", ignore_errors=True)
+
+    def fixture(self, path, text):
+        (self.stub / (path.replace("/", "__") + ".http")).write_text(text)
+
+    def commit(self, d, msg="c"):
+        self.git(d, "commit", "-q", "--allow-empty", "--no-gpg-sign", "-m", msg)
+        r = subprocess.run(["git", "rev-parse", "HEAD"], cwd=d, env=self.base(),
+                           capture_output=True, text=True, check=True)
+        return r.stdout.strip()
+
+
+def checks_fixture(E, repo, sha, runs, statuses=(), runs_status=200):
+    E.fixture("repos/%s/commits/%s/check-runs?per_page=100" % (repo, sha),
+              http(runs_status, {"total_count": len(runs), "check_runs": list(runs)}
+                   if runs_status == 200 else {"message": "boom"}))
+    E.fixture("repos/%s/commits/%s/status" % (repo, sha),
+              http(200, {"state": "success", "statuses": list(statuses)}))
+
+
+GREEN = [{"name": "build", "status": "completed", "conclusion": "success"}]
+RED = [{"name": "build", "status": "completed", "conclusion": "success"},
+       {"name": "Clippy", "status": "completed", "conclusion": "failure"}]
+PENDING = [{"name": "build", "status": "in_progress", "conclusion": None}]
+
+
+class State(http_server.BaseHTTPRequestHandler):
+    BODY = b""
+
+    def do_GET(self):  # noqa: N802
+        body = State.BODY if self.path == "/ci/api/state" else b"{}"
+        self.send_response(200 if self.path == "/ci/api/state" else 404)
+        self.send_header("Content-Type", "application/json")
+        self.end_headers()
+        self.wfile.write(body)
+
+    def log_message(self, *a):
+        pass
+
+
+TEMP_ROOTS = ("/tmp", "/private/tmp", "/var/folders", "/private/var/folders")
+
+
+def under_temp(p):
+    rp = os.path.realpath(p)
+    roots = list(TEMP_ROOTS) + [tempfile.gettempdir()]
+    return any(rp == os.path.realpath(r) or rp.startswith(os.path.realpath(r) + "/") for r in roots)
 
 
 SLOWEST = [0.0, ""]
@@ -231,11 +313,13 @@ def classify(name, r):
         fail("%s: unexpected output shape %r" % (name, out))
         return "bad", ""
     keys = set(hso) - {"hookEventName"}
-    if keys == {"permissionDecision", "permissionDecisionReason"} and hso["permissionDecision"] == "deny":
-        return "deny", hso["permissionDecisionReason"]
+    if keys == {"permissionDecision", "permissionDecisionReason"} \
+            and hso["permissionDecision"] in ("deny", "ask"):
+        return hso["permissionDecision"], hso["permissionDecisionReason"]
     if keys == {"additionalContext"}:
         return "warn", hso["additionalContext"]
-    fail("%s: output carries %r (only deny+reason or additionalContext allowed)" % (name, sorted(keys)))
+    fail("%s: output carries %r (only deny/ask+reason or additionalContext allowed)"
+         % (name, sorted(keys)))
     return "bad", ""
 
 
@@ -253,6 +337,300 @@ def expect(name, r, want, contains=(), absent=()):
             fail("%s: reason contains %r" % (name, a))
     if len(FAILS) == bad:
         print("ok   %-58s %s" % (name, got))
+
+
+def new_rules(E, nonrepo, ok, t_repo):
+    """0.50.0: merge around the gate, update-branch, signing, tag/publish, text, admission."""
+    for sha, runs in (("a" * 40, GREEN), ("b" * 40, RED), ("c" * 40, PENDING), ("d" * 40, [])):
+        checks_fixture(E, "acme/protected", sha, runs)
+    checks_fixture(E, "acme/protected", "e" * 40, GREEN, runs_status=500)
+
+    # ── merge around the gate ────────────────────────────────────────────────
+    E.reset_cache()
+    before = E.calls()
+    for name, cmd in [
+        ("--admin", "gh pr merge 5 --admin --squash -R acme/protected"),
+        ("--admin with --auto", "gh pr merge 5 --auto --admin -R acme/protected"),
+        ("--admin, unbalanced quote (coarse path)", 'gh pr merge 5 --admin -t "oops'),
+        ("REST merge via gh api -X PUT", "gh api -X PUT repos/acme/protected/pulls/5/merge"),
+        ("REST merge via gh api --method=PUT", "gh api --method=PUT /repos/acme/protected/pulls/5/merge -f merge_method=squash"),
+        ("GraphQL mergePullRequest",
+         "gh api graphql -f query='mutation { mergePullRequest(input: {pullRequestId: \"x\"}) { clientMutationId } }'"),
+        ("curl -X PUT merge", "curl -s -X PUT -H 'Authorization: x' https://api.github.com/repos/acme/protected/pulls/5/merge"),
+    ]:
+        expect(name, run(E, ev(cmd, ok)), "deny", ("merge",), ("Do not add it yourself",))
+    if E.calls() != before:
+        fail("admin/API merge denies called the API %d times" % (E.calls() - before))
+    expect("GET of the merge endpoint is a read", run(E, ev("gh api repos/acme/protected/pulls/5/merge", ok)),
+           "silent")
+    expect("direct merge, head green", run(E, ev("gh pr merge 7 --squash -R acme/protected", nonrepo)), "silent")
+    expect("direct merge, head red", run(E, ev("gh pr merge 8 --squash -R acme/protected", nonrepo)), "ask",
+           ("red", "Clippy", "name"))
+    expect("direct merge, head pending", run(E, ev("gh pr merge 9 -R acme/protected", nonrepo)), "ask",
+           ("pending", "build"))
+    expect("direct merge, no checks", run(E, ev("gh pr merge 10 -R acme/protected", nonrepo)), "ask",
+           ("none",))
+    expect("direct merge by URL, head red",
+           run(E, ev("gh pr merge https://github.com/acme/protected/pull/8 --merge", nonrepo)), "ask", ("red",))
+    expect("direct merge, checks 500: warn", run(E, ev("gh pr merge 12 -R acme/protected", nonrepo)), "warn",
+           ("NOT blocked",))
+    feat = E.repo("feat", "https://github.com/acme/protected.git")
+    E.commit(feat)
+    E.git(feat, "checkout", "-q", "-b", "feat-x")
+    expect("direct merge of the current branch's PR, green", run(E, ev("gh pr merge --squash", feat)), "silent")
+    before = E.calls()
+    expect("--auto on a guarded repo reads no checks", run(E, ev("gh pr merge 8 --auto -R acme/protected", nonrepo)),
+           "silent")
+    if E.calls() - before > 3:
+        fail("--auto read checks: %d calls" % (E.calls() - before))
+
+    # ── update-branch ────────────────────────────────────────────────────────
+    E.reset_cache()
+    before = E.calls()
+    for name, cmd in [
+        ("update-branch --rebase", "gh pr update-branch 5 --rebase -R acme/protected"),
+        ("update-branch --rebase, coarse path", 'gh pr update-branch 5 --rebase "oops'),
+        ("GraphQL updatePullRequestBranch REBASE",
+         "gh api graphql -f query='mutation { updatePullRequestBranch(input: {pullRequestId: \"x\", updateMethod: REBASE}) { clientMutationId } }'"),
+        ("REST update-branch update_method=rebase",
+         "gh api -X PUT repos/acme/protected/pulls/5/update-branch -f update_method=rebase"),
+    ]:
+        expect(name, run(E, ev(cmd, ok)), "deny", ("signatures",))
+    if E.calls() != before:
+        fail("rebase denies called the API %d times" % (E.calls() - before))
+    expect("plain update-branch on a merge-queue repo", run(E, ev("gh pr update-branch 5 -R acme/queue", nonrepo)),
+           "deny", ("merge queue", "acme/queue"))
+    expect("REST update-branch on a merge-queue repo",
+           run(E, ev("gh api -X PUT repos/acme/queue/pulls/5/update-branch", nonrepo)), "deny", ("merge queue",))
+    expect("plain update-branch on a strict non-queue repo",
+           run(E, ev("gh pr update-branch 5 -R acme/protected", nonrepo)), "silent")
+    expect("GraphQL updatePullRequestBranch MERGE, repo from origin (no queue)",
+           run(E, ev("gh api graphql -f query='mutation { updatePullRequestBranch(input: {pullRequestId: \"x\"}) { clientMutationId } }'", ok)),
+           "silent")
+    expect("plain update-branch, rulesets unreadable: warn",
+           run(E, ev("gh pr update-branch 5 -R acme/protrules500", nonrepo)), "warn", ("NOT blocked",))
+    cf = E.data / "commit-merge-guard" / "repos.json"
+    cf.write_text(json.dumps({"acme/queue": {"guarded": True, "branch": "main", "automerge_label": False,
+                                             "t": time.time()}}))
+    expect("0.49.0 cache entry (no queue field) is re-fetched",
+           run(E, ev("gh pr update-branch 5 -R acme/queue", nonrepo)), "deny", ("merge queue",))
+
+    # ── tag and publish only from green main ─────────────────────────────────
+    rel = E.repo("rel", "https://github.com/acme/green.git")
+    tip = E.commit(rel)
+    E.git(rel, "update-ref", "refs/remotes/origin/main", tip)
+    checks_fixture(E, "acme/green", tip, GREEN)
+    ahead = E.repo("ahead", "https://github.com/acme/green.git")
+    base_sha = E.commit(ahead)
+    E.git(ahead, "update-ref", "refs/remotes/origin/main", base_sha)
+    E.commit(ahead, "local only")
+    red = E.repo("relred", "https://github.com/acme/redrel.git")
+    rtip = E.commit(red)
+    E.git(red, "update-ref", "refs/remotes/origin/main", rtip)
+    checks_fixture(E, "acme/redrel", rtip, RED)
+    broken = E.repo("relbroken", "https://github.com/acme/brokenrel.git")
+    btip = E.commit(broken)
+    E.git(broken, "update-ref", "refs/remotes/origin/main", btip)
+    checks_fixture(E, "acme/brokenrel", btip, GREEN, runs_status=500)
+    for name, cmd in [
+        ("git tag v1.2.3 on green origin tip", "git tag v1.2.3"),
+        ("git tag -a v1.2.3 -m on green origin tip", "git tag -a v1.2.3 -m 'release v1.2.3'"),
+        ("git push origin v1.2.3 on green tip", "git push origin v1.2.3"),
+        ("gh release create on green tip", "gh release create v1.2.3 --notes x"),
+        ("cargo publish on green tip", "cargo publish -p foo"),
+    ]:
+        expect(name, run(E, ev(cmd, rel)), "silent")
+    before = E.calls()
+    for name, cmd in [
+        ("git tag -l", "git tag -l 'v*'"), ("git tag -d", "git tag -d v1.2.3"),
+        ("non-v tag", "git tag build-5"), ("cargo publish --dry-run", "cargo publish --dry-run"),
+        ("npm publish --dry-run", "npm publish --dry-run"), ("git push of a branch", "git push origin feat-x"),
+        ("git push --delete of a tag", "git push --delete origin v1.2.3"),
+    ]:
+        expect(name, run(E, ev(cmd, ahead)), "silent")
+    if E.calls() != before:
+        fail("non-publishing commands called the API %d times" % (E.calls() - before))
+    for name, cmd in [
+        ("git tag v1.2.3 ahead of origin", "git tag v1.2.3"),
+        ("git push origin --tags ahead of origin", "git push origin --tags"),
+        ("cargo publish ahead of origin", "cargo publish"),
+        ("npm publish ahead of origin", "npm publish --access public"),
+        ("gh release create ahead of origin", "gh release create v1.2.3 --generate-notes"),
+    ]:
+        expect(name, run(E, ev(cmd, ahead)), "ask", ("not the tip of origin/main",))
+    expect("git tag v1.2.3 on a red origin tip", run(E, ev("git tag v1.2.3", red)), "ask", ("red", "Clippy"))
+    expect("git push of refs/tags/v2 on a red tip", run(E, ev("git push origin refs/tags/v2.0.0", red)), "ask",
+           ("red",))
+    expect("checks unreadable: ask, not green", run(E, ev("git tag v1.2.3", broken)), "ask",
+           ("could not be read",))
+    expect("gh release create -R outside a checkout", run(E, ev("gh release create v1 -R acme/green", nonrepo)),
+           "ask", ("not run inside a git checkout",))
+
+    # ── signing and identity (outside temp dirs) ─────────────────────────────
+    nt_root = pathlib.Path(tempfile.mkdtemp(prefix=".hookfix-", dir=str(ROOT)))
+    try:
+        nt = nt_root / "nt"
+        nt.mkdir()
+        E.git(nt, "init", "-q")
+        if under_temp(str(nt)):
+            fail("cannot place a non-temp fixture: %s is under a temp root" % ROOT)
+            return
+        no_leak_sign = ("Do not add it yourself",)
+        for name, cmd, cwd in [
+            ("git commit --no-gpg-sign", "git commit --no-gpg-sign -m x", nt),
+            ("git -c commit.gpgsign=false commit", "git -c commit.gpgsign=false commit -m x", nt),
+            ("git -c commit.gpgSign=no (case)", "git -c commit.gpgSign=no commit -m x", nt),
+            ("git rebase --no-gpg-sign", "git rebase --no-gpg-sign main", nt),
+            ("git tag --no-sign", "git tag --no-sign -a v9 -m x", nt),
+            ("git -C non-temp from a temp cwd", "git -C %s commit --no-gpg-sign -m x" % nt, nonrepo),
+            ("cd non-temp && commit --no-gpg-sign", "cd %s && git commit --no-gpg-sign -m x" % nt, nonrepo),
+            ("git config commit.gpgsign false", "git config commit.gpgsign false", nt),
+            ("--no-gpg-sign, unbalanced quote (coarse)", 'git commit --no-gpg-sign -m "oops', nt),
+        ]:
+            expect("signing: " + name, run(E, ev(cmd, cwd)), "deny", ("unsigned", "temp dir"), no_leak_sign)
+        for name, cmd in [
+            ("git config user.email", "git config user.email t@t"),
+            ("git config --global user.name", "git config --global user.name 'X Y'"),
+            ("git config --local user.email", "git config --local user.email t@t"),
+            ("git config set user.email (2.46 syntax)", "git config set user.email t@t"),
+            ("git -c user.email= on any subcommand", "git -c user.email=a@b log -1"),
+            ("git -c user.name= on commit", "git -c user.name=t commit -m x"),
+        ]:
+            expect("identity: " + name, run(E, ev(cmd, nt)), "deny", ("identity", "ask the owner"))
+        for name, cmd in [
+            ("git config --get user.email", "git config --get user.email"),
+            ("git config user.email (read)", "git config user.email"),
+            ("git config --local --unset user.email (0.49.0's remedy)", "git config --local --unset user.email"),
+            ("git config --unset-all user.name", "git config --unset-all user.name"),
+            ("git config --unset with a value pattern", "git config --unset user.email t@t"),
+            ("git config --get-regexp with a value pattern", "git config --get-regexp user. t@t"),
+            ("git config get user.email", "git config get user.email"),
+            ("git config unset user.email", "git config unset user.email"),
+            ("git config --list", "git config --list --show-origin"),
+            ("git config --show-scope --get", "git config --show-scope --get user.email"),
+            ("git config of another key", "git config core.editor vim"),
+            ("git -c commit.gpgsign=true commit", "git -c commit.gpgsign=true commit -m x"),
+            ("--no-gpg-sign as the -m message", "git commit -m --no-gpg-sign"),
+        ]:
+            expect("signing/identity allowed: " + name, run(E, ev(cmd, nt)), "silent")
+        for name, cmd in [
+            ("temp: git commit --no-gpg-sign", "git commit --no-gpg-sign -m x"),
+            ("temp: git config user.email", "git config user.email t@t"),
+            ("temp: -c commit.gpgsign=false", "git -c commit.gpgsign=false commit -m x"),
+        ]:
+            expect(name, run(E, ev(cmd, ok)), "silent")
+
+        # ── host-shaped values in commit and PR text ─────────────────────────
+        heredoc = ("git commit -m \"$(cat <<'EOF'\nfix: deploy\n\nRuns on 192.168.10.20 now.\nEOF\n)\"")
+        for name, cmd, want in [
+            ("-m with a .local host", "git commit -m 'deploy to buildbox.local'", ("mdns/lan", "bu***cal")),
+            ("heredoc message with an RFC 1918 address", heredoc, ("ipv4",)),
+            ("-m with a ULA address", "git commit -m 'bind fd12:3456:789a::1'", ("ula",)),
+            ("-m with a /Volumes path", "git commit -m 'data in /Volumes/Data/x'", ("volumes",)),
+            ("-m with the owner's home path", "git commit -m 'see %s/notes'" % E.home, ("home",)),
+            ("gh pr create --body with a host", "gh pr create --title t --body 'runs on ci.lan'", ("PR title/body",)),
+        ]:
+            expect("text: " + name, run(E, ev(cmd, nt)), "ask", want + ("owner",), ("buildbox.local",))
+        for name, cmd in [
+            ("clean message", "git commit -m 'fix: nothing private here'"),
+            ("host only in the cd path, not the message",
+             "cd %s && ssh buildbox.local true && git commit -m clean" % nt),
+            ("settings.local.json and *.local are not hosts", "git commit -m 'edit settings.local.json, glob *.local'"),
+            ("a version number is not an address", "git commit -m 'bump to 10.2.3'"),
+        ]:
+            expect("text silent: " + name, run(E, ev(cmd, nt)), "silent")
+        (nt / ".private-hostname-allow").write_text("# fixture hosts\n*.local\n")
+        expect("text: repo allow-list drops *.local", run(E, ev("git commit -m 'deploy to buildbox.local'", nt)),
+               "silent")
+        (nt / ".private-hostname-allow").unlink()
+        cfg = E.home / ".config" / "pulseengine-claude"
+        cfg.mkdir(parents=True, exist_ok=True)
+        (cfg / "private-hostname-allow").write_text("buildbox.local\n")
+        expect("text: user allow-list drops a value", run(E, ev("git commit -m 'deploy to buildbox.local'", nt)),
+               "silent")
+        (cfg / "private-hostname-allow").unlink()
+        expect("text: temp repo is exempt", run(E, ev("git commit -m 'deploy to buildbox.local'", ok)), "silent")
+    finally:
+        shutil.rmtree(str(nt_root), ignore_errors=True)
+
+    # ── PR admission advice ──────────────────────────────────────────────────
+    State.BODY = json.dumps({"snapshot": {"queue": {
+        "queued": [{"repo": "protected", "run_id": 1}, {"repo": "protected", "run_id": 1},
+                   {"repo": "protected", "run_id": 2}, {"repo": "other", "run_id": 3}],
+        "queued_complete": True,
+        "pools": {"light": {"jobs_queued": 6}, "rust-cpu": {"jobs_queued": 25}}}}}).encode()
+    srv = http_server.HTTPServer(("127.0.0.1", 0), State)
+    th = threading.Thread(target=srv.serve_forever, daemon=True)
+    th.start()
+    log = E.data / "commit-merge-guard" / "admission.log"
+    try:
+        url = "http://127.0.0.1:%d/ci" % srv.server_address[1]
+        expect("admission: queued runs and pools as context",
+               run(E, ev("gh pr create --title t --body b", ok), PULSEENGINE_CI_STATUS_URL=url), "warn",
+               ("acme/protected has 2 queued run(s)", "light 6 jobs", "rust-cpu 25 jobs", "batch"))
+        r = run(E, ev("gh pr create --fill", ok), PULSEENGINE_CI_STATUS_URL=url)
+        got, text = classify("admission: advice is short", r)
+        if got == "warn" and len(text) > 600:
+            fail("admission advice is %d chars (> 600)" % len(text))
+        expect("admission: URL unset is silent", run(E, ev("gh pr create --fill", ok)), "silent")
+        expect("admission: unreachable is silent",
+               run(E, ev("gh pr create --fill", ok), PULSEENGINE_CI_STATUS_URL="http://127.0.0.1:9/ci"), "silent")
+        lines = log.read_text().splitlines() if log.is_file() else []
+        if not any("unset" in x for x in lines) or not any(x.split(" ", 1)[1].startswith("fail:") for x in lines):
+            fail("admission.log does not record the unset and unreachable cases: %r" % lines[-4:])
+        else:
+            print("ok   admission: unset and unreachable are logged")
+    finally:
+        srv.shutdown()
+
+    # ── SessionStart signing probe ───────────────────────────────────────────
+    probe = HOOKS / "signing-probe.sh"
+    full = "[user]\n\tname = N\n\temail = n@example.com\n\tsigningkey = ~/.ssh/k.pub\n[commit]\n\tgpgsign = true\n"
+    for name, cfg, want in [
+        ("all set", full, None),
+        ("no email", full.replace("\temail = n@example.com\n", ""), "user.email"),
+        ("no signing key", full.replace("\tsigningkey = ~/.ssh/k.pub\n", ""), "user.signingkey"),
+        ("gpgsign false", full.replace("gpgsign = true", "gpgsign = false"), "commit.gpgsign=true"),
+        ("nothing set", "", "user.email"),
+    ]:
+        gc = E.home / ("probe-%s.gitconfig" % name.replace(" ", "-"))
+        gc.write_text(cfg)
+        jq = shutil.which("jq")
+        pdir = E.links
+        if jq and not (pdir / "jq").exists():
+            (pdir / "jq").symlink_to(jq)
+        r = subprocess.run(["bash", str(probe)], capture_output=True, text=True, timeout=30,
+                           env=E.base(GIT_CONFIG_GLOBAL=str(gc)))
+        if r.returncode != 0 or r.stderr:
+            fail("signing probe %s: exit %d stderr %r" % (name, r.returncode, r.stderr[:200]))
+            continue
+        if want is None:
+            if r.stdout:
+                fail("signing probe %s: expected silence, got %r" % (name, r.stdout[:200]))
+            else:
+                print("ok   signing probe: %s is silent" % name)
+            continue
+        if not jq:  # the probe is silent without jq; a skipped case is not a pass
+            fail("signing probe %s: cannot check, no jq on PATH" % name)
+            continue
+        try:
+            ctx = json.loads(r.stdout)["hookSpecificOutput"]["additionalContext"]
+        except (ValueError, KeyError, TypeError):
+            fail("signing probe %s: not SessionStart JSON: %r" % (name, r.stdout[:200]))
+            continue
+        if want not in ctx or "\n" in ctx or len(ctx) > 400:
+            fail("signing probe %s: want one line under 400 chars naming %s, got %r" % (name, want, ctx))
+        else:
+            print("ok   signing probe: %s -> one line (%d chars)" % (name, len(ctx)))
+    try:
+        ss = json.loads(HOOKS_JSON.read_text())["hooks"]["SessionStart"]
+        cmds = [h.get("command") for e in ss for h in e.get("hooks", [])]
+    except (OSError, ValueError, KeyError):
+        cmds = []
+    if cmds.count("bash ${CLAUDE_PLUGIN_ROOT}/hooks/signing-probe.sh") != 1:
+        fail("hooks.json: signing-probe.sh not wired once under SessionStart")
+    else:
+        print("ok   signing probe wired once under SessionStart")
 
 
 def main():
@@ -369,13 +747,15 @@ def main():
                ("could not tell",))
         before = E.calls()
         for name, cmd in [
-            ("gh pr merge without --auto", "gh pr merge 45 --squash -R acme/unprotected"),
             ("--disable-auto", "gh pr merge 45 --disable-auto -R acme/unprotected"),
             ("gh pr view", "gh pr view 45 -R acme/unprotected"),
         ]:
             expect(name, run(E, ev(cmd, nonrepo)), "silent")
         if E.calls() != before:
             fail("non --auto gh commands called the API %d times" % (E.calls() - before))
+        expect("direct merge, PR head unreadable: warn",
+               run(E, ev("gh pr merge 45 --squash -R acme/unprotected", nonrepo)), "warn",
+               ("NOT checked",))
 
         # ── cache ────────────────────────────────────────────────────────────
         E.reset_cache()
@@ -414,6 +794,8 @@ def main():
             expect("quiet: " + name, run(E, event), "silent")
         if E.calls() != before:
             fail("quiet cases called gh")
+
+        new_rules(E, nonrepo, ok, t_repo)
 
         # ── wrapper fails open ───────────────────────────────────────────────
         for name, d in (("no python3", E.nopy), ("crashing python3", E.crash)):

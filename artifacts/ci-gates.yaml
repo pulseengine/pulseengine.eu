@@ -103,6 +103,8 @@ artifacts:
         target: REQ-INCIDENT-LEDGER
       - type: satisfies
         target: REQ-COMMIT-MERGE-GUARD
+      - type: satisfies
+        target: REQ-GUARDS-050
   - id: REQ-LINKS
     type: requirement
     title: Every internal link in the built site resolves
@@ -1086,3 +1088,28 @@ artifacts:
     links:
       - type: verifies
         target: REQ-COMMIT-MERGE-GUARD
+
+  - id: REQ-GUARDS-050
+    type: requirement
+    title: Client-side guards deny merges around the gate, server-side rebases, unsigned commits and identity writes, and ask before red merges, off-main publishes and private hostnames
+    description: >-
+      Owner decision 2026-10-30, from the 2026-10-30 tuition study (ranked mechanization candidates 1-4, 6 and 9). Client-side early warnings beside the server-side rules (branch protection, rulesets, required signatures, merge queue, and the temper work); the README says so. hooks/commit-merge-guard.py (PreToolUse Bash) gains: deny `gh pr merge --admin`, REST PUT .../pulls/N/merge (gh api or curl) and GraphQL mergePullRequest, before any API call; ask on a direct `gh pr merge` without --auto when the PR head's check runs or statuses are red, pending or absent, read live, warn and pass when they cannot be read; deny `gh pr update-branch --rebase`, GraphQL updatePullRequestBranch with REBASE and REST update_method=rebase everywhere, and plain or REST update-branch on a repo whose rulesets include merge_queue (cached with the protection answer under a versioned schema, a 0.49.0 entry re-fetched), pass elsewhere, warn when rulesets are unreadable; outside temp dirs (TMPDIR, /tmp, /private/tmp, /var/folders, by realpath) deny --no-gpg-sign, tag --no-sign, -c commit.gpgsign/tag.gpgsign false, `git config commit.gpgsign false`, -c user.email=/user.name= and any `git config` that writes user.* (old and 2.46 syntax), passing reads and --unset; ask on `git tag v<digit>`, a push of such a tag or --tags, `gh release create`, `cargo publish` and npm/pnpm publish (not --dry-run) unless the published commit is the local origin default-branch tip and its checks are green, asking also when that cannot be confirmed; scan commit messages (-m values and heredoc bodies only) and `gh pr create|edit` title/body with hooks/private_hosts.py and ask on a hit; on `gh pr create` ask the fleet status API from PULSEENGINE_CI_STATUS_URL/_CACERT for queued runs and pools and add one short context line, logging and staying silent when unset or unreachable. hooks/private-host-guard.py (PreToolUse Edit|Write|MultiEdit) asks when text the call adds carries a .local/.lan/.home.arpa/.ts.net name, an RFC 1918 or CGNAT IPv4 address, an IPv6 ULA, a /Volumes path or $HOME on a path boundary, inside a git work tree, not git-ignored, not under temp dirs or ~/.claude, minus values in the Edit's old_string and minus the repo .private-hostname-allow and user allow-list (value globs and file: path globs); values are masked. hooks/signing-probe.sh (SessionStart) prints one line when the global config lacks user.email, user.signingkey or commit.gpgsign=true. Every hook prints deny, ask or context, never an approving decision, and every wrapper exits 0.
+    status: verified
+    release: 0.50.0
+    category: functional
+    priority: should
+    fields:
+      category: functional
+
+  - id: VER-GUARDS-050
+    type: verification
+    title: check-commit-merge-guard.py and check-private-host-guard.py run the real hooks on fixture repos and a stub gh, plus claims GUARDS-050-*
+    description: >-
+      scripts/check-commit-merge-guard.py (158 passing checks, the 0.49.0 cases included) and scripts/check-private-host-guard.py (26) run the real wrappers under bash with HOME, GIT_CONFIG_GLOBAL and the plugin data dir in fixtures, tokens and PULSEENGINE_* stripped, a stub gh answering from fixture files, and a local stub of the fleet status API. Signing and host cases run in a .hookfix-* dir inside the checkout, outside every temp root, which the script removes; a checkout under a temp root fails or exits 2. Passes on python 3.14 and /usr/bin/python3 3.9.6, slowest run under 1 s. Negative-controlled 2026-10-30: 46 hook mutants each exit 1 on their script (admin, REST, GraphQL and curl merge not denied; red, pending and check-less heads not asked; API failure blocking a merge; rebase, GraphQL REBASE and queue update-branch not denied; update-branch denied everywhere; cache version ignored; --no-gpg-sign, -c gpgsign, -c user.*, config user.* not denied; --unset denied; temp exemption removed; v-tag unchecked; off-tip, red and unreadable publishes passing; cargo publish ignored; --dry-run not exempt; commit text scanning the whole command; allow-lists ignored; admission as an ask or unlogged; ask emitted as an approving decision; prefilter, probe and wiring mutants; old_string not subtracted; ~/.claude, git-ignored and non-repo paths not exempt; file: rules ignored; ask emitted as deny; home boundary dropped; settings.local.json as a host; values unmasked; wrapper exit 2), restored by re-editing, both scripts exit 0 again. Two mutants first survived (the --unset branch, the ~/.claude exemption); cases were added until they died, and one redundant .git/ clause was removed. 9 claim mutants each exit 1 on claim-check. CI (2026-10-30) has jq, so the signing-probe message cases ran; without jq they now fail rather than skip. A first CI run failed the temp-dir case because the runner TMPDIR is not one of the fixed roots; the fixture now sits inside the hook TMPDIR. Live 2026-10-30, claude -p --plugin-dir, haiku, --dangerously-skip-permissions, in a throwaway non-temp repo: `git commit --allow-empty --no-gpg-sign` was denied and no commit was made, while the control session without --plugin-dir committed; `gh pr merge 999999 --admin --squash -R pulseengine/pulseengine.eu` was denied by the hook, while the control reached GitHub. An ask in claude -p refused the call in default, dontAsk and bypass modes (2.1.312). False positives, measured on the transcript archive only (not the newer laptop transcripts) (5,790 files, deduplicated by tool_use id, so the study regex reproduces 39 edits and 91 of its 97 commit commands): of those, 7 edits matched non-hosts (settings.local, bazelrc.local) and 68 commits carried the value outside the message, 18 in it. The new patterns find a host-shaped value in 137 edits outside temp and config paths (113 under a /git/ path; work-tree and git-ignore status could not be checked after the fact, so the hook would have asked on at most 137), 6 of them only test-fixture names, and in 34 commit messages, 1 of them a fixture path.
+    status: verified
+    release: 0.50.0
+    method: automated-test
+    test-location: scripts/check-commit-merge-guard.py
+    links:
+      - type: verifies
+        target: REQ-GUARDS-050
