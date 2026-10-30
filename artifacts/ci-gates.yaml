@@ -105,6 +105,10 @@ artifacts:
         target: REQ-COMMIT-MERGE-GUARD
       - type: satisfies
         target: REQ-GUARDS-050
+      - type: satisfies
+        target: REQ-CORE-CONTRACT-WHOLE
+      - type: satisfies
+        target: REQ-SKILL-DESC-CAP
   - id: REQ-LINKS
     type: requirement
     title: Every internal link in the built site resolves
@@ -1113,3 +1117,53 @@ artifacts:
     links:
       - type: verifies
         target: REQ-GUARDS-050
+
+  - id: REQ-CORE-CONTRACT-WHOLE
+    type: requirement
+    title: The session-start core contract arrives whole, and no plugin hook hands Claude Code a context string over 9,500 characters
+    description: >-
+      Owner decision 2026-10-30, from the 2026-10-30 tuition study: Claude Code turns an additionalContext string over ~10k characters into a ~2.3 KB preview plus a path, and the ~48 KB methodology block was cut that way on every session from June to October, so the operating contract never reached the model. hooks/inject-pulseengine-memory.sh injects only core/pulseengine-core.md (the judgment rules no hook can check, which rules the 0.50.0 hooks enforce, and the memory files by absolute path to read on demand). Every SessionStart hook writes through hooks/lib-emit.sh, which past 9,500 bytes writes the text to a spill file under the plugin data dir and injects its head plus the file's path; the situational block injects at most 5,000 bytes of the working-context checkpoint; factory-notice's start text goes through clamp_context with the same rule. The operating contract drops the passages the hooks now cover (the --admin/required-checks sentence and the pre-create admission step) and the rivet command enumeration; feature-loop and issue-hunt point at the hook's admission advice instead of repeating the procedure; the rivet hook's command list becomes one line. scripts/check-hook-context-size.py runs every hooks.json command under worst-case inputs in CI.
+    status: verified
+    release: 0.51.0
+    category: functional
+    priority: should
+    fields:
+      category: functional
+
+  - id: VER-CORE-CONTRACT-WHOLE
+    type: verification
+    title: check-hook-context-size.py runs every registered hook under worst-case inputs, plus claim CORE-CONTRACT-WHOLE and a live session
+    description: >-
+      The script reads hooks.json, so a newly wired hook is covered at once, and fails on a hook with no fixture event. It runs each command (24 invocations) with a fixture repo outside the temp roots holding a 20 KB working-context checkpoint and a rivet.yaml, a stub rivet reporting 400 types and 2,000 open coverage rules, PreToolUse events built for the longest guard output (600-host commit and PR text, a 50,000-char Agent prompt, a 2,000-line Write), and the real core and memory files. It decodes each hook's JSON and fails on any additionalContext, permissionDecisionReason, systemMessage or reason over 9,500 characters, on a memory block that carries the cut marker or lacks the core file's text, and when factory-notice's clamp leaves a 32,000-char text over the cap. Largest strings measured 2026-10-30: memory 7,805, rivet (stub, cut by the emitter) 8,977, situational 5,634, commit-merge-guard 776, private-host-guard 621, factory-notice 653, signing probe 277, agent reminder 196. Negative-controlled: 6 mutants exit 1 on the script (emitter cap raised, memory hook concatenating every memory file, core grown past the cap, factory-notice clamp disabled, rivet hook bypassing the emitter, a hook wired under an unfixtured matcher); 3 claim mutants exit 1 on claim-check (CI step removed, situational hook bypassing the emitter, the description cap check disabled); all restored by re-editing. Live 2026-10-30, claude -p --plugin-dir (haiku, 2.1.312) in a fresh dir: the transcript's hook_additional_context for the core is 7,805 characters, equal to the hook's own additionalContext, with no persisted-output preview.
+    status: verified
+    release: 0.51.0
+    method: automated-test
+    test-location: scripts/check-hook-context-size.py
+    links:
+      - type: verifies
+        target: REQ-CORE-CONTRACT-WHOLE
+
+  - id: REQ-SKILL-DESC-CAP
+    type: requirement
+    title: Every skill description is at most 350 characters
+    description: >-
+      Owner decision 2026-10-30. Every main session and every subagent carries every skill description; the 24 came to 19,846 characters. scripts/check-skill-frontmatter.py adds DESC_CAP = 350 on the parsed YAML value, beside the 1,024-character runtime limit, and strict YAML still has to load. Descriptions keep their trigger phrases; dropped detail moves into a **When to use** paragraph in the body. ci-status names the gh pr create hook as its admission path.
+    status: verified
+    release: 0.51.0
+    category: non-functional
+    priority: should
+    fields:
+      category: non-functional
+
+  - id: VER-SKILL-DESC-CAP
+    type: verification
+    title: check-skill-frontmatter.py enforces the 350-character cap, plus claim SKILL-DESC-CAP
+    description: >-
+      24 skills pass at 213-335 characters, 6,744 in total (was 19,846). Negative-controlled 2026-10-30: a gate-potency description padded past 350 makes the script exit 1; disabling the cap check makes claim-check exit 1; both restored by re-editing.
+    status: verified
+    release: 0.51.0
+    method: automated-test
+    test-location: scripts/check-skill-frontmatter.py
+    links:
+      - type: verifies
+        target: REQ-SKILL-DESC-CAP

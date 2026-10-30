@@ -1,12 +1,14 @@
 ---
 name: release-execution
-description: This skill should be used when cutting, shipping, or finishing a release — including "ship it", "cut a release", "tag this", "release v0.X.Y", "take this to release", "work the PR queue to green", "finish the release tail", "publish", or any end-to-end release work that involves PRs, reviewers, merging, CI, tagging, GitHub Release, and crates.io publish. ALWAYS use this skill when the user authorizes autonomous release work or asks to "go as long as you can" on a release campaign.
+description: This skill should be used when cutting, shipping or finishing a release, such as "ship it", "cut a release", "tag this" or "work the PR queue to green". ALWAYS use it when the user authorizes autonomous release work or asks to go as far as you can on a release campaign.
 metadata:
   author: pulseengine.eu
   version: "0.3.4"
 ---
 
 # Release execution
+
+**When to use:** cutting, shipping or finishing a release, including PRs, reviewers, merging, CI, tagging, GitHub Release and crates.io publish, when the user says "release v0.X.Y", "finish the release tail" or "go as long as you can" on a release campaign. ALWAYS use it when the user authorizes autonomous release work.
 
 ## Operating discipline — this is a deterministic driver, not an exploration
 

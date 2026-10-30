@@ -1,6 +1,6 @@
 ---
 name: refactor-decision
-description: This skill should be used whenever an agent is deciding whether to stop patching and refactor, before it refactors, and when asked to "refactor X", "clean this up", "tidy first" or "split this file". It fires when a feature does not fit the existing structure, when a change would add a second copy of a rule or a second code path for one decision, when a fix repairs an earlier fix or a review clusters findings in one file, when a merge-queue ejection hits two PRs that were green alone, and for small cleanups inside code already being changed. It says when a refactor is warranted, records a none/small/large decision with a reason, and requires evidence that behaviour did not change. It does NOT apply in pulseengine/rivet or pulseengine/spar before 2027-02-01 (a pre-registered experiment); it checks the repository's remotes first. Composes with oracle-gate-a-change, pulseengine-feature-loop, issue-hunt, repo-hygiene, ci-status and factory-notice.
+description: This skill should be used whenever an agent decides whether to stop patching and refactor, or is asked to "refactor X" or "tidy first". It does NOT apply in pulseengine/rivet or pulseengine/spar before 2027-02-01.
 metadata:
   author: pulseengine.eu
   version: "0.1.0"

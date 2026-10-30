@@ -1,12 +1,14 @@
 ---
 name: proof-synthesis
-description: This skill should be used when writing, repairing, or strengthening a machine-checked proof, spec, contract, or invariant in ANY PulseEngine verification backend — Verus (SMT/Z3), Rocq/Coq, Lean 4, Dafny, Kani (bounded model checking), or scry (sound abstract interpretation) — and whenever a proof obligation, assertion, or verification job is failing and needs an iterative generate→verify→refine loop. Backend-agnostic by design — the verifier's own output is the oracle, never an LLM's opinion. Fires across gale, scry, the rules_* proof toolchains, and any repo that carries proofs. Use it for the production of proofs; pair it with oracle-gate-a-change (the verifier is the gate) and stpa-audit/feature-loop (which say *what* must be proven).
+description: This skill should be used when writing, repairing or strengthening a machine-checked proof, spec, contract or invariant in any PulseEngine verification backend (Verus, Rocq/Coq, Lean 4, Dafny, Kani, scry), or when a proof obligation is failing and needs a generate, verify, refine loop.
 metadata:
   author: pulseengine.eu
   version: "0.4.1"
 ---
 
 # Proof synthesis
+
+**When to use:** writing, repairing or strengthening a proof in Verus (SMT/Z3), Rocq/Coq, Lean 4, Dafny, Kani or scry, or when a proof obligation or verification job is failing. It is backend-agnostic: the verifier's own output is the oracle, never an LLM's opinion. It fires across gale, scry, the rules_* proof toolchains and any repo that carries proofs. Pair it with oracle-gate-a-change (the verifier is the gate) and with stpa-audit or pulseengine-feature-loop (which say what must be proven).
 
 Writing a machine-checked proof is a search, and the verifier is the only
 honest judge of progress. This skill is the **backend-agnostic loop** for that

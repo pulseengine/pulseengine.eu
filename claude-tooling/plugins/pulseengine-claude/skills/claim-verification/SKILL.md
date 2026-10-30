@@ -1,12 +1,14 @@
 ---
 name: claim-verification
-description: This skill should be used whenever writing or editing a README, a badge, a project description, a blog claim, an honesty ledger, a dossier, or ANY document that asserts what the system does, is, or proves — especially verification claims ("formally verified", "proven", "sound", "verified N/N", trusted-base counts). It treats a document's load-bearing claims as requirements that must stay true over time — mark the assertion, bind it to checkable evidence, and gate it so drift fails the build. Use it to author an honest claim, to audit a doc whose claims may have drifted from reality, or to stand up the claim-check gate in a repo. Composes with traceability-audit (requirements↔tests), oracle-gate-a-change (the gate), and clean-room-verification (review the claim cold).
+description: This skill should be used whenever writing or editing a README, badge, project description, blog claim or dossier that asserts what the system does, is, or proves, especially "formally verified", "proven" or "verified N/N". It binds load-bearing claims to checkable evidence and gates them so drift fails the build.
 metadata:
   author: pulseengine.eu
   version: "0.4.0"
 ---
 
 # Claim verification
+
+**When to use:** writing or editing a README, badge, project description, blog claim, honesty ledger or dossier that asserts what the system does, is or proves ("verified N/N", trusted-base counts). Use it to author an honest claim, to audit a doc whose claims may have drifted, or to stand up the claim-check gate in a repo. It composes with traceability-audit (requirements to tests), oracle-gate-a-change (the gate) and clean-room-verification (review the claim cold).
 
 A README is not documentation — it is a **claim about the system**, the same
 species as a requirement, pointing the other way. A requirement says what the

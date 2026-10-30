@@ -1,12 +1,14 @@
 ---
 name: repo-hygiene
-description: This skill should be used to run a complete hygiene sweep over a repo after a release or on a standing cadence — stale worktrees, dead local/remote branches (including squash-merge artifacts git cannot see as merged), ancient stashes, agent build caches, status noise, and the open-issue board. Use it when the user says "clean up", "hygiene", "check worktrees and branches", "what's stale", or when a release tick finishes and residue has accumulated. It is quiesce-gated so it is safe to run inside a live multi-agent campaign. Closure is evidence-based — an issue closes on a tagged release, or on the deploy run for its merge SHA in a repo that has no tags, or with a rationale when obsolete or captured elsewhere; otherwise it stays open with a "remaining:" note, or is marked perennial if it is a living surface rather than a task — never silently. Composes with issue-hunt (the board is its watermark surface), release-execution (fire this as the release tail), and the operating contract.
+description: "This skill should be used to run a complete hygiene sweep over a repo after a release or on a standing cadence: stale worktrees, dead branches, ancient stashes and the open-issue board. Use it when the user says \"clean up\", \"hygiene\" or \"what's stale\", or when a release tick finishes."
 metadata:
   author: pulseengine.eu
   version: "0.4.2"
 ---
 
 # Repo hygiene — the post-release residue sweep
+
+**When to use:** after a release, on a standing cadence, or when the user asks to check worktrees and branches. It is quiesce-gated, so it is safe inside a live multi-agent campaign. Closure is evidence-based: an issue closes on a tagged release, or on the deploy run for its merge SHA in a repo with no tags, or with a rationale when obsolete or captured elsewhere. Otherwise it stays open with a "remaining:" note, or is marked perennial if it is a living surface rather than a task, never silently. It composes with issue-hunt (the board is its watermark surface) and release-execution (fire it as the release tail).
 
 Multi-agent, multi-release campaigns shed residue at a rate manual habits don't
 match: one shipped hub can leave a dozen worktrees, dozens of branches, tens of

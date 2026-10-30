@@ -1,12 +1,14 @@
 ---
 name: bootstrap-verification
-description: This skill should be used to stand up the PulseEngine verification scaffolding for a NEW or not-yet-built piece — a greenfield repo, a fresh component, or work that doesn't exist yet — so it is traceable and verifiable from commit one rather than retrofitted later. Use it when starting something from scratch, when a repo/component has no rivet project yet, or when the user says "bootstrap this", "set this up properly from the start", "I want to use this on a piece I haven't done yet", or "get the verification scaffolding in". It picks the target standard(s), runs rivet init, scaffolds STPA/STPA-Sec + the traceability skeleton, seeds the top of the V, and wires the piece into the feature loop, release gate, and compliance/MC-DC reporting — the greenfield counterpart to pulseengine-feature-loop (which assumes an existing project).
+description: This skill should be used to stand up PulseEngine verification scaffolding for a NEW or not-yet-built piece, a greenfield repo or fresh component, so it is traceable from commit one. Use it when the user says "bootstrap this", "set this up properly from the start", or "get the verification scaffolding in".
 metadata:
   author: pulseengine.eu
   version: "0.1.0"
 ---
 
 # Bootstrap verification
+
+**When to use:** the piece is a greenfield repo, a fresh component or work that does not exist yet, or a repo with no rivet project. The skill also wires the piece into the feature loop, the release gate and compliance/MC-DC reporting.
 
 The cheapest verifiable system is one that was traceable from its first commit;
 the most expensive is one where the analysis is reconstructed at the end. This

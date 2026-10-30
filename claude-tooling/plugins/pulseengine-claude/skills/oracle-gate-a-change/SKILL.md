@@ -1,12 +1,14 @@
 ---
 name: oracle-gate-a-change
-description: This skill should be used whenever proposing, designing, landing, or evaluating a consequential change on a PulseEngine project (rivet, spar, witness, sigil, meld, loom, synth, wohl) — including "propose a change", "add a feature", "fix a bug", "is this safe to land", "what verifies this", "what's the gate", "how do we know this is correct", "before merging this", or whenever a code change needs a mechanical check to back it. ALWAYS use this skill before claiming a property holds and before recommending a change be merged.
+description: This skill should be used whenever proposing, designing, landing or evaluating a consequential change on a PulseEngine project (rivet, spar, witness, sigil, meld, loom, synth, wohl), such as "is this safe to land", "what's the gate" or "before merging this". ALWAYS use it before claiming a property holds.
 metadata:
   author: pulseengine.eu
   version: "0.6.1"
 ---
 
 # Oracle-gate a change
+
+**When to use:** proposing, designing, landing or evaluating a consequential change, such as "propose a change", "add a feature", "fix a bug", "is this safe to land", "what verifies this", "how do we know this is correct" or "before merging this", or whenever a code change needs a mechanical check to back it. ALWAYS use it before claiming a property holds and before recommending a change be merged.
 
 ## When this fires
 

@@ -1,12 +1,14 @@
 ---
 name: stpa-audit
-description: This skill should be used when conducting or AUDITING an STPA (System-Theoretic Process Analysis) or STPA-Sec (its security extension) hazard analysis on a PulseEngine project — including "do an STPA", "audit the hazard analysis", "are our losses/hazards/UCAs complete", "STPA-Sec review", "security hazard analysis", "check the safety/ artifacts", or before a release whose V-model gate depends on the hazard analysis being sound. Fires whenever the front-end of the safety case (losses → hazards → constraints → UCAs → loss scenarios) needs to be built or verified. rivet already provides the typed schema, link semantics, and `rivet check` topology validation — this skill operationalizes the method and the audit on top of it.
+description: This skill should be used when conducting or AUDITING an STPA or STPA-Sec hazard analysis on a PulseEngine project, such as "do an STPA", "audit the hazard analysis" or "are our losses/hazards/UCAs complete". Use it before a release whose V-model gate depends on the hazard analysis being sound.
 metadata:
   author: pulseengine.eu
   version: "0.1.0"
 ---
 
 # STPA / STPA-Sec audit
+
+**When to use:** conducting or auditing an STPA or STPA-Sec hazard analysis, or before a release whose V-model gate depends on the hazard analysis being sound. It fires whenever the front-end of the safety case (losses → hazards → constraints → UCAs → loss scenarios) needs building or verifying. rivet already provides the typed schema, link semantics and `rivet check` topology validation; this skill operationalizes the method on top of it.
 
 STPA is the hazard-analysis front-end of the V-model: it derives, top-down,
 *what must never happen* (losses), *the system states that lead there*

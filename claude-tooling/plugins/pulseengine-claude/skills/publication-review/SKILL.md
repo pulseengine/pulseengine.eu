@@ -1,6 +1,6 @@
 ---
 name: publication-review
-description: This skill should be used before a blog post or any other public, claim-heavy prose goes live — before adding `ready = true` to a post, before setting `draft = false`, before publishing a README section, landing page, talk abstract or announcement that quotes sources, cites standards, prints tool output or states numbers. Use it when the user says "is this post ready", "review this before it ships", "schedule this", "fact-check the draft", or when the text was drafted by a model. It gates publication on a role-split clean-room panel — a domain expert, a fact-checker who fetches primaries and re-derives repo numbers with the pinned tool version, and an editor holding the house prose rules — then a fixer that applies only confirmed findings, then a fresh second round. Any refuted quote, number or citation, any overclaim about verification or proof, and any private infrastructure detail blocks publication. Composes with clean-room-verification and claim-verification.
+description: This skill should be used before a blog post or other public, claim-heavy prose goes live, such as before setting ready = true or draft = false. Use it when the user says "is this post ready" or "fact-check the draft".
 metadata:
   author: pulseengine.eu
   version: "0.2.0"

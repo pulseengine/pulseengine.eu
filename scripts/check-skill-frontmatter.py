@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # rivet: verifies REQ-SKILL-LOADS
+# rivet: verifies REQ-SKILL-DESC-CAP
 """Fail if a SKILL.md's frontmatter breaks the limits agent runtimes enforce.
 
 Why this exists: `claude plugin validate` checks the plugin and marketplace
@@ -42,6 +43,7 @@ SKILLS = ROOT / "claude-tooling" / "plugins" / "pulseengine-claude" / "skills"
 
 NAME_MAX = 64
 DESC_MAX = 1024
+DESC_CAP = 350   # ours, stricter than any runtime: see the description check below
 
 FRONTMATTER = re.compile(r"^---\n(.*?)\n---\n", re.S)
 FIELD = re.compile(r"^(name|description):\s*(.+?)(?=\n[a-z_]+:|\Z)", re.S | re.M)
@@ -105,6 +107,17 @@ def main() -> int:
                 f"{d.name}: description is {len(desc)} chars, {over} over the "
                 f"{DESC_MAX} limit — Copilot CLI REFUSES TO LOAD the skill"
             )
+        else:
+            # Our own cap (0.51.0, REQ-SKILL-DESC-CAP): every session AND every
+            # subagent pays for every description; 24 of them came to ~20k
+            # chars. Measured on the parsed YAML value, as the runtime sees it.
+            value = parsed.get("description") if isinstance(parsed, dict) else desc
+            n = len(value) if isinstance(value, str) else len(desc)
+            if n > DESC_CAP:
+                problems.append(
+                    f"{d.name}: description is {n} chars, over the {DESC_CAP} cap — "
+                    f"keep the trigger words, move the detail into the body"
+                )
 
     if not checked:
         # A checker that examined nothing must not report success.
@@ -113,7 +126,7 @@ def main() -> int:
         return 2
 
     print(f"{checked} skills checked, {len(problems)} violating "
-          f"(name <= {NAME_MAX}, description <= {DESC_MAX})")
+          f"(name <= {NAME_MAX}, description <= {DESC_CAP}, runtime limit {DESC_MAX})")
     if not problems:
         return 0
 

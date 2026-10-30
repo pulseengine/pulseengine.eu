@@ -1,12 +1,14 @@
 ---
 name: release-planning
-description: This skill should be used to plan releases in rivet — assign which requirements/artifacts belong to which release and drive development from that plan — and to run the issue-driven delivery loop — an error, regression, or optimization comes in, gets evaluated, flows through the full verification chain, and ships in a planned release. Use it when scoping a release ("what goes in v0.X"), triaging an incoming issue/bug/optimization toward a release, asking "is v0.X ready to cut", or driving a roadmap. Builds on rivet's existing `release:` field + status lifecycle (draft→proposed→approved→implemented→verified→accepted); composes with the feature loop (build each item), traceability-audit (a release is ready when its items' V is closed), and release-execution (cut it).
+description: This skill should be used to plan releases in rivet, assigning which requirements belong to which release, and to run the issue-driven delivery loop. Use it when scoping a release ("what goes in v0.X"), triaging an incoming issue toward a release, or asking "is v0.X ready to cut".
 metadata:
   author: pulseengine.eu
   version: "0.2.1"
 ---
 
 # Release planning & the delivery loop
+
+**When to use:** scoping a release ("what goes in v0.X"), triaging an incoming issue, bug or optimization toward a release, or driving a roadmap. It builds on rivet's release: field and status lifecycle (draft→proposed→approved→implemented→verified→accepted), composes with the feature loop (build each item), traceability-audit (a release is ready when its items' V is closed) and release-execution (cut it).
 
 Two halves of one working model: **plan** which requirements land in which
 release (in rivet, so the V-model artifacts drive the roadmap — not a separate

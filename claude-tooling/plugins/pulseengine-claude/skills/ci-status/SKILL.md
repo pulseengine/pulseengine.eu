@@ -1,12 +1,14 @@
 ---
 name: ci-status
-description: This skill should be used whenever an agent is about to open a pull request, and whenever it is about to wait on a pull request's or branch's CI — "is CI green yet", "wait for the checks", "merge when green", a pending_gates entry, a release tag waiting on its run — and before it polls GitHub in a loop. Before opening a PR it checks whether the repo's CI queue admits one (open, batch onto the session's own PR, or hold locally). When waiting, it asks the CI fleet's read-only status API first (configured by environment variable, never written into a repo), reads the answer's status and start estimate, and schedules the next wake-up from the API's own recheck interval. When an API is not configured or not reachable it says so once and falls back to GitHub (`gh pr checks`, or the repo's queued-run count). Composes with issue-hunt (pending_gates), pulseengine-feature-loop (merge when green), release-execution (waiting on a tag's run) and the operating contract (one PR per repo per session for trivial changes).
+description: This skill should be used whenever an agent is about to open a pull request, and whenever it is about to wait on CI, such as "is CI green yet" or "merge when green". The plugin's gh pr create hook gives admission advice; use this skill when waiting on CI.
 metadata:
   author: pulseengine.eu
   version: "0.2.2"
 ---
 
 # CI status: ask the fleet before polling GitHub
+
+**When to use:** before opening a PR, check whether the repo's CI queue admits one (open, batch onto the session's own PR, or hold locally). The plugin's gh pr create PreToolUse hook gives admission advice; use this skill when waiting on CI, such as "wait for the checks", "merge when green", a pending_gates entry or a release tag waiting on its run. Composes with issue-hunt, pulseengine-feature-loop, release-execution and the operating contract.
 
 A loop that waits on CI by asking GitHub every fifteen seconds learns one bit per
 call: done or not done. It cannot tell a job that is running from one that has
@@ -104,6 +106,11 @@ Never sleep-poll at a fixed short interval. It costs a model turn per poll and
 learns nothing the API's estimate does not already say.
 
 ## Before opening a PR
+
+Since 0.50.0 the plugin's PreToolUse hook runs source 2 below on every `gh pr
+create` and adds the repo's queued-run count and the pool load as one context
+line, which arrives with the call's result. The rules below are what to do with
+it; read them when the advice says batch or hold.
 
 Every PR starts a full CI run, and in a repo with strict up-to-date protection
 every merge re-runs every other open PR (see [`pulseengine-operating-contract`] →

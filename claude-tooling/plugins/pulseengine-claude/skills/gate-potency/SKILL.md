@@ -1,6 +1,6 @@
 ---
 name: gate-potency
-description: This skill should be used to audit whether a repo's EXISTING required CI checks can still fail — the vacuous-gate class, where a check runs, reports green, and cannot go red. Use it when the user says "audit our gates", "can our CI actually fail", "is this check real", "why did that slip through a green board", when inheriting or taking over a repo, at the campaign self-verify interval, and before a release whose evidence rests on CI being green. Presence is not potency — a non-empty required-checks list proves a gate exists, never that it bites. The method is negative control (inject a violation, confirm red) plus six mechanical audits for the ways a gate goes inert. Composes with oracle-gate-a-change (which covers wiring an oracle you are authoring), release-execution (fire before tagging) and repo-hygiene (same cadence).
+description: This skill should be used to audit whether a repo's EXISTING required CI checks can still fail, the vacuous-gate class where a check runs green and cannot go red. Use it when the user says "audit our gates" or "can our CI actually fail", or before a release whose evidence rests on CI being green.
 metadata:
   author: pulseengine.eu
   version: "0.2.0"
