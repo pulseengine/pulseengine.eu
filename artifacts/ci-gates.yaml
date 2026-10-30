@@ -101,6 +101,8 @@ artifacts:
         target: REQ-SEAM-CONTRACT-CHECK
       - type: satisfies
         target: REQ-INCIDENT-LEDGER
+      - type: satisfies
+        target: REQ-COMMIT-MERGE-GUARD
   - id: REQ-LINKS
     type: requirement
     title: Every internal link in the built site resolves
@@ -1059,3 +1061,28 @@ artifacts:
     links:
       - type: verifies
         target: REQ-INCIDENT-LEDGER
+
+  - id: REQ-COMMIT-MERGE-GUARD
+    type: requirement
+    title: A PreToolUse(Bash) hook denies a commit under a stray identity and `gh pr merge --auto` that cannot wait, and fails open on everything else
+    description: >-
+      Owner-approved 2026-10-30, the countermeasure for INC-2026-10-006 and INC-2026-10-004 in docs/incidents/ledger.yaml. hooks/commit-merge-guard.sh (PreToolUse, matcher Bash) prefilters in bash and starts commit-merge-guard.py (python3 3.9, stdlib) only when the command names a commit-making git subcommand or merge. Identity rule: for git commit, cherry-pick, revert, am, merge and rebase (with -C, -c, --git-dir, cd chains, bash -c and eval, backslash-newline continuations joined, heredoc bodies dropped, and a regex fallback when the command does not tokenize; --abort, --quit and --skip exempt), the effective user.email and user.name are read with `git config --show-scope`. When the winning scope is local, worktree, command (-c) or a GIT_AUTHOR_*/GIT_COMMITTER_* prefix, and the value differs (case-insensitive) from `git config --global --includes`, the call is denied, unless the effective email is in the owner's allow-list ($CLAUDE_PLUGIN_DATA/commit-identity-allow or ~/.config/pulseengine-claude/commit-identity-allow). A global or system value is never flagged, and nothing is flagged without a global value. The reason masks both addresses and tells the agent to ask the owner, not edit the allow-list. Merge rule: for `gh pr merge --auto`, the repo comes from -R/--repo, a PR URL, GH_REPO, the gh-resolved remote, then upstream, github and origin. When the default branch is not protected and its rules list no required_status_checks or merge_queue, the call is denied, and the reason names the automerge label if the repo has one, else says to wait for green and then merge. A 403 "Upgrade to GitHub Pro" on the rules endpoint counts as no rulesets. Answers come from gh api, else urllib with GH_TOKEN/GITHUB_TOKEN, are cached per repo for 24 h under $CLAUDE_PLUGIN_DATA/commit-merge-guard/, and only definitive answers are cached. Any API failure, an unresolvable repo or a spent 12 s budget fails open with additionalContext. The hook prints only a deny or additionalContext, never allow or updatedInput, and the wrapper exits 0 with stderr silenced on every path.
+    status: verified
+    release: 0.49.0
+    category: functional
+    priority: should
+    fields:
+      category: functional
+
+  - id: VER-COMMIT-MERGE-GUARD
+    type: verification
+    title: scripts/check-commit-merge-guard.py runs the real hook on throwaway repos and a stub gh, plus claims COMMIT-MERGE-GUARD-*
+    description: >-
+      The script runs the real wrapper under bash in 54 cases, plus the cache, timing and wiring checks. HOME, GIT_CONFIG_GLOBAL and CLAUDE_PLUGIN_DATA point into a temp dir, GIT_CONFIG_NOSYSTEM is set, tokens are stripped, and PATH is symlinks plus a stub gh that answers from fixture files and logs its calls, so no case reaches the network or the caller's identity. Identity: 14 deny cases. A local t@t identity denies a plain commit (the INC-2026-10-006 synth case), commit -S, git -C from another dir, the `cd && git commit -m "$(cat <<'EOF' ...)"` form agents use, bash -c, an unbalanced quote through the fallback, a backslash-newline continuation, cherry-pick and rebase. A bare `t` email, worktree scope, `git -c user.email=`, a GIT_AUTHOR_EMAIL prefix and a name-only difference also deny. 10 silent cases: no local identity, local equal to global, both allow-list files, rebase --abort, git log, git commit inside echo or a heredoc body, a non-repo dir, and no global identity. Merge: the smithy#45 shape (unprotected, rules 403 upgrade, automerge label) denies and names the label, also with its flags on a continuation line; no label, a deletion-only ruleset, and repo from origin, a PR URL and GH_REPO deny; protection, a merge-queue ruleset and a required-status-checks ruleset are silent; upstream wins over origin and gh-resolved over both; a repo 500, a rules 500 on an unprotected repo, no gh with no token and an unresolvable repo warn and do not deny; without --auto, --disable-auto and gh pr view are silent and make no API call. The cache test runs 3 calls first, 0 on a repeat, 3 for a day-old entry, and a failure is not cached. Unrelated commands, a non-Bash tool and bad input are silent with no gh call. Every run exits 0 with empty stderr and prints only deny or additionalContext. No python3 and a crashing python3 are silent, the slowest run is under 2 s, and the hook is wired once under matcher Bash after Agent|Task. Passes on 3.14 and /usr/bin/python3 3.9.6. Negative-controlled on 2026-10-30: 26 mutants each exit 1 on the script, all restored by re-editing, and the script exits 0 again. The identity mutants: local scope not flagged, values never differ, allow-list allows all, heredoc bodies kept, continuations not joined, no fallback, cd not tracked, -C dropped, bash -c not followed, --abort not exempt, GIT_AUTHOR ignored, deny text invites self-service. The merge mutants: always guarded, rulesets ignored, upgrade-403 not definitive, API failure blocks, --auto not required, cache never read, cache never expires, origin before upstream, label not named. The output and wiring mutants: emits allow, wrapper exits 2, wrapper leaks stderr, prefilter drops commit, unwired. 7 mutants each exit 1 on claim-check (unwired, emits allow, wrapper exits 2, CI step removed, deny text invites self-service, upgrade-403 handling dropped, README fail-open sentence dropped), restored by re-editing. Live 2026-10-30, read-only, through the real wrapper with the real gh: gh pr merge 45 --auto -R pulseengine/smithy denies and names the automerge label; pulseengine/pulseengine.eu (protected, merge queue) and pulseengine/synth (protected) are silent. Live 2026-10-30, `claude -p --plugin-dir` (haiku, --dangerously-skip-permissions) in a throwaway repo with a local t/t@t identity: `git commit --allow-empty` was denied and the repo has no commit. The control session without --plugin-dir committed.
+    status: verified
+    release: 0.49.0
+    method: automated-test
+    test-location: scripts/check-commit-merge-guard.py
+    links:
+      - type: verifies
+        target: REQ-COMMIT-MERGE-GUARD

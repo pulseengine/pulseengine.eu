@@ -2485,3 +2485,68 @@ claims:
         glob: ['docs/incidents/*']
         max: 0
 
+  # ── The commit-merge-guard hook denies only through JSON, and fails open ────
+  # REQ-COMMIT-MERGE-GUARD (INC-2026-10-004, INC-2026-10-006). A deny is
+  # permissionDecision "deny" on stdout; "allow" would skip the user's
+  # permission flow, and a non-zero wrapper exit would turn a crash into a
+  # block. scripts/check-commit-merge-guard.py tests the behaviour; this keeps
+  # the wiring, the output contract, the fail-open wrapper and the CI step.
+  - id: COMMIT-MERGE-GUARD-FAILS-OPEN
+    doc: claude-tooling/plugins/pulseengine-claude/README.md
+    text: "The hook prints a deny or a warning, never `allow`, and the wrapper exits 0 on every path"
+    evidence:
+      - kind: count-min
+        pattern: '"matcher": "Bash",\s*"hooks": \[\s*\{\s*"type": "command",\s*"command": "bash \$\{CLAUDE_PLUGIN_ROOT\}/hooks/commit-merge-guard\.sh"'
+        glob: ['claude-tooling/plugins/pulseengine-claude/hooks/hooks.json']
+        min: 1
+      - kind: count-max
+        pattern: 'commit-merge-guard\.sh'
+        glob: ['claude-tooling/plugins/pulseengine-claude/hooks/hooks.json']
+        max: 1
+      - kind: count-max
+        pattern: '"(?:allow|ask|updatedInput|continue)"'
+        glob: ['claude-tooling/plugins/pulseengine-claude/hooks/commit-merge-guard.py']
+        max: 0
+      - kind: count-max
+        pattern: 'exit\s+[1-9]|sys\.exit\([1-9]'
+        glob: ['claude-tooling/plugins/pulseengine-claude/hooks/commit-merge-guard.sh', 'claude-tooling/plugins/pulseengine-claude/hooks/commit-merge-guard.py']
+        max: 0
+      - kind: count-min
+        pattern: '2>/dev/null\nexit 0\n'
+        glob: ['claude-tooling/plugins/pulseengine-claude/hooks/commit-merge-guard.sh']
+        min: 1
+      - kind: count-min
+        pattern: '\n +python3 scripts/check-commit-merge-guard\.py\n'
+        glob: ['.github/workflows/ci.yml']
+        min: 1
+      - kind: count-max
+        pattern: '\n +python3 scripts/check-commit-merge-guard\.py\n'
+        glob: ['.github/workflows/ci.yml']
+        max: 1
+
+  # ── The guard never invites the agent to allow-list itself ─────────────────
+  # An agent told "add the address to the allow-list" would add t@t and carry
+  # on, which is INC-2026-10-006 again. And the free-plan 403 on the rules
+  # endpoint must stay a definitive "no rulesets", or the smithy#45 case turns
+  # into a fail-open warning and the guard protects nothing where it matters.
+  - id: COMMIT-MERGE-GUARD-OWNER-ONLY-ALLOW-LIST
+    doc: claude-tooling/plugins/pulseengine-claude/README.md
+    text: "The deny reason tells the agent to ask rather than edit either file."
+    evidence:
+      - kind: count-min
+        pattern: 'owner: only the owner adds an address to the allow-list \(%s\)\. Do not add it yourself\.'
+        glob: ['claude-tooling/plugins/pulseengine-claude/hooks/commit-merge-guard.py']
+        min: 1
+      - kind: count-min
+        pattern: 'elif st == 403 and "Upgrade to GitHub Pro" in body:'
+        glob: ['claude-tooling/plugins/pulseengine-claude/hooks/commit-merge-guard.py']
+        min: 1
+      - kind: count-min
+        pattern: '\nCACHE_TTL_S = 24 \* 3600\n'
+        glob: ['claude-tooling/plugins/pulseengine-claude/hooks/commit-merge-guard.py']
+        min: 1
+      - kind: count-min
+        pattern: 'commit-identity-allow'
+        glob: ['claude-tooling/plugins/pulseengine-claude/README.md']
+        min: 1
+
