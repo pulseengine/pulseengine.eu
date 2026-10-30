@@ -1348,6 +1348,36 @@ claims:
         glob: ['templates/about.html']
         min: 1
 
+  # ── gale's Verus trusted base is the recounted figure, with its commit ──────
+  # The site states gale's trusted-base size in four places. The figure is
+  # re-derived by scripts/count-gale-trusted-base.py from a gale checkout:
+  # comment- and string-stripped `#[verifier::external_body]` /
+  # `#[verifier(external_body)]` attributes and `assume_specification` items in
+  # src/**/*.rs (the Verus crate). At gale a097ff6 it prints external_body=135,
+  # assume_specification=2. To re-check: clone gale, run the script, and if the
+  # totals differ update the site text, the commit, the date and this claim
+  # together. Once gale publishes a machine-readable inventory (gale#467) this
+  # claim can read that file instead of the pinned numbers.
+  - id: SITE-GALE-TRUSTED-BASE-COUNT
+    doc: content/docs/gale/getting-started.md
+    text: "Verus runs with 135 `external_body` functions and 2 `assume_specification` calls in its trusted base (gale @ a097ff6, counted 2026-10-29)."
+    evidence:
+      - kind: file-exists
+        path: scripts/count-gale-trusted-base.py
+      - kind: count-min
+        pattern: '135 <code>external_body</code> functions and 2 <code>assume_specification</code> trusted rather than checked \(gale @ a097ff6, counted 2026-10-29\)'
+        glob: ['templates/about.html']
+        min: 1
+      - kind: count-min
+        pattern: '135 `external_body` functions and 2 `assume_specification` calls[^\n]{0,40}\(gale @ a097ff6, counted 2026-10-29\)'
+        glob: ['content/docs/gale/*.md']
+        min: 3
+      # No other trusted-base count may sit beside it anywhere on the site.
+      - kind: count-max
+        pattern: '\b(?!135\b)\d+\s+(<code>|`)?(#\[verifier::)?external_body'
+        glob: ['templates/**/*.html', 'content/**/*.md']
+        max: 0
+
   # ── Release standard: the docs archive is inside the signed sums (#262) ─────
   # varve layers ingest documentation as signed [[docs]] payloads, only through
   # the ladder they use for binaries: the digest must be in the cosign-signed

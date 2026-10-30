@@ -17,13 +17,13 @@ weight = 1
 
 Rust replacement for Zephyr RTOS kernel primitives, ASIL-D targeted. Three proof tools run on the source: Verus (SMT/Z3) checks contracts on all 39 modules, Rocq proves invariants of abstract models, fully for 10 modules, and Lean proves scheduling theory. Kani bounded-checks the kernel and FFI.
 
-> **What "verified" covers here** (full claims ledger: [verification-honesty.md](https://github.com/pulseengine/gale/blob/main/docs/safety/verification-honesty.md)): the proofs are about the Rust and wasm **source**. Verus runs with 133 `external_body` functions and 2 `assume_specification` calls in its trusted base. Rocq and Lean reason about abstract models, not the Rust directly, and `poll`, `sched` and `thread_lifecycle` are still `Admitted` stubs in Rocq. The native code that meld, loom and synth produce for the wasm line is differentially tested against a reference wasm semantics, not proven equivalent, so an end-to-end verified pipeline is not claimed.
+> **What "verified" covers here** (full claims ledger: [verification-honesty.md](https://github.com/pulseengine/gale/blob/main/docs/safety/verification-honesty.md)): the proofs are about the Rust and wasm **source**. Verus runs with 135 `external_body` functions and 2 `assume_specification` calls in its trusted base (gale @ a097ff6, counted 2026-10-29). Rocq and Lean reason about abstract models, not the Rust directly, and `poll`, `sched` and `thread_lifecycle` are still `Admitted` stubs in Rocq. The native code that meld, loom and synth produce for the wasm line is differentially tested against a reference wasm semantics, not proven equivalent, so an end-to-end verified pipeline is not claimed.
 
 Part of the [PulseEngine](https://github.com/pulseengine) toolchain.
 
 ## Modules
 
-39 Rust modules covering the full Zephyr kernel surface. All 39 pass Verus SMT verification (805 verified, 0 errors). "Verified" in the tables below means the bodies Verus checked against their requires/ensures contracts; the `external_body` shims are trusted, not checked:
+39 Rust modules covering the full Zephyr kernel surface. All 39 pass Verus SMT verification (805 verified, 0 errors, as recorded in gale's ledger on 2026-05-03). "Verified" in the tables below means the bodies Verus checked against their requires/ensures contracts; the `external_body` shims are trusted, not checked:
 
 **Synchronization**
 
@@ -117,7 +117,7 @@ src/*.rs          Verus-annotated Rust (39 modules, single source of truth)
 
 ### Formal verification (via Bazel + Nix, in the Formal Verification workflow):
 
-- **Verus (SMT/Z3):** 39/39 modules, 805 properties verified by Z3 (0 errors), with 133 `external_body` functions and 2 `assume_specification` calls trusted rather than checked. CI does not pass `--no-cheating`.
+- **Verus (SMT/Z3):** 39/39 modules, 805 properties verified by Z3 (0 errors) per gale's ledger dated 2026-05-03, with 135 `external_body` functions and 2 `assume_specification` calls trusted rather than checked (gale @ a097ff6, counted 2026-10-29). CI does not pass `--no-cheating`.
 - **Rocq:** 10 fully proven abstract invariant modules over Z-valued math; `poll`, `sched` and `thread_lifecycle` are `Admitted` stubs (74 theorems), which Rocq accepts, so a green Rocq job does not mean they are proven. NOT connected to the Rust code — proofs reason about hand-written mathematical models, not the rocq-of-rust translation.
 - **Lean 4:** 3 mathematical proofs — RMA bound, priority ceiling protocol, priority queue ordering. Pure scheduling theory, not implementation proofs.
 - **Kani BMC:** 185 bounded model checking harnesses (87 model + 98 FFI), run in CI. Most kernel harnesses assume a bound (`count <= 20`, `capacity <= 100`), so they hold up to that bound, not for all inputs.
