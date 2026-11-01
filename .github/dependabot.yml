@@ -12,6 +12,17 @@
 #   5. CI watchdog (no-third-party-loads) validates the new bundle
 
 version: 2
+# One PR per logical release across all directories: version-locked families
+# (wasm-tools, wasmtime) and all github-actions pins in / must not split into
+# one PR per directory.
+groups:
+  wasm-tools-family:
+    patterns: ["wasmparser", "wasm-encoder", "wasmprinter", "wit-component", "wit-parser", "wasm-metadata", "wat", "walrus"]
+  wasmtime:
+    patterns: ["wasmtime", "wasmtime-*"]
+  github-actions-all:
+    package-ecosystem: github-actions
+    patterns: ["*"]
 updates:
   - package-ecosystem: npm
     directory: /
