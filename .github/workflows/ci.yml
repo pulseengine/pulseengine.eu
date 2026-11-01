@@ -26,7 +26,7 @@ jobs:
       # the version with `git log -S`. On the default depth-1 checkout it found
       # the PR's own merge commit and passed vacuously (#315); it now exits 2
       # on a shallow clone, so this depth is what lets it run at all.
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 0
 
@@ -455,7 +455,7 @@ jobs:
     runs-on: ${{ github.event.pull_request.head.repo.fork && 'ubuntu-latest' || fromJSON('["self-hosted","linux","x64","light"]') }}
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
       - name: Every binary the deploy calls exists on this pool
         run: |
@@ -470,7 +470,7 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
 
       - name: Cache fetch-reports build
-        uses: actions/cache@v6
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
           path: tools/fetch-reports/target
           key: fetch-reports-${{ hashFiles('tools/fetch-reports/Cargo.lock') }}
