@@ -16,8 +16,8 @@ and points to the correction or the later post. Where nothing has corrected it, 
 *not yet revisited*.
 {% </insight> %}
 
-I wrote this on 29 October 2026, from the post texts and the git history of `content/blog/`.
-The four posts dated 29 October to 5 November were scheduled drafts at that point, not
+I wrote this on 2 Novober 2026, from the post texts and the git history of `content/blog/`.
+The four posts dated 2 Novober to 5 November were scheduled drafts at that point, not
 published, and their entries are marked *scheduled*. "Changed" lists only what the record
 shows: a dated correction note in the post, a commit that edited it, or a later post that
 measured the same thing again. A rewrite of the site tagline on 27 October (#263) touched most
@@ -54,7 +54,7 @@ edited, so a reader of the March posts alone still gets the March picture.
   and "Kani proofs and Verus specs on core data structures". *Changed:* three weeks later the
   7 Apr post said that verification of rivet's core was planned and not implemented; the
   sentence here is not yet revisited, and neither is the footer's "Synth transpiles" (synth
-  transcodes). The 29 Oct post showed what the coverage figures count: in gale, 302 of 329
+  transcodes). The 2 Nov post showed what the coverage figures count: in gale, 302 of 329
   software requirements linked to a check, none with a recorded result.
 - **[Formal verification just became practical](@/blog/2026-03-15-formal-verification-ai-agents.md)**,
   15 Mar. *Expected:* agents collapse the cost of proofs. *Found:* a description of gale's
@@ -147,7 +147,7 @@ that month.
   coverage rule raised a false warning on every requirement, fixed in one line; a hand-lowered proof-carrying floor at 0.45×,
   not emitted by the pipeline. *Changed:* softened on the day (#109) and corrected 28 Oct
   (#272): the native code is differentially tested, not proven equivalent. The post calls the
-  semaphore release "honestly, cuttable"; the 29 Oct post (scheduled) measures v0.1.0 as not
+  semaphore release "honestly, cuttable"; the 2 Nov post (scheduled) measures v0.1.0 as not
   cuttable, with its ten requirements `approved`.
 - **[Jagged by nature, honest by construction](@/blog/2026-07-09-honest-failure-by-construction.md)**,
   9 Jul. *Expected:* see whether Leanstral 1.5 can prove real obligations. *Found:* it
@@ -173,7 +173,7 @@ that month.
   boundary. *Found:* wasm to native is differentially tested, not proven; gust runs
   bit-identical on three chips; the flight stack runs only in Gazebo and on an emulated
   Cortex-M7; witness coverage stops at the wasm boundary. *Changed:* by 21 Oct the falcon
-  cascade had run bit-exact on the real Pixhawk; the 29 Oct post records that as one manual
+  cascade had run bit-exact on the real Pixhawk; the 2 Nov post records that as one manual
   bench run, with no hardware in the automated loop.
 - **[A verified OS, composed to 3.5 KB on real silicon](@/blog/2026-07-18-verified-os-on-silicon.md)**,
   18 Jul. *Expected:* gust composed from verified components into one small native image.
@@ -181,7 +181,7 @@ that month.
   and RISC-V, better on M4 and RISC-V than ten days earlier; the MPU region arithmetic proven, its enforcement
   unbuilt. *Changed:* corrected 28 Oct: "certified hot path" removed. The title says "verified
   OS" while its own table lists only the semaphore as shipped, "rest in progress", and the
-  29 Oct post finds no recorded result for the semaphore either: not yet revisited.
+  2 Nov post finds no recorded result for the semaphore either: not yet revisited.
 - **[One ulp of doubt](@/blog/2026-07-22-one-ulp-of-doubt.md)**, 22 Jul. *Expected:* answer
   "f32 or f64?" for the flight code. *Found:* f32 is the requirement on a single-precision M4;
   a CI gate now denies `f64` in 21 flight crates; Kani rejected the first covariance floor; a
@@ -262,7 +262,7 @@ would make me concede.
   (jess#293), and relay stopped publishing one; `with-device` lets agents share one board; the
   warte views are still mostly open issues; I enforce the decision cap by hand. *Changed:* held
   and corrected before publication (#260, #261), own-chat quotes marked as edited (#269).
-- **[Read ASPICE as a pattern](@/blog/2026-10-29-aspice-is-not-a-queue.md)**, 29 Oct,
+- **[Read ASPICE as a pattern](@/blog/2026-11-02-aspice-is-not-a-queue.md)**, 2 Nov,
   scheduled. *Expected:* a requirement is real when a check can fail against it and its result
   is recorded. *Found:* in gale, 302 of 329 software requirements have a check linked and none
   has a result; 25 marked `verified` by hand sit in releases rivet reports as cuttable; the
