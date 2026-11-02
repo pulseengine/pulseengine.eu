@@ -2383,7 +2383,7 @@ claims:
         glob: ['scripts/check-plugin-version-current.py']
         min: 1
       - kind: count-min
-        pattern: 'runs-on: [^\n]*\n    steps:\n(?:      #[^\n]*\n)*      - uses: actions/checkout@v7\n        with:\n          fetch-depth: 0\n'
+        pattern: 'runs-on: [^\n]*\n    steps:\n(?:      #[^\n]*\n)*      - uses: actions/checkout@[a-f0-9]{40} # v7\n        with:\n          fetch-depth: 0\n'
         glob: ['.github/workflows/ci.yml']
         min: 1
       - kind: count-min
