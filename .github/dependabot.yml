@@ -21,8 +21,7 @@ groups:
   wasmtime:
     patterns: ["wasmtime", "wasmtime-*"]
   github-actions-all:
-    package-ecosystem: github-actions
-    patterns: ["*"]
+    patterns: ["^[^@]+/"]
 updates:
   - package-ecosystem: npm
     directory: /
