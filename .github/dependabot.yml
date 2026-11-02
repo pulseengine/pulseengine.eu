@@ -15,13 +15,6 @@ version: 2
 # One PR per logical release across all directories: version-locked families
 # (wasm-tools, wasmtime) and all github-actions pins in / must not split into
 # one PR per directory.
-groups:
-  wasm-tools-family:
-    patterns: ["wasmparser", "wasm-encoder", "wasmprinter", "wit-component", "wit-parser", "wasm-metadata", "wat", "walrus"]
-  wasmtime:
-    patterns: ["wasmtime", "wasmtime-*"]
-  github-actions-all:
-    patterns: ["^[^@]+/"]
 updates:
   - package-ecosystem: npm
     directory: /
@@ -38,6 +31,13 @@ updates:
       prefix: deps
       include: scope
 
+    groups:
+      wasm-tools-family:
+        patterns: ["wasmparser", "wasm-encoder", "wasmprinter", "wit-component", "wit-parser", "wasm-metadata", "wat", "walrus"]
+      wasmtime:
+        patterns: ["wasmtime", "wasmtime-*"]
+      github-actions-all:
+        patterns: ["^[^@]+/"]
   - package-ecosystem: github-actions
     directory: /
     schedule:
