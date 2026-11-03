@@ -351,6 +351,22 @@ claims:
         pattern: '\*\*3\.8 per 100\*\*: 19 raw pairs in 500 first-parent merges'
         glob: ['docs/experiments/2026-10-refactor-decision-relay.md']
         min: 1
+  - id: EXPERIMENT-RELAY-ARM-INSTRUMENT-ON-MAIN
+    doc: docs/experiments/2026-10-refactor-decision-relay.md
+    text: "2026-11-03: main SHA recorded, after the window opened"
+    evidence:
+      - kind: count-min
+        pattern: 'On relay `main`:\*\* `b97050363269711bc07ecb66cfcd9b7141ddced9`'
+        glob: ['docs/experiments/2026-10-refactor-decision-relay.md']
+        min: 1
+      - kind: count-min
+        pattern: 'two days after the\nwindow opened on 2026-11-01'
+        glob: ['docs/experiments/2026-10-refactor-decision-relay.md']
+        min: 1
+      - kind: count-min
+        pattern: 'git tree hash of `tools/refactor-metrics` is `396bb9578cfa27fde042511f33b6f02963f719c0`, identical'
+        glob: ['docs/experiments/2026-10-refactor-decision-relay.md']
+        min: 1
   - id: SKILL-FRONTMATTER-STRICT-YAML
     doc: scripts/check-skill-frontmatter.py
     text: "strict readers such as Copilot CLI REFUSE TO LOAD the skill"

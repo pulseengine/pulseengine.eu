@@ -48,7 +48,8 @@ sources, which stays stable through relay's squash merges, and by relay's
 **Frozen instrument (recorded 2026-10-29, before the window):**
 
 - **Tool:** `refactor-metrics` 1.0.0 (Rust), relay `tools/refactor-metrics/`, its own workspace.
-- **Branch head:** `tools/refactor-metrics` at `6d1a4b32ea26573c85495ce5af18e1138b0ea2bf`. The `main` SHA is added after relay's squash merge.
+- **Branch head:** `tools/refactor-metrics` at `6d1a4b32ea26573c85495ce5af18e1138b0ea2bf`.
+- **On relay `main`:** `b97050363269711bc07ecb66cfcd9b7141ddced9`, the squash merge of relay#625 (committed 2026-11-03T18:20:49Z, signature verified). See the dated note below: the merge landed after the window opened.
 - **Content hash:** `35495ba523effc8428d8c358c89123ce27969b2e4b44c6bfcb7a4308cb776128`, over 16 files. Recipe, run from relay's root:
   `find tools/refactor-metrics -type f -not -path '*/target/*' -print0 | LC_ALL=C sort -z | xargs -0 shasum -a 256 | awk '{print $2" "$1}' | shasum -a 256`
 - **Git tree hash of the directory:** `396bb9578cfa27fde042511f33b6f02963f719c0`. It survives the squash merge as long as the files are unchanged.
@@ -68,6 +69,21 @@ only**. It came from manual curation: 3 fix commits added by hand that the
 subject rule misses, 16 of the 24 pairs read at line level, 4 rejected as false
 positives, and 8 not sampled. The window is measured only by the frozen tool,
 without curation, so the two counts are comparable.
+
+### 2026-11-03: main SHA recorded, after the window opened
+
+The squash merge that put the instrument on relay `main` (relay#625) landed on 2026-11-03, two days after the
+window opened on 2026-11-01. Freezing before the window was the plan, and that part of the plan was not met.
+
+What did not change, checked independently against relay `main` at `b9705036` on 2026-11-03:
+
+- the content hash over the directory, by the recipe above, is `35495ba523effc8428d8c358c89123ce27969b2e4b44c6bfcb7a4308cb776128` over 16 files, identical to the value recorded on 2026-10-29;
+- the git tree hash of `tools/refactor-metrics` is `396bb9578cfa27fde042511f33b6f02963f719c0`, identical;
+- no commit on `main` after `b9705036` touches the directory.
+
+So the bytes that will measure the window are the bytes frozen before it. The late merge changes where the
+instrument lives, not what it computes. The window run uses the tool at `b9705036`, and its report must carry
+the content hash, so a later change to the tool cannot pass for the frozen one.
 
 ## Measures in the window
 
