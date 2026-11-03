@@ -216,3 +216,75 @@ entries:
       pr: ""
       merged: false
       negative_control: ""
+
+  - id: INC-2026-10-007
+    kind: escape
+    status: open
+    change:
+      repo: pulseengine.eu
+      pr: 299
+      merge_sha: c07fa5d
+      model: claude-opus-5.5
+      session: https://claude.ai/code/session_01G5qpB7zvxLvdrvn5YRyj4R
+    net:
+      class: vacuous-gate
+      source: manual
+      note: >-
+        #299 put main behind a merge queue and kept blog-autopublish's
+        `gh pr merge --squash --delete-branch`. On a queue branch gh 2.62.0
+        arms auto-merge and then, since it did not pass --auto itself, deletes
+        the head ref at once (merge.go deleteRemoteBranch), which closes the
+        PR. Every publish PR from #312 (2026-10-29) to #336 (2026-11-03), 11 in
+        all, shows auto_merge_enabled, closed and head_ref_deleted within 3 s,
+        all by the actions-helper app. The post-merge check read state, auto
+        and queue in three calls and took a closed PR whose auto-merge request
+        still showed as pending, so every run went green and the status issue
+        said "no posts ready to publish today".
+    why:
+      classifier: "gate could not fail: a CLOSED publish PR fell through to pending"
+      source: manual
+      evidence:
+        - https://github.com/pulseengine/pulseengine.eu/pull/312
+        - https://github.com/pulseengine/pulseengine.eu/pull/335
+        - https://github.com/pulseengine/pulseengine.eu/actions/runs/41647572012
+    countermeasure:
+      gate: "verdict() in blog-autopublish.py (CLOSED is stuck, first) called by the workflow and table-tested in ci.yml; no --delete-branch or merge method on gh pr merge; due, unpublished posts are errors in the status report; claim BLOG-AUTOPUBLISH-CLOSED-IS-STUCK"
+      pr: ""
+      merged: false
+      negative_control: ""
+
+  - id: INC-2026-11-001
+    kind: near-miss
+    status: open
+    change:
+      repo: "scheduled cloud routines (rivet-issue-triage-and-fix, spar-issue-hunt-and-release, weekly runner report)"
+      commits: "none: routine schedule and configuration, not a merge"
+      model: unknown
+    net:
+      class: no-test
+      source: manual
+      note: >-
+        Scheduled cloud routines ran into the exhausted weekly usage limit and
+        the failures were invisible: no run status was read by anyone.
+        Measured 2026-11-03, aggregates only, July to October:
+        rivet-issue-triage-and-fix 442 of 686 runs failed,
+        spar-issue-hunt-and-release 437 of 682, the weekly runner report 17 of
+        19. Every sampled failed run (August, September and October, all three
+        routines) ended within about a second with the weekly-limit rejection
+        (rate_limit seven_day).
+    why:
+      classifier: "no check reads routine run status, so a routine that fails on most runs looks the same as one that works"
+      source: manual
+      evidence:
+        - "owner's claude.ai export and the routines' run logs, read 2026-11-03 (private; aggregates only)"
+    countermeasure:
+      gate: >-
+        none yet. Done 2026-11-03, not a gate: rivet and spar moved from every
+        4h to every 12h and to claude-opus-5-5, rivet stopped treating a public
+        web page as binding, unneeded connectors removed from spar and the
+        runner report. Closes on a mechanical weekly check of each routine's
+        failure share (run status read through the API or the export, a factory
+        notice when a routine's share is over 25%) with a negative control.
+      pr: ""
+      merged: false
+      negative_control: ""

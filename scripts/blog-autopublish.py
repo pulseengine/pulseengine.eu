@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """Blog auto-publish: scan content/blog/ drafts and categorize them by schedule.
 
-Three modes:
+Modes:
 
   --mode scan
-      Print a JSON inventory to stdout: {today, ready, scheduled, held}.
+      Print a JSON inventory to stdout: {today, ready, blocked, scheduled, held}.
       Safe-by-default: a draft auto-publishes ONLY when it explicitly opts
       in with `ready = true` AND its `date` has arrived. Concretely:
       A draft is "ready"     when ready = true, hold is not true, date <= today.
@@ -15,14 +15,26 @@ Three modes:
                              decision, a missing `ready` is an omission.
       The absence of `ready` is the default, so forgetting it can never
       publish a post early; you have to opt in.
+      A ready, due draft that links to another draft is "blocked" instead:
+      it gets no PR this run (CI's check-draft-links would fail it) and
+      publishes once its target is on main. The post is never edited.
+
+  --mode verdict --state S --auto B --queued B
+      Classify a publish PR right after `gh pr merge`: prints merged,
+      pending or stuck. A CLOSED PR is stuck whatever else is reported.
 
   --mode flip --file PATH
-      Atomically replace the first `draft = true` line in PATH with
-      `draft = false`. Used by the workflow once a post moves to ready.
+      Replace the first `draft = true` line in PATH with `draft = false`.
+      Nothing else in the post changes.
 
-  --mode report --inventory PATH --published JSON [--run-url URL]
+  --mode report --inventory PATH --published JSON [--pending JSON]
+                [--stuck JSON] [--run-url URL]
       Render a markdown status report (with a `<!-- blog-cron-status -->`
-      bot marker) suitable for posting on the pinned status issue.
+      bot marker) suitable for posting on the pinned status issue. Every
+      due draft not published by this run is listed as an error.
+
+  --self-test
+      Run the decision tables offline; exit 1 on any failing case.
 
 The frontmatter parser is intentionally regex-based, not full-TOML — it
 only reads the five fields that drive the cron (date, draft, ready, hold,
@@ -48,6 +60,9 @@ READY_RE = re.compile(r"^ready\s*=\s*(true|false)\s*$", re.M)
 HOLD_RE = re.compile(r"^hold\s*=\s*(true|false)\s*$", re.M)
 TITLE_RE = re.compile(r'^title\s*=\s*"([^"]*)"\s*$', re.M)
 DRAFT_TRUE_LINE = re.compile(r"^draft\s*=\s*true\s*$", re.M)
+# Same pattern and slug rule as scripts/check-draft-links.py, the CI gate a
+# publish PR must pass: a link that gate would call dead blocks the post here.
+LINK_RE = re.compile(r'\[[^\]]*\]\((/blog/[^)]+)\)')
 
 
 def parse_post(path: pathlib.Path) -> dict | None:
@@ -73,9 +88,26 @@ def parse_post(path: pathlib.Path) -> dict | None:
     }
 
 
-def scan(today: str) -> dict:
+def url_slug(path: pathlib.Path) -> str:
+    """/blog/<slug>/ for a post file, as check-draft-links.py computes it."""
+    slug = re.sub(r"^\d{4}-\d{2}-\d{2}-", "", path.stem).replace(".", "-")
+    return f"/blog/{slug}/"
+
+
+def draft_links(text: str, draft_urls: dict) -> list[str]:
+    """Slugs of the drafts that `text` links to, in order, without repeats."""
+    found = []
+    for m in LINK_RE.finditer(text):
+        url = m.group(1) if m.group(1).endswith("/") else m.group(1) + "/"
+        if url in draft_urls and draft_urls[url] not in found:
+            found.append(draft_urls[url])
+    return found
+
+
+def scan(today: str, blog_dir: pathlib.Path = BLOG_DIR) -> dict:
     drafts = []
-    for path in sorted(BLOG_DIR.glob("*.md")):
+    draft_urls = {}  # /blog/<slug>/ -> slug, for every draft on disk
+    for path in sorted(blog_dir.glob("*.md")):
         if path.name.startswith("_"):
             continue
         record = parse_post(path)
@@ -83,19 +115,35 @@ def scan(today: str) -> dict:
             continue
         if record["draft"]:
             drafts.append(record)
+            draft_urls[url_slug(path)] = record["slug"]
     # Safe-by-default partition. A draft auto-publishes ONLY if it explicitly
     # opts in with `ready = true`, is not explicitly held, and has a date.
     # Everything else stays held — so a missing `ready` flag can never ship a
     # post early. Each draft lands in exactly one bucket.
-    ready, scheduled, held = [], [], []
+    #
+    # A due post that links to a draft is "blocked", not "ready": CI's
+    # check-draft-links would fail its PR. Scan runs on an unmodified checkout
+    # of main, before any flip, so "draft" here means draft on main. The old
+    # flip-time link stripper read a tree this run had already flipped, and its
+    # pattern never matched a markdown link, so it removed nothing (#336).
+    ready, blocked, scheduled, held = [], [], [], []
     for p in drafts:
         if p["ready"] and not p["hold"] and p["date"]:
-            (ready if p["date"] <= today else scheduled).append(p)
+            if p["date"] > today:
+                scheduled.append(p)
+                continue
+            text = pathlib.Path(p["path"]).read_text(encoding="utf-8")
+            targets = [s for s in draft_links(text, draft_urls) if s != p["slug"]]
+            if targets:
+                blocked.append({**p, "blocked_on": targets})
+            else:
+                ready.append(p)
         else:
             held.append(p)
     return {
         "today": today,
         "ready": ready,
+        "blocked": blocked,
         "scheduled": sorted(scheduled, key=lambda p: p["date"]),
         "held": sorted(held, key=lambda p: p["slug"]),
     }
@@ -107,49 +155,33 @@ def flip(path_str: str) -> None:
     new_text, count = DRAFT_TRUE_LINE.subn("draft = false", text, count=1)
     if count == 0:
         sys.exit(f"flip: no `draft = true` line found in {path_str}")
-
-    # Strip forward links to drafts — CI builds without --drafts, so
-    # links to not-yet-published posts are dead. Convert them to plain
-    # text. When the target publishes later, its own publish run will
-    # add the link back (or a human can add it manually).
-    new_text = strip_draft_links(new_text, path.parent)
-
+    # Only the draft line changes. A link to another draft is not stripped
+    # here: scan() holds such a post back as "blocked" until its target is
+    # on main, so the owner's text ships as written.
     path.write_text(new_text, encoding="utf-8")
 
 
-def strip_draft_links(text: str, blog_dir: pathlib.Path) -> str:
-    """Convert links to draft posts into plain text.
+def verdict(state: str, auto: bool, queued: bool) -> str:
+    """merged | pending | stuck for a publish PR, read right after `gh pr merge`.
 
-    Scans for markdown links to /blog/... and checks if the target is a
-    draft. If so, removes the link formatting, keeping the link text.
+    CLOSED comes first. A closed PR can still report auto-merge armed for a
+    moment (the 2026-11-03 run read armed=true a second after #335 closed),
+    and a closed PR never merges, whatever else is reported.
     """
-    # Build set of draft slugs
-    draft_slugs = set()
-    for p in blog_dir.glob("*.md"):
-        fm = p.read_text(encoding="utf-8")
-        if "draft = true" in fm:
-            # Extract slug: 2026-10-28-the-orchestrator-who-does-what.md
-            # → /blog/the-orchestrator-who-does-what/
-            name = p.stem
-            slug = re.sub(r'^\d{4}-\d{2}-\d{2}-', '', name).replace('.', '-')
-            draft_slugs.add(f"/blog/{slug}/")
-
-    if not draft_slugs:
-        return text
-
-    # Replace [text](/blog/draft-slug/) with just text
-    def replace_link(match):
-        link_text = match.group(1)
-        link_url = match.group(2)
-        if link_url in draft_slugs:
-            return link_text  # Strip link, keep text
-        return match.group(0)  # Keep link
-
-    return re.sub(r'\[([^\]]+)\]((?:/blog/[^)]+))', replace_link, text)
+    if state == "CLOSED":
+        return "stuck"
+    if state == "MERGED":
+        return "merged"
+    if state == "OPEN" and (auto or queued):
+        return "pending"
+    return "stuck"
 
 
-def render_report(inventory: dict, published: list[dict], run_url: str) -> str:
+def render_report(inventory: dict, published: list[dict], run_url: str,
+                  pending: list[dict] | None = None,
+                  stuck: list[dict] | None = None) -> str:
     today = inventory["today"]
+    pending, stuck = pending or [], stuck or []
     lines = [
         "<!-- blog-cron-status -->",
         f"## Blog auto-publish · last run {today}",
@@ -163,8 +195,37 @@ def render_report(inventory: dict, published: list[dict], run_url: str) -> str:
             pr_suffix = f" (PR #{pr})" if pr else ""
             lines.append(f"- `{slug}`{pr_suffix}")
     else:
-        lines.append("**This run:** no posts ready to publish today.")
+        lines.append("**This run:** published nothing.")
     lines.append("")
+
+    # Every draft that opted in with `ready = true`, whose date has come, and
+    # that this run did not publish. Omitting these is how the report said
+    # "no posts ready to publish today" while #312-#336 closed unmerged. A
+    # pending PR is listed too: on a merge-queue repo that is the normal state
+    # at report time, and nothing in this run can see whether it lands.
+    done = {e["slug"] for e in published}
+    outcome = {}
+    for kind, entries in (("pending", pending), ("stuck", stuck)):
+        for e in entries:
+            outcome[e["slug"]] = (kind, e.get("pr"))
+    due = [p for p in inventory["ready"] + inventory.get("blocked", [])
+           if p["slug"] not in done]
+    if due:
+        lines.append(f"**❌ Error — due but not published ({len(due)}):**")
+        for p in sorted(due, key=lambda p: (p["date"], p["slug"])):
+            kind, pr = outcome.get(p["slug"], (None, None))
+            if p.get("blocked_on"):
+                why = ("blocked: links to draft "
+                       + ", ".join(f"`{s}`" for s in p["blocked_on"])
+                       + " — publishes once that is on main")
+            elif kind == "pending":
+                why = f"PR #{pr} armed for the merge queue — not on main yet"
+            elif kind == "stuck":
+                why = f"STUCK: PR #{pr} did not merge and is not queued"
+            else:
+                why = "no PR was opened"
+            lines.append(f"- ❌ {p['date']} · `{p['slug']}` — {why}")
+        lines.append("")
 
     scheduled = inventory["scheduled"]
     lines.append(f"**Scheduled ({len(scheduled)}):**")
@@ -211,9 +272,109 @@ def render_report(inventory: dict, published: list[dict], run_url: str) -> str:
     return "\n".join(lines) + "\n"
 
 
+def self_test() -> int:
+    """Decision tables, offline. Returns the number of failing cases."""
+    import tempfile
+
+    fails = 0
+
+    def check(name: str, ok: bool) -> None:
+        nonlocal fails
+        print(f"  {'ok  ' if ok else 'FAIL'} {name}")
+        fails += not ok
+
+    # verdict: (state, auto-merge armed, in merge queue) -> outcome.
+    # The first row is the 2026-11-03 run's reading of #335, which the old
+    # bash logic classified as pending: closed, with auto-merge still showing.
+    for args, want in (
+        (("CLOSED", True, False), "stuck"),
+        (("CLOSED", False, True), "stuck"),
+        (("CLOSED", False, False), "stuck"),
+        (("MERGED", False, False), "merged"),
+        (("OPEN", True, False), "pending"),
+        (("OPEN", False, True), "pending"),
+        (("OPEN", False, False), "stuck"),
+        (("", False, False), "stuck"),
+    ):
+        got = verdict(*args)
+        check(f"verdict{args} -> {want} (got {got})", got == want)
+
+    def post(date: str, body: str = "", ready: bool = True, draft: bool = True) -> str:
+        return (f'+++\ntitle = "t"\ndate = {date}\ndraft = {str(draft).lower()}\n'
+                f'ready = {str(ready).lower()}\n+++\n\n{body}\n')
+
+    with tempfile.TemporaryDirectory() as tmp:
+        d = pathlib.Path(tmp)
+        files = {
+            # the incident pair: both due, the second links to the first over
+            # a line break, as the trust post does
+            "2026-10-30-attention.md": post("2026-10-30"),
+            "2026-11-02-trust.md": post("2026-11-02", "[whose attention\nruns out](/blog/attention/)"),
+            "2026-10-01-old.md": post("2026-10-01", draft=False),
+            "2026-11-01-links-published.md": post("2026-11-01", "[x](/blog/old/) [self](/blog/links-published/)"),
+            "2026-12-01-future.md": post("2026-12-01", "[a](/blog/attention/)"),
+            "2026-10-02-unready.md": post("2026-10-02", ready=False),
+            "2026-11-01-links-unready.md": post("2026-11-01", "[u](/blog/unready)"),
+        }
+        for name, text in files.items():
+            (d / name).write_text(text, encoding="utf-8")
+        inv = scan("2026-11-03", d)
+        ready = sorted(p["slug"] for p in inv["ready"])
+        blocked = {p["slug"]: p["blocked_on"] for p in inv["blocked"]}
+        check("scan: a due post linking a draft is blocked, not ready",
+              blocked.get("trust") == ["attention"] and "trust" not in ready)
+        check("scan: its target, due and unlinked, is ready", "attention" in ready)
+        check("scan: links to published posts and to itself do not block",
+              "links-published" in ready)
+        check("scan: a link without trailing slash to a held draft blocks",
+              blocked.get("links-unready") == ["unready"])
+        check("scan: a future post stays scheduled even with a draft link",
+              [p["slug"] for p in inv["scheduled"]] == ["future"])
+
+        trust = d / "2026-11-02-trust.md"
+        before = trust.read_text(encoding="utf-8")
+        flip(str(trust))
+        after = trust.read_text(encoding="utf-8")
+        check("flip: only the draft line changes; a draft link survives",
+              after == before.replace("draft = true", "draft = false", 1)
+              and "](/blog/attention/)" in after)
+
+    inv = {"today": "2026-11-03",
+           "ready": [{"slug": "a", "date": "2026-10-30", "title": "A"},
+                     {"slug": "q", "date": "2026-11-03", "title": "Q"},
+                     {"slug": "n", "date": "2026-11-03", "title": "N"}],
+           "blocked": [{"slug": "b", "date": "2026-11-02", "title": "B",
+                        "blocked_on": ["a"]}],
+           "scheduled": [], "held": []}
+    rep = render_report(inv, [], "", pending=[{"slug": "q", "pr": "7"}],
+                        stuck=[{"slug": "a", "pr": "335"}])
+    check("report: every due, unpublished post is an error",
+          "Error — due but not published (4)" in rep)
+    check("report: a closed PR is shown as stuck", "STUCK: PR #335" in rep)
+    check("report: a blocked post names its draft target", "links to draft `a`" in rep)
+    check("report: a pending PR is listed, not omitted", "PR #7 armed" in rep)
+    check("report: a post with no PR is listed", "`n` — no PR was opened" in rep)
+    check("report: never says nothing was ready while posts are due",
+          "no posts ready" not in rep)
+    rep = render_report({**inv, "ready": inv["ready"][:1], "blocked": []},
+                        [{"slug": "a", "pr": "9"}], "")
+    check("report: a published post is not an error", "Error" not in rep)
+
+    print(f"\n{'passed' if not fails else 'FAILED'}: {fails} failing case(s)")
+    return 1 if fails else 0
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--mode", choices=["scan", "flip", "report"], required=True)
+    parser.add_argument("--mode", choices=["scan", "flip", "report", "verdict"])
+    parser.add_argument("--self-test", action="store_true", help="Run the decision tables offline")
+    parser.add_argument("--state", help="PR state: OPEN, CLOSED or MERGED (--mode verdict)")
+    parser.add_argument("--auto", default="false", help="auto-merge armed, true|false (--mode verdict)")
+    parser.add_argument("--queued", default="false", help="in the merge queue, true|false (--mode verdict)")
+    parser.add_argument("--pending", default="[]",
+                        help="JSON array of {slug, pr} armed or queued this run (--mode report)")
+    parser.add_argument("--stuck", default="[]",
+                        help="JSON array of {slug, pr} that did not merge (--mode report)")
     parser.add_argument("--file", help="Path to the post (--mode flip)")
     parser.add_argument("--inventory", help="Path to inventory JSON (--mode report)")
     parser.add_argument(
@@ -224,7 +385,15 @@ def main() -> None:
     parser.add_argument("--run-url", default="", help="GitHub Actions run URL (--mode report)")
     args = parser.parse_args()
 
-    if args.mode == "scan":
+    if args.self_test:
+        sys.exit(self_test())
+    if not args.mode:
+        parser.error("--mode or --self-test is required")
+    if args.mode == "verdict":
+        if args.state is None:
+            sys.exit("--state is required for --mode verdict")
+        print(verdict(args.state, args.auto == "true", args.queued == "true"))
+    elif args.mode == "scan":
         today = datetime.date.today().isoformat()
         json.dump(scan(today), sys.stdout, indent=2)
         sys.stdout.write("\n")
@@ -238,7 +407,8 @@ def main() -> None:
         with open(args.inventory, encoding="utf-8") as f:
             inventory = json.load(f)
         published = json.loads(args.published)
-        sys.stdout.write(render_report(inventory, published, args.run_url))
+        sys.stdout.write(render_report(inventory, published, args.run_url,
+                                       json.loads(args.pending), json.loads(args.stuck)))
 
 
 if __name__ == "__main__":

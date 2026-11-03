@@ -241,6 +241,16 @@ jobs:
       - name: Check the backlog brake can still fail
         run: python3 scripts/check-issue-classes.py --self-test
 
+      # The blog cron's publish verdict (REQ-BLOG-AUTOPUBLISH-NO-VACUOUS-GREEN).
+      # The cron runs on a schedule, so a PR is the only place its decision
+      # logic is exercised before it decides about a real post. The table
+      # includes the 2026-11-03 reading of #335 (CLOSED, auto-merge still
+      # showing), which the old logic called pending; a due post linking to a
+      # draft must be held back, and every due, unpublished post must appear
+      # in the status report as an error. Offline.
+      - name: Check the blog cron cannot report a closed publish PR as pending
+        run: python3 scripts/blog-autopublish.py --self-test
+
       # The monthly factory report's instrument gate (REQ-FACTORY-REPORT-
       # INSTRUMENT-GATE). The report job is scheduled and needs a secret, so its
       # gating logic would otherwise only ever be exercised once a month, by a
