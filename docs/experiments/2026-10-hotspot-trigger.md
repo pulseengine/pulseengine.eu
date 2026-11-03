@@ -87,3 +87,30 @@ the window would be a deviation from this protocol, and nothing checks for one
 automatically.
 `claims.yaml` (`REFACTOR-DECISION-SCOPE-EXCLUDES-EXPERIMENT`) fails the build if
 this exclusion is dropped from the skill or from this note.
+
+## Deviation, 2026-11-03: two process changes in both arms during the window
+
+The protocol above requires no other process change in rivet or spar during
+the window. Two happened, both on the same day in both repositories, and both
+are recorded here as deviations rather than argued away.
+
+1. **The scheduled cloud agents changed.** On 2026-11-03 at about 20:38 UTC the
+   rivet triage routine and the spar issue-hunt routine both moved from every
+   4 hours to every 12 hours, and both moved to the same model (claude-opus-5-5;
+   rivet had run claude-opus-4-7, spar claude-opus-4-8). The rivet prompt also
+   stopped treating a public web page as binding instructions and reads the
+   repository's own CLAUDE.md instead. The reason was measured, not chosen for
+   the experiment: from July to October about two thirds of both routines' runs
+   ended within seconds on the weekly usage limit, so most fires did no work.
+2. **The pulseengine-claude plugin gained guards** (0.49.0 to 0.51.0, from
+   2026-10-30): it now denies commits under a stray git identity, admin merges,
+   server-side rebases, unsigned commits and `--auto` merges on unprotected
+   repositories, and asks before merging on red checks. It loads in rivet and
+   spar alike.
+
+Both changes act on both arms at once and in the same way, so they do not by
+themselves favour the treatment. They do change the agents' working
+conditions inside the window, so the readout splits the window at 2026-11-03
+and reports the two parts separately as well as together. If the parts
+disagree in direction, the experiment is reported as inconclusive for that
+criterion.
