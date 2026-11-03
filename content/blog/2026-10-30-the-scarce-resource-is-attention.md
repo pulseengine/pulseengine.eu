@@ -2,7 +2,7 @@
 title = "The scarce resource is the orchestrator's attention"
 description = "On 28 October one machine ran about 22 agent sessions in parallel, and survey research published in March 2026, as reported, identifies overseeing AI agents as the strongest driver of cognitive strain. We built a decision inbox with an attention budget: it surfaces at most three routine flows at a time, and questions wait for a decision window and one digest. It is days old and unmeasured; this post says what we will measure."
 date = 2026-10-30
-draft = true
+draft = false
 ready = true
 [taxonomies]
 tags = ["process", "ai-agents", "orchestration"]
