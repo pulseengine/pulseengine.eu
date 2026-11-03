@@ -249,7 +249,7 @@ entries:
         - https://github.com/pulseengine/pulseengine.eu/actions/runs/41647572012
     countermeasure:
       gate: "verdict() in blog-autopublish.py (CLOSED is stuck, first) called by the workflow and table-tested in ci.yml; no --delete-branch or merge method on gh pr merge; due, unpublished posts are errors in the status report; claim BLOG-AUTOPUBLISH-CLOSED-IS-STUCK"
-      pr: ""
+      pr: https://github.com/pulseengine/pulseengine.eu/pull/340
       merged: false
       negative_control: ""
 
