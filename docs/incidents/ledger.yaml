@@ -219,7 +219,7 @@ entries:
 
   - id: INC-2026-10-007
     kind: escape
-    status: open
+    status: closed
     change:
       repo: pulseengine.eu
       pr: 299
@@ -235,7 +235,7 @@ entries:
         arms auto-merge and then, since it did not pass --auto itself, deletes
         the head ref at once (merge.go deleteRemoteBranch), which closes the
         PR. Every publish PR from #312 (2026-10-29) to #336 (2026-11-03), 11 in
-        all, shows auto_merge_enabled, closed and head_ref_deleted within 3 s,
+        all, shows auto_merge_enabled, closed and head_ref_deleted within 4 s,
         all by the actions-helper app. The post-merge check read state, auto
         and queue in three calls and took a closed PR whose auto-merge request
         still showed as pending, so every run went green and the status issue
@@ -250,8 +250,14 @@ entries:
     countermeasure:
       gate: "verdict() in blog-autopublish.py (CLOSED is stuck, first) called by the workflow and table-tested in ci.yml; no --delete-branch or merge method on gh pr merge; due, unpublished posts are errors in the status report; claim BLOG-AUTOPUBLISH-CLOSED-IS-STUCK"
       pr: https://github.com/pulseengine/pulseengine.eu/pull/340
-      merged: false
-      negative_control: ""
+      merged: true
+      negative_control: >-
+        https://github.com/pulseengine/pulseengine.eu/pull/340 (body,
+        "Negative control": the workflow's own publish step, run against a
+        stub gh reporting #335 as CLOSED with auto-merge still present, exits
+        0 as "pending" on the old workflow and exits 1 with #335 stuck on the
+        new one; removing the CLOSED check turns the self-test red). The
+        follow-up also makes an armed PR with red checks stuck.
 
   - id: INC-2026-11-001
     kind: near-miss

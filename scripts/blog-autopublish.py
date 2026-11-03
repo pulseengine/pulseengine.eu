@@ -19,9 +19,10 @@ Modes:
       it gets no PR this run (CI's check-draft-links would fail it) and
       publishes once its target is on main. The post is never edited.
 
-  --mode verdict --state S --auto B --queued B
+  --mode verdict --state S --auto B --queued B [--checks ROLLUP]
       Classify a publish PR right after `gh pr merge`: prints merged,
-      pending or stuck. A CLOSED PR is stuck whatever else is reported.
+      pending or stuck. A CLOSED PR is stuck whatever else is reported;
+      so is an open one whose head checks are red.
 
   --mode flip --file PATH
       Replace the first `draft = true` line in PATH with `draft = false`.
@@ -161,17 +162,22 @@ def flip(path_str: str) -> None:
     path.write_text(new_text, encoding="utf-8")
 
 
-def verdict(state: str, auto: bool, queued: bool) -> str:
+def verdict(state: str, auto: bool, queued: bool, checks: str = "NONE") -> str:
     """merged | pending | stuck for a publish PR, read right after `gh pr merge`.
 
     CLOSED comes first. A closed PR can still report auto-merge armed for a
     moment (the 2026-11-03 run read armed=true a second after #335 closed),
-    and a closed PR never merges, whatever else is reported.
+    and a closed PR never merges, whatever else is reported. An open PR whose
+    head checks are red (`checks`, the status rollup) is stuck too: it stays
+    armed but never enters the queue, and a re-check on the next run would
+    otherwise read it as pending every day.
     """
     if state == "CLOSED":
         return "stuck"
     if state == "MERGED":
         return "merged"
+    if checks in ("FAILURE", "ERROR"):
+        return "stuck"
     if state == "OPEN" and (auto or queued):
         return "pending"
     return "stuck"
@@ -295,6 +301,12 @@ def self_test() -> int:
         (("OPEN", False, True), "pending"),
         (("OPEN", False, False), "stuck"),
         (("", False, False), "stuck"),
+        # #336: armed, its build check red, so it would never be queued
+        (("OPEN", True, False, "FAILURE"), "stuck"),
+        (("OPEN", True, False, "ERROR"), "stuck"),
+        (("OPEN", True, False, "PENDING"), "pending"),
+        (("OPEN", False, True, "SUCCESS"), "pending"),
+        (("MERGED", False, False, "FAILURE"), "merged"),
     ):
         got = verdict(*args)
         check(f"verdict{args} -> {want} (got {got})", got == want)
@@ -371,6 +383,8 @@ def main() -> None:
     parser.add_argument("--state", help="PR state: OPEN, CLOSED or MERGED (--mode verdict)")
     parser.add_argument("--auto", default="false", help="auto-merge armed, true|false (--mode verdict)")
     parser.add_argument("--queued", default="false", help="in the merge queue, true|false (--mode verdict)")
+    parser.add_argument("--checks", default="NONE",
+                        help="head commit's status rollup, e.g. SUCCESS, PENDING, FAILURE (--mode verdict)")
     parser.add_argument("--pending", default="[]",
                         help="JSON array of {slug, pr} armed or queued this run (--mode report)")
     parser.add_argument("--stuck", default="[]",
@@ -392,7 +406,7 @@ def main() -> None:
     if args.mode == "verdict":
         if args.state is None:
             sys.exit("--state is required for --mode verdict")
-        print(verdict(args.state, args.auto == "true", args.queued == "true"))
+        print(verdict(args.state, args.auto == "true", args.queued == "true", args.checks))
     elif args.mode == "scan":
         today = datetime.date.today().isoformat()
         json.dump(scan(today), sys.stdout, indent=2)
