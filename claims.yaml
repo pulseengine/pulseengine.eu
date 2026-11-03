@@ -1081,6 +1081,18 @@ claims:
         pattern: 'experiments/friction-brownfield/check_task\.py self-test'
         glob: ['.github/workflows/ci.yml']
         min: 1
+      # Owner decision 2026-10-30: b01-C noise is a recorded deviation, and every
+      # later budget is frozen before authoring, enforced from git history in CI.
+      - kind: count-min
+        pattern: '\*\*b01-C noise is therefore not a\s+pre-registered quantity\.\*\*'
+        glob: ['docs/experiments/2026-11-friction-brownfield.md']
+        min: 1
+      - kind: file-exists
+        path: experiments/friction-brownfield/noise-budgets.json
+      - kind: count-min
+        pattern: 'experiments/friction-brownfield/check_task\.py budgets'
+        glob: ['.github/workflows/ci.yml']
+        min: 1
       # The task material is private; no bench-machine host or path in the repo.
       - kind: count-max
         pattern: 'mini-one|/Volumes/|fxm2-build'
