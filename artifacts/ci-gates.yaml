@@ -1167,3 +1167,28 @@ artifacts:
     links:
       - type: verifies
         target: REQ-SKILL-DESC-CAP
+
+  - id: REQ-BLOG-AUTOPUBLISH-NO-VACUOUS-GREEN
+    type: requirement
+    title: The blog cron fails its run when a publish PR closes without merging, and reports every due, unpublished post as an error
+    description: >-
+      INC-2026-10-007. From 2026-10-29 every publish PR (#312-#336) closed seconds after it opened: on the merge-queue branch, `gh pr merge --squash --delete-branch` (gh 2.62.0) arms auto-merge and then deletes the head ref, which closes the PR. The workflow now calls `gh pr merge --auto` with no merge method (the queue squashes) and no --delete-branch (the repo's delete_branch_on_merge removes the branch after the merge), and does not open a second PR for a post that already has an open one. It reads state, auto-merge and queue entry in one GraphQL call and asks blog-autopublish.py --mode verdict, where CLOSED is stuck before anything else; a stuck PR fails the run and opens the failure issue. The status report lists every ready draft whose date has come and that the run did not publish, as an error, with its PR or reason. A due post that links to a draft on main is held back as blocked instead of getting a PR that check-draft-links would fail (#336); the post is never edited, and a post blocked on a draft that is not itself due and ready fails the run.
+    status: verified
+    release: 0.51.1
+    category: functional
+    priority: must
+    fields:
+      category: functional
+
+  - id: VER-BLOG-AUTOPUBLISH-NO-VACUOUS-GREEN
+    type: verification
+    title: blog-autopublish.py --self-test in CI, a replay of #335 through the workflow step, and claim BLOG-AUTOPUBLISH-CLOSED-IS-STUCK
+    description: >-
+      The self-test (21 cases, offline, also under /usr/bin/python3 3.9) covers the verdict table including (CLOSED, auto-merge armed, not queued), the reading of #335 the 2026-11-03 run took; scan holding back a due post whose link text spans a line break and points at a due draft, while links to published posts and to the post itself do not block; flip changing only the draft line; and the report listing stuck, pending, blocked and no-PR posts as errors. Negative-controlled 2026-11-03: the workflow's "Publish ready posts" step, extracted from the YAML and run against a stub gh that reports #335 as CLOSED with auto-merge still present, exits 0 with a "pending" warning on the old workflow and exits 1 with #335 in stuck.json on the new one (exit 0 when the stub reports OPEN). Removing the CLOSED check from verdict() makes the self-test exit 1 on two cases and the replay exit 0 again; restored by re-editing. The claim fails if the CLOSED check moves after MERGED, if the workflow decides on state itself again, if gh pr merge gets --delete-branch or a merge method back, if the CI step goes, or if the report's error section goes.
+    status: verified
+    release: 0.51.1
+    method: automated-test
+    test-location: scripts/blog-autopublish.py
+    links:
+      - type: verifies
+        target: REQ-BLOG-AUTOPUBLISH-NO-VACUOUS-GREEN

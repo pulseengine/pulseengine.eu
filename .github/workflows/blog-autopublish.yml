@@ -135,12 +135,51 @@ jobs:
         run: |
           set -euo pipefail
           published='[]'
+          pending='[]'
           stuck='[]'
           today=$(date -u +%Y-%m-%d)
+
+          # One read of the three fields the verdict needs, in one GraphQL
+          # call so they describe the same moment. Three separate reads let
+          # the 2026-11-03 run see #335 as "armed" a second after it closed.
+          pr_status() {
+            gh api graphql -F n="$1" -f o="${REPO%%/*}" -f r="${REPO##*/}" \
+              -f query='query($o:String!,$r:String!,$n:Int!){repository(owner:$o,name:$r){pullRequest(number:$n){state autoMergeRequest{enabledAt} mergeQueueEntry{state}}}}' \
+              --jq '.data.repository.pullRequest | [.state, (.autoMergeRequest != null), (.mergeQueueEntry != null)] | @tsv' \
+              || printf 'UNKNOWN\tfalse\tfalse\n'
+          }
+
+          # The classification lives in blog-autopublish.py (--mode verdict),
+          # where ci.yml's self-test exercises it; this only records it.
+          record() {  # slug pr
+            local st au qu v
+            IFS=$'\t' read -r st au qu < <(pr_status "$2")
+            v=$(python3 scripts/blog-autopublish.py --mode verdict --state "$st" --auto "$au" --queued "$qu")
+            case "$v" in
+              merged) published=$(echo "$published" | jq --arg s "$1" --arg p "$2" '. + [{slug: $s, pr: $p}]') ;;
+              pending)
+                echo "::warning::PR #$2 ($1) not merged yet — auto-merge armed=${au}, in merge queue=${qu}; it lands once the queue's checks pass."
+                pending=$(echo "$pending" | jq --arg s "$1" --arg p "$2" '. + [{slug: $s, pr: $p}]') ;;
+              *)
+                echo "::error::PR #$2 ($1) is stuck: state=${st}, auto-merge armed=${au}, in merge queue=${qu}. A CLOSED publish PR never merges."
+                stuck=$(echo "$stuck" | jq --arg s "$1" --arg p "$2" '. + [{slug: $s, pr: $p}]') ;;
+            esac
+          }
 
           # Iterate each ready post, one PR per post.
           while IFS=$'\t' read -r path slug; do
             branch="cron/publish-${slug}-${today}"
+
+            # A publish PR for this post from an earlier run that is still
+            # open: re-check it instead of opening another, and do not touch
+            # its branch (deleting a PR's head ref closes the PR).
+            open_pr=$(gh pr list --state open --label autopublish --json number,headRefName \
+              --jq "[.[] | select(.headRefName | startswith(\"cron/publish-${slug}-\")) | .number][0] // empty")
+            if [ -n "$open_pr" ]; then
+              echo "PR #${open_pr} for ${slug} is already open; re-checking it."
+              record "$slug" "$open_pr"
+              continue
+            fi
 
             # Clear any stale branch from a previous failed run.
             git branch -D "$branch" 2>/dev/null || true
@@ -183,52 +222,62 @@ jobs:
             # stays BLOCKED, which previously reported a stuck PR as success
             # and left the post unpublished while the run went green.
             #
-            # main merges through a merge queue. On a queue branch `gh pr
-            # merge` arms auto-merge while required checks are pending and
-            # enqueues the PR once they have passed; the queue then squashes
-            # it. Either way the PR is not MERGED when this returns, so both
-            # states count as pending below, not as stuck.
-            gh pr merge "$pr_num" --squash --delete-branch \
-              || gh pr merge "$pr_num" --auto --squash --delete-branch \
-              || true
+            # main merges through a merge queue, so this arms auto-merge and
+            # the queue squashes the PR once its checks pass. No --squash: the
+            # queue sets the method. No --delete-branch: gh 2.62.0 on a queue
+            # branch arms auto-merge and then deletes the head ref at once,
+            # which CLOSES the PR before the queue can take it (#312-#336:
+            # auto_merge_enabled, closed, head_ref_deleted within 3 s, all by
+            # the app). The repo's delete_branch_on_merge removes the branch
+            # after the merge instead.
+            gh pr merge "$pr_num" --auto || true
 
-            state=$(gh pr view "$pr_num" --json state --jq '.state')
-            auto=$(gh pr view "$pr_num" --json autoMergeRequest --jq '.autoMergeRequest != null')
-            queued=$(gh api graphql -F n="$pr_num" -f o="${REPO%%/*}" -f r="${REPO##*/}" \
-              -f query='query($o:String!,$r:String!,$n:Int!){repository(owner:$o,name:$r){pullRequest(number:$n){mergeQueueEntry{state}}}}' \
-              --jq '.data.repository.pullRequest.mergeQueueEntry != null' || echo false)
-            if [ "$state" = "MERGED" ]; then
-              published=$(echo "$published" | jq --arg s "$slug" --arg p "$pr_num" '. + [{slug: $s, pr: $p}]')
-            elif [ "$auto" = "true" ] || [ "$queued" = "true" ]; then
-              echo "::warning::PR #${pr_num} (${slug}) not merged yet — auto-merge armed=${auto}, in merge queue=${queued}; it lands once the queue's checks pass."
-            else
-              echo "::error::PR #${pr_num} (${slug}) did not merge (state=${state}, auto-merge not armed). Branch protection is likely blocking the pulseengine-actions-helper app — check the repo ruleset bypass."
-              stuck=$(echo "$stuck" | jq --arg s "$slug" --arg p "$pr_num" '. + [{slug: $s, pr: $p}]')
-            fi
+            record "$slug" "$pr_num"
 
             # No git checkout needed — commits are created via API.
             # The local checkout stays on main; the API works on the branch.
           done < <(jq -r '.ready[] | [.path, .slug] | @tsv' /tmp/inventory.json)
 
           echo "$published" > /tmp/published.json
+          echo "$pending" > /tmp/pending.json
+          echo "$stuck" > /tmp/stuck.json
 
-          # Fail the run if any ready post opened a PR but did not actually
-          # merge, so the failure issue opens instead of the run going green
-          # with posts left stuck as open PRs.
+          # Fail the run if any ready post's PR is neither merged nor armed or
+          # queued, closed PRs included, so the failure issue opens instead of
+          # the run going green with the post never shipping.
           if [ "$(echo "$stuck" | jq 'length')" -gt 0 ]; then
             echo "::error::Stuck (opened but not merged): $(echo "$stuck" | jq -c '[.[].slug]')"
             exit 1
           fi
+
+      # A due post that links to a draft gets no PR (scan puts it in
+      # `blocked`). If every draft it waits on is itself ready and due, it
+      # publishes on a later run once those are on main. If it waits on a
+      # draft that is not, nothing will ever unblock it: fail, so the
+      # failure issue says so instead of a green run every day.
+      - name: Fail on posts blocked by an unpublishable draft
+        run: |
+          set -euo pipefail
+          dead=$(jq -c '[.ready[].slug] as $r | [.blocked[] | select(any(.blocked_on[]; . as $t | $r | index($t) | not)) | {slug, blocked_on}]' /tmp/inventory.json)
+          if [ "$dead" != "[]" ]; then
+            echo "::error::Due posts that link to drafts which are not ready to publish: ${dead}"
+            exit 1
+          fi
+          jq -r '.blocked[] | "::warning::\(.slug) waits for \(.blocked_on | join(", ")) to reach main"' /tmp/inventory.json
 
       - name: Render status report
         if: always()
         run: |
           set -euo pipefail
           published=$(cat /tmp/published.json 2>/dev/null || echo '[]')
+          pending=$(cat /tmp/pending.json 2>/dev/null || echo '[]')
+          stuck=$(cat /tmp/stuck.json 2>/dev/null || echo '[]')
           python3 scripts/blog-autopublish.py \
             --mode report \
             --inventory /tmp/inventory.json \
             --published "$published" \
+            --pending "$pending" \
+            --stuck "$stuck" \
             --run-url "$RUN_URL" > /tmp/report.md
           cat /tmp/report.md >> "$GITHUB_STEP_SUMMARY"
 

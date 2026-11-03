@@ -1268,6 +1268,54 @@ claims:
         pattern: 'run the `publication-review` skill'
         glob: ['CONTRIBUTING.md']
         min: 1
+  # ── The blog cron cannot go green while a due post never ships ─────────────
+  # INC-2026-10-007: from 2026-10-29 every publish PR (#312-#336) was closed
+  # seconds after it opened, because `gh pr merge --delete-branch` on a queue
+  # branch deletes the head ref at once. The verification read the closed PR as
+  # "auto-merge armed", the run went green, and the status issue said no posts
+  # were ready. Bound here: the verdict lives in the script with CLOSED first,
+  # the workflow calls it rather than re-implementing it, CI runs its table, the
+  # workflow never passes --delete-branch or a merge method again, and the
+  # report lists every due, unpublished post.
+  - id: BLOG-AUTOPUBLISH-CLOSED-IS-STUCK
+    doc: scripts/blog-autopublish.py
+    text: "A CLOSED PR is stuck whatever else is reported."
+    evidence:
+      - kind: count-min
+        pattern: 'if state == "CLOSED":\n\s+return "stuck"\n\s+if state == "MERGED":'
+        glob: ['scripts/blog-autopublish.py']
+        min: 1
+      - kind: count-min
+        pattern: '\(\("CLOSED", True, False\), "stuck"\)'
+        glob: ['scripts/blog-autopublish.py']
+        min: 1
+      - kind: count-min
+        pattern: 'scripts/blog-autopublish\.py --mode verdict'
+        glob: ['.github/workflows/blog-autopublish.yml']
+        min: 1
+      - kind: count-min
+        pattern: 'run: python3 scripts/blog-autopublish\.py --self-test'
+        glob: ['.github/workflows/ci.yml']
+        min: 1
+      # the step must not decide on its own again
+      - kind: count-max
+        pattern: '\[ "\$state" = "MERGED" \]'
+        glob: ['.github/workflows/blog-autopublish.yml']
+        max: 0
+      - kind: count-max
+        pattern: 'gh pr merge[^\n]*(--delete-branch|--squash|--merge|--rebase)'
+        glob: ['.github/workflows/blog-autopublish.yml']
+        max: 0
+      - kind: count-min
+        pattern: 'gh pr merge "\$pr_num" --auto'
+        glob: ['.github/workflows/blog-autopublish.yml']
+        min: 1
+      - kind: verbatim
+        text: 'lines.append(f"**❌ Error — due but not published ({len(due)}):**")'
+      - kind: count-min
+        pattern: '--stuck "\$stuck"'
+        glob: ['.github/workflows/blog-autopublish.yml']
+        min: 1
   # ── The monthly report withholds itself when its instrument drifts ──────────
   # The pre-registration says every monthly run re-scores the classifier and
   # withholds the report below 0.75 precision or 0.70 recall. The thresholds now
