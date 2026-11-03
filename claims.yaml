@@ -367,6 +367,18 @@ claims:
         pattern: 'git tree hash of `tools/refactor-metrics` is `396bb9578cfa27fde042511f33b6f02963f719c0`, identical'
         glob: ['docs/experiments/2026-10-refactor-decision-relay.md']
         min: 1
+  - id: EXPERIMENT-HOTSPOT-DEVIATION-2026-11-03
+    doc: docs/experiments/2026-10-hotspot-trigger.md
+    text: "Deviation, 2026-11-03: two process changes in both arms during the window"
+    evidence:
+      - kind: count-min
+        pattern: 'Deviation, 2026-11-03: two process changes in both arms during the window'
+        glob: ['docs/experiments/2026-10-hotspot-trigger.md']
+        min: 1
+      - kind: count-min
+        pattern: 'the readout splits the window at 2026-11-03'
+        glob: ['docs/experiments/2026-10-hotspot-trigger.md']
+        min: 1
   - id: SKILL-FRONTMATTER-STRICT-YAML
     doc: scripts/check-skill-frontmatter.py
     text: "strict readers such as Copilot CLI REFUSE TO LOAD the skill"
