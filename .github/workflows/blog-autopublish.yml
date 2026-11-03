@@ -139,29 +139,31 @@ jobs:
           stuck='[]'
           today=$(date -u +%Y-%m-%d)
 
-          # One read of the three fields the verdict needs, in one GraphQL
-          # call so they describe the same moment. Three separate reads let
-          # the 2026-11-03 run see #335 as "armed" a second after it closed.
+          # One read of the fields the verdict needs, in one GraphQL call so
+          # they describe the same moment. Three separate reads let the
+          # 2026-11-03 run see #335 as "armed" a second after it closed. The
+          # head commit's check rollup is read too: an armed PR whose checks
+          # went red never enters the queue, and must not read as pending.
           pr_status() {
             gh api graphql -F n="$1" -f o="${REPO%%/*}" -f r="${REPO##*/}" \
-              -f query='query($o:String!,$r:String!,$n:Int!){repository(owner:$o,name:$r){pullRequest(number:$n){state autoMergeRequest{enabledAt} mergeQueueEntry{state}}}}' \
-              --jq '.data.repository.pullRequest | [.state, (.autoMergeRequest != null), (.mergeQueueEntry != null)] | @tsv' \
-              || printf 'UNKNOWN\tfalse\tfalse\n'
+              -f query='query($o:String!,$r:String!,$n:Int!){repository(owner:$o,name:$r){pullRequest(number:$n){state autoMergeRequest{enabledAt} mergeQueueEntry{state} commits(last:1){nodes{commit{statusCheckRollup{state}}}}}}}' \
+              --jq '.data.repository.pullRequest | [.state, (.autoMergeRequest != null), (.mergeQueueEntry != null), (.commits.nodes[0].commit.statusCheckRollup.state // "NONE")] | @tsv' \
+              || printf 'UNKNOWN\tfalse\tfalse\tNONE\n'
           }
 
           # The classification lives in blog-autopublish.py (--mode verdict),
           # where ci.yml's self-test exercises it; this only records it.
           record() {  # slug pr
-            local st au qu v
-            IFS=$'\t' read -r st au qu < <(pr_status "$2")
-            v=$(python3 scripts/blog-autopublish.py --mode verdict --state "$st" --auto "$au" --queued "$qu")
+            local st au qu ck v
+            IFS=$'\t' read -r st au qu ck < <(pr_status "$2")
+            v=$(python3 scripts/blog-autopublish.py --mode verdict --state "$st" --auto "$au" --queued "$qu" --checks "$ck")
             case "$v" in
               merged) published=$(echo "$published" | jq --arg s "$1" --arg p "$2" '. + [{slug: $s, pr: $p}]') ;;
               pending)
                 echo "::warning::PR #$2 ($1) not merged yet — auto-merge armed=${au}, in merge queue=${qu}; it lands once the queue's checks pass."
                 pending=$(echo "$pending" | jq --arg s "$1" --arg p "$2" '. + [{slug: $s, pr: $p}]') ;;
               *)
-                echo "::error::PR #$2 ($1) is stuck: state=${st}, auto-merge armed=${au}, in merge queue=${qu}. A CLOSED publish PR never merges."
+                echo "::error::PR #$2 ($1) is stuck: state=${st}, auto-merge armed=${au}, in merge queue=${qu}, checks=${ck}. A CLOSED publish PR, or one with red checks, never merges."
                 stuck=$(echo "$stuck" | jq --arg s "$1" --arg p "$2" '. + [{slug: $s, pr: $p}]') ;;
             esac
           }
@@ -227,7 +229,7 @@ jobs:
             # queue sets the method. No --delete-branch: gh 2.62.0 on a queue
             # branch arms auto-merge and then deletes the head ref at once,
             # which CLOSES the PR before the queue can take it (#312-#336:
-            # auto_merge_enabled, closed, head_ref_deleted within 3 s, all by
+            # auto_merge_enabled, closed, head_ref_deleted within 4 s, all by
             # the app). The repo's delete_branch_on_merge removes the branch
             # after the merge instead.
             gh pr merge "$pr_num" --auto || true

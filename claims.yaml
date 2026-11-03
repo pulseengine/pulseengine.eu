@@ -1279,7 +1279,7 @@ claims:
   # report lists every due, unpublished post.
   - id: BLOG-AUTOPUBLISH-CLOSED-IS-STUCK
     doc: scripts/blog-autopublish.py
-    text: "A CLOSED PR is stuck whatever else is reported."
+    text: "A CLOSED PR is stuck whatever else is reported;"
     evidence:
       - kind: count-min
         pattern: 'if state == "CLOSED":\n\s+return "stuck"\n\s+if state == "MERGED":'
@@ -1288,6 +1288,15 @@ claims:
       - kind: count-min
         pattern: '\(\("CLOSED", True, False\), "stuck"\)'
         glob: ['scripts/blog-autopublish.py']
+        min: 1
+      # an armed PR with red checks is stuck, and the workflow reads the rollup
+      - kind: count-min
+        pattern: 'if checks in \("FAILURE", "ERROR"\):\n\s+return "stuck"'
+        glob: ['scripts/blog-autopublish.py']
+        min: 1
+      - kind: count-min
+        pattern: 'statusCheckRollup\{state\}[\s\S]*--checks "\$ck"'
+        glob: ['.github/workflows/blog-autopublish.yml']
         min: 1
       - kind: count-min
         pattern: 'scripts/blog-autopublish\.py --mode verdict'
