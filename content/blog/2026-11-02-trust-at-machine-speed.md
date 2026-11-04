@@ -2,7 +2,7 @@
 title = "Trust at machine speed"
 description = "Trust is an advantage at machine speed only when a machine can check it. Europe's regulation has started asking for some evidence in machine-readable form, while German assessment practice still has people assemble and read most of it. What PulseEngine has today: claims checked in CI, traceability in rivet, and a release signature a buyer can check without the vendor's key."
 date = 2026-11-02
-draft = true
+draft = false
 ready = true
 [taxonomies]
 tags = ["process", "verification", "regulation", "ai-agents"]
