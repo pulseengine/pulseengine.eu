@@ -14,7 +14,7 @@
     "pulseengine/relay": { "needs-decision_floor": 57 },
     "pulseengine/gale":  { "needs-decision_floor": 30 },
     "pulseengine/loom":  { "needs-decision_floor": 26 },
-    "pulseengine/warte": { "needs-decision_floor": 40 },
+    "pulseengine/warte": { "needs-decision_floor": 37 },
     "pulseengine/varve": { "needs-decision_floor": 25 },
     "pulseengine/pulseengine.eu": { "needs-decision_floor": 8 }
   }
