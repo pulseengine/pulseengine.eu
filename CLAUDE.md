@@ -42,7 +42,7 @@ Quick reference:
 
 ## Design system
 
-Colors are aligned with the thrum unified dashboard (`/Users/r/git/temper/thrum/crates/thrum-api/assets/style.css`). Key values:
+Colors are aligned with the thrum unified dashboard (`thrum/crates/thrum-api/assets/style.css` in the temper repo). Key values:
 
 - Background: `#0f1117`
 - Surface: `#1a1d27`
