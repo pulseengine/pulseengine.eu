@@ -2897,3 +2897,39 @@ claims:
         pattern: '\nPATTERN = re\.compile\(r"\(\?:/Users/\|/Volumes/\|/home/\|-Users-\)'
         glob: ['scripts/check-plugin-no-private-paths.py']
         min: 1
+
+  # ── factory-notice authenticates its writes to warte ────────────────────────
+  # REQ-FACTORY-NOTICE-WARTE-TOKEN. Until 0.51.2 notice.py sent no Authorization
+  # header, so every write to a warte that requires a bearer token got 401 and
+  # nine notices sat in agent outboxes (measured 2026-11-04). The skill now says
+  # it sends the token, and the code must keep both transports sending it and
+  # keep it out of argv.
+  - id: FACTORY-NOTICE-WARTE-TOKEN
+    doc: claude-tooling/plugins/pulseengine-claude/skills/factory-notice/SKILL.md
+    text: "for curl the header\ngoes in a temporary 0600 file (`-H @file`), never on the command line"
+    evidence:
+      - kind: count-min
+        pattern: 'headers\["Authorization"\] = "Bearer " \+ self\._token'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/factory-notice/notice.py']
+        min: 1
+      - kind: count-min
+        pattern: 'f\.write\("Authorization: Bearer " \+ self\._token'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/factory-notice/notice.py']
+        min: 1
+      - kind: count-min
+        pattern: 'cmd \+= \["-H", "@" \+ hdr\]'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/factory-notice/notice.py']
+        min: 1
+      # No argv ever carries the token: nothing but the @file form puts it near cmd.
+      - kind: count-max
+        pattern: 'cmd \+= \[[^\]]*self\._token'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/factory-notice/notice.py']
+        max: 0
+      - kind: count-min
+        pattern: 'token: curl gets the header from a file'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/factory-notice/notice.py']
+        min: 1
+      - kind: count-min
+        pattern: 'PULSEENGINE_WARTE_TOKEN_FILE'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/factory-notice/SKILL.md']
+        min: 1
