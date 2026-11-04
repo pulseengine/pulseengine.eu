@@ -401,6 +401,12 @@ jobs:
       - name: Check no build artifact is tracked
         run: python3 scripts/check-no-build-artifacts.py
 
+      # The plugin installs on other people's machines. 0.51.0 shipped an
+      # absolute home-directory path in a memory file; the client-side guard
+      # asks before one is written but never sees one already there.
+      - name: Check the plugin ships no home-directory path
+        run: python3 scripts/check-plugin-no-private-paths.py
+
       # Committed scripts get run on macOS, where /bin/bash is 3.2 and
       # /usr/bin/python3 is 3.9, while every step above runs newer tools — so
       # nothing caught a script that only works on those (REQ-SCRIPT-
