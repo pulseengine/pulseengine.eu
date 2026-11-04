@@ -62,6 +62,7 @@ import socket
 import ssl
 import subprocess
 import sys
+import tempfile
 import time
 import urllib.error
 import urllib.parse
@@ -362,12 +363,34 @@ def _curl_retryable(reason):
         return True
     return isinstance(reason, OSError) and getattr(reason, "errno", None) in _CURL_RETRY_ERRNOS
 
+def load_token(env=None):
+    """The bearer token for warte's write routes, or (None, why-not).
+
+    `PULSEENGINE_WARTE_TOKEN`, else the first line of the file named by
+    `PULSEENGINE_WARTE_TOKEN_FILE`. Never returns or logs anything but the token
+    itself; a value with whitespace or control characters is refused so it cannot
+    smuggle a second header.
+    """
+    env = os.environ if env is None else env
+    tok, why = (env.get("PULSEENGINE_WARTE_TOKEN") or "").strip(), None
+    if not tok and env.get("PULSEENGINE_WARTE_TOKEN_FILE"):
+        try:
+            with open(env["PULSEENGINE_WARTE_TOKEN_FILE"], "r", encoding="ascii") as f:
+                tok = f.readline().strip()
+        except (OSError, UnicodeDecodeError) as e:
+            return None, f"PULSEENGINE_WARTE_TOKEN_FILE could not be read ({type(e).__name__})"
+    if tok and not (tok.isascii() and tok.isprintable() and not any(c.isspace() for c in tok)):
+        return None, "the warte token has whitespace or control characters; ignoring it"
+    return (tok or None), why
+
+
 class Warte:
     """urllib client for warte's agent API. Says once when it is unavailable."""
 
     def __init__(self, base, cacert=None, timeout=DEFAULT_TIMEOUT, err=None, deadline=None,
-                 force_curl=False):
+                 force_curl=False, token=None):
         self.base = (base or "").rstrip("/")
+        self._token = token or None  # never printed, logged or put in an argv
         self.cacert = cacert
         self.force_curl = force_curl
         self.timeout = timeout
@@ -382,9 +405,13 @@ class Warte:
 
     @classmethod
     def from_env(cls, timeout=DEFAULT_TIMEOUT, err=None, deadline=None):
-        return cls(os.environ.get("PULSEENGINE_WARTE_URL", ""),
-                   os.environ.get("PULSEENGINE_WARTE_CACERT") or None,
-                   timeout, err, deadline)
+        token, why = load_token()
+        w = cls(os.environ.get("PULSEENGINE_WARTE_URL", ""),
+                os.environ.get("PULSEENGINE_WARTE_CACERT") or None,
+                timeout, err, deadline, token=token)
+        if why and w.base:
+            w._say(why, key="token")
+        return w
 
     def _say(self, msg, key="unavailable"):
         if key not in self._said:
@@ -400,8 +427,10 @@ class Warte:
         data = json.dumps(body).encode() if body is not None else None
         if self.force_curl:
             return self._curl(method, path, data, t)
-        req = urllib.request.Request(self.base + path, data=data, method=method,
-                                     headers={"Content-Type": "application/json"} if data else {})
+        headers = {"Content-Type": "application/json"} if data else {}
+        if self._token:
+            headers["Authorization"] = "Bearer " + self._token
+        req = urllib.request.Request(self.base + path, data=data, method=method, headers=headers)
         try:
             with urllib.request.urlopen(req, timeout=t, context=self.ctx) as r:
                 raw = r.read()
@@ -429,7 +458,21 @@ class Warte:
             cmd += ["--cacert", self.cacert]
         if data is not None:
             cmd += ["-H", "Content-Type: application/json", "--data-binary", "@-"]
-        out = subprocess.run(cmd + [self.base + path], input=data or b"", capture_output=True, timeout=t + 1)
+        hdr = None
+        try:
+            if self._token:
+                # The header goes in a 0600 file (`-H @file`), not argv, which any user can list.
+                fd, hdr = tempfile.mkstemp(prefix="notice-hdr-")
+                with os.fdopen(fd, "w") as f:
+                    f.write("Authorization: Bearer " + self._token + "\n")
+                cmd += ["-H", "@" + hdr]
+            out = subprocess.run(cmd + [self.base + path], input=data or b"", capture_output=True, timeout=t + 1)
+        finally:
+            if hdr:
+                try:
+                    os.unlink(hdr)
+                except OSError:
+                    pass
         if out.returncode != 0:
             raise ConnectionError(f"curl exit {out.returncode}")
         raw, _, code = out.stdout.rpartition(b"\n")
@@ -458,8 +501,14 @@ class Warte:
             return self._req(method, path, body)
         except WriteRefused as e:
             self.writable = False
-            self._say(f"warte refused the write (HTTP {e}: a bearer token is required and this agent "
-                      "has none); reads still work, notices stay in the outbox", key="refused")
+            if self._token:
+                self._say(f"warte refused the write (HTTP {e}): it did not accept the bearer token "
+                          "(expired, or minted from another seed?); reads still work, notices stay in the outbox",
+                          key="refused")
+            else:
+                self._say(f"warte refused the write (HTTP {e}: a bearer token is required and this agent "
+                          "has none); set PULSEENGINE_WARTE_TOKEN (or PULSEENGINE_WARTE_TOKEN_FILE) to a token "
+                          "the operator minted; reads still work, notices stay in the outbox", key="refused")
             raise
         except Exception as e:
             self._ok = False
@@ -931,7 +980,7 @@ def fetch_attention(base, cacert=None, timeout=DEFAULT_TIMEOUT):
     """warte's GET /api/attention: (config, None), or (None, why). 404, unreachable or invalid is unavailable."""
     if not base:
         return None, "PULSEENGINE_WARTE_URL is not set"
-    w = Warte(base, cacert, timeout=timeout, err=io.StringIO())
+    w = Warte(base, cacert, timeout=timeout, err=io.StringIO(), token=load_token()[0])
     try:
         raw = w._req("GET", "/api/attention")
     except WriteRefused as e:
@@ -1892,7 +1941,13 @@ def _stub_warte():
             self.end_headers()
             self.wfile.write(raw)
 
+        def _seen(self):
+            state.setdefault("seen", []).append((self.command, self.path,
+                                                 self.headers.get("Authorization"),
+                                                 self.headers.get("User-Agent", "")))
+
         def do_GET(self):
+            self._seen()
             u = urllib.parse.urlparse(self.path)
             q = urllib.parse.parse_qs(u.query)
             if u.path == "/warte/api/health":
@@ -1915,7 +1970,11 @@ def _stub_warte():
             self._send(404)
 
         def do_POST(self):
-            if state.get("require_auth") and not self.headers.get("Authorization"):
+            self._seen()
+            auth = self.headers.get("Authorization")
+            # With state["token"] set, the stub checks the exact bearer value, as warte does.
+            if state.get("require_auth") and (not auth or (
+                    state.get("token") and auth != "Bearer " + state["token"])):
                 return self._send(401)  # the deployed warte's auth middleware on every write
             body = json.loads(self.rfile.read(int(self.headers.get("Content-Length", 0))) or b"null")
             if self.path == "/warte/api/agents/register":
@@ -2118,6 +2177,91 @@ def self_test():
                   and len(wa.rows("uuid-1", NOTICE_TYPE)) > 0)
         finally:
             state["require_auth"] = False
+
+        # 3c. the bearer token: sent on both transports, never printed, never in argv
+        secret = "warte1.selftest" + secrets.token_hex(8) + ".sig-" + secrets.token_hex(8)
+        state["require_auth"], state["token"] = True, secret
+        real_run, argvs = subprocess.run, []
+
+        def recording_run(cmd, *a, **k):
+            argvs.append(list(cmd))
+            return real_run(cmd, *a, **k)
+
+        def leaks(text):
+            return secret in text
+
+        check("token: the leak check can fail (negative control)", leaks("x " + secret) and not leaks("x"))
+        out_buf, err_buf = io.StringIO(), io.StringIO()
+        try:
+            at = Store(tmp.name, "tokentest")
+            for transport in ("urllib", "curl"):
+                if transport == "curl" and not shutil.which("curl"):
+                    continue
+                state["seen"] = []
+                wt = Warte(base, timeout=3, err=err_buf, force_curl=(transport == "curl"), token=secret)
+                subprocess.run = recording_run
+                with contextlib.redirect_stdout(out_buf), contextlib.redirect_stderr(err_buf):
+                    r = post_notice(at, wt, root_schema,
+                                    dict(info, id=new_notice_id(), agent="tokentest"))
+                subprocess.run = real_run
+                writes = [x for x in state["seen"] if x[0] == "POST"]
+                check(f"token: {transport} write succeeds and carries the bearer header",
+                      r["warte"] == "sent" and writes and all(x[2] == "Bearer " + secret for x in writes))
+                if transport == "curl":
+                    check("token: curl gets the header from a file (-H @file), not argv",
+                          argvs and not any(leaks(" ".join(c)) for c in argvs)
+                          and any(c[i] == "-H" and c[i + 1].startswith("@")
+                                  for c in argvs for i in range(len(c) - 1)))
+                    check("token: the curl header file is removed afterwards",
+                          not any(pathlib.Path(c[i + 1][1:]).exists()
+                                  for c in argvs for i in range(len(c) - 1)
+                                  if c[i] == "-H" and c[i + 1].startswith("@")))
+                reads = [x for x in state["seen"] if x[0] == "GET"]
+                check(f"token: {transport} reads carry the header too",
+                      reads and all(x[2] == "Bearer " + secret for x in reads))
+            # no token: refused, kept in the outbox, said once, and the message names the variable
+            state["seen"], errn = [], io.StringIO()
+            wn = Warte(base, timeout=3, err=errn)
+            rn = post_notice(at, wn, root_schema, dict(info, id=new_notice_id(), agent="tokentest"))
+            check("token: without one the write is refused and the notice stays in the outbox",
+                  rn["warte"] == "outbox" and at.outbox() and not any(x[2] for x in state["seen"]))
+            check("token: the refusal says once that writes need PULSEENGINE_WARTE_TOKEN",
+                  errn.getvalue().count("refused the write") == 1
+                  and "set PULSEENGINE_WARTE_TOKEN" in errn.getvalue()
+                  and errn.getvalue().count("factory-notice:") == 1)
+            # a wrong token (negative control for the stub's exact comparison)
+            errw = io.StringIO()
+            ww = Warte(base, timeout=3, err=errw, token=secret + "x")
+            rw = post_notice(at, ww, root_schema, dict(info, id=new_notice_id(), agent="tokentest"))
+            check("token: a wrong token is refused too and kept in the outbox",
+                  rw["warte"] == "outbox" and "did not accept the bearer token" in errw.getvalue())
+            # env and file sources, precedence, and bad values
+            tf = pathlib.Path(tmp.name) / "tok"
+            tf.write_text(secret + "\n")
+            check("token: read from PULSEENGINE_WARTE_TOKEN_FILE",
+                  load_token({"PULSEENGINE_WARTE_TOKEN_FILE": str(tf)}) == (secret, None))
+            check("token: PULSEENGINE_WARTE_TOKEN wins over the file",
+                  load_token({"PULSEENGINE_WARTE_TOKEN": "a.b.c", "PULSEENGINE_WARTE_TOKEN_FILE": str(tf)})[0]
+                  == "a.b.c")
+            check("token: none set, unreadable file and a value with whitespace give no token",
+                  load_token({})[0] is None
+                  and load_token({"PULSEENGINE_WARTE_TOKEN_FILE": str(tf) + ".missing"})[0] is None
+                  and load_token({"PULSEENGINE_WARTE_TOKEN": "a b\nX-Evil: 1"})[0] is None)
+            # the real CLI, with the token only in its environment
+            cli_env = dict(os.environ, PULSEENGINE_WARTE_URL=base, PULSEENGINE_WARTE_TOKEN=secret,
+                           PULSEENGINE_NOTICE_DIR=tmp.name, PULSEENGINE_AGENT_ID="tokentest")
+            cli_env.pop("PULSEENGINE_WARTE_TOKEN_FILE", None)
+            cp = real_run([sys.executable, os.path.abspath(__file__), "sync"], env=cli_env,
+                          capture_output=True, text=True, timeout=30)
+            check("token: `notice.py sync` with the token flushes the outbox",
+                  cp.returncode == 0 and not Store(tmp.name, "tokentest").outbox())
+            check("token: the token is in no stdout or stderr",
+                  not any(leaks(t) for t in (cp.stdout, cp.stderr, out_buf.getvalue(), err_buf.getvalue(),
+                                             errn.getvalue(), errw.getvalue())))
+        finally:
+            subprocess.run = real_run
+            state["require_auth"] = False
+            state.pop("token", None)
 
         # 4. answer safety
         d = decision()

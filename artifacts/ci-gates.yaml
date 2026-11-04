@@ -1217,3 +1217,28 @@ artifacts:
     links:
       - type: verifies
         target: REQ-PLUGIN-NO-HOME-PATH
+
+  - id: REQ-FACTORY-NOTICE-WARTE-TOKEN
+    type: requirement
+    title: factory-notice sends a bearer token on every warte request and never prints it or puts it in argv
+    description: >-
+      Measured 2026-11-04: `notice.py sync` left 9 notices across agent outboxes because warte answers 401 to a write without a bearer token and notice.py sent no Authorization header. 0.51.2 reads the token from PULSEENGINE_WARTE_TOKEN, or the first line of the file named by PULSEENGINE_WARTE_TOKEN_FILE, and sends `Authorization: Bearer <token>` on every request in both the urllib and the curl path. The curl header goes in a 0600 temporary file passed as `-H @file`, removed afterwards, so the token is not in any process list. A token with whitespace or control characters is ignored. With no token the behaviour is the old one (local store, outbox) and the first refused write says once that writes need PULSEENGINE_WARTE_TOKEN. The operator mints the token with `warte token mint` (pulseengine/warte, REQ-API-003); nothing in this plugin mints one.
+    status: verified
+    release: 0.51.2
+    category: functional
+    priority: must
+    fields:
+      category: functional
+
+  - id: VER-FACTORY-NOTICE-WARTE-TOKEN
+    type: verification
+    title: notice.py --self-test token cases against a stub that compares the exact bearer value, plus claim FACTORY-NOTICE-WARTE-TOKEN
+    description: >-
+      The self-test (also run in CI) starts the stub warte with require_auth and an exact expected token, and checks: with a token the write succeeds on urllib and on curl and the stub saw `Bearer <token>` on every POST and GET; the curl argv, recorded by wrapping subprocess.run, never contains the token and carries `-H @file`, and the header file is gone afterwards; without a token the write is refused, the notice stays in the outbox and the refusal is said once and names PULSEENGINE_WARTE_TOKEN; a wrong token is refused too (negative control for the stub's exact comparison); the leak check is itself shown to fire on a string that contains the token; the token is read from the environment and from the file, the environment wins, and a missing file or a value with whitespace gives no token; `notice.py sync` run as a child process with the token only in its environment flushes the outbox and the token is in none of its stdout or stderr nor in the in-process captures. The claim fails if either transport stops sending the header, if a token reaches a curl argv list, or if the argv self-test case goes.
+    status: verified
+    release: 0.51.2
+    method: automated-test
+    test-location: claude-tooling/plugins/pulseengine-claude/skills/factory-notice/notice.py
+    links:
+      - type: verifies
+        target: REQ-FACTORY-NOTICE-WARTE-TOKEN

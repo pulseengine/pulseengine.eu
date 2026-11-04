@@ -37,9 +37,25 @@ warte is unset or unreachable, `notice.py` says so once, keeps the notice in
 |---|---|
 | `PULSEENGINE_WARTE_URL` | base URL of warte, ending in `/warte`; unset means local only |
 | `PULSEENGINE_WARTE_CACERT` | path to the CA certificate that signs warte (needed for a private CA) |
+| `PULSEENGINE_WARTE_TOKEN` | the bearer token warte's write routes require; minted by the operator, never by the agent |
+| `PULSEENGINE_WARTE_TOKEN_FILE` | a file (mode 0600) whose first line is the token; used when `PULSEENGINE_WARTE_TOKEN` is unset |
 | `PULSEENGINE_NOTICE_DIR` | the local store's root, if not the default |
 | `PULSEENGINE_AGENT_ID` | the agent id; default is the repository name from `origin` |
 | `PULSEENGINE_SESSION_URL` | the session URL recorded on each notice, if not given with `--session` |
+
+**Writes to warte need a bearer token.** Registering, posting and heartbeats are
+`POST`s, and warte answers `401` to a `POST` without `Authorization: Bearer
+<token>`. The operator mints the token on the ground station host with `warte
+token mint <agent-id>` (it prints only the token) and puts it in
+`PULSEENGINE_WARTE_TOKEN` or a 0600 file named by `PULSEENGINE_WARTE_TOKEN_FILE`.
+`notice.py` sends it on every request, urllib and curl alike; for curl the header
+goes in a temporary 0600 file (`-H @file`), never on the command line, so it is
+not in the process list. It never prints or logs the token. With no token set,
+nothing changes: notices go to the local store and the outbox, and the first
+refused write says once that writes need `PULSEENGINE_WARTE_TOKEN`. Tokens expire
+(24 hours unless the operator asked for more); an expired or foreign token is
+refused the same way and the notices wait in the outbox. A launchd or systemd
+service needs the same variable, as for the URL below.
 
 The warte address and certificate path are **never** written into this plugin
 or any repository; the `CI-STATUS-NO-PRIVATE-HOST` claim fails the build if one
