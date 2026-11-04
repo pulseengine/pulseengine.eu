@@ -7,11 +7,11 @@ metadata:
   scope: plugin-bundled
 ---
 
-Map of the PulseEngine tools. Each lives in `/Users/r/git/pulseengine/<name>` on Ralf's machine and has its own per-project memory store under `~/.claude/projects/-Users-r-git-pulseengine-<name>/memory/`. Treat this as a directory, not a spec — read the project memory for current state.
+Map of the PulseEngine tools. Each lives in its own sibling checkout, `<workspace>/<name>`, and has its own per-project memory store under `~/.claude/projects/` (the directory named for that checkout's path), in `memory/`. Treat this as a directory, not a spec — read the project memory for current state.
 
 ## Core stack
 
-**rivet** — typed traceability CLI. YAML artifacts in git, schemas, `rivet validate / check / coverage / impact`, typed link predicates (verifies, implements, traced-by), MCP server so agents maintain traceability as they work. Schema support: STPA, ASPICE, IEC 61508, DO-178C, EN 50128, EU AI Act. Installed at `/Users/r/.cargo/bin/rivet`. From `2026-03-15-rivet-v0.1.0`.
+**rivet** — typed traceability CLI. YAML artifacts in git, schemas, `rivet validate / check / coverage / impact`, typed link predicates (verifies, implements, traced-by), MCP server so agents maintain traceability as they work. Schema support: STPA, ASPICE, IEC 61508, DO-178C, EN 50128, EU AI Act. Installed under `~/.cargo/bin/`. From `2026-03-15-rivet-v0.1.0`.
 
 **spar** — AADL v2.3 architecture analysis. 27+ analysis passes including scheduling, latency, ARINC 653 partitioning, EMV2 fault trees, ASIL decomposition solver. Modal filtering on operations modes, piecewise-affine arrival curves for TSN, PMOO/LUDB multiplexing. Feeds rivet's traceability graph. Generates WIT interfaces from AADL (don't hand-write WIT in wohl). MCP server for agent access.
 

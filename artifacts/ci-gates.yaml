@@ -1192,3 +1192,28 @@ artifacts:
     links:
       - type: verifies
         target: REQ-BLOG-AUTOPUBLISH-NO-VACUOUS-GREEN
+
+  - id: REQ-PLUGIN-NO-HOME-PATH
+    type: requirement
+    title: No file the plugin ships names an absolute home-directory path
+    description: >-
+      pulseengine-toolchain.md carried an absolute home-directory path through 0.51.0, twice, once in Claude Code's dash-encoded project-directory form, and a second in the install location of rivet. The plugin installs on other people's machines, so the path disclosed the author's account name and sent every reader's agent looking for a directory that does not exist for them. The client-side private-host-guard asks before such a path is written but never sees one already in a file. 0.51.1 words the locations relative to the workspace and adds a CI check that rejects /Users/, /Volumes/, /home/ and -Users- followed by a name anywhere under claude-tooling/plugins.
+    status: verified
+    release: 0.51.1
+    category: non-functional
+    priority: must
+    fields:
+      category: non-functional
+
+  - id: VER-PLUGIN-NO-HOME-PATH
+    type: verification
+    title: check-plugin-no-private-paths.py, plus claim PLUGIN-NO-HOME-PATH
+    description: >-
+      Scans every tracked or untracked-not-ignored text file under claude-tooling/plugins (57 at 0.51.1). Red-first against the live defect: three hits (two in pulseengine-toolchain.md, one /home/... ellipsis in a docstring that narrowed the pattern to require a name character), none after the rewording. Negative-controlled 2026-11-04: a line naming a /Users/ path appended to pulseengine-toolchain.md makes the script exit 1; removing it by re-editing returns exit 0. The documented placeholder /Volumes/<name> and the guard's own regex pass.
+    status: verified
+    release: 0.51.1
+    method: automated-test
+    test-location: scripts/check-plugin-no-private-paths.py
+    links:
+      - type: verifies
+        target: REQ-PLUGIN-NO-HOME-PATH
