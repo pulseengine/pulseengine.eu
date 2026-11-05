@@ -1,6 +1,6 @@
 ---
 name: pulseengine-feature-loop
-description: This skill should be used when doing a feature end-to-end on a PulseEngine project (rivet, spar, witness, sigil, meld, loom, synth, wohl, kiln), such as "implement a feature", "add a new requirement" or "ship a feature end-to-end". ALWAYS use it when feature work touches more than a single file.
+description: Use for a feature end-to-end on a PulseEngine project that touches more than one file ("implement a feature", "add a new requirement", "ship it with traceability").
 metadata:
   author: pulseengine.eu
   version: "0.7.3"

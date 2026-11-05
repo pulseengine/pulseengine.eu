@@ -1,6 +1,6 @@
 ---
 name: release-planning
-description: This skill should be used to plan releases in rivet, assigning which requirements belong to which release, and to run the issue-driven delivery loop. Use it when scoping a release ("what goes in v0.X"), triaging an incoming issue toward a release, or asking "is v0.X ready to cut".
+description: Use to plan releases in rivet (what goes in v0.X, triaging an incoming issue toward a release, "is v0.X ready to cut") and to run the issue-driven delivery loop.
 metadata:
   author: pulseengine.eu
   version: "0.2.1"

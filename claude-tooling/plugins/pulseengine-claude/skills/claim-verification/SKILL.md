@@ -1,6 +1,6 @@
 ---
 name: claim-verification
-description: This skill should be used before a claim is reported or written, such as findings, audit results, a PR body or issue comment, "0 found", "all green", "because", "verify this" or "is this true", an AI review recorded as evidence, or a README, badge or doc asserting what the system proves. It cross-checks, reviews cold and gates claims.
+description: Use before a claim is reported or written, such as findings, audit results, PR or issue text, "0 found", "all green", "because", "verify this", an AI review used as evidence, or a README, badge or doc asserting what the system proves.
 metadata:
   author: pulseengine.eu
   version: "1.0.0"

@@ -1,6 +1,6 @@
 ---
 name: refactor-decision
-description: This skill should be used whenever an agent decides whether to stop patching and refactor, or is asked to "refactor X" or "tidy first". It does NOT apply in pulseengine/rivet or pulseengine/spar before 2027-02-01.
+description: Use when deciding whether to stop patching and refactor, or when asked to "refactor X" or "tidy first". It does NOT apply in pulseengine/rivet or pulseengine/spar before 2027-02-01.
 metadata:
   author: pulseengine.eu
   version: "0.1.0"

@@ -1,6 +1,6 @@
 ---
 name: bootstrap-verification
-description: This skill should be used to stand up PulseEngine verification scaffolding for a NEW or not-yet-built piece, a greenfield repo or fresh component, so it is traceable from commit one. Use it when the user says "bootstrap this", "set this up properly from the start", or "get the verification scaffolding in".
+description: Use to stand up verification scaffolding for a NEW or not-yet-built piece (greenfield repo or component) so it is traceable from commit one ("bootstrap this", "set this up properly from the start").
 metadata:
   author: pulseengine.eu
   version: "0.1.0"

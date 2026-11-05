@@ -1,6 +1,6 @@
 ---
 name: report-tool-friction
-description: This skill should be used whenever a PulseEngine tool errors, crashes, gives wrong output, lacks a needed capability or forces a workaround during real work. ALWAYS use it the moment you notice yourself working around a tool instead of with it, or saying "this should just work but doesn't".
+description: Use the moment a PulseEngine tool errors, gives wrong output, lacks a capability or forces a workaround. File the issue in the tool's own repo.
 metadata:
   author: pulseengine.eu
   version: "0.5.1"

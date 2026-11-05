@@ -1,6 +1,6 @@
 ---
 name: stpa-audit
-description: This skill should be used when conducting or AUDITING an STPA or STPA-Sec hazard analysis on a PulseEngine project, such as "do an STPA", "audit the hazard analysis" or "are our losses/hazards/UCAs complete". Use it before a release whose V-model gate depends on the hazard analysis being sound.
+description: Use to conduct or audit an STPA or STPA-Sec hazard analysis ("do an STPA", "are our losses, hazards and UCAs complete") or before a release whose V-model gate depends on it.
 metadata:
   author: pulseengine.eu
   version: "0.1.0"

@@ -1,6 +1,6 @@
 ---
 name: release-execution
-description: This skill should be used when cutting, shipping or finishing a release, such as "ship it", "cut a release", "tag this" or "work the PR queue to green". ALWAYS use it when the user authorizes autonomous release work or asks to go as far as you can on a release campaign.
+description: Use to cut, ship or finish a release ("ship it", "cut a release", "tag this", "work the PR queue to green") and for autonomous release campaigns.
 metadata:
   author: pulseengine.eu
   version: "0.3.4"

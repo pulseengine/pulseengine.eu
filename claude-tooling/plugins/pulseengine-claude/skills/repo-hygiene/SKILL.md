@@ -1,6 +1,6 @@
 ---
 name: repo-hygiene
-description: "This skill should be used to run a complete hygiene sweep over a repo after a release or on a standing cadence: stale worktrees, dead branches, ancient stashes and the open-issue board. Use it when the user says \"clean up\", \"hygiene\" or \"what's stale\", or when a release tick finishes."
+description: Use for a hygiene sweep after a release or on a cadence (stale worktrees, dead branches, old stashes, the open-issue board; "clean up", "what's stale").
 metadata:
   author: pulseengine.eu
   version: "0.4.2"

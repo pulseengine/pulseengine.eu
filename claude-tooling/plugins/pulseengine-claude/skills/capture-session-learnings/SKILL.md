@@ -1,6 +1,6 @@
 ---
 name: capture-session-learnings
-description: This skill should be used to distill durable knowledge out of a working session before it is lost, at the end of substantive work or before a likely compaction. Use it when the user says "remember this" or "capture what we learned". It updates the working-context checkpoint and durable memory.
+description: Use at the end of substantive work or before compaction to distill durable knowledge into the working-context checkpoint and memory ("remember this", "capture what we learned"). Also the monthly skill-usage measurement.
 metadata:
   author: pulseengine.eu
   version: "0.1.0"
