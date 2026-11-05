@@ -1342,3 +1342,28 @@ artifacts:
     links:
       - type: verifies
         target: REQ-VERIFICATION-CLUSTER-MERGED
+
+  - id: REQ-CONTEXT-TRIM
+    type: requirement
+    title: The plugin's manifest description is at most 600 characters and every skill description is cut to its trigger
+    description: >-
+      Owner decision 2026-11-05: skill descriptions and the plugin description are loaded into context in every session, while only 74 of 808 sessions used any skill. 0.56.0 cuts the plugin.json and marketplace.json description from 3,579 to 334 characters (what the plugin is, plus a pointer to the README) and gates it at 600 in check-plugin-manifest.py, and cuts the 22 skill descriptions from 6,269 to about 4,000 characters in total, each keeping its trigger phrases and any scope exclusion, under the existing 350-character cap. No skill is deleted; the never-invoked skills are listed in the PR as candidates for the owner to decide.
+    status: verified
+    release: 0.56.0
+    category: functional
+    priority: should
+    fields:
+      category: functional
+
+  - id: VER-CONTEXT-TRIM
+    type: verification
+    title: check-plugin-manifest.py description cap, check-skill-frontmatter.py, and claim CONTEXT-TRIM-DESCRIPTION-CAP
+    description: >-
+      check-plugin-manifest.py fails when the description exceeds 600 characters, when plugin.json and marketplace.json differ, and when the spelled-out skill count is wrong; the cap check was shown to fire by padding the description past 600 and watching it exit 1. check-skill-frontmatter.py keeps every skill description at or under 350 characters and valid YAML. The retargeted claims CI-STATUS-PR-ADMISSION and DELEGATE-BY-COST-TRIGGER-AND-HAIKU-RULE still pin the trigger phrases in the shortened descriptions, and the refactor-decision scope exclusion stays in its description.
+    status: verified
+    release: 0.56.0
+    method: automated-test
+    test-location: claude-tooling/plugins/pulseengine-claude/skills/claim-verification/claim-check.py
+    links:
+      - type: verifies
+        target: REQ-CONTEXT-TRIM

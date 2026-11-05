@@ -1,6 +1,6 @@
 ---
 name: proof-synthesis
-description: This skill should be used when writing, repairing or strengthening a machine-checked proof, spec, contract or invariant in any PulseEngine verification backend (Verus, Rocq/Coq, Lean 4, Dafny, Kani, scry), or when a proof obligation is failing and needs a generate, verify, refine loop.
+description: Use to write, repair or strengthen a machine-checked proof, spec or invariant (Verus, Rocq/Coq, Lean 4, Dafny, Kani, scry), or when a proof obligation fails and needs a generate, verify, refine loop.
 metadata:
   author: pulseengine.eu
   version: "0.4.1"

@@ -1,6 +1,6 @@
 ---
 name: release-artifact-pipeline
-description: This skill should be used when setting up, auditing or modifying a release artifact pipeline on a PulseEngine project, such as "set up release workflow", "add cosign signing", "add SBOM" or "publish to crates.io / npm". ALWAYS use it when proposing or reviewing a release.yml workflow.
+description: Use to set up, audit or change a release artifact pipeline (release.yml, cosign signing, SBOM, SLSA, crates.io or npm publish, sigil, witness or scry gates, the Pages dashboard).
 metadata:
   author: pulseengine.eu
   version: "0.5.0"

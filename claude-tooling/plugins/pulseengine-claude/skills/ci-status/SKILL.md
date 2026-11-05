@@ -1,6 +1,6 @@
 ---
 name: ci-status
-description: This skill should be used whenever an agent is about to open a pull request, and whenever it is about to wait on CI, such as "is CI green yet" or "merge when green". The plugin's gh pr create hook gives admission advice; use this skill when waiting on CI.
+description: Use before opening a pull request and before waiting on CI ("is CI green yet", "merge when green"). Checks queue admission, then polls the CI status API, falling back to gh.
 metadata:
   author: pulseengine.eu
   version: "0.2.2"

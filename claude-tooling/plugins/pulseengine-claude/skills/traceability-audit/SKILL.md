@@ -1,6 +1,6 @@
 ---
 name: traceability-audit
-description: This skill should be used to ensure the rivet traceability graph is complete and bidirectional across the whole V, for any safety standard the project targets (DO-178C, ISO 26262, IEC 61508, ASPICE and others). Use it when asking "are all the rivet artifacts in and properly linked", or as the blocking check before tagging.
+description: Use to check the rivet trace is complete and bidirectional across the V for the target safety standard ("are all artifacts linked"), while authoring and as the blocking check before tagging.
 metadata:
   author: pulseengine.eu
   version: "0.4.0"

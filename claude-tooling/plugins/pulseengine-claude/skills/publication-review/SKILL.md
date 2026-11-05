@@ -1,6 +1,6 @@
 ---
 name: publication-review
-description: This skill should be used before a blog post or other public, claim-heavy prose goes live, such as before setting ready = true or draft = false. Use it when the user says "is this post ready" or "fact-check the draft".
+description: Use before a blog post or other public, claim-heavy prose goes live (ready = true, draft = false, "is this post ready", "fact-check the draft").
 metadata:
   author: pulseengine.eu
   version: "0.2.0"

@@ -1,6 +1,6 @@
 ---
 name: seam-contract
-description: "This skill should be used at a seam between two repos: before building against another repo's interface, when asked to change something another repo binds to, or at release-execution step 4c before a tag. It writes the contract as a seam block in the owning issue, then checks it mechanically."
+description: Use at a seam between two repos, before building against another repo's interface, changing something another repo binds to, or at release-execution step 4c. It writes a seam block in the owning issue and checks it.
 metadata:
   author: pulseengine.eu
   version: "0.1.0"

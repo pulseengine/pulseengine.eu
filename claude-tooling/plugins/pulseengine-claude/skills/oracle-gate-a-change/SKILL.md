@@ -1,6 +1,6 @@
 ---
 name: oracle-gate-a-change
-description: This skill should be used whenever proposing, designing, landing or evaluating a consequential change on a PulseEngine project (rivet, spar, witness, sigil, meld, loom, synth, wohl), such as "is this safe to land", "what's the gate" or "before merging this". ALWAYS use it before claiming a property holds.
+description: Use when proposing, landing or evaluating a consequential change on a PulseEngine project ("is this safe to land", "what's the gate", "before merging this"), and before claiming a property holds.
 metadata:
   author: pulseengine.eu
   version: "0.6.1"

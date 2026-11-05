@@ -1,6 +1,6 @@
 ---
 name: issue-hunt
-description: This skill should be used to run an incremental bug/feature hunt over a repo's issue tracker, picking up only what is NEW since the last pass. Use it when the user says "hunt the issues", "do a bug/feature hunt" or "loop through the issues", or wants a standing loop that drives the tracker toward releases.
+description: Use to run an incremental bug/feature hunt over a repo's issue tracker, handling only what is NEW since the last pass ("hunt the issues", "loop through the issues", a standing loop).
 metadata:
   author: pulseengine.eu
   version: "0.4.5"

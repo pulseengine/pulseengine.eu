@@ -1191,7 +1191,7 @@ claims:
         text: "A held change is opened later, never dropped."
       # Without the trigger in the description the section never loads.
       - kind: count-min
-        pattern: 'description: This skill should be used whenever an agent is about to open a pull request'
+        pattern: 'description: Use before opening a pull request and before waiting on CI'
         glob: ['claude-tooling/plugins/pulseengine-claude/skills/ci-status/SKILL.md']
         min: 1
 
@@ -2329,7 +2329,7 @@ claims:
   # old "read the ladder relative to the session" advice must not return.
   - id: DELEGATE-BY-COST-TRIGGER-AND-HAIKU-RULE
     doc: claude-tooling/plugins/pulseengine-claude/skills/delegate-by-cost/SKILL.md
-    text: 'description: "Use this skill BEFORE EVERY Agent (Task) call, to choose `model:`'
+    text: 'description: "Use BEFORE EVERY Agent (Task) call to choose `model:`'
     evidence:
       - kind: verbatim
         text: "mechanical work with an exact check (grep, census, count, extract, file:line list, build-and-test against a red/green test) goes to `model: haiku`; `sonnet` only where the subtask needs judgment that is not top-tier"
@@ -3048,3 +3048,20 @@ claims:
     links:
       - type: verifies
         target: REQ-VERIFICATION-CLUSTER-MERGED
+
+  # ── context trim: the manifest description stays short ───────────────────────
+  # REQ-CONTEXT-TRIM. The cap lives in check-plugin-manifest.py; the claim keeps
+  # the cap, its message and the README pointer from being dropped.
+  - id: CONTEXT-TRIM-DESCRIPTION-CAP
+    doc: scripts/check-plugin-manifest.py
+    text: "DESC_MAX = 600"
+    evidence:
+      - kind: verbatim
+        text: "say what the plugin is and point at the README"
+      - kind: count-min
+        pattern: 'See the README for the full list'
+        glob: ['claude-tooling/plugins/pulseengine-claude/.claude-plugin/plugin.json']
+        min: 1
+    links:
+      - type: verifies
+        target: REQ-CONTEXT-TRIM

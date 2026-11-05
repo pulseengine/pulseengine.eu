@@ -1,6 +1,6 @@
 ---
 name: outside-in-recheck
-description: This skill should be used when the user shares outside material (a conference talk or transcript, a paper, an upstream spec change, a peer project's release notes or design doc) or says "recheck us against this". Turn the source into checkable questions about our own repos instead of summarizing it.
+description: Use when the user shares outside material (talk, paper, upstream spec change, peer design doc) or says "recheck us against this". Turn it into checkable questions about our own repos instead of summarizing.
 metadata:
   author: pulseengine.eu
   version: "0.1.0"

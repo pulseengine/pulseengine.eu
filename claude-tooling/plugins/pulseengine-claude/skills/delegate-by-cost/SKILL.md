@@ -1,6 +1,6 @@
 ---
 name: delegate-by-cost
-description: "Use this skill BEFORE EVERY Agent (Task) call, to choose `model:`, and when a delegated tier fails the same check twice. Mechanical work with an exact check goes to `model: haiku`; sonnet only where judgment is needed."
+description: "Use BEFORE EVERY Agent (Task) call to choose `model:`, and when a delegated tier fails the same check twice. Mechanical work with an exact check goes to haiku."
 metadata:
   author: pulseengine.eu
   version: "0.2.0"

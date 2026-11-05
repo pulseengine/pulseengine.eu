@@ -13,10 +13,11 @@ invisible. Measured on 2026-08-26, the manifest advertised version 0.12.0 and
 "fourteen procedural skills" while the plugin was 0.25.0 with sixteen. Nothing
 failed; the storefront was simply wrong for thirteen minor versions.
 
-Three checks:
+Four checks:
   1. marketplace version == plugin version (both the top-level and the entry)
   2. marketplace plugin description == plugin description
   3. the spelled-out skill count in the description == skills/ on disk
+  4. the description is at most 600 characters (0.56.0)
 
 Check 3 is the one that actually rotted, so it is checked as a number and not
 as a substring.
@@ -42,6 +43,9 @@ WORDS = {
     "twenty-one": 21, "twenty-two": 22, "twenty-three": 23, "twenty-four": 24,
     "twenty-five": 25,
 }
+# The description is read by every /plugin listing and carried in session context; 0.56.0
+# cut it from 3.5 KB to what this cap allows. The README holds the detail.
+DESC_MAX = 600
 COUNT_RE = re.compile(r"\b(" + "|".join(WORDS) + r")\s+procedural\s+skills\b", re.I)
 
 
@@ -66,6 +70,11 @@ def main() -> int:
             f"marketplace version {market['version']!r} != plugin.json {plugin['version']!r}")
     if entry["description"] != plugin["description"]:
         problems.append("entry description differs from plugin.json's")
+
+    if len(plugin["description"]) > DESC_MAX:
+        problems.append(
+            f"description is {len(plugin['description'])} characters, over the {DESC_MAX} cap; "
+            "say what the plugin is and point at the README")
 
     m = COUNT_RE.search(entry["description"])
     if not m:

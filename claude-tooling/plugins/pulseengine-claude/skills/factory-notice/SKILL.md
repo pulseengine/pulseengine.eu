@@ -1,6 +1,6 @@
 ---
 name: factory-notice
-description: This skill should be used whenever an unattended agent reaches a moment the owner must know about or act on, such as a blocker, a fork it would ask about, something shipped, or the end of a session. Use it when the user says "notify me" or "ask me later".
+description: Use when an unattended agent hits a blocker, a fork it would ask about, something shipped or the end of a session that the owner must know about ("notify me", "ask me later"). Posts a notice and does not wait.
 metadata:
   author: pulseengine.eu
   version: "0.2.1"

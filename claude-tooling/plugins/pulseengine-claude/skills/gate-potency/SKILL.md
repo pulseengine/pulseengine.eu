@@ -1,6 +1,6 @@
 ---
 name: gate-potency
-description: This skill should be used to verify that checks and evidence can fail and are about the right system, such as "audit our gates", "can our CI actually fail", a vacuous or skipped required check, or a green emulator, staging or self-test result filed as "on-target", "on silicon" or "in production" evidence. Use before a release resting on green CI.
+description: Use to check that checks and evidence can fail and are about the right system ("audit our gates", "can CI actually fail", vacuous or skipped required checks, or an emulator, staging or self-test result filed as "on-target" or "in production" evidence).
 metadata:
   author: pulseengine.eu
   version: "1.0.0"
