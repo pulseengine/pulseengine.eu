@@ -27,7 +27,7 @@ Map of the PulseEngine tools. Each lives in its own sibling checkout, `<workspac
 
 **kiln** — interpreter and runtime (not just a runtime, not AOT). Companion to synth.
 
-**smithy** — clean-room verifier *agent* (not a CLI). The pattern: spawn smithy (or equivalent subagent) with only the claims, no prior context, to confirm/refute/cannot-verify findings. The procedure lives in the `clean-room-verification` skill.
+**smithy** — clean-room verifier *agent* (not a CLI). The pattern: spawn smithy (or equivalent subagent) with only the claims, no prior context, to confirm/refute/cannot-verify findings. The procedure lives in the `claim-verification` skill.
 
 **wohl** — application of the stack to a wireless field-sensor product (STM32G0 + door contact, CCSDS payload, sub-GHz radio, Matter Bridge at the hub but never native Matter at sensors).
 

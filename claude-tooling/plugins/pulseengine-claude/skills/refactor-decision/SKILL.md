@@ -147,7 +147,7 @@ is not a purpose.
 
 **An agent's refactor PR is reviewed like any other change.** It passes
 [`oracle-gate-a-change`] and, before it is reported as behaviour-preserving,
-[`clean-room-verification`]. relay found nothing that caught defects arriving in
+[`claim-verification`]. relay found nothing that caught defects arriving in
 one large feature PR before a review did, so a large feature PR gets its review
 before merge, not after.
 

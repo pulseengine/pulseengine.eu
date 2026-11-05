@@ -22,7 +22,7 @@ Read the source and write a short numbered list of its load-bearing ideas or cla
 
 Name the PulseEngine repos each question touches. Answer each with tool evidence: a `file:line`, the required-check list from the branch-protection API, the conclusion of a CI run step. Do not answer from memory or from the repo's own docs; the docs are the framing you are trying to escape.
 
-For a broad sweep, delegate read-only audits per repo cluster (see [`delegate-by-cost`] for the model tier). Then verify the sharpest claims in each audit yourself before reporting, per [`clean-room-verification`]: re-run the grep, re-read the line, re-fetch the run. An audit result you did not re-check is a lead, not a finding.
+For a broad sweep, delegate read-only audits per repo cluster (see [`delegate-by-cost`] for the model tier). Then verify the sharpest claims in each audit yourself before reporting, per [`claim-verification`]: re-run the grep, re-read the line, re-fetch the run. An audit result you did not re-check is a lead, not a finding.
 
 ### 3. Classify
 
@@ -78,8 +78,7 @@ All three were present-but-not-enforced. None was visible from inside the repo's
 
 ## Where this composes
 
-- [`clean-room-verification`]: verify the sharpest audit claims before reporting.
 - [`gate-potency`]: negative-control any check you are about to classify as enforced.
-- [`claim-verification`]: a claim our docs make that the source contradicts becomes a gated claim.
+- [`claim-verification`]: Part 2 verifies the sharpest audit claims before reporting; Part 3 turns a claim our docs make that the source contradicts into a gated claim.
 - [`issue-hunt`]: the filed issues enter the tracker pass.
 - [`factory-notice`]: carries the option dialogue when the owner is not present.

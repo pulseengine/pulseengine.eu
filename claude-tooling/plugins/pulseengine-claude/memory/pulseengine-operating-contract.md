@@ -33,7 +33,7 @@ thing it searched, a checker whose clean result came from matching nothing, a
 repo never probed. Five measured instances, one session, every one grounded in
 a tool result. Before a claim that generalizes, asserts a cause, asserts a
 negative, or reports a measurement as clean: name the instrument, name what it
-is blind to, and print the denominator. See [`verify-your-own-claims`].
+is blind to, and print the denominator. See [`claim-verification`] Part 1.
 
 ## Never merge around a red or absent gate
 The plugin's PreToolUse hook denies `--admin` and API merges and asks before a
@@ -260,16 +260,16 @@ skill is in exactly one class.)
   discipline. Apply each disposition to the matching half — don't route the whole
   skill to a low-effort biddable model or you get weak triage and scoping.
 - **Explorers** — `proof-synthesis`, `stpa-audit`, `traceability-audit`,
-  `pulseengine-feature-loop`, `clean-room-verification`, `bootstrap-verification`.
+  `pulseengine-feature-loop`, `claim-verification` (Part 2), `bootstrap-verification`.
   Reward depth and initiative; grant scope and **higher effort**, prefer the most
   capable model available, and delegate independent subtasks to subagents. On a
   long-running explorer, establish a self-check interval and verify with
   fresh-context subagents — both against the spec **and** the campaign machinery
   (the invariants above), which artifact-scoped review misses — exactly
-  [`clean-room-verification`].
+  [`claim-verification`] Part 2.
 - **Cross-cutting / standing practice** — `oracle-gate-a-change`,
-  `report-tool-friction`, `capture-session-learnings`, `verify-your-own-claims`,
-  `evidence-transfer`, `delegate-by-cost`, `factory-notice`, `refactor-decision`. Not a task you "run" as
+  `report-tool-friction`, `capture-session-learnings`,
+  `delegate-by-cost`, `factory-notice`, `refactor-decision`. Not a task you "run" as
   driver-or-explorer; they fire *inside* other skills (oracle-gate per change) or
   as always-on practice (file friction as you hit it; capture learnings before
   they're lost). They inherit the disposition of whatever skill they're running
@@ -307,7 +307,7 @@ closed instruction beats an enumerated one — if an older, over-specified
 instruction degrades output, cut it.
 
 ## Where the methodology already matches the guide
-- [`clean-room-verification`] is exactly the guide's "fresh-context verifier
+- [`claim-verification`] Part 2 is exactly the guide's "fresh-context verifier
   subagents outperform self-critique" — keep using cold verifiers, not
   self-review.
 - [`capture-session-learnings`] + the memory-persistence hooks are the guide's

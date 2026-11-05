@@ -226,7 +226,7 @@ gh attestation verify <tool>-vX.Y.Z-<triple>.tar.gz --repo pulseengine/<tool>
 grep -- '-docs.tar.gz$' SHA256SUMS.txt     # the docs archive is inside the signed sums
 ```
 
-If either of these fails on the published release, the pipeline did not actually do what was claimed. That's a refute under [`clean-room-verification`].
+If either of these fails on the published release, the pipeline did not actually do what was claimed. That's a refute under [`claim-verification`].
 
 ## How to apply to a target repo
 
@@ -255,7 +255,7 @@ If either of these fails on the published release, the pipeline did not actually
    Then add the docs-archive step (workflow step 3 above) if synth's block does not
    carry it yet.
 4. **Run [`oracle-gate-a-change`]** to verify the new workflow flips a check that didn't previously exist. The check is "the verification one-liner runs green against a test release."
-5. **Run [`clean-room-verification`]** on the claim "the pipeline produces signed, attestable, SBOM-bearing artifacts." Have the verifier actually re-run `cosign verify-blob` and `gh attestation verify` against a real published release, not infer from the workflow YAML.
+5. **Run [`claim-verification`]** on the claim "the pipeline produces signed, attestable, SBOM-bearing artifacts." Have the verifier actually re-run `cosign verify-blob` and `gh attestation verify` against a real published release, not infer from the workflow YAML.
 
 ## Anti-patterns
 
@@ -270,7 +270,7 @@ If either of these fails on the published release, the pipeline did not actually
 
 - [`oracle-gate-a-change`] — pipeline setup is itself an oracle-flip; this skill names the oracle.
 - [`release-execution`] — what cuts a release atop a green pipeline.
-- [`clean-room-verification`] — verifies the pipeline actually does what it claims (re-run the verification one-liner against the published release).
+- [`claim-verification`] — verifies the pipeline actually does what it claims (re-run the verification one-liner against the published release).
 - [`pulseengine-feature-loop`] — sigil is the attestation step of the feature loop; the pipeline standard makes that step actually verifiable downstream.
 
 ## Notes on the canonical (synth)

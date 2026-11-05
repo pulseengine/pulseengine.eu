@@ -1548,10 +1548,10 @@ claims:
   # ── AI review independence: fork rule, record, negative control (#196) ─────
   # "Fresh context" was doctrine but never a recorded field, and a fork (which
   # inherits the parent's context) produced a report shaped exactly like an
-  # independent one. clean-room-verification is the single source; the other
+  # independent one. claim-verification (Part 2) is the single source; the other
   # skills point here, and the field list must not be copied elsewhere.
   - id: CLEAN-ROOM-AI-REVIEW-INDEPENDENCE
-    doc: claude-tooling/plugins/pulseengine-claude/skills/clean-room-verification/SKILL.md
+    doc: claude-tooling/plugins/pulseengine-claude/skills/claim-verification/SKILL.md
     text: "**A clean-room reviewer is a fresh agent. A fork is the author.**"
     evidence:
       - kind: verbatim
@@ -1576,7 +1576,7 @@ claims:
         glob: ['claude-tooling/plugins/pulseengine-claude/skills/release-execution/SKILL.md']
         min: 1
       - kind: count-min
-        pattern: 'never a fork \(see\n\[`clean-room-verification`\]\)'
+        pattern: 'never a fork \(see\n\[`claim-verification`\]\)'
         glob: ['claude-tooling/plugins/pulseengine-claude/skills/publication-review/SKILL.md']
         min: 1
 
@@ -2196,7 +2196,7 @@ claims:
         min: 1
       - kind: count-min
         pattern: '(?s)\[`refactor-decision`\][^.]*?checks its own scope first\s+\(not in\s+pulseengine/rivet or\s+pulseengine/spar before 2027-02-01\)'
-        glob: ['claude-tooling/plugins/pulseengine-claude/skills/clean-room-verification/SKILL.md']
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/claim-verification/SKILL.md']
         min: 1
       # The contract is always-on memory and loads in rivet and spar too, so its
       # pointer states the exclusion and carries no refactoring rule at all.
@@ -3010,3 +3010,41 @@ claims:
     links:
       - type: verifies
         target: REQ-CONFIDENTIAL-TERMS-GUARD
+
+  # ── verification cluster: five skills, two, nothing dropped ──────────────────
+  # REQ-VERIFICATION-CLUSTER-MERGED. One distinctive line from each original
+  # skill must stay in the merged text, and the retired names must not creep back
+  # (a reference to a skill that does not load is a dead pointer).
+  - id: VERIFICATION-CLUSTER-MERGED
+    doc: claude-tooling/plugins/pulseengine-claude/skills/claim-verification/SKILL.md
+    text: "## Part 2: independent review before reporting (the clean-room ritual)"
+    evidence:
+      - kind: verbatim
+        text: "## Part 1: assertions you emit (conversation, PR body, issue comment, audit result)"
+      - kind: verbatim
+        text: "## Part 3: documents, mark then bind then gate"
+      - kind: verbatim
+        text: "> **The one principle.** A tool result behind a claim is **necessary, not\n> sufficient.**"
+      - kind: verbatim
+        text: "### The independence record"
+      - kind: verbatim
+        text: "Truth-over-time is a property of the **gate**, not the\n> author."
+      - kind: count-min
+        pattern: '## Part B: evidence transfer'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/gate-potency/SKILL.md']
+        min: 1
+      - kind: count-min
+        pattern: '\*\*Presence is not potency\.\*\*'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/gate-potency/SKILL.md']
+        min: 1
+      - kind: count-min
+        pattern: 'A passing test licenses a claim about \*\*the system it ran on\*\*'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/gate-potency/SKILL.md']
+        min: 1
+      - kind: count-max
+        pattern: 'clean-room-verification|verify-your-own-claims|evidence-transfer'
+        glob: ['claude-tooling/plugins/pulseengine-claude/**/*.md']
+        max: 0
+    links:
+      - type: verifies
+        target: REQ-VERIFICATION-CLUSTER-MERGED

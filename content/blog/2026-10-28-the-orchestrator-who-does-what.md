@@ -162,7 +162,7 @@ install the bench tools themselves; I plug in the boards and the cables.
 | `gate-potency` | Audit whether CI checks can still fail | Before a release |
 | `oracle-gate-a-change` | Wire a mechanical check before merging | Per change |
 | `pulseengine-feature-loop` | End-to-end feature: spar → rivet → code → witness → sigil | Per feature |
-| `clean-room-verification` | A fresh-context subagent validates findings | Before reporting |
+| `claim-verification` | A fresh-context subagent validates findings | Before reporting |
 | `report-tool-friction` | File an issue when a tool errors, lacks a capability or forces a workaround | When friction is noticed |
 
 Between triggers the agents file issues, fix bugs, run the gates and open PRs.

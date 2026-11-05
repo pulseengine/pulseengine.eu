@@ -14,7 +14,7 @@ metadata:
 
 Before any consequential change lands on a PulseEngine project. The gate is **mechanical** — a check that fires or doesn't, not an LLM reading the spec back. The skill picks the right oracle for the kind of claim, writes it first if it doesn't exist, and refuses to call the change "done" until red flips to green.
 
-This is distinct from [`clean-room-verification`], which validates *findings* before reporting. Oracle-gating runs at the *system* layer: it's how an agent's "I changed X" earns the right to be merged.
+This is distinct from [`claim-verification`], which validates *findings* before reporting. Oracle-gating runs at the *system* layer: it's how an agent's "I changed X" earns the right to be merged.
 
 ## Procedure
 
@@ -189,7 +189,7 @@ pin rivet **v0.19.0** while the current layer ships **0.32.0**.
 
 ### 5. Verify before reporting "done"
 
-Apply [`clean-room-verification`] to the claim "this change passed its oracle." An agent saying "I ran the test and it passed" is itself an unverified claim — actually re-run the oracle in a clean environment and read the output.
+Apply [`claim-verification`] to the claim "this change passed its oracle." An agent saying "I ran the test and it passed" is itself an unverified claim — actually re-run the oracle in a clean environment and read the output.
 
 ## The rules baked in
 
@@ -247,4 +247,4 @@ inert. Each of these has cost real time in this org:
 
 ## Where this composes
 
-`pulseengine-feature-loop` runs this skill per change inside the feature loop. `release-execution` expects every PR in the queue to have passed through this gate before merge. Verification of the oracle-passed claim flows to [`clean-room-verification`]. When a change would add a second copy of a rule or a second path for a decision, [`refactor-decision`] says what to do; it checks its own scope first (not in pulseengine/rivet or pulseengine/spar before 2027-02-01).
+`pulseengine-feature-loop` runs this skill per change inside the feature loop. `release-execution` expects every PR in the queue to have passed through this gate before merge. Verification of the oracle-passed claim flows to [`claim-verification`]. When a change would add a second copy of a rule or a second path for a decision, [`refactor-decision`] says what to do; it checks its own scope first (not in pulseengine/rivet or pulseengine/spar before 2027-02-01).

@@ -8,7 +8,7 @@ metadata:
 
 # Delegate by cost — choose `model:` before every Agent call
 
-**When to use:** before every Agent call, to choose `model:`, and when a delegated tier has failed the same check twice and the question is retry, escalate or stop. Also fires on "use a cheaper model", "try haiku first" or "escalate it". The rule: mechanical work with an exact check (grep, census, count, extract, file:line list, build-and-test against a red/green test) goes to `model: haiku`; `sonnet` only where the subtask needs judgment that is not top-tier. Why: haiku's cache read costs a twentieth of opus's (a quarter past 100K-token prompts) while sonnet's costs half. Composes with oracle-gate-a-change, verify-your-own-claims and proof-synthesis.
+**When to use:** before every Agent call, to choose `model:`, and when a delegated tier has failed the same check twice and the question is retry, escalate or stop. Also fires on "use a cheaper model", "try haiku first" or "escalate it". The rule: mechanical work with an exact check (grep, census, count, extract, file:line list, build-and-test against a red/green test) goes to `model: haiku`; `sonnet` only where the subtask needs judgment that is not top-tier. Why: haiku's cache read costs a twentieth of opus's (a quarter past 100K-token prompts) while sonnet's costs half. Composes with oracle-gate-a-change, claim-verification and proof-synthesis.
 
 **Every Agent call gets an explicit `model:`.** A call without one runs on the parent's model and
 the parent's price (unless a default subagent model is configured); that is the default you are
@@ -71,7 +71,7 @@ costs (`v ≈ 1`), the bar rises past one in two and the ladder is a cost trap.
 3. **Dispatch at the lowest plausible tier, `model:` explicit.** State the deliverable in a closed
    format, require every claim to rest on something read, and keep the expected answer out of the
    brief.
-4. **Grade against the oracle, not the worker's summary** ([`verify-your-own-claims`]).
+4. **Grade against the oracle, not the worker's summary** ([`claim-verification`]).
 5. **On a pass, stop.** Do not re-verify on a higher tier.
 6. **On a failure, tell the kinds apart.** A *mechanical* failure (wrong count, bad `file:line`,
    red test, invalid schema) → retry, then escalate. A worker that *disagrees with your judgment*

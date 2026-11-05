@@ -64,7 +64,7 @@ If `rivet check` can't express one of these rules, that's a tooling gap →
 
 ### Half 2 — Soundness (reasoning; clean-room)
 A green `rivet check` proves the *graph is closed*, not that the *analysis is
-right*. Per [`clean-room-verification`], spawn a cold reviewer and have them
+right*. Per [`claim-verification`], spawn a cold reviewer and have them
 re-derive a sample, not infer from the existing labels:
 - Are the losses the *actual* stakeholder losses, or a convenient subset?
 - Is each hazard a genuine worst-case **system state**, not a failure mode or
@@ -96,7 +96,7 @@ audit closure. Then run the audit above on your own output.
   re-opens the analysis.
 - [`oracle-gate-a-change`] — `rivet check` over the STPA closure rules is the
   mechanical oracle; the diff that closes a gap is the one that counts.
-- [`clean-room-verification`] — Half 2; audit the reasoning cold.
+- [`claim-verification`] — Half 2; audit the reasoning cold.
 - [`release-execution`] — the STPA/STPA-Sec analysis being complete *and*
   sound is a precondition of the V-model traceability gate: every safety/
   security constraint must trace forward to a requirement, architecture,
