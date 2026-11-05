@@ -391,6 +391,14 @@ jobs:
           set -euo pipefail
           python3 scripts/check-private-host-guard.py
 
+      # Rule 8 of the commit-merge-guard hook (REQ-CONFIDENTIAL-TERMS-GUARD):
+      # a private terms file makes published text and pushed commits ask, by
+      # line number only. A fixture word in a temp HOME; the repo ships no terms.
+      - name: Check the confidential-terms ask names a line and nothing else
+        run: |
+          set -euo pipefail
+          python3 scripts/check-confidential-terms.py
+
       # Claude Code delivers an additionalContext string over ~10k chars as a
       # ~2.3 KB preview; the methodology block was cut that way from June to
       # October 2026 and nothing noticed (REQ-CORE-CONTRACT-WHOLE). Runs every
