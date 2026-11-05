@@ -145,3 +145,5 @@ for safety-critical systems, with machine-checked proofs for parts of it
 (work in progress).*
 
 *Revisited on 29 October 2026: no later post has measured proof effort, so "orders of magnitude" is an impression from March, not a measurement. [Where the seams still show](@/blog/2026-07-12-where-the-seams-show.md) later recorded what the proofs cover: several verify a hand-transcribed model of the code rather than the shipped code, and parts of gale's scheduler are still admitted stubs.*
+
+*Revisited on 5 November 2026: lowering to `br_if` does not make every condition visible. For a short-circuit decision whose value is returned or stored, rustc emits no branch for the last operand, and witness reported those decisions as full MC/DC anyway ([witness#352](https://github.com/pulseengine/witness/issues/352)). The "measure what the compiler emits" argument still holds; what the compiler emits is less than the source decision in that case.*
