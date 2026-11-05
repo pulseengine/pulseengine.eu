@@ -61,6 +61,7 @@
       {# ── MC/DC coverage (witness) ──────────────────────────────────── #}
       <h2 class="section-heading" style="font-size:1.35rem; margin-top:2.5rem;">MC/DC Coverage</h2>
       <p style="margin-bottom:1rem; color:var(--text-dim);">Structural MC/DC coverage truth tables and V-model traceability from witness, measured on the post-compile WebAssembly.</p>
+      <p style="margin-bottom:1rem; color:var(--amber);"><strong>Known issue:</strong> full-MC/DC verdicts on short-circuit decisions whose value is returned or stored may be overstated: the last operand is not observed, and some proving pairs show no independent effect (<a href="https://github.com/pulseengine/witness/issues/352">witness#352</a>). Decisions that feed a branch are not affected.</p>
       <div class="grid">
         {% for name, project in report_index.projects %}
           {% if project.kind == "mcdc" %}
