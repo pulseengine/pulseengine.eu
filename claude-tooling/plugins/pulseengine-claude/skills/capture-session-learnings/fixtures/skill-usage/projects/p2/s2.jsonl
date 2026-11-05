@@ -1,0 +1,2 @@
+{"type": "user", "sessionId": "s2", "timestamp": "2026-09-01T10:00:00Z", "cwd": "/work/loom", "uuid": "u3", "message": {"role": "user", "content": "hello zebrafish-canary SECRET PROMPT TEXT /work/private/file.rs"}}
+{"type": "assistant", "sessionId": "s2", "timestamp": "2026-09-01T10:01:00Z", "cwd": "/work/loom", "uuid": "a4", "message": {"role": "assistant", "content": [{"type": "tool_use", "name": "Skill", "input": {"skill": "demo:alpha", "args": "zebrafish-canary SECRET PROMPT TEXT /work/private/file.rs"}}]}}

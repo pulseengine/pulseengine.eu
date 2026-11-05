@@ -1,0 +1,2 @@
+{"type": "user", "sessionId": "s3", "timestamp": "2026-10-20T10:00:00Z", "cwd": "/work/loom", "uuid": "u4", "message": {"role": "user", "content": "hi"}}
+{"type": "assistant", "sessionId": "s3", "timestamp": "2026-10-20T10:01:00Z", "cwd": "/work/loom", "uuid": "a5", "message": {"role": "assistant", "content": [{"type": "text", "text": "zebrafish-canary SECRET PROMPT TEXT /work/private/file.rs"}]}}

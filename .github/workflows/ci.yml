@@ -274,6 +274,12 @@ jobs:
       - name: Check the factory notice inbox rejects unsafe answers
         run: python3 claude-tooling/plugins/pulseengine-claude/skills/factory-notice/notice.py --self-test
 
+      # skill-usage.py reads private transcripts: its self-test proves it prints
+      # aggregates only (a canary in the fixture prompts must never surface) and
+      # that its skill-usage.v1 report validator and warte post can fail.
+      - name: Check the skill-usage report prints aggregates only
+        run: python3 claude-tooling/plugins/pulseengine-claude/skills/capture-session-learnings/skill-usage.py --self-test
+
       # The incident ledger (REQ-INCIDENT-LEDGER): rate math, attribution and the
       # closure rule on fixtures, then the curated ledger itself. Both offline.
       # The org-wide sweep needs the API, so it is run by hand and its report is

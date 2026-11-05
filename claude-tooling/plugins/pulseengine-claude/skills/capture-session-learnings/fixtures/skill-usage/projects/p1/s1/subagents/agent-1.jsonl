@@ -1,0 +1,1 @@
+{"type": "assistant", "sessionId": "s1", "timestamp": "2026-10-10T10:06:00Z", "cwd": "/work/synth", "uuid": "a6", "message": {"role": "assistant", "content": [{"type": "tool_use", "name": "Skill", "input": {"skill": "demo:alpha", "args": "zebrafish-canary SECRET PROMPT TEXT /work/private/file.rs"}}]}}

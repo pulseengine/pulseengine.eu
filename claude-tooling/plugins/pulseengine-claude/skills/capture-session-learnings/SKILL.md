@@ -63,6 +63,30 @@ time; promote to memory/skill only when the learning genuinely generalizes —
 over-capturing durable artifacts is as harmful as losing them (noise drowns
 signal).
 
+## Monthly: measure which skills are used
+
+Judge the plugin by use, not by intent. Once a month, and before adding,
+merging or deleting a skill, run:
+
+```sh
+python3 skills/capture-session-learnings/skill-usage.py --since YYYY-MM-DD
+```
+
+It reads the local transcripts under `~/.claude/projects/` and prints
+**aggregates only**: per skill the invocations (model / user-slash / subagent),
+sessions using it, top repos and direct `SKILL.md` reads, then the share of
+sessions using any skill, the installed skills never invoked, and the date
+window. It never prints prompts, skill arguments, transcript content or file
+paths; only skill, plugin and repo names. `--format json --source LABEL` emits
+the `skill-usage.v1` report (the label is yours, never the hostname);
+`--out FILE` writes it and `--post` sends it to warte
+(`$PULSEENGINE_WARTE_URL/api/skill-usage`, token from
+`PULSEENGINE_WARTE_TOKEN` or `PULSEENGINE_WARTE_TOKEN_FILE`). The first
+measurement (808 sessions): 74 invoked a skill, and 7 of 24 skills were never
+invoked. A skill that stays at zero is a candidate to merge, trim or make a
+hook; the owner decides, the number does not. `--self-test` runs it over a
+synthetic fixture and a stub warte.
+
 ## Anti-patterns
 
 - **Letting a session end without updating the working context** when work is

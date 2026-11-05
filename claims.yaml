@@ -2965,3 +2965,25 @@ claims:
     links:
       - type: verifies
         target: REQ-OUTSIDE-IN-RECHECK
+
+  # ── skill-usage: measure use, not intent ─────────────────────────────────────
+  # REQ-SKILL-USAGE-REPORT. The script reads private transcripts; the claim keeps
+  # the privacy statement in --help and the skill, the schema name, and the
+  # self-test's canary check from being dropped.
+  - id: SKILL-USAGE-REPORT
+    doc: claude-tooling/plugins/pulseengine-claude/skills/capture-session-learnings/SKILL.md
+    text: "It never prints prompts, skill arguments, transcript content or file\npaths"
+    evidence:
+      - kind: verbatim
+        text: "`--format json --source LABEL` emits\nthe `skill-usage.v1` report"
+      - kind: count-min
+        pattern: 'NEVER prints'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/capture-session-learnings/skill-usage.py']
+        min: 2
+      - kind: count-min
+        pattern: 'no transcript content in text or json'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/capture-session-learnings/skill-usage.py']
+        min: 1
+    links:
+      - type: verifies
+        target: REQ-SKILL-USAGE-REPORT
