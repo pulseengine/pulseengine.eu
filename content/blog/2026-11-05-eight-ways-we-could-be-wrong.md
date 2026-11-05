@@ -2,7 +2,7 @@
 title = "Eight ways we could be wrong"
 description = "The eight strongest objections to PulseEngine we know of, each with the date of its evidence, how the picture moved in the last six months, our counter, where the counter stops, and what would make us concede. Valid as of 28 October 2026."
 date = 2026-11-05
-draft = true
+draft = false
 ready = true
 [taxonomies]
 tags = ["deep-dive", "process", "verification", "ai-agents"]
