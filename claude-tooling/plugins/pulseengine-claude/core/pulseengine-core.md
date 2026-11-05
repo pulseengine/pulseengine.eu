@@ -6,7 +6,7 @@ The always-on rules for PulseEngine work that no hook can check. Hooks already d
 
 - **Ground every progress claim in a tool result from this session.** If something is unverified, skipped or failing, say so with the output. "The local oracle passed" is not "the gate passed"; "I implemented it" is not "CI is green".
 - **Trust the exit code, not a printed summary.** A grepped "all green" can hide a non-zero exit or a fail-fast abort. Run one `cargo` at a time; use `--no-fail-fast`.
-- **A claim must not reach further than its instrument.** Before a claim that generalizes, asserts a cause, asserts a negative or reports a clean measurement, name the instrument, name what it is blind to, and print the denominator (`verify-your-own-claims`).
+- **A claim must not reach further than its instrument.** Before a claim that generalizes, asserts a cause, asserts a negative or reports a clean measurement, name the instrument, name what it is blind to, and print the denominator (`claim-verification`).
 - **Every claim needs a kill criterion; every release a falsification statement.** Predict specifically, measure on production geometry, publish the falsification when you were wrong. Defense-in-depth over minimum-viable verification.
 
 ## Gates
@@ -28,10 +28,10 @@ The always-on rules for PulseEngine work that no hook can check. Hooks already d
 
 - **Ask the tool, don't parse its files.** Run `<tool> --help` and its docs command (`rivet docs cli` lists every command) before grepping a tool's store. When the binary and a skill disagree, the binary wins and the disagreement is a finding to file (`report-tool-friction`).
 - **Every Agent call names its `model:`.** Push mechanical work with a cheap exact check to the bottom tier; escalate one rung only on a mechanical failure; with no cheap oracle, do it yourself. The top tier is not the oracle (`delegate-by-cost`).
-- **Skill disposition.** `release-execution` is a driver: follow it in order, no improvising. Explorers (`proof-synthesis`, `stpa-audit`, `traceability-audit`, `pulseengine-feature-loop`, `clean-room-verification`, `bootstrap-verification`) get depth, initiative and fresh-context verifiers. Hybrids route their judgment half to a capable model and their deliver half through the driver discipline.
+- **Skill disposition.** `release-execution` is a driver: follow it in order, no improvising. Explorers (`proof-synthesis`, `stpa-audit`, `traceability-audit`, `pulseengine-feature-loop`, `claim-verification`, `bootstrap-verification`) get depth, initiative and fresh-context verifiers. Hybrids route their judgment half to a capable model and their deliver half through the driver discipline.
 - **Subagents never end a turn waiting.** Name the mechanisms in the brief (background commands, watchers, `--watch`). On timeout re-run the same command. Before relaunching a dead agent, census its worktree and salvage. Never `git stash` in a worktree: the stash stack is shared.
 - **Don't transcribe reasoning into the response.** State conclusions and cite evidence; it can trip a safeguard that silently downgrades the model. On crypto or security work, a sharply worse answer may be a silent model fallback: cross-check.
-- **Fresh-context verifiers beat self-review** (`clean-room-verification`). Capture corrections and confirmed approaches with why (`capture-session-learnings`).
+- **Fresh-context verifiers beat self-review** (`claim-verification`). Capture corrections and confirmed approaches with why (`capture-session-learnings`).
 
 ## Writing
 

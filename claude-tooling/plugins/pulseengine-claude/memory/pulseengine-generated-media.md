@@ -66,7 +66,7 @@ if the footage is generated then the claim's evidence is synthetic, whatever the
 label says.
 
 This is [[pulseengine-toolchain]]'s evidence discipline applied to media, and it
-is the same error the `evidence-transfer` skill names: a result that is true
+is the same error the `gate-potency` skill names: a result that is true
 about the wrong substrate. That skill was written for an emulator run filed as
 on-target evidence. A rendered board is the same mistake with better production
 values, and it is worse, because a viewer cannot re-run it.

@@ -26,7 +26,7 @@ obligations.
 
 This is a long-running explorer (see [`pulseengine-operating-contract`]): self-verify
 at an interval as you build — re-check progress against the spec with fresh-context
-subagents ([`clean-room-verification`]), rather than trusting your own running thread.
+subagents ([`claim-verification`]), rather than trusting your own running thread.
 
 ## The loop (identical across backends)
 
@@ -36,7 +36,7 @@ subagents ([`clean-room-verification`]), rather than trusting your own running t
    agents "struggle to achieve full verification," with getting the **spec** right
    — not the proof — a first-class hard task ([arXiv 2505.13938](https://arxiv.org/pdf/2505.13938)).
    A proof of the wrong spec is worse than no proof. Have the spec itself
-   reviewed cold ([`clean-room-verification`]) — "is this the property we
+   reviewed cold ([`claim-verification`]) — "is this the property we
    actually need?" — before sinking effort into proving it.
 2. **Generate** a candidate proof / annotations / lemmas.
 3. **Run the verifier** (the oracle — see the per-backend table). Capture the
@@ -197,7 +197,7 @@ actually do — and where they have already been bitten:
   external theory silently reconnects to unverified code.
 - **Keep the same agent/context off both sides of a check.** Spec vs its proof,
   artifact vs its oracle, model vs its implementation — different lineage. Route the
-  *spec* review through a cold [`clean-room-verification`] subagent (relay's 11/0
+  *spec* review through a cold [`claim-verification`] subagent (relay's 11/0
   then 10/1 confirm/refute is the model). This is the direct antidote to the AI
   common mode — load-bearing now, not nice-to-have.
 - **Prefer the certifying-algorithm pattern — it defeats the common mode by
@@ -302,7 +302,7 @@ structurally unlikely, and they are where the strongest verification work heads:
 - [`stpa-audit`] / [`pulseengine-feature-loop`] say *what* must hold
   (constraints, requirements); proof-synthesis produces the machine-checked
   evidence that it does.
-- [`clean-room-verification`] — review the *spec* cold (is it the right
+- [`claim-verification`] — review the *spec* cold (is it the right
   property?) before and after proving it.
 - [`report-tool-friction`] — verifier/toolchain gaps hit during the loop become
   tracked issues against the backend.

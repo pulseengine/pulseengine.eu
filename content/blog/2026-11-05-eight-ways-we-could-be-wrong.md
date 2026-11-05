@@ -354,7 +354,7 @@ treats an AI reviewer as an independent assessor.
 
 **How it moved.** The objection has not moved since April. On 28 October
 2026, in [#275](https://github.com/pulseengine/pulseengine.eu/pull/275), the
-`clean-room-verification` skill started requiring a record for every review
+clean-room review skill (now part of `claim-verification`) started requiring a record for every review
 used as evidence: reviewer model, whether it inherited context, run id,
 reviewed commit, date and outcome. A review missing a field counts as
 absent, and, in every release whose gate rests on AI review, the skill says

@@ -34,7 +34,7 @@ procedure, written down so the next post gets it before publication instead of a
 ## The panel
 
 Run each reviewer as its own subagent with a fresh context, never a fork (see
-[`clean-room-verification`]). One reviewer holding all three roles
+[`claim-verification`]). One reviewer holding all three roles
 does none of them well: the fact-checker's job is to distrust the text, and the editor's is to
 improve it.
 
@@ -47,11 +47,11 @@ improve it.
 The fact-checker fetches primaries. A quotation checked against a secondary source, a search
 snippet or the model's memory is unchecked. A repo number re-derived with a different tool version
 than the post names is a different measurement, for the reason in
-[`clean-room-verification`] step 3: the same tree can pass under one rivet and fail under another.
+[`claim-verification`] Part 2 step 3: the same tree can pass under one rivet and fail under another.
 
 ## Briefing the reviewers cold
 
-The brief is the procedure in [`clean-room-verification`], specialised for prose:
+The brief is the procedure in [`claim-verification`] Part 2, specialised for prose:
 
 - **Give files and rules, not reasoning.** Each reviewer gets the post path, any co-located
   images, the role's row from the table above, and the rule files it applies. It does not get the
@@ -134,7 +134,5 @@ own line. `ready = true` is added last, after the final round clears.
 
 ## Where this composes
 
-[`clean-room-verification`] holds the cold-verifier procedure this specialises;
-[`claim-verification`] gates the claims that must stay true after publication;
-[`verify-your-own-claims`] covers the assertions in the PR body that ships the post. The prose
+[`claim-verification`] holds all three: the cold-verifier procedure this specialises (Part 2), the gate for claims that must stay true after publication (Part 3), and the checks for the assertions in the PR body that ships the post (Part 1). The prose
 rules are `pulseengine-prose-conventions`; the publishing states are in `CONTRIBUTING.md`.
