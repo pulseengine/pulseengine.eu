@@ -2933,3 +2933,35 @@ claims:
         pattern: 'PULSEENGINE_WARTE_TOKEN_FILE'
         glob: ['claude-tooling/plugins/pulseengine-claude/skills/factory-notice/SKILL.md']
         min: 1
+
+  # ── outside-in-recheck: outside material tests our work, the owner chooses ───
+  # REQ-OUTSIDE-IN-RECHECK. Agents verify against their own earlier framing, so
+  # the skill must keep its four classes, its evidence rule, its owner gate and
+  # its confidentiality rule, and must keep the worked example's three issues.
+  - id: OUTSIDE-IN-RECHECK-PROCEDURE
+    doc: claude-tooling/plugins/pulseengine-claude/skills/outside-in-recheck/SKILL.md
+    text: "Do not file issues before the owner answers."
+    evidence:
+      - kind: verbatim
+        text: "**present-but-not-enforced**"
+      - kind: verbatim
+        text: "**already-enforced**"
+      - kind: verbatim
+        text: "**absent**"
+      - kind: verbatim
+        text: "**not-applicable**"
+      - kind: verbatim
+        text: "acceptance criteria that include a **negative control**"
+      - kind: verbatim
+        text: "A finding there does not go into a public issue"
+      - kind: count-min
+        pattern: 'loom#474|sigil#350|witness#352'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/outside-in-recheck/SKILL.md']
+        min: 3
+      - kind: count-min
+        pattern: '\n  - `outside-in-recheck/` '
+        glob: ['claude-tooling/plugins/pulseengine-claude/README.md']
+        min: 1
+    links:
+      - type: verifies
+        target: REQ-OUTSIDE-IN-RECHECK
