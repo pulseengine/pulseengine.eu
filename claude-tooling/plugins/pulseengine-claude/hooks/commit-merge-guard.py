@@ -64,6 +64,14 @@
    for the repo's queued runs and the advice is added as context; unset or
    unreachable is logged under the state dir and says nothing.
 
+8. Confidential terms (0.54.0). Before `gh pr create|edit|comment`,
+   `gh issue create|comment`, `gh release create` and `git push`, the command's
+   body/title text, --body-file contents and (git push) the added lines and
+   messages of the commits being pushed are matched against the user's PRIVATE
+   list at ~/.config/pulseengine/confidential-terms.txt (confidential_terms.py:
+   one case-insensitive regex per line, # comments). A match asks, naming only
+   the line number. No file, nothing silently.
+
 Outputs: a deny (hookSpecificOutput.permissionDecision "deny" with a reason),
 an ask (permissionDecision "ask", which in a headless `claude -p` session
 refuses the call like a deny), a warning or advice (additionalContext only),
@@ -88,6 +96,7 @@ import urllib.request
 sys.dont_write_bytecode = True
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import private_hosts as ph  # noqa: E402
+import confidential_terms as ct  # noqa: E402
 
 COMMIT_SUBS = {"commit", "cherry-pick", "revert", "am", "merge", "rebase"}
 NO_COMMIT_FLAGS = {"--abort", "--quit", "--skip", "--show-current-patch", "-h", "--help"}
@@ -106,6 +115,8 @@ GH_CREATE_VALUE_FLAGS = GH_VALUE_FLAGS | {
     "--title", "-H", "--head", "-B", "--base", "-T", "--template", "-l", "--label", "-a",
     "--assignee", "-r", "--reviewer", "-m", "--milestone", "-p", "--project", "-n", "--notes",
     "--notes-file", "--target", "--add-label", "--remove-label", "--notes-start-tag"}
+TERM_GH = {("pr", "create"), ("pr", "edit"), ("pr", "comment"), ("issue", "create"),
+           ("issue", "comment"), ("release", "create")}
 GH_API_VALUE_FLAGS = {"-X", "--method", "-f", "--raw-field", "-F", "--field", "-H", "--header",
                       "--input", "-q", "--jq", "-t", "--template", "--hostname", "--cache",
                       "-p", "--preview"}
@@ -182,6 +193,7 @@ class Finding:
         self.commit_dirs = []
         self.pr_text = []        # (repo spec, cwd) of gh pr create|edit
         self.admission = []      # (repo spec, cwd) of gh pr create
+        self.term_scans = []     # (what, gh args or None, cwd) for rule 8
 
 
 def walk(cmd, cwd, env, found, depth=0):
@@ -259,6 +271,10 @@ def coarse(cmd, cwd, env, found):
     if not found.deny and re.search(r"\bgit\b[^\n;&|]*\s--no-gpg-sign\b", cmd) \
             and not ph.in_temp(cwd):
         found.deny = DENY_SIGN % "--no-gpg-sign"
+    if re.search(r"\bgh\s+(?:pr\s+(?:create|edit|comment)|issue\s+(?:create|comment)|release\s+create)\b", cmd):
+        found.term_scans.append(("gh command text", None, cwd))
+    if re.search(r"\bgit\b[^\n;&|]*\spush\b", cmd):
+        found.term_scans.append(("git push (the commits it sends)", None, cwd))
     if not found.deny and re.search(r"\bgh\s+pr\s+merge\b[^\n;&|]*--auto\b", cmd):
         r = re.search(r"(?:-R|--repo)[= ]\s*(\S+)", cmd)
         merge_check(r.group(1).strip("'\"") if r else None, cwd, env, found)
@@ -298,6 +314,8 @@ def git_call(args, cwd, env, found):
     if sub == "tag":
         tag_call(rest, gdir, env, found)
     elif sub == "push":
+        if not ({"-d", "--delete", "-n", "--dry-run"} & set(rest)):
+            found.term_scans.append(("git push (the commits it sends)", None, gdir))
         push_call(rest, gdir, env, found)
     if sub not in COMMIT_SUBS:
         return
@@ -692,6 +710,8 @@ def gh_call(args, cwd, env, found):
     if len(args) < 2:
         return
     group, verb, rest = args[0], args[1], args[2:]
+    if (group, verb) in TERM_GH:
+        found.term_scans.append(("%s %s text" % (group, verb), rest, cwd))
     repo, pos = gh_args(rest, GH_VALUE_FLAGS if verb == "merge" else GH_CREATE_VALUE_FLAGS)
     if group == "release" and verb == "create":
         tag = pos[0] if pos else None
@@ -1064,6 +1084,7 @@ def decide(event):
     walk(cmd, cwd, {}, found)
     if not found.deny:
         text_checks(cmd, found)
+        term_checks(cmd, found)
     if found.deny:
         return {"hookSpecificOutput": {"hookEventName": "PreToolUse",
                                        "permissionDecision": "deny",
@@ -1111,6 +1132,34 @@ def text_checks(cmd, found):
                 "not be published. Replace them with a placeholder. If the value is meant to be "
                 "there, the owner approves this call; the owner, not you, adds a line to %s or %s."
                 % (what, ph.describe(hits), ph.REPO_ALLOW, ph.user_allow_path()))
+
+
+def term_checks(cmd, found):
+    """Rule 8: ask when published text matches a line of the private terms file.
+
+    Missing file: return before reading anything else. The ask names line
+    numbers only, never a term or the matched text."""
+    if not found.term_scans:
+        return
+    terms = ct.load_terms()
+    if not terms:
+        return
+    flags = ct.BODY_FLAGS
+    done = set()
+    for what, rest, cwd in found.term_scans:
+        if what in done:
+            continue
+        done.add(what)
+        if rest is None and what.startswith("git push"):
+            text = ct.push_text(cwd) + "\n" + ct.heredoc_bodies(cmd)
+        elif rest is None:
+            text = cmd
+        else:
+            text = "\n".join([ph.message_text(cmd, flags), ct.heredoc_bodies(cmd),
+                              ct.body_file_text(rest, cwd)])
+        lines = ct.match_lines(text, terms)
+        if lines:
+            found.asks.append(ct.ask_message(what, lines))
 
 
 def admission_log(line):

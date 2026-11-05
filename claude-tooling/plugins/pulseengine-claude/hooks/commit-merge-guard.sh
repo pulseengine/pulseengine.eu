@@ -14,7 +14,7 @@
 input=$(cat)
 case $input in
   *commit*|*merge*|*cherry-pick*|*revert*|*rebase*|*' am'*) ;;
-  *update-branch*|*gpg*|*config*|*tag*|*push*|*release*|*publish*|*'pr '*|*'gh api'*|*graphql*|*user.*) ;;
+  *'issue '*|*update-branch*|*gpg*|*config*|*tag*|*push*|*release*|*publish*|*'pr '*|*'gh api'*|*graphql*|*user.*) ;;
   *) exit 0 ;;
 esac
 printf '%s' "$input" | python3 -B "$(dirname "$0")/commit-merge-guard.py" 2>/dev/null

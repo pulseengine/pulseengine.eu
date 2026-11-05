@@ -2987,3 +2987,26 @@ claims:
     links:
       - type: verifies
         target: REQ-SKILL-USAGE-REPORT
+
+  # ── confidential-terms: a private list, matched by line number only ──────────
+  # REQ-CONFIDENTIAL-TERMS-GUARD. The README states what the ask reveals, and
+  # the test must keep proving it (missing-file and leak controls).
+  - id: CONFIDENTIAL-TERMS-GUARD
+    doc: claude-tooling/plugins/pulseengine-claude/README.md
+    text: "A match asks, and the reason names only the line number of the matching entry, never the term or the matched text."
+    evidence:
+      - kind: verbatim
+        text: "a private, user-maintained list of confidential terms"
+      - kind: verbatim
+        text: "With no file the check does nothing, silently."
+      - kind: count-min
+        pattern: 'missing file: '
+        glob: ['scripts/check-confidential-terms.py']
+        min: 1
+      - kind: count-min
+        pattern: 'the leak check fires'
+        glob: ['scripts/check-confidential-terms.py']
+        min: 1
+    links:
+      - type: verifies
+        target: REQ-CONFIDENTIAL-TERMS-GUARD

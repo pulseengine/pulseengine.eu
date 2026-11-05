@@ -1292,3 +1292,28 @@ artifacts:
     links:
       - type: verifies
         target: REQ-SKILL-USAGE-REPORT
+
+  - id: REQ-CONFIDENTIAL-TERMS-GUARD
+    type: requirement
+    title: The Bash guard asks before published text or pushed commits match a private confidential-terms list, naming only the line number
+    description: >-
+      Owner decision 2026-11-05: rules that hold are the mechanical ones. commit-merge-guard.py rule 8 (hooks/confidential_terms.py) matches the title and body of gh pr create|edit|comment, gh issue create|comment and gh release create, the contents of --body-file and --notes-file and heredoc bodies, and for git push the added lines and messages of the commits being pushed (@{u}..HEAD, else origin/main..HEAD), against the lines of a private, user-maintained list at ~/.config/pulseengine/confidential-terms.txt (case-insensitive extended regex, whole-line # comments). A match returns an ask whose reason names only the line number, never the term or the matched text. No file means no check and no output. The plugin ships no terms. Shipped in 0.54.0.
+    status: verified
+    release: 0.54.0
+    category: functional
+    priority: must
+    fields:
+      category: functional
+
+  - id: VER-CONFIDENTIAL-TERMS-GUARD
+    type: verification
+    title: scripts/check-confidential-terms.py over the real wrapper with a temp HOME and a harmless fixture word, plus claim CONFIDENTIAL-TERMS-GUARD
+    description: >-
+      The script runs the real commit-merge-guard.sh. A matching body, title, heredoc body or --body-file on gh pr create, edit and comment, gh issue create and comment and gh release create asks with the line number and without the word or the file path; a git push asks on an added line and on a commit message, against an upstream and against origin/main when there is none. Non-matching text, a term that sits only in a comment line, an invalid regex line, a clean push, nothing to push and --dry-run are silent; the same matching commands under a HOME with no terms file are silent (negative control for the file lookup); the leak check is shown to fire on a leaking string. The claim binds the README text that the ask names only the line number and that the plugin ships no terms.
+    status: verified
+    release: 0.54.0
+    method: automated-test
+    test-location: scripts/check-confidential-terms.py
+    links:
+      - type: verifies
+        target: REQ-CONFIDENTIAL-TERMS-GUARD
