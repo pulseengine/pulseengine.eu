@@ -1267,3 +1267,28 @@ artifacts:
     links:
       - type: verifies
         target: REQ-OUTSIDE-IN-RECHECK
+
+  - id: REQ-SKILL-USAGE-REPORT
+    type: requirement
+    title: skill-usage.py reports which skills are really invoked from local transcripts, as aggregates only, in the warte skill-usage.v1 schema
+    description: >-
+      Owner decision 2026-11-05 after a usage analysis of 808 sessions (74 invoked any skill, 7 of 24 skills never). skills/capture-session-learnings/skill-usage.py reads ~/.claude/projects/*/*.jsonl and */subagents/*.jsonl and prints per skill the invocations split model / user-slash / subagent, sessions, top repos and direct SKILL.md reads, plus sessions using any skill and the date window. It never prints transcript content, prompts, skill arguments or file paths, and says so in --help. --format json emits skill-usage.v1 (pulseengine/warte#125) with a required --source label, self-validated before printing; --out writes the file; --post sends it to warte with a Bearer token that is never in argv, and treats no URL and HTTP 404 as exit 0. Shipped in 0.53.0.
+    status: verified
+    release: 0.53.0
+    category: functional
+    priority: should
+    fields:
+      category: functional
+
+  - id: VER-SKILL-USAGE-REPORT
+    type: verification
+    title: skill-usage.py --self-test over a synthetic transcript fixture and a stub warte, plus claim SKILL-USAGE-REPORT
+    description: >-
+      The self-test (run in CI) reads a synthetic fixture whose prompts and skill arguments carry a canary string and checks the exact split (duplicate uuids, api-request records and non-skill slash commands ignored, subagent files counted as subagent), the repo attribution, --since, that the canary never appears in the text or json output, that the validator rejects an unknown field, a bad source, a prompt-like name, a negative count, a bool count and a bad date without quoting the input, and that the leak check itself fires on a leaking string. Against a stub warte it checks path, Bearer value and body of a 200, the token read from the file's first line, 404 and no-URL exiting 0 with a message, and 403 exiting 1. The claim binds the privacy statement, the schema name and the monthly use to the skill text.
+    status: verified
+    release: 0.53.0
+    method: automated-test
+    test-location: claude-tooling/plugins/pulseengine-claude/skills/capture-session-learnings/skill-usage.py
+    links:
+      - type: verifies
+        target: REQ-SKILL-USAGE-REPORT
