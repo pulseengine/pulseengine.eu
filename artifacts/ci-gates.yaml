@@ -1242,3 +1242,28 @@ artifacts:
     links:
       - type: verifies
         target: REQ-FACTORY-NOTICE-WARTE-TOKEN
+
+  - id: REQ-OUTSIDE-IN-RECHECK
+    type: requirement
+    title: The outside-in-recheck skill turns shared outside material into checked questions about our own repos and gates issue filing on the owner
+    description: >-
+      Owner request 2026-11-05. Agents verify against their own earlier framing, so a talk, paper, upstream spec change or peer design doc is used to recheck our work and not just summarized. skills/outside-in-recheck/SKILL.md states the procedure: extract the source's load-bearing ideas as checkable questions, map each to repos and answer from tool evidence (file:line, the branch-protection required-check list, CI step conclusions), delegate broad sweeps read-only and re-verify the sharpest audit claims, classify each as already-enforced, present-but-not-enforced, absent or not-applicable, report a table ranked by value per effort and ask the owner, file one issue per approved item with a negative control in its acceptance criteria, keep confidential findings out of public issues, and offer upstream reports for spec divergences. The worked example is the 2026-11-05 Plumbers Summit audit (12 issues, 3 defects: loom#474, sigil#350, witness#352). Shipped in 0.52.0 as the twenty-fifth skill.
+    status: verified
+    release: 0.52.0
+    category: functional
+    priority: should
+    fields:
+      category: functional
+
+  - id: VER-OUTSIDE-IN-RECHECK
+    type: verification
+    title: claim OUTSIDE-IN-RECHECK-PROCEDURE, check-skill-frontmatter.py and check-plugin-manifest.py over the new skill
+    description: >-
+      claim-check binds the four classification names, the negative-control acceptance rule, the confidentiality rule, the three worked-example issue references and the README roster line to the skill text. check-skill-frontmatter.py enforces the 350-character description cap on the new skill, check-plugin-manifest.py enforces the spelled-out count (twenty-five) and the version agreement across plugin.json and marketplace.json, and check-readme-skill-roster.py enforces the roster line. This is a documentation skill with no executable; the verification is that its text cannot drift from the stated procedure without a gate failing.
+    status: verified
+    release: 0.52.0
+    method: automated-test
+    test-location: claude-tooling/plugins/pulseengine-claude/skills/claim-verification/claim-check.py
+    links:
+      - type: verifies
+        target: REQ-OUTSIDE-IN-RECHECK
