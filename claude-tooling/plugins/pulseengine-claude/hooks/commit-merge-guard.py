@@ -59,10 +59,15 @@
 
 7. Text checks (0.50.0). A commit message (-m values and heredoc bodies) and
    `gh pr create|edit` --title/--body are scanned with private_hosts.py; a
-   host-shaped value asks. On `gh pr create` the fleet's ci-status API
-   ($PULSEENGINE_CI_STATUS_URL, CA in $PULSEENGINE_CI_STATUS_CACERT) is asked
-   for the repo's queued runs and the advice is added as context; unset or
-   unreachable is logged under the state dir and says nothing.
+   host-shaped value asks. On `gh pr create` warte's agent API
+   ($PULSEENGINE_CI_STATUS_URL, ending in /warte; CA in
+   $PULSEENGINE_CI_STATUS_CACERT) is asked GET /api/admission?repo=&kind= and
+   its verdict and reason are added as context (0.57.0; before, the snapshot of
+   the old /ci surface). The kind comes from the --title's conventional-commit
+   prefix (docs, fix, feat -> feature, security/sec); with no title or another
+   prefix it is `fix`, the kind warte gates only on the repo's own queue and
+   never holds. Unset, unreachable, a non-200 or an answer without a known
+   verdict is logged under the state dir and says nothing; never a block.
 
 8. Confidential terms (0.54.0). Before `gh pr create|edit|comment`,
    `gh issue create|comment`, `gh release create` and `git push`, the command's
@@ -78,7 +83,8 @@ refuses the call like a deny), a warning or advice (additionalContext only),
 or nothing. Never an approving decision, which would skip the user's
 permission flow. Always exit 0; an exception prints nothing.
 
-Python 3.9+, stdlib only. Network only for the gh rules above.
+Python 3.9+, stdlib only. Network only for the gh rules above and rule 7's
+admission request.
 """
 
 import json
@@ -192,7 +198,7 @@ class Finding:
         self.notes = []
         self.commit_dirs = []
         self.pr_text = []        # (repo spec, cwd) of gh pr create|edit
-        self.admission = []      # (repo spec, cwd) of gh pr create
+        self.admission = []      # (repo spec, cwd, --title) of gh pr create
         self.term_scans = []     # (what, gh args or None, cwd) for rule 8
 
 
@@ -729,7 +735,7 @@ def gh_call(args, cwd, env, found):
     if verb in ("create", "edit"):
         found.pr_text.append((repo, cwd))
         if verb == "create":
-            found.admission.append((repo, cwd))
+            found.admission.append((repo, cwd, pr_title(rest)))
         return
     if verb == "update-branch":
         if "--rebase" in rest:
@@ -1093,8 +1099,8 @@ def decide(event):
         return {"hookSpecificOutput": {"hookEventName": "PreToolUse",
                                        "permissionDecision": "ask",
                                        "permissionDecisionReason": " ".join(found.asks)[:MAX_TEXT]}}
-    for spec, d in found.admission[:1]:
-        admission(spec, d, found)
+    for spec, d, title in found.admission[:1]:
+        admission(spec, d, found, title)
     context = " ".join(found.warnings + found.notes)
     if context:
         return {"hookSpecificOutput": {"hookEventName": "PreToolUse",
@@ -1172,8 +1178,41 @@ def admission_log(line):
         pass
 
 
-def admission(spec, cwd, found):
-    """ci-status "Before opening a PR", source 2 (the fleet snapshot), as advice."""
+ADMISSION_KINDS = {"docs": "docs", "fix": "fix", "feat": "feature", "feature": "feature",
+                   "security": "security", "sec": "security"}
+ADMISSION_VERDICTS = {"open", "batch", "hold"}
+ADMISSION_FALLBACK_KIND = "fix"
+
+
+def pr_title(rest):
+    """The --title value of gh pr create, or None (--fill, -f or no title)."""
+    title = None
+    for j, t in enumerate(rest):
+        if t in ("-t", "--title") and j + 1 < len(rest):
+            title = rest[j + 1]
+        elif t.startswith("--title="):
+            title = t.split("=", 1)[1]
+    return title
+
+
+def pr_kind(title):
+    """(kind, source) for warte's /api/admission from a conventional-commit title.
+
+    warte's kinds are docs, fix, feature, security and red-main. A red main
+    cannot be read from a title. With no title or an unknown prefix the kind is
+    `fix`: the most neutral one, because warte gates it on the repo's own
+    queued runs only (batch at its threshold, never hold), while docs batches on
+    any CI in flight, feature can hold on a saturated fleet, and security and
+    red-main always open and so would say nothing."""
+    m = re.match(r"\s*([A-Za-z-]+)(?:\([^)]*\))?!?:", title or "")
+    kind = ADMISSION_KINDS.get(m.group(1).lower()) if m else None
+    if kind:
+        return kind, "from the title"
+    return ADMISSION_FALLBACK_KIND, "assumed: the title has no docs, fix, feat or security prefix"
+
+
+def admission(spec, cwd, found, title=None):
+    """ci-status "Before opening a PR": warte's admission verdict, as advice only."""
     repo = parse_repo(spec) if spec else repo_from_cwd(cwd, {})
     base = (os.environ.get("PULSEENGINE_CI_STATUS_URL") or "").strip().rstrip("/")
     if not base:
@@ -1186,30 +1225,29 @@ def admission(spec, cwd, found):
         admission_log("skip: hook time budget spent")
         return
     name = repo.split("/", 1)[1]
+    kind, source = pr_kind(title)
     try:
         import ssl
         ca = (os.environ.get("PULSEENGINE_CI_STATUS_CACERT") or "").strip()
         ctx = ssl.create_default_context(cafile=ca) if ca else None
-        req = urllib.request.Request(base + "/api/state",
-                                     headers={"User-Agent": "pulseengine-claude-admission"})
+        url = base + "/api/admission?" + urllib.parse.urlencode({"repo": name, "kind": kind})
+        req = urllib.request.Request(url, headers={"User-Agent": "pulseengine-claude-admission"})
         with urllib.request.urlopen(req, timeout=API_TIMEOUT_S, context=ctx) as resp:
-            q = json.loads(resp.read().decode("utf-8", "replace"))["snapshot"]["queue"]
-        runs = len({x.get("run_id") for x in q.get("queued") or []
-                    if isinstance(x, dict) and x.get("repo") == name})
-        pools = q.get("pools") or {}
-        busy = ", ".join("%s %d jobs" % (k, int(v.get("jobs_queued") or 0))
-                         for k, v in sorted(pools.items())[:4] if isinstance(v, dict))
-    except Exception as e:  # unreachable, bad CA, schema drift: advice only, never a block
+            a = json.loads(resp.read().decode("utf-8", "replace"))
+        verdict = a.get("verdict")
+        if verdict not in ADMISSION_VERDICTS:
+            raise ValueError("no known verdict")
+        reason = " ".join(str(a.get("reason") or "").split())[:240]
+    except Exception as e:  # unreachable, 503, bad CA, schema drift: advice only, never a block
         admission_log("fail: %s %s" % (repo, type(e).__name__))
         return
-    lower = "" if q.get("queued_complete", True) else " (at least)"
-    admission_log("ok: %s runs=%d" % (repo, runs))
+    admission_log("ok: %s kind=%s verdict=%s" % (repo, kind, verdict))
     found.notes.append(
-        "ci-status admission (fleet, at PR open): %s has %d queued run(s)%s; shared pools: %s. "
-        "Per ci-status: a docs/one-line PR into a repo with a queued run, or where this session "
-        "already has an open PR, should have been batched; batch the next one. fix/feature at "
-        ">=5 queued runs: hold the next one locally. security and red-main always open."
-        % (repo, runs, lower, busy or "none queued"))
+        "ci-status admission (warte, at PR open): %s, kind %s (%s): %s%s. "
+        "This PR opens anyway; per ci-status, apply the verdict to the next one: batch means "
+        "commit it onto this session's own open PR, hold means commit locally and recheck. "
+        "security and red-main always open."
+        % (repo, kind, source, verdict, " (%s)" % reason if reason else ""))
 
 
 def main():

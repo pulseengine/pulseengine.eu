@@ -60,8 +60,11 @@ directory of symlinks (git, python3, bash, cat, dirname) plus the stub.
             --body asks with masked values; a host in the cd/ssh part of the
             command, settings.local.json and a version do not; both allow-lists
             and temp repos are silent;
-  admission a local stub of the fleet API: queued runs and pools arrive as one
-            short context line; unset and unreachable are silent and logged;
+  admission a local stub of warte's /warte/api/admission echoing repo and kind:
+            the verdict and reason arrive as one short context line, the kind
+            read from the title (feat: -> feature, docs: -> docs) or assumed
+            `fix` (--fill, other prefixes); unset, unreachable, 503 and a 200
+            without a verdict are silent and logged;
   probe     signing-probe.sh is silent when email, key and gpgsign are set and
             prints one line under 400 chars naming what is missing otherwise.
 
@@ -80,6 +83,7 @@ import sys
 import tempfile
 import threading
 import time
+import urllib.parse
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 HOOKS = ROOT / "claude-tooling" / "plugins" / "pulseengine-claude" / "hooks"
@@ -252,14 +256,27 @@ PENDING = [{"name": "build", "status": "in_progress", "conclusion": None}]
 
 
 class State(http_server.BaseHTTPRequestHandler):
-    BODY = b""
+    """Stub of warte's agent API under /warte: only /api/admission answers."""
+    MODE = "ok"   # ok | 503 | empty
 
     def do_GET(self):  # noqa: N802
-        body = State.BODY if self.path == "/ci/api/state" else b"{}"
-        self.send_response(200 if self.path == "/ci/api/state" else 404)
+        u = urllib.parse.urlsplit(self.path)
+        q = dict(urllib.parse.parse_qsl(u.query))
+        good = (u.path == "/warte/api/admission" and q.get("repo") == "protected"
+                and q.get("kind") in ("docs", "fix", "feature", "security", "red-main"))
+        if not good:
+            status, body = 404, {}
+        elif State.MODE == "503":
+            status, body = 503, {"error": "no snapshot"}
+        elif State.MODE == "empty":
+            status, body = 200, {}
+        else:
+            status, body = 200, {"verdict": "batch", "recheck_s": 600,
+                                 "reason": "stub kind=%s\nprotected has 2 run(s) queued" % q["kind"]}
+        self.send_response(status)
         self.send_header("Content-Type", "application/json")
         self.end_headers()
-        self.wfile.write(body)
+        self.wfile.write(json.dumps(body).encode())
 
     def log_message(self, *a):
         pass
@@ -554,33 +571,49 @@ def new_rules(E, nonrepo, ok, t_repo):
         shutil.rmtree(str(nt_root), ignore_errors=True)
 
     # ── PR admission advice ──────────────────────────────────────────────────
-    State.BODY = json.dumps({"snapshot": {"queue": {
-        "queued": [{"repo": "protected", "run_id": 1}, {"repo": "protected", "run_id": 1},
-                   {"repo": "protected", "run_id": 2}, {"repo": "other", "run_id": 3}],
-        "queued_complete": True,
-        "pools": {"light": {"jobs_queued": 6}, "rust-cpu": {"jobs_queued": 25}}}}}).encode()
+    State.MODE = "ok"
     srv = http_server.HTTPServer(("127.0.0.1", 0), State)
     th = threading.Thread(target=srv.serve_forever, daemon=True)
     th.start()
     log = E.data / "commit-merge-guard" / "admission.log"
     try:
-        url = "http://127.0.0.1:%d/ci" % srv.server_address[1]
-        expect("admission: queued runs and pools as context",
-               run(E, ev("gh pr create --title t --body b", ok), PULSEENGINE_CI_STATUS_URL=url), "warn",
-               ("acme/protected has 2 queued run(s)", "light 6 jobs", "rust-cpu 25 jobs", "batch"))
+        url = "http://127.0.0.1:%d/warte" % srv.server_address[1]
+        expect("admission: verdict and reason as context",
+               run(E, ev("gh pr create --title 'feat(x): y' --body b", ok), PULSEENGINE_CI_STATUS_URL=url),
+               "warn", ("acme/protected, kind feature (from the title): batch",
+                        "stub kind=feature protected has 2 run(s) queued", "own open PR"))
+        expect("admission: docs title asks kind docs",
+               run(E, ev("gh pr create --title='docs: z' --body b", ok), PULSEENGINE_CI_STATUS_URL=url),
+               "warn", ("kind docs (from the title)", "stub kind=docs"))
+        expect("admission: no title assumes kind fix",
+               run(E, ev("gh pr create --fill", ok), PULSEENGINE_CI_STATUS_URL=url),
+               "warn", ("kind fix (assumed", "stub kind=fix"))
         r = run(E, ev("gh pr create --fill", ok), PULSEENGINE_CI_STATUS_URL=url)
         got, text = classify("admission: advice is short", r)
         if got == "warn" and len(text) > 600:
             fail("admission advice is %d chars (> 600)" % len(text))
         expect("admission: URL unset is silent", run(E, ev("gh pr create --fill", ok)), "silent")
         expect("admission: unreachable is silent",
-               run(E, ev("gh pr create --fill", ok), PULSEENGINE_CI_STATUS_URL="http://127.0.0.1:9/ci"), "silent")
+               run(E, ev("gh pr create --fill", ok), PULSEENGINE_CI_STATUS_URL="http://127.0.0.1:9/warte"),
+               "silent")
+        expect("admission: old /ci base (404) is silent",
+               run(E, ev("gh pr create --fill", ok), PULSEENGINE_CI_STATUS_URL=url[:-len("/warte")] + "/ci"),
+               "silent")
+        State.MODE = "503"
+        expect("admission: 503 is silent", run(E, ev("gh pr create --fill", ok), PULSEENGINE_CI_STATUS_URL=url),
+               "silent")
+        State.MODE = "empty"
+        expect("admission: 200 without a verdict is silent",
+               run(E, ev("gh pr create --fill", ok), PULSEENGINE_CI_STATUS_URL=url), "silent")
         lines = log.read_text().splitlines() if log.is_file() else []
-        if not any("unset" in x for x in lines) or not any(x.split(" ", 1)[1].startswith("fail:") for x in lines):
-            fail("admission.log does not record the unset and unreachable cases: %r" % lines[-4:])
+        fails = [x for x in lines if x.split(" ", 1)[1].startswith("fail:")]
+        if not any("unset" in x for x in lines) or len(fails) < 4 \
+                or not any("kind=feature verdict=batch" in x for x in lines):
+            fail("admission.log does not record ok, unset and the four failures: %r" % lines[-8:])
         else:
-            print("ok   admission: unset and unreachable are logged")
+            print("ok   admission: ok, unset, unreachable, 404, 503 and no-verdict are logged")
     finally:
+        State.MODE = "ok"
         srv.shutdown()
 
     # ── SessionStart signing probe ───────────────────────────────────────────

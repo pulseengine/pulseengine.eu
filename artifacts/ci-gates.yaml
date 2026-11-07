@@ -1367,3 +1367,28 @@ artifacts:
     links:
       - type: verifies
         target: REQ-CONTEXT-TRIM
+
+  - id: REQ-CI-STATUS-WARTE-API
+    type: requirement
+    title: ci-status and the PR admission hook use warte's agent API under the /warte base, not the retiring /ci surface
+    description: >-
+      Owner decision 2026-11-07: warte serves the CI fleet status, and the old /ci surface is removed once its consumers have moved. PULSEENGINE_CI_STATUS_URL now ends in /warte. The ci-status skill keeps /api/eta (same answer as before), replaces status.md with /api/queue for the whole-fleet view, offers /api/watch as a long-poll instead of a rescheduled wake-up, and makes warte's /api/admission the first admission source, whose verdict wins over the GitHub fallback thresholds; the /api/state source and the separate PULSEENGINE_WARTE_URL admission source are gone. The commit-merge-guard hook asks GET /api/admission?repo=&kind= on gh pr create instead of /api/state, reads the kind from the title's conventional prefix (docs, fix, feat to feature, security or sec), assumes fix when it cannot tell (the kind warte gates only on the repo's own queued runs and never holds), and turns verdict and reason into one advice line. Any failure is logged and silent, never a block; the time budget and timeout are unchanged.
+    status: verified
+    release: 0.57.0
+    category: functional
+    priority: should
+    fields:
+      category: functional
+
+  - id: VER-CI-STATUS-WARTE-API
+    type: verification
+    title: scripts/check-commit-merge-guard.py against a stub of warte's /warte/api/admission, plus claims CI-STATUS-HOOK-WARTE-ADMISSION, CI-STATUS-PR-ADMISSION and CI-STATUS-NO-PRIVATE-HOST
+    description: >-
+      The stub answers only /warte/api/admission with repo=protected and a valid kind, and echoes the kind into the reason, so the path and the kind mapping are asserted rather than a canned reply: feat(x) gives feature, docs gives docs, --fill gives fix. Unset, unreachable, the old /ci base (404), a 503 and a 200 without a verdict are silent and logged. Negative-controlled 2026-11-07: the hook calling /api/state instead, and the fallback kind changed to feature, each fail the script. The claims pin the hook's request line and fallback kind, forbid /api/state in the hook, require the /warte base row and forbid ending in /ci, PULSEENGINE_WARTE_*, /api/state, status.md and warte#55 in the skill.
+    status: verified
+    release: 0.57.0
+    method: automated-test
+    test-location: scripts/check-commit-merge-guard.py
+    links:
+      - type: verifies
+        target: REQ-CI-STATUS-WARTE-API

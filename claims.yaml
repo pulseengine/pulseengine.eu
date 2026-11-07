@@ -1119,10 +1119,13 @@ claims:
         pattern: 'PULSEENGINE_[A-Z_]+_URL\s*[=:]\s*["\x27]?https?://'
         glob: ['claude-tooling/**/*']
         max: 0
+      # 0.57.0: the base is warte's agent API; /ci is removed after the move.
       - kind: verbatim
-        text: "| `PULSEENGINE_WARTE_URL` | base URL of warte"
-      - kind: verbatim
-        text: "| `PULSEENGINE_WARTE_CACERT` | path to the CA certificate that signs warte"
+        text: "| `PULSEENGINE_CI_STATUS_URL` | base URL of the status API (warte's agent API), ending in `/warte` |"
+      - kind: count-max
+        pattern: 'ending in `/ci`'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/ci-status/SKILL.md']
+        max: 0
 
   # ── CI status: missing or unreachable API is said once, then gh ─────────────
   - id: CI-STATUS-FALLS-BACK-AND-SAYS-SO
@@ -1148,8 +1151,9 @@ claims:
   # ── PR admission: check the queue before opening a PR ───────────────────────
   # 2026-10-28: 53 PRs opened org-wide by 07:00 UTC, many one-line docs edits,
   # while all 14 self-hosted runners were busy and 272 jobs waited. ci-status
-  # owns the check; warte's endpoints are requested (warte#55), not built, so
-  # the GitHub fallback and the always-open exceptions must stay stated.
+  # owns the check. Since 0.57.0 warte's /api/admission is the first source on
+  # the ci-status base and its verdict wins; the GitHub fallback and the
+  # always-open exceptions must stay stated.
   - id: CI-STATUS-PR-ADMISSION
     doc: claude-tooling/plugins/pulseengine-claude/skills/ci-status/SKILL.md
     text: "## Before opening a PR"
@@ -1157,22 +1161,20 @@ claims:
       - kind: verbatim
         text: "**`security` and `red-main` always open, whatever the source below says.**"
       - kind: verbatim
-        text: "\"$PULSEENGINE_WARTE_URL/api/admission?repo=<repo>&kind=<kind>\""
-      # Every warte call carries warte's own CA; none borrows ci-status's.
+        text: "\"$PULSEENGINE_CI_STATUS_URL/api/admission?repo=<repo>&kind=<kind>\""
+      # Every call carries the base's own CA, and no retired surface remains.
       - kind: count-min
-        pattern: '--cacert "\$PULSEENGINE_WARTE_CACERT"\} \\\n\s*"\$PULSEENGINE_WARTE_URL/'
+        pattern: '--cacert "\$PULSEENGINE_CI_STATUS_CACERT"\} \\\n\s*"\$PULSEENGINE_CI_STATUS_URL/api/(eta|queue|admission)\?'
         glob: ['claude-tooling/plugins/pulseengine-claude/skills/ci-status/SKILL.md']
-        min: 2
+        min: 3
       - kind: count-max
-        pattern: 'PULSEENGINE_CI_STATUS_CACERT"\} \\\n\s*"\$PULSEENGINE_WARTE_URL'
+        pattern: 'PULSEENGINE_WARTE_|/api/state|status\.md|warte#55'
         glob: ['claude-tooling/plugins/pulseengine-claude/skills/ci-status/SKILL.md']
         max: 0
       - kind: verbatim
-        text: "These endpoints are requested in pulseengine/warte#55 and do not exist yet."
+        text: "**warte's verdict wins** over the table below"
       - kind: verbatim
-        text: "\"$PULSEENGINE_CI_STATUS_URL/api/state\" | jq --arg r <repo>"
-      - kind: verbatim
-        text: "`/api/openapi.json` gives this endpoint no\nresponse schema"
+        text: "Thresholds for source 2 only, when warte does not answer:"
       - kind: verbatim
         text: "a 200 without a `verdict` field as \"not available\""
       - kind: verbatim
@@ -1194,6 +1196,32 @@ claims:
         pattern: 'description: Use before opening a pull request and before waiting on CI'
         glob: ['claude-tooling/plugins/pulseengine-claude/skills/ci-status/SKILL.md']
         min: 1
+
+  # ── The admission hook asks warte, with a neutral kind when it cannot tell ──
+  # REQ-CI-STATUS-WARTE-API (0.57.0). warte serves no /api/state, so the hook
+  # asks /api/admission; a guessed kind must not be one that always opens
+  # (says nothing) or holds on fleet load. scripts/check-commit-merge-guard.py
+  # tests the behaviour against a stub; this keeps the path and the fallback.
+  - id: CI-STATUS-HOOK-WARTE-ADMISSION
+    doc: claude-tooling/plugins/pulseengine-claude/README.md
+    text: "the hook asks warte's admission endpoint (`$PULSEENGINE_CI_STATUS_URL/api/admission`, base ending in `/warte`"
+    evidence:
+      - kind: count-min
+        pattern: 'base \+ "/api/admission\?" \+ urllib\.parse\.urlencode\(\{"repo": name, "kind": kind\}\)'
+        glob: ['claude-tooling/plugins/pulseengine-claude/hooks/commit-merge-guard.py']
+        min: 1
+      - kind: count-max
+        pattern: '/api/state'
+        glob: ['claude-tooling/plugins/pulseengine-claude/hooks/commit-merge-guard.py']
+        max: 0
+      - kind: count-min
+        pattern: '\nADMISSION_FALLBACK_KIND = "fix"\n'
+        glob: ['claude-tooling/plugins/pulseengine-claude/hooks/commit-merge-guard.py']
+        min: 1
+      - kind: count-min
+        pattern: 'expect\("admission: (no title assumes kind fix|503 is silent|200 without a verdict is silent)"'
+        glob: ['scripts/check-commit-merge-guard.py']
+        min: 3
 
   # ── Trivial changes batch: one PR per repo per session ──────────────────────
   # Strict up-to-date protection re-runs every other open PR after each merge,
