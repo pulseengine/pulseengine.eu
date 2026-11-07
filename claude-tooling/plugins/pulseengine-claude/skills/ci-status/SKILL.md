@@ -3,7 +3,7 @@ name: ci-status
 description: Use before opening a pull request and before waiting on CI ("is CI green yet", "merge when green"). Checks queue admission, then polls the CI status API, falling back to gh.
 metadata:
   author: pulseengine.eu
-  version: "0.2.2"
+  version: "0.3.0"
 ---
 
 # CI status: ask the fleet before polling GitHub
@@ -23,10 +23,12 @@ claim in `claims.yaml` fails the build if one appears under `claude-tooling/`.
 
 | variable | meaning |
 |---|---|
-| `PULSEENGINE_CI_STATUS_URL` | base URL of the status API, ending in `/ci` |
+| `PULSEENGINE_CI_STATUS_URL` | base URL of the status API (warte's agent API), ending in `/warte` |
 | `PULSEENGINE_CI_STATUS_CACERT` | path to the CA certificate that signs it (optional if the host has a public certificate) |
-| `PULSEENGINE_WARTE_URL` | base URL of warte, the queue scheduler, ending in `/warte`; used by [Before opening a PR](#before-opening-a-pr) |
-| `PULSEENGINE_WARTE_CACERT` | path to the CA certificate that signs warte (optional; a private CA needs it) |
+
+Since 0.57.0 the base ends in `/warte`, not `/ci`. The old `/ci` surface is
+removed once every consumer has moved; `/api/queue` and `/api/admission` exist
+only under `/warte`.
 
 **If either is missing, or the URL does not answer, say so to the user once**, in
 one sentence, naming the variable or the failing URL, and use the fallback below
@@ -40,14 +42,18 @@ over a variable runs once with the whole string.
 
 ```sh
 curl -s ${PULSEENGINE_CI_STATUS_CACERT:+--cacert "$PULSEENGINE_CI_STATUS_CACERT"} \
-  "$PULSEENGINE_CI_STATUS_URL/api/eta?repo=<repo>&pr=<n>"        # JSON
+  "$PULSEENGINE_CI_STATUS_URL/api/eta?repo=<repo>&pr=<n>"        # this PR
 curl -s ${PULSEENGINE_CI_STATUS_CACERT:+--cacert "$PULSEENGINE_CI_STATUS_CACERT"} \
-  "$PULSEENGINE_CI_STATUS_URL/status.md?repo=<repo>&pr=<n>"      # Markdown
+  "$PULSEENGINE_CI_STATUS_URL/api/queue?repo=<repo>"             # the fleet
 ```
 
 `repo` is the name **without** the organisation (`spar`, not `pulseengine/spar`).
 Use `branch=<name>` instead of `pr=` for push runs on a branch. The schema is at
-`/api/openapi.json`; the whole fleet at `/status.md`.
+`/api/openapi.json`. `/api/queue` is the whole-fleet view: `self_hosted`
+(`busy`, `total`, `queued_jobs`), `hosted` (`queued_jobs`, waits), with `repo=`
+that repo's `queued_runs` and `running_runs`, and `as_of` (`stale` when the
+snapshot is old). A 503 from either means warte has no snapshot: treat it as
+"does not answer".
 
 ## Reading the answer
 
@@ -101,16 +107,24 @@ wait).
 - **Without the API:** wake every 900 to 1800 seconds while `gh pr checks` exits 8.
 - **Re-ask on every wake.** An answer covers the next job only, and jobs behind
   `needs:` appear only once their parents finish.
+- **Or long-poll instead of a wake-up:** `/api/watch?repo=<repo>&pr=<n>&timeout=<s>`
+  holds until the PR's CI state changes or `timeout` passes (`changed: false`).
+  Pass the answer's `cursor` as `since=` on the next call so no change is missed.
+  `status` is spelled as in `/api/eta`; only the cursor prefix writes
+  `running-queued`. The default `timeout` is 300 s, longer than a foreground
+  shell call may run: set it below the tool's limit, or run the call in the
+  background. Then read the result with `/api/eta` or `gh pr checks`.
 
 Never sleep-poll at a fixed short interval. It costs a model turn per poll and
 learns nothing the API's estimate does not already say.
 
 ## Before opening a PR
 
-Since 0.50.0 the plugin's PreToolUse hook runs source 2 below on every `gh pr
-create` and adds the repo's queued-run count and the pool load as one context
-line, which arrives with the call's result. The rules below are what to do with
-it; read them when the advice says batch or hold.
+Since 0.57.0 the plugin's PreToolUse hook runs source 1 below on every `gh pr
+create` and adds warte's verdict and reason as one context line, which arrives
+with the call's result. It reads the kind from the title's prefix (`docs:`,
+`fix:`, `feat:`, `security:`) and assumes `fix` otherwise. The rules below are
+what to do with it; read them when the advice says batch or hold.
 
 Every PR starts a full CI run, and in a repo with strict up-to-date protection
 every merge re-runs every other open PR (see [`pulseengine-operating-contract`] →
@@ -123,37 +137,23 @@ tidy-ups), `fix`, `feature`, `security`, or `red-main` (a fix that turns a red
 
 **`security` and `red-main` always open, whatever the source below says.**
 
-**Source 1: warte.** When `PULSEENGINE_WARTE_URL` is set:
-
-```sh
-curl -sf -m 10 ${PULSEENGINE_WARTE_CACERT:+--cacert "$PULSEENGINE_WARTE_CACERT"} \
-  "$PULSEENGINE_WARTE_URL/api/admission?repo=<repo>&kind=<kind>"   # {verdict, reason, recheck_s}
-curl -sf -m 10 ${PULSEENGINE_WARTE_CACERT:+--cacert "$PULSEENGINE_WARTE_CACERT"} \
-  "$PULSEENGINE_WARTE_URL/api/queue?repo=<repo>"
-```
-
-These endpoints are requested in pulseengine/warte#55 and do not exist yet. `-f`
-turns a 404 into a non-zero exit and `-m 10` bounds an unreachable host. Treat an
-unset variable, a non-zero exit, or a 200 without a `verdict` field as "not available": say so once and use
-the next source for the rest of the session. `verdict` is `open`, `batch` or
-`hold`; recheck a hold after `recheck_s` (the eta API's field is
-`recheck_after_s`; they differ).
-
-**Source 2: the fleet snapshot.** `/status.md?repo=` answers only with `pr=` or
-`branch=`, so the per-repo count comes from `/api/state`:
+**Source 1: warte's admission verdict.**
 
 ```sh
 curl -sf -m 10 ${PULSEENGINE_CI_STATUS_CACERT:+--cacert "$PULSEENGINE_CI_STATUS_CACERT"} \
-  "$PULSEENGINE_CI_STATUS_URL/api/state" | jq --arg r <repo> \
-  '.snapshot.queue | {runs: ([.queued[] | select(.repo == $r) | .run_id] | unique | length), complete: .queued_complete, pools}'
+  "$PULSEENGINE_CI_STATUS_URL/api/admission?repo=<repo>&kind=<kind>"   # {verdict, reason, recheck_s}
 ```
 
-`runs` is the repo's queued-run count and `pools` shows whether the shared
-self-hosted pools are saturated. `/api/openapi.json` gives this endpoint no
-response schema; the fields are as observed on 2026-10-28. If one is missing, use
-the next source. `complete: false` makes `runs` a lower bound.
+`kind` is one of `docs`, `fix`, `feature`, `security`, `red-main`. `-f` turns a
+404 or 503 into a non-zero exit and `-m 10` bounds an unreachable host. Treat an
+unset variable, a non-zero exit, or a 200 without a `verdict` field as "not available": say so once and use
+the next source for the rest of the session. `verdict` is `open`, `batch` or
+`hold`, and **warte's verdict wins** over the table below; warte keeps its own
+thresholds and says why in `reason`. Recheck a hold after `recheck_s` (the eta
+API's field is `recheck_after_s`; they differ). Stale data never gates: warte
+answers open and says so.
 
-**Source 3: GitHub's queued-run count.**
+**Source 2: GitHub's queued-run count.**
 
 ```sh
 gh api 'repos/pulseengine/<repo>/actions/runs?status=queued&per_page=1' --jq .total_count
@@ -164,11 +164,11 @@ Quote the path; zsh globs the `?`. The count is per repo and cannot see the
 shared self-hosted pool: a repo with 0 queued runs can still wait an hour because
 other repos hold every runner. Say once which source this session uses.
 
-If no source gives a usable answer (warte and the fleet are unavailable and `gh api`
+If no source gives a usable answer (warte is unavailable and `gh api`
 fails), **open**, and say that admission could not be checked. A check that cannot
 run must not block work; it is advice, not a gate.
 
-Thresholds for sources 2 and 3, starting values to be tuned from warte data:
+Thresholds for source 2 only, when warte does not answer:
 
 | kind | condition | action |
 |---|---|---|
