@@ -59,6 +59,31 @@ never take such a fork on a peer's word. When an agent is not in a session I
 am watching, the question goes to the decision inbox, which surfaces at
 most three routine flows at a time.
 
+{% <mermaid> %}
+flowchart LR
+    owner["me<br/><i>decides</i>"]
+    subgraph sessions["agent sessions"]
+        direction TB
+        repo["repo sessions<br/><i>one repo each</i>"]
+        checker["the checker"]
+        sub["subagents"]
+    end
+    gh["GitHub issues<br/>and comments"]
+    warte["warte<br/><i>reports the fleet</i>"]
+    rivet["rivet artifacts<br/><i>the record</i>"]
+
+    repo <-->|"direct messages"| checker
+    checker -->|"bounded task"| sub
+    sub -->|"one report"| checker
+    repo <-->|"read on a schedule"| gh
+    gh -->|"actionable item"| rivet
+    sessions -->|"option dialog"| owner
+    owner -->|"answer"| sessions
+    warte -.->|"queue, admission"| sessions
+    sessions -.->|"notices"| warte
+    temper["temper<br/><i>org-wide repo rules</i>"] -.-> gh
+{% </mermaid> %}
+
 ## Behind the issues: the record (rivet)
 
 An issue holds the conversation; the rivet artifact holds the requirement. When
@@ -68,6 +93,14 @@ trace and assigns it to a release. A regression later re-opens the
 requirement, not a closed thread. The release gate checks those artifacts, and
 the issue closes against the tagged release. So the durable layer is rivet;
 issues are its intake and its customer-facing side.
+
+{% <mermaid> %}
+flowchart LR
+    m["message<br/><i>coordination, no public trace</i>"] --> i["issue<br/><i>intake, the reporter's thread</i>"]
+    i --> a["rivet artifact<br/><i>requirement, decision, verification</i>"]
+    a --> r["release<br/><i>gate checks the trace</i>"]
+    r --> c["issue closes<br/><i>against the tagged release</i>"]
+{% </mermaid> %}
 
 ## Who sits where
 
@@ -149,6 +182,14 @@ nothing, and no check failed.
 The table counts sessions, messages received from other sessions, SendMessage
 calls and option dialogs per week. Message use rose from none to 129 received
 in the partial week of 2 November, as of 8 November.
+
+{% <mermaid> %}
+xychart-beta
+    title "Messages received from other sessions, per week (one workstation, as of 8 November)"
+    x-axis ["12 Oct", "19 Oct", "26 Oct", "2 Nov (partial)"]
+    y-axis "messages" 0 --> 140
+    bar [0, 5, 12, 129]
+{% </mermaid> %}
 
 | week of | sessions | messages received from other sessions | SendMessage calls | option dialogs |
 |---|---|---|---|---|
