@@ -1,6 +1,6 @@
 +++
 title = "How the factory talks: four channels, one record, and who owns what"
-description = "Agent sessions coordinate over four channels: direct messages between sessions, subagents inside one session, issues read on a schedule, and option dialogs to the owner. What lasts is the rivet artifact an issue becomes. On 8 November a full disk, a check that passed by being skipped and settings that never reached the agents went through these channels in one day."
+description = "Agent sessions coordinate over four channels: direct messages between sessions, subagents inside one session, issues read on a schedule, and option dialogs to me. What lasts is the rivet artifact an issue becomes. Three recent events went through these channels: a full disk on 8 November, a check that passed by being skipped and settings that never reached the agents."
 date = 2026-11-12
 draft = true
 hold = true
@@ -10,21 +10,23 @@ authors = ["Ralf Anton Beier"]
 +++
 
 {% <insight> %}
-**Approval comes only from the owner's option dialog; messages from other sessions are requests, and rivet keeps the record.**
+**Approval comes only from my option dialog; messages from other sessions are requests, and rivet keeps the record.**
 
 Issues take work in, messages coordinate, and subagents do bounded work
 inside one session. On one workstation, messages received from other sessions
-went from none in the week of 28 September to 128 in the partial week of 2
-November.
+went from none in the week of 28 September to 129 in the partial week of 2
+November, a week in which the number of sessions fell to 10.
 {% </insight> %}
 
 [The orchestrator: who does what](/blog/the-orchestrator-who-does-what/)
 described the repos and the contracts between them, and [The scarce resource
 is the orchestrator's attention](/blog/the-scarce-resource-is-attention/)
-described the decision inbox that rations the owner. This post is about the
+described the decision inbox that rations me. This post is about the
 wiring underneath: which channel carries which kind of message, which
-component owns which job, and what happened when all of it was used at once on
-8 November 2026.
+component owns which job, and what three recent events showed, the first of
+them on 8 November 2026. In this post "the checker" is the Claude session that
+writes this site and the plugin every session loads, and "I" is the owner of
+the factory.
 
 ## The four channels
 
@@ -36,25 +38,26 @@ public and outlive every session. They are also slow: an agent learns about a
 comment at its next pass.
 
 **Direct messages between sessions.** The Claude Code changelog entry in
-version 2.1.224 reads "Added cross-session SendMessage": a session can send
+version 2.1.224 reads "Added cross-session `SendMessage`": a session can
 send a message to another. Version 2.1.166 had already hardened relayed
 messages: "receivers refuse relayed permission requests" ([Claude Code
 changelog](https://github.com/anthropics/claude-code/blob/main/CHANGELOG.md)).
-A session running with bypassed permissions holds incoming messages for the
-owner's approval unless the owner changed that setting. Messages arrive in
+A session running with bypassed permissions holds incoming messages until I
+release them, unless I changed that setting. Releasing a held message is not a
+decision on what it asks. Messages arrive in
 seconds and leave no public trace, which suits "can you free your disk" and
 "is this yours" and does not suit a decision.
 
 **Subagents.** A session starts a subagent for a bounded task, such as a scan
 over many files or a fresh-context review of its own claims, and gets one
 report back. The subagent talks only to its parent. The `delegate-by-cost`
-rule picks its model: mechanical work with an exact check goes to the cheapest
+skill picks its model: mechanical work with an exact check goes to the cheapest
 tier.
 
-**Option dialogs to the owner.** A fork that is the owner's to take becomes a
+**Option dialogs to me.** A fork that is mine to take becomes a
 question with a few options, the trade-offs and a recommendation. Agents
-never take such a fork on a peer's word. When an agent is not in a session the
-owner is watching, the question goes to the decision inbox, which surfaces at
+never take such a fork on a peer's word. When an agent is not in a session I
+am watching, the question goes to the decision inbox, which surfaces at
 most three routine flows at a time.
 
 ## Behind the issues: the record (rivet)
@@ -73,33 +76,33 @@ issues are its intake and its customer-facing side.
 |---|---|---|
 | repo sessions | own one repo: its code, CI and issues | change another repo's branches or settings |
 | warte | report the fleet: CI queue, admission advice, wait estimates, notices | decide or delete anything |
-| temper | configure repos to org-wide rules (merge settings, branch protection, labels) and sync them across the organisation; a change-filter check is planned, detection first | enforce that planned check before the owner decides |
-| machine configuration (a private repo and its session) | apply configuration to the machines | merge its own changes; the owner merges |
+| temper | configure repos to org-wide rules (merge settings, branch protection, labels) and sync them across the organisation; a change-filter check is planned, detection first | enforce that planned check before I decide |
+| machine configuration (a private repo and its session) | apply configuration to the machines, and would apply the planned check per repo | merge its own changes; I merge |
 | the checker session | coordinate across sessions and re-check their claims | fix another session's repo |
-| the owner | take every decision that is theirs | — |
+| me, the owner | take every decision that is mine | — |
 
-The checker is the session that writes this site and the plugin every session
-loads. On 8 November it did more coordinating than checking, and the
+In these events the checker did more coordinating than checking, and the
 overreach showed: it sent one brief to the wrong session, and drafted a design
 that the warte session sent back.
 
-## One day, three events
+## Three events
 
 **A full disk.** On 8 November the workstation's data volume had 14 GB free.
 The checker measured who held the space: per-session scratch directories under
 the temporary directory, and build caches in one repo's checkout and three of
-its worktrees, about 54 GB in all. It messaged five sessions, each with the
+its worktrees. The four build caches of that repo (meld) held 22.3, 12.4, 9.8 and
+9.8 GB, about 54 GB, and four session scratchpads of about 5 to 14 GB each came on
+top. It messaged five sessions, each with the
 size and location of what it held, and asked each to clean only its own data
 and report what it freed. The five sessions reported freeing about 57, 14, 12, 8
 and 5 GB. They measured at overlapping moments, and the 57 included removed
 worktrees, so the number to trust is the net rise in free space, from 14 to 82
 GB. Two Rust toolchains that nothing pinned were removed
-after the owner approved it in a dialog, because the toolchain directory is
+after I approved it in a dialog, because the toolchain directory is
 shared.
 
-The owner then asked for the check to become mechanical. The checker proposed
-an endpoint in warte that would name the holders. In the author's account, the
-warte session sent the design back. pulseengine.eu#356 records the outcome as
+I then asked for the check to become mechanical. The checker proposed
+an endpoint in warte that would name the holders. pulseengine.eu#356 records the outcome as
 "Design revised the same day in warte: names only locally, pressure per
 volume". The
 plugin side became a hook that will read a local command before a disk-heavy
@@ -117,9 +120,8 @@ and their 143 required checks:
 - rivet's case is a skipped job: its filter listed code paths, so any file type
   it did not name made the job skip, and the skip counted as passing;
 - meld's case is different: a stub workflow reports success under the same check
-  names on the paths the real workflow ignores. It excluded `safety/**` and the
-  Rust sources of the Rocq proof extracts (meld#580), and its session then found
-  a second gap, Markdown compiled into the binary (`meld-cli/docs/*.md`, meld
+  names on the paths the real workflow ignores. It excluded `safety/**` (meld#580),
+  and its session then found a second gap, Markdown compiled into the binary (`meld-cli/docs/*.md`, meld
   PR #581);
 - spar, varve and gale list what is not code and treat everything else as
   code, which fails closed;
@@ -127,19 +129,19 @@ and their 143 required checks:
   which also fails closed.
 
 temper configures repositories to org-wide rules today. A change-filter check
-is planned, with a probe that feeds each repo's change filter files that must
+is planned (meld#580), with a probe that feeds each repo's change filter files that must
 count as code across all repos. Detection comes first, and enforcement waits for
-the owner. The configuration session would apply it per repo, because
+me. The configuration session would apply it per repo, because
 organisation-wide rulesets are the alternative and the free plan does not offer
-them for private repositories. Both would ask the owner before building it. The
+them for private repositories. Both would ask me before building it. The
 finding started in a direct message and ended as an issue (meld#580), a meld PR
-(#581), PRs in the repos that own the fix, and an owner decision.
+(#581), PRs in the repos that own the fix, and a decision of mine.
 
 **Settings that never reached the agents.** The gale session reported, in a
 direct message, that a call to an address warte had retired came back empty.
 Checking showed the
-four warte settings lived in a shell startup file that Claude Code's tool shell
-never reads. Agents had been running without them, so every warte call fell
+four warte settings lived in a shell startup file whose exports never reached the agents' tool
+shell. Agents had been running without them, so every warte call fell
 back silently: admission advice, wait estimates and notice sync. The change that
 puts the values into Claude Code's own settings on both machines is an open PR
 in the private configuration repo; one machine already has the values set by
@@ -149,7 +151,7 @@ nothing, and no check failed.
 ## What the numbers say
 
 The table counts sessions, messages received from other sessions, SendMessage
-calls and option dialogs per week. Message use rose from none to 128 received
+calls and option dialogs per week. Message use rose from none to 129 received
 in the partial week of 2 November.
 
 | week of | sessions | messages received from other sessions | SendMessage calls | option dialogs |
@@ -159,11 +161,9 @@ in the partial week of 2 November.
 | 12 Oct | 230 | 0 | 11 | 32 |
 | 19 Oct | 125 | 5 | 38 | 53 |
 | 26 Oct | 209 | 12 | 104 | 76 |
-| 2 Nov | 10 | 128 | 242 | 114 |
+| 2 Nov | 10 | 129 | 242 | 114 |
 
-Counts come from one workstation's local transcripts, up to 8 November. The
-week of 28 September is incomplete because older transcripts are cleaned up
-locally, and the week of 2 November is partial.
+Counts come from one workstation's local transcripts, up to 8 November. The weeks of 28 September and 5 October are incomplete because older transcripts are cleaned up locally, and the earliest surviving transcript is from 8 October. The week of 2 November is partial.
 
 The feature was installed for weeks before the first message between sessions
 arrived, on 22 October. In my own account, use took off in the week I told the
@@ -172,21 +172,21 @@ week: 10 sessions ran for most of the week instead of 125 to 230, so there was
 always someone to message. The two cannot be separated. SendMessage counts may
 include messages to a session's own subagents.
 
-## What we keep, and what we would change
+## What I keep, and what I would change
 
 Messages coordinate, issues take work in and answer the people who filed it,
 and rivet keeps the record. The threads this post describes each ended in an
-issue, a PR or a dialog, and the draft plugin change (#356) carries its requirement and
-verification in rivet (REQ-DISK-PRESSURE and VER-DISK-PRESSURE). None
-of those decisions lives only in a transcript. We would not move the scheduled
-issue sync onto messages, and we would not let issues stand in for rivet: an
+issue, a PR or a dialog, and the draft plugin change (#356) would add its requirement and
+verification to rivet (REQ-DISK-PRESSURE and VER-DISK-PRESSURE), so that its
+decision would not live only in a transcript. I would not move the scheduled
+issue sync onto messages, and I would not let issues stand in for rivet: an
 issue can be read by someone who was not there, and a rivet artifact can also
 be checked, traced and gated, which neither a thread nor a transcript can.
 
 Names are the weak point. One session is called one thing on its own machine
 and another over Remote Control, and the probe sees process ids, not session
 names. The ci-status skill, not the hook, carries the rule that the agent asks
-the owner when a match is ambiguous. The disk-pressure hook will name holders
+me when a match is ambiguous. The disk-pressure hook will name holders
 by repo and session id once warte ships the local command.
 
 The checker needs checking too. The checker misrouted a brief and drafted a
