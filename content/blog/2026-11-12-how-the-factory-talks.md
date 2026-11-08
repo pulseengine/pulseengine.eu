@@ -18,15 +18,31 @@ went from none in the week of 12 October to 129 in the partial week of 2
 November (as of 8 November), a week with 10 sessions.
 {% </insight> %}
 
-[The orchestrator: who does what](/blog/the-orchestrator-who-does-what/)
-described the repos and the contracts between them, and [The scarce resource
-is the orchestrator's attention](/blog/the-scarce-resource-is-attention/)
-described the decision inbox that rations me. This post is about the
-wiring underneath: which channel carries which kind of message, which
-component owns which job, and what three recent events showed, the first of
-them on 8 November 2026. In this post "the checker" is the Claude session that
-writes this site and the plugin every session loads, and "I" is the owner of
-the factory.
+## What this is about, from the outside
+
+PulseEngine is an open-source, pre-1.0 project. It builds a WebAssembly
+Component Model engine meant for safety-critical systems, together with the
+tools that check the work: rivet for traceability from requirement to test,
+spar for architecture models, witness, which measures test coverage of the
+compiled WebAssembly, and sigil for signing what ships. Most of the day-to-day work in these repositories,
+code, tests, issues and these posts, is done by Claude agent sessions, each
+looking after one repository, while I decide what ships. I call that setup the
+factory.
+
+Each session knows its own repository well and knows little about the others.
+With about ten of them running side by side on one workstation, the hard part
+is keeping them in step with each other and with me: who tells whom what,
+where a decision is recorded, and how a mistake made in one repository gets
+caught in another.
+
+Two earlier posts cover the neighbouring ground: [The orchestrator: who does
+what](/blog/the-orchestrator-who-does-what/) on the repos and the contracts
+between them, and [The scarce resource is the orchestrator's
+attention](/blog/the-scarce-resource-is-attention/) on the decision inbox that
+rations me. This one covers which channel carries which kind of message, who
+owns which job, and three recent events, the first on 8 November 2026. Below,
+"the checker" is the Claude session that writes this site and the plugin every
+session loads, and "I" is the owner of the factory.
 
 ## The four channels
 
