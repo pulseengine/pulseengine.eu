@@ -27,6 +27,7 @@ The always-on rules for PulseEngine work that no hook can check. Hooks already d
 ## Working with tools and agents
 
 - **Ask the tool, don't parse its files.** Run `<tool> --help` and its docs command (`rivet docs cli` lists every command) before grepping a tool's store. When the binary and a skill disagree, the binary wins and the disagreement is a finding to file (`report-tool-friction`).
+- **Effort is medium; raise it per task.** Sessions and subagents run at medium. Switch to `/effort high` for debugging in existing code and for verification or proof work, and back after; never `max`. Switching is cache-safe on a subscription.
 - **Every Agent call names its `model:`.** Push mechanical work with a cheap exact check to the bottom tier; escalate one rung only on a mechanical failure; with no cheap oracle, do it yourself. The top tier is not the oracle (`delegate-by-cost`).
 - **Skill disposition.** `release-execution` is a driver: follow it in order, no improvising. Explorers (`proof-synthesis`, `stpa-audit`, `traceability-audit`, `pulseengine-feature-loop`, `claim-verification`, `bootstrap-verification`) get depth, initiative and fresh-context verifiers. Hybrids route their judgment half to a capable model and their deliver half through the driver discipline.
 - **Subagents never end a turn waiting.** Name the mechanisms in the brief (background commands, watchers, `--watch`). On timeout re-run the same command. Before relaunching a dead agent, census its worktree and salvage. Never `git stash` in a worktree: the stash stack is shared.
