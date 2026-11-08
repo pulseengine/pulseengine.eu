@@ -3093,3 +3093,16 @@ claims:
     links:
       - type: verifies
         target: REQ-CONTEXT-TRIM
+
+  # ── Effort is medium; raise it per task (0.57.1) ────────────────────────────
+  # REQ-CORE-EFFORT. Owner decision 2026-11-08 after measuring that the user
+  # setting effortLevel: xhigh is ignored on Opus 5.5 (model-config docs) and
+  # every session ran at medium. The core contract carries the per-task rule.
+  - id: CORE-EFFORT-MEDIUM
+    doc: claude-tooling/plugins/pulseengine-claude/core/pulseengine-core.md
+    text: "Sessions and subagents run at medium. Switch to `/effort high` for debugging in existing code and for verification or proof work"
+    evidence:
+      - kind: count-min
+        pattern: 'never `max`'
+        glob: ['claude-tooling/plugins/pulseengine-claude/core/pulseengine-core.md']
+        min: 1

@@ -1392,3 +1392,29 @@ artifacts:
     links:
       - type: verifies
         target: REQ-CI-STATUS-WARTE-API
+
+  - id: REQ-CORE-EFFORT
+    type: requirement
+    title: The core contract says sessions and subagents run at medium effort and raise it to high per task for debugging and verification work
+    description: >-
+      Owner decision 2026-11-08. On Opus 5.5 Claude Code ignores a user-level effortLevel (model-config docs; changelog 2.1.280), so the configured xhigh never applied and every session ran at medium. Anthropic's guidance for Opus 5.5 is to start at medium and reserve xhigh and max for measured gains; high suits work where verification matters. The workstation settings set CLAUDE_CODE_EFFORT_LEVEL and CLAUDE_CODE_SUBAGENT_EFFORT to medium; the core contract, injected whole at session start, tells sessions when to switch to /effort high and back, and never to use max.
+    status: verified
+    release: 0.57.1
+    category: functional
+    priority: should
+    fields:
+      category: functional
+
+  - id: VER-CORE-EFFORT
+    type: verification
+    title: claim CORE-EFFORT-MEDIUM in claims.yaml, plus check-hook-context-size.py keeping the core contract whole under the injection cap
+    description: >-
+      The claim fails the build if the core contract loses the effort rule or its never-max clause. check-hook-context-size.py fails if the added line pushes the injected core past 9,500 characters.
+    status: verified
+    release: 0.57.1
+    method: automated-test
+    test-location: claims.yaml
+    links:
+      - type: verifies
+        target: REQ-CORE-EFFORT
+
