@@ -72,10 +72,10 @@ flowchart LR
     warte["warte<br/><i>reports the fleet</i>"]
     rivet["rivet artifacts<br/><i>the record</i>"]
 
-    repo <-->|"direct messages"| checker
+    repo ---|"direct messages"| checker
     checker -->|"bounded task"| sub
     sub -->|"one report"| checker
-    repo <-->|"read on a schedule"| gh
+    repo ---|"read on a schedule"| gh
     gh -->|"actionable item"| rivet
     sessions -->|"option dialog"| owner
     owner -->|"answer"| sessions
