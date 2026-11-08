@@ -1,6 +1,6 @@
 +++
 title = "How the factory talks: four channels, one record, and who owns what"
-description = "Agent sessions coordinate over four channels: direct messages between sessions, subagents inside one session, issues read on a schedule, and option dialogs to me. What lasts is the rivet artifact an issue becomes. Three recent events went through these channels: a full disk on 8 November, a check that passed by being skipped and settings that never reached the agents."
+description = "Agent sessions coordinate over four channels: direct messages between sessions, subagents inside one session, issues read on a schedule, and option dialogs to me. What lasts is the rivet artifact an issue becomes. Three recent events went through these channels: a low disk on 8 November, a check that passed by being skipped and settings that never reached the agents."
 date = 2026-11-12
 draft = true
 hold = true
@@ -10,12 +10,12 @@ authors = ["Ralf Anton Beier"]
 +++
 
 {% <insight> %}
-**Approval comes only from my option dialog; messages from other sessions are requests, and rivet keeps the record.**
+**Decisions that are mine come only through my option dialog; messages from other sessions are requests, and rivet keeps the record.**
 
 Issues take work in, messages coordinate, and subagents do bounded work
 inside one session. On one workstation, messages received from other sessions
-went from none in the week of 28 September to 129 in the partial week of 2
-November, a week in which the number of sessions fell to 10.
+went from none in the week of 12 October to 129 in the partial week of 2
+November (as of 8 November), a week with 10 sessions.
 {% </insight> %}
 
 [The orchestrator: who does what](/blog/the-orchestrator-who-does-what/)
@@ -33,7 +33,7 @@ the factory.
 **Issues and comments, on a schedule.** Agents run the `issue-hunt` loop on a
 cron: each pass reads what is new since its last watermark, triages it, and
 works it in the repo that owns it. Issues are where work enters, from outside
-reporters as much as from agents, and where the reporter hears back. They are
+reporters as much as from agents, and where the reporter hears back. Most are
 public and outlive every session. They are also slow: an agent learns about a
 comment at its next pass.
 
@@ -44,13 +44,12 @@ messages: "receivers refuse relayed permission requests" ([Claude Code
 changelog](https://github.com/anthropics/claude-code/blob/main/CHANGELOG.md)).
 A session running with bypassed permissions holds incoming messages until I
 release them, unless I changed that setting. Releasing a held message is not a
-decision on what it asks. Messages arrive in
-seconds and leave no public trace, which suits "can you free your disk" and
+decision on what it asks. Messages leave no public trace, which suits "can you free your disk" and
 "is this yours" and does not suit a decision.
 
 **Subagents.** A session starts a subagent for a bounded task, such as a scan
 over many files or a fresh-context review of its own claims, and gets one
-report back. The subagent talks only to its parent. The `delegate-by-cost`
+report back. A subagent reports back to its parent. The `delegate-by-cost`
 skill picks its model: mechanical work with an exact check goes to the cheapest
 tier.
 
@@ -82,12 +81,11 @@ issues are its intake and its customer-facing side.
 | me, the owner | take every decision that is mine | — |
 
 In these events the checker did more coordinating than checking, and the
-overreach showed: it sent one brief to the wrong session, and drafted a design
-that the warte session sent back.
+mistakes showed, as the last section records.
 
 ## Three events
 
-**A full disk.** On 8 November the workstation's data volume had 14 GB free.
+**A low disk (14 GB free).** On 8 November the workstation's data volume had 14 GB free.
 The checker measured who held the space: per-session scratch directories under
 the temporary directory, and build caches in one repo's checkout and three of
 its worktrees. The four build caches of that repo (meld) held 22.3, 12.4, 9.8 and
@@ -105,7 +103,7 @@ I then asked for the check to become mechanical. The checker proposed
 an endpoint in warte that would name the holders. pulseengine.eu#356 records the outcome as
 "Design revised the same day in warte: names only locally, pressure per
 volume". The
-plugin side became a hook that will read a local command before a disk-heavy
+plugin side is drafted as a hook that will read a local command before a disk-heavy
 command and will say, with the command's result, who holds what when a volume
 is low. That needs warte to ship the local command; without it, the hook
 reports volume pressure only. #356 is a draft until warte releases the
@@ -129,13 +127,12 @@ and their 143 required checks:
   which also fails closed.
 
 temper configures repositories to org-wide rules today. A change-filter check
-is planned (meld#580), with a probe that feeds each repo's change filter files that must
-count as code across all repos. Detection comes first, and enforcement waits for
-me. The configuration session would apply it per repo, because
+is planned (meld#580), detection first. A probe that would feed each repo's change filter files that
+must count as code is proposed. Enforcement waits for me. The configuration session would apply it per repo, because
 organisation-wide rulesets are the alternative and the free plan does not offer
 them for private repositories. Both would ask me before building it. The
-finding started in a direct message and ended as an issue (meld#580), a meld PR
-(#581), PRs in the repos that own the fix, and a decision of mine.
+finding started in a direct message and ended, so far, as an issue (meld#580), a meld PR
+(#581), PRs in the repos that own the fix, and a decision waiting on me.
 
 **Settings that never reached the agents.** The gale session reported, in a
 direct message, that a call to an address warte had retired came back empty.
@@ -144,38 +141,35 @@ four warte settings lived in a shell startup file whose exports never reached th
 shell. Agents had been running without them, so every warte call fell
 back silently: admission advice, wait estimates and notice sync. The change that
 puts the values into Claude Code's own settings on both machines is an open PR
-in the private configuration repo; one machine already has the values set by
-hand. The same pattern as the skipped check: the configuration existed, did
+in the private configuration repo; I set them by hand on one machine. The same pattern as the skipped check: the configuration existed, did
 nothing, and no check failed.
 
 ## What the numbers say
 
 The table counts sessions, messages received from other sessions, SendMessage
 calls and option dialogs per week. Message use rose from none to 129 received
-in the partial week of 2 November.
+in the partial week of 2 November, as of 8 November.
 
 | week of | sessions | messages received from other sessions | SendMessage calls | option dialogs |
 |---|---|---|---|---|
-| 28 Sep | 8 | 0 | 1 | 22 |
-| 5 Oct | 176 | 0 | 1 | 33 |
 | 12 Oct | 230 | 0 | 11 | 32 |
 | 19 Oct | 125 | 5 | 38 | 53 |
 | 26 Oct | 209 | 12 | 104 | 76 |
 | 2 Nov | 10 | 129 | 242 | 114 |
 
-Counts come from one workstation's local transcripts, up to 8 November. The weeks of 28 September and 5 October are incomplete because older transcripts are cleaned up locally, and the earliest surviving transcript is from 8 October. The week of 2 November is partial.
+Counts come from one workstation's local transcripts, up to 8 November. The week of 2 November is partial.
 
 The feature was installed for weeks before the first message between sessions
 arrived, on 22 October. In my own account, use took off in the week I told the
 sessions to talk to each other directly. The session shape changed in the same
-week: 10 sessions ran for most of the week instead of 125 to 230, so there was
+week: 10 sessions in the week, against 125 to 230 earlier, so there was
 always someone to message. The two cannot be separated. SendMessage counts may
 include messages to a session's own subagents.
 
 ## What I keep, and what I would change
 
 Messages coordinate, issues take work in and answer the people who filed it,
-and rivet keeps the record. The threads this post describes each ended in an
+and rivet keeps the record. Each thread this post describes is now an
 issue, a PR or a dialog, and the draft plugin change (#356) would add its requirement and
 verification to rivet (REQ-DISK-PRESSURE and VER-DISK-PRESSURE), so that its
 decision would not live only in a transcript. I would not move the scheduled
