@@ -1,9 +1,8 @@
 +++
 title = "How the factory talks: four channels, one record, and who owns what"
 description = "Agent sessions coordinate over four channels: direct messages between sessions, subagents inside one session, issues read on a schedule, and option dialogs to me. What lasts is the rivet artifact an issue becomes. Three recent events went through these channels: a low disk on 8 November, a check that passed by being skipped and settings that never reached the agents."
-date = 2026-11-12
-draft = true
-hold = true
+date = 2026-11-08
+draft = false
 [taxonomies]
 tags = ["process", "ai-agents", "orchestration"]
 authors = ["Ralf Anton Beier"]
