@@ -76,28 +76,26 @@ am watching, the question goes to the decision inbox, which surfaces at
 most three routine flows at a time.
 
 {% <mermaid> %}
-flowchart LR
+flowchart TB
     owner["me<br/><i>decides</i>"]
     subgraph sessions["agent sessions"]
-        direction TB
+        direction LR
         repo["repo sessions<br/><i>one repo each</i>"]
         checker["the checker"]
         sub["subagents"]
+        repo ---|"direct messages"| checker
+        checker -->|"bounded task, one report back"| sub
     end
-    gh["GitHub issues<br/>and comments"]
-    warte["warte<br/><i>reports the fleet</i>"]
-    rivet["rivet artifacts<br/><i>the record</i>"]
-
-    repo ---|"direct messages"| checker
-    checker -->|"bounded task"| sub
-    sub -->|"one report"| checker
-    repo ---|"read on a schedule"| gh
-    gh -->|"actionable item"| rivet
     sessions -->|"option dialog"| owner
     owner -->|"answer"| sessions
-    warte -.->|"queue, admission"| sessions
-    sessions -.->|"notices"| warte
-    temper["temper<br/><i>org-wide repo rules</i>"] -.-> gh
+    warte["warte<br/><i>reports the fleet</i>"]
+    warte -.-|"queue, admission, notices"| sessions
+    gh["GitHub issues and comments"]
+    rivet["rivet artifacts<br/><i>the record</i>"]
+    temper["temper<br/><i>org-wide repo rules</i>"]
+    sessions ---|"read on a schedule"| gh
+    temper -.->|"rules"| gh
+    gh -->|"actionable item"| rivet
 {% </mermaid> %}
 
 ## Behind the issues: the record (rivet)
@@ -200,8 +198,8 @@ calls and option dialogs per week. Message use rose from none to 129 received
 in the partial week of 2 November, as of 8 November.
 
 {% <mermaid> %}
+%%{init: {"xyChart": {"height": 320}}}%%
 xychart-beta
-    title "Messages received from other sessions, per week (one workstation, as of 8 November)"
     x-axis ["12 Oct", "19 Oct", "26 Oct", "2 Nov (partial)"]
     y-axis "messages" 0 --> 140
     bar [0, 5, 12, 129]
