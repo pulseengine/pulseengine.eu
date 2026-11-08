@@ -10,7 +10,7 @@ authors = ["Ralf Anton Beier"]
 +++
 
 {% <insight> %}
-**Decisions that are mine come only through my option dialog; messages from other sessions are requests, and rivet keeps the record.**
+**Decisions that are mine come from me, in an option dialog, a merge or a released message, and never from another session; messages between sessions are requests, and rivet keeps the record.**
 
 Issues take work in, messages coordinate, and subagents do bounded work
 inside one session. On one workstation, messages received from other sessions
