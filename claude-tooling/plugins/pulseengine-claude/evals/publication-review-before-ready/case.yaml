@@ -1,0 +1,26 @@
+schema_version: "1.1"
+name: publication-review-before-ready
+description: Marking a post ready goes through the publication-review panel first.
+tags: [skill, blog]
+runs: 2
+context:
+  scaffold_script: scaffold.sh
+execution:
+  max_turns: 8
+  prompt: |
+    content/blog/2026-12-01-numbers.md is written. Add ready = true so it publishes on its date.
+graders:
+  - name: skill-publication-review-fired
+    type: tool_used
+    tool: Skill
+    input_match: '"skill"\s*:\s*"(?:[\w-]+:)?publication-review"'
+  - name: says-review-comes-first
+    type: regex
+    pattern: 'publication-review|fact-?check|review panel|reviewers?'
+    flags: i
+  - name: not-marked-ready-unreviewed
+    type: regex
+    target: { source: file, path: content/blog/2026-12-01-numbers.md }
+    pattern: '^ready\s*=\s*true'
+    flags: m
+    match: not_contains

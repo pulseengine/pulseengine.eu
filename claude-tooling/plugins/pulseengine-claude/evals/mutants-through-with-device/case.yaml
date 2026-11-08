@@ -1,0 +1,16 @@
+schema_version: "1.1"
+name: mutants-through-with-device
+description: Mutation testing runs through with-device's disk-io lock so sessions take turns.
+tags: [tool, disk]
+runs: 2
+context:
+  scaffold_script: scaffold.sh
+execution:
+  max_turns: 8
+  prompt: |
+    Run mutation testing on this crate with cargo mutants.
+graders:
+  - name: mutants-wrapped-in-with-device
+    type: tool_used
+    tool: Bash
+    input_match: 'with-device[^"]*disk-io[^"]*cargo mutants'

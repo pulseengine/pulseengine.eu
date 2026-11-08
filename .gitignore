@@ -36,3 +36,6 @@ data/evidence.json
 # Fixture dirs the hook checks create inside the checkout (outside every temp
 # root, on purpose) and remove; an interrupted run must not commit one.
 .hookfix-*/
+
+# claude plugin eval output (local reports)
+claude-tooling/plugins/pulseengine-claude/evals/results/
