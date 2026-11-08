@@ -1418,3 +1418,28 @@ artifacts:
       - type: verifies
         target: REQ-CORE-EFFORT
 
+  - id: REQ-LOOP-GUARD
+    type: requirement
+    title: When a Bash command fails the same way three times in a row the plugin tells the agent to stop repeating it, without blocking or a model call
+    description: >-
+      Owner decision 2026-11-08: borrow the loop guard of Microsoft's TokenEconomizer (repeated failures waste tokens; its guard is model-judged) as our own hook with no model call and no third-party code, rather than installing it. On PostToolUseFailure for Bash, a command (whitespace collapsed) whose failure (the first two lines of the error, digits and hex masked) repeats with no success of that command in between and within 30 minutes is counted; at the 3rd and 6th repeat one line of context says re-running it unchanged will not help and to change the approach or ask. Edits between runs do not reset it; PostToolUse of that command does. Interrupts and other tools are ignored; sessions are separate. It only adds context: no permission decision, exit 0 on anything; the PostToolUse wrapper starts python only when a failure was recorded in the last 30 minutes.
+    status: verified
+    release: 0.58.0
+    category: functional
+    priority: should
+    fields:
+      category: functional
+
+  - id: VER-LOOP-GUARD
+    type: verification
+    title: scripts/check-loop-guard.py against the real wrapper, plus claim LOOP-GUARD-NEVER-BLOCKS
+    description: >-
+      21 checks over PostToolUseFailure and PostToolUse events fed as Claude Code sends them: silent at 1, 2, 4, 5 and 7, says so at 3 (with the error) and 6; a success resets; a different error or command starts over; moving line numbers still match; whitespace variants match; sessions are separate; a repeat older than the window starts over; interrupts and other tools ignored; a success with no recent failure starts no python and writes no state; bad input silent; every run exits 0; no permission decision; the output names PostToolUseFailure. Negative-controlled 2026-11-08 with seven mutations, each failing the script: no reset on success (2 FAIL), no digit masking (1), no window (1), interrupts counted (1), every failure nagging (7), the wrong event name (5), the error identity ignored (1).
+    status: verified
+    release: 0.58.0
+    method: automated-test
+    test-location: scripts/check-loop-guard.py
+    links:
+      - type: verifies
+        target: REQ-LOOP-GUARD
+

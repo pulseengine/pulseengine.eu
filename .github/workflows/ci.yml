@@ -365,6 +365,14 @@ jobs:
           set -euo pipefail
           python3 scripts/check-agent-model-reminder.py
 
+      # The Bash loop guard (REQ-LOOP-GUARD): the 3rd identical failure of one
+      # command says so, a success resets it, and it never prints a permission
+      # decision or exits non-zero.
+      - name: Check the loop-guard hook never blocks
+        run: |
+          set -euo pipefail
+          python3 scripts/check-loop-guard.py
+
       # The PreToolUse(Bash) commit-merge-guard hook (REQ-COMMIT-MERGE-GUARD).
       # Runs the real wrapper against throwaway git repos and a stub gh that
       # answers from fixtures. HOME, GIT_CONFIG_GLOBAL and the plugin data dir

@@ -3106,3 +3106,35 @@ claims:
         pattern: 'never `max`'
         glob: ['claude-tooling/plugins/pulseengine-claude/core/pulseengine-core.md']
         min: 1
+
+  # ── The loop guard adds context and never blocks (0.58.0) ───────────────────
+  # REQ-LOOP-GUARD. Behaviour is tested by scripts/check-loop-guard.py; this
+  # keeps the wiring, the never-blocks shape and the test in CI.
+  - id: LOOP-GUARD-NEVER-BLOCKS
+    doc: claude-tooling/plugins/pulseengine-claude/README.md
+    text: "It never blocks: no permission decision, exit 0 on anything; on a successful command"
+    evidence:
+      - kind: count-min
+        pattern: '"PostToolUseFailure": \[\s*\{\s*"matcher": "Bash",\s*"hooks": \[\s*\{\s*"type": "command",\s*"command": "bash \$\{CLAUDE_PLUGIN_ROOT\}/hooks/loop-guard\.sh"'
+        glob: ['claude-tooling/plugins/pulseengine-claude/hooks/hooks.json']
+        min: 1
+      - kind: count-max
+        pattern: '"(?:permissionDecision|updatedInput|decision|continue)"'
+        glob: ['claude-tooling/plugins/pulseengine-claude/hooks/loop-guard.py']
+        max: 0
+      - kind: count-max
+        pattern: 'exit\s+[1-9]|sys\.exit\([1-9]'
+        glob: ['claude-tooling/plugins/pulseengine-claude/hooks/loop-guard.sh', 'claude-tooling/plugins/pulseengine-claude/hooks/loop-guard.py']
+        max: 0
+      - kind: count-min
+        pattern: '2>/dev/null\nexit 0\n'
+        glob: ['claude-tooling/plugins/pulseengine-claude/hooks/loop-guard.sh']
+        min: 1
+      - kind: count-min
+        pattern: '\n +python3 scripts/check-loop-guard\.py\n'
+        glob: ['.github/workflows/ci.yml']
+        min: 1
+      - kind: count-max
+        pattern: '\n +python3 scripts/check-loop-guard\.py\n'
+        glob: ['.github/workflows/ci.yml']
+        max: 1
