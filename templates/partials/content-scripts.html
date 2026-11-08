@@ -37,6 +37,21 @@
         titleColor:          '#e1e4ed',
         edgeLabelBackground: '#1a1d27',
         nodeTextColor:       '#e1e4ed',
+        // xychart: bars in the accent, stepped into the dark lightness band
+        // (dataviz validator: #6c8cff L=0.671 fails 0.48-0.67, #6482f5 passes).
+        xyChart: {
+          backgroundColor:  '#1a1d27',
+          titleColor:       '#e1e4ed',
+          xAxisLabelColor:  '#8b90a0',
+          xAxisTitleColor:  '#8b90a0',
+          xAxisLineColor:   '#2e3345',
+          xAxisTickColor:   '#2e3345',
+          yAxisLabelColor:  '#8b90a0',
+          yAxisTitleColor:  '#8b90a0',
+          yAxisLineColor:   '#2e3345',
+          yAxisTickColor:   '#2e3345',
+          plotColorPalette: '#6482f5',
+        },
       },
     },
     light: {
@@ -76,6 +91,20 @@
         actorBkg:            '#fbf7ee',
         actorBorder:         '#8a7e62',
         actorTextColor:      '#1a2235',
+        // xychart: cream surface, bars in the light line colour (validator: pass).
+        xyChart: {
+          backgroundColor:  '#f4efe4',
+          titleColor:       '#1a2235',
+          xAxisLabelColor:  '#44516a',
+          xAxisTitleColor:  '#44516a',
+          xAxisLineColor:   '#8a7e62',
+          xAxisTickColor:   '#8a7e62',
+          yAxisLabelColor:  '#44516a',
+          yAxisTitleColor:  '#44516a',
+          yAxisLineColor:   '#8a7e62',
+          yAxisTickColor:   '#8a7e62',
+          plotColorPalette: '#3a5fce',
+        },
       },
     },
   };

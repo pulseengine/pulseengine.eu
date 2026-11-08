@@ -139,6 +139,8 @@ The Mermaid theme is pre-configured to match the site's dark palette — no manu
 
 **Avoid HTML inside Mermaid node labels** — use plain text or Mermaid's native formatting. The content goes through Zola's markdown processor, so raw HTML tags get escaped.
 
+**Avoid the bidirectional arrow `<-->`.** The HTML pipeline reads `<--` as markup and drops the block's closing `</pre>`, so the next heading lands inside the diagram and Mermaid reports a syntax error. Use an undirected link (`---`) or two arrows.
+
 For complex diagrams that don't change often, consider pre-rendering as SVG and including as an image instead (no client-side JS dependency).
 
 ### Callout notes
