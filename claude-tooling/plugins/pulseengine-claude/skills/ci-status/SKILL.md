@@ -38,13 +38,14 @@ a host.
 ## Asking
 
 One URL per `curl` call. In zsh, `for x in $list` does not word-split, so a loop
-over a variable runs once with the whole string.
+over a variable runs once with the whole string. For the same reason pass the CA
+as an array: `${VAR:+--cacert "$VAR"}` stays ONE word in zsh, curl rejects it, and
+the call falls back silently (seen 2026-11-08). The array form works in zsh and bash:
 
 ```sh
-curl -s ${PULSEENGINE_CI_STATUS_CACERT:+--cacert "$PULSEENGINE_CI_STATUS_CACERT"} \
-  "$PULSEENGINE_CI_STATUS_URL/api/eta?repo=<repo>&pr=<n>"        # this PR
-curl -s ${PULSEENGINE_CI_STATUS_CACERT:+--cacert "$PULSEENGINE_CI_STATUS_CACERT"} \
-  "$PULSEENGINE_CI_STATUS_URL/api/queue?repo=<repo>"             # the fleet
+ca=(); [ -n "$PULSEENGINE_CI_STATUS_CACERT" ] && ca=(--cacert "$PULSEENGINE_CI_STATUS_CACERT")
+curl -s "${ca[@]}" "$PULSEENGINE_CI_STATUS_URL/api/eta?repo=<repo>&pr=<n>"     # this PR
+curl -s "${ca[@]}" "$PULSEENGINE_CI_STATUS_URL/api/queue?repo=<repo>"          # the fleet
 ```
 
 `repo` is the name **without** the organisation (`spar`, not `pulseengine/spar`).
@@ -59,7 +60,9 @@ snapshot is old). A 503 from either means warte has no snapshot: treat it as
 
 - **`running`**: jobs are on a runner (`running[].on`, `for_s`). There is no finish
   forecast; do not invent one.
-- **`queued`** or **`running+queued`**: each `queued[]` part has `pool`, `waited_s`
+- **`queued`** or **`running+queued`**: each `queued[]` part has `pool` (since warte
+  v1.6.6 a GitHub-hosted pool reads `hosted:<runs-on label>`, e.g.
+  `hosted:ubuntu-latest`; older answers say `hosted`), `waited_s`
   and possibly an `estimate` with `start_in_low_s`, `start_in_high_s`, `overdue`
   and `basis`.
   - `start_in_*` count **from now**. The time already waited is subtracted; do not
@@ -140,7 +143,8 @@ tidy-ups), `fix`, `feature`, `security`, or `red-main` (a fix that turns a red
 **Source 1: warte's admission verdict.**
 
 ```sh
-curl -sf -m 10 ${PULSEENGINE_CI_STATUS_CACERT:+--cacert "$PULSEENGINE_CI_STATUS_CACERT"} \
+ca=(); [ -n "$PULSEENGINE_CI_STATUS_CACERT" ] && ca=(--cacert "$PULSEENGINE_CI_STATUS_CACERT")
+curl -sf -m 10 "${ca[@]}" \
   "$PULSEENGINE_CI_STATUS_URL/api/admission?repo=<repo>&kind=<kind>"   # {verdict, reason, recheck_s}
 ```
 

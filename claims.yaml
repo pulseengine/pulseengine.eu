@@ -1162,11 +1162,17 @@ claims:
         text: "**`security` and `red-main` always open, whatever the source below says.**"
       - kind: verbatim
         text: "\"$PULSEENGINE_CI_STATUS_URL/api/admission?repo=<repo>&kind=<kind>\""
-      # Every call carries the base's own CA, and no retired surface remains.
+      # Every call carries the base's own CA through the zsh-safe array form
+      # (0.58.1: `${VAR:+--cacert "$VAR"}` is one word in zsh and curl rejects
+      # it), and no retired surface remains.
       - kind: count-min
-        pattern: '--cacert "\$PULSEENGINE_CI_STATUS_CACERT"\} \\\n\s*"\$PULSEENGINE_CI_STATUS_URL/api/(eta|queue|admission)\?'
+        pattern: 'curl -sf?(?: -m 10)? "\$\{ca\[@\]\}" (?:\\\n\s*)?"\$PULSEENGINE_CI_STATUS_URL/api/(eta|queue|admission)\?'
         glob: ['claude-tooling/plugins/pulseengine-claude/skills/ci-status/SKILL.md']
         min: 3
+      - kind: count-max
+        pattern: '\$\{PULSEENGINE_CI_STATUS_CACERT:\+--cacert'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/ci-status/SKILL.md']
+        max: 0
       - kind: count-max
         pattern: 'PULSEENGINE_WARTE_|/api/state|status\.md|warte#55'
         glob: ['claude-tooling/plugins/pulseengine-claude/skills/ci-status/SKILL.md']
