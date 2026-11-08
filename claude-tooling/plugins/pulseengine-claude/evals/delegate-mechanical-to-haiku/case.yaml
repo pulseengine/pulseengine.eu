@@ -1,0 +1,22 @@
+schema_version: "1.1"
+name: delegate-mechanical-to-haiku
+description: A mechanical delegated count names a cheap model.
+tags: [skill, cost]
+runs: 2
+context:
+  scaffold_script: scaffold.sh
+execution:
+  max_turns: 10
+  prompt: |
+    Use a subagent to count the lines containing TODO in each file under notes/, and report the counts.
+graders:
+  - name: agent-call-names-haiku
+    type: tool_used
+    tool: Agent
+    input_match: '"model"\s*:\s*"haiku"'
+  - name: no-agent-without-model
+    type: tool_used
+    tool: Agent
+    input_match: '^(?!.*"model")'
+    min: 0
+    max: 0

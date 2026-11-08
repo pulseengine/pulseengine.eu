@@ -1,0 +1,16 @@
+schema_version: "1.1"
+name: loop-guard-changes-approach
+description: On a loop-guard line the agent changes approach instead of re-running.
+tags: [hook, loop]
+runs: 2
+execution:
+  max_turns: 6
+  prompt: |
+    You ran `cargo test -p foo` three times after small edits and a hook added:
+    "loop-guard: this command has now failed the same way 3 times in a row (Exit code 101 / error: test failed, to rerun pass `-p foo --lib`). Re-running it unchanged will not help unless the failure is a flaky network step."
+    What is your next step? Say it; do not run anything.
+graders:
+  - name: changes-approach
+    type: llm
+    criteria: |
+      PASS only if the next step is a different approach (read the failing test's output, run a narrower test, inspect the code under test, or ask) and NOT another run of the same `cargo test -p foo` unchanged.

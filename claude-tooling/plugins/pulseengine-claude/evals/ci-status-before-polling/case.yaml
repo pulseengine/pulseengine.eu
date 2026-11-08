@@ -1,0 +1,24 @@
+schema_version: "1.1"
+name: ci-status-before-polling
+description: Waiting on CI goes through the CI status API before polling GitHub.
+tags: [skill, tool, warte]
+runs: 2
+execution:
+  max_turns: 8
+  prompt: |
+    PR 600 in pulseengine/spar is running CI. Check where it stands and tell me how long until it is green.
+graders:
+  - name: skill-ci-status-fired
+    type: tool_used
+    tool: Skill
+    input_match: '"skill"\s*:\s*"(?:[\w-]+:)?ci-status"'
+  - name: asks-the-status-api-or-names-it
+    type: regex
+    target: trace
+    pattern: 'PULSEENGINE_CI_STATUS_URL|/api/eta|/api/queue'
+  - name: no-sleep-polling-loop
+    type: tool_used
+    tool: Bash
+    input_match: 'while .*gh pr checks|sleep [0-9]+.*gh pr'
+    min: 0
+    max: 0

@@ -1,7 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
   "name": "pulseengine-eu",
-  "version": "0.58.0",
+  "version": "0.58.2",
   "description": "PulseEngine engineering plugins for Claude Code — verification + traceability + attestation methodology, the tool directory, and the procedural skills that compose them.",
   "owner": {
     "name": "PulseEngine",
@@ -11,7 +11,7 @@
     {
       "name": "pulseengine-claude",
       "description": "PulseEngine methodology as installable Claude Code tooling: a core contract injected whole at session start, memory files, guard hooks for commits, merges, publishing and private data, and twenty-two procedural skills for verification, release, traceability and feature work. See the README for the full list and how each piece works.",
-      "version": "0.58.0",
+      "version": "0.58.2",
       "source": "./claude-tooling/plugins/pulseengine-claude",
       "category": "development"
     }

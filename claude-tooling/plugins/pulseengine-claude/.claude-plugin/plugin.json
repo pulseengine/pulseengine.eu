@@ -1,6 +1,6 @@
 {
   "name": "pulseengine-claude",
-  "version": "0.58.0",
+  "version": "0.58.2",
   "description": "PulseEngine methodology as installable Claude Code tooling: a core contract injected whole at session start, memory files, guard hooks for commits, merges, publishing and private data, and twenty-two procedural skills for verification, release, traceability and feature work. See the README for the full list and how each piece works.",
   "author": {
     "name": "PulseEngine",
