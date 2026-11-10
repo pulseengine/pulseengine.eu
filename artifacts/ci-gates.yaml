@@ -1443,3 +1443,27 @@ artifacts:
       - type: verifies
         target: REQ-LOOP-GUARD
 
+  - id: REQ-DISK-PRESSURE
+    type: requirement
+    title: Before the next disk-heavy command the plugin says when a shared volume is low or critical and who holds the space, and never blocks
+    description: >-
+      Owner decision 2026-11-08, after one workstation's data volume fell to 14 GB free and the holders had to be found by hand (68 GB freed); design revised the same day in warte (names only locally, pressure per volume). A PreToolUse(Bash) hook fires on commands that can write gigabytes (cargo build/test/install and friends, bazel, git clone and worktree add, image pulls and builds, nix, package installs, model downloads). It reads the local warte probe (`warte probe pressure --format json`: stored data, no network, never --measure) and, when a volume is low (under 20 GB free) or critical (under 10 GB), adds one line, delivered with that command's result and so about the next heavy command: the bad volumes, what the calling session holds, the three biggest other live holders by repo and session, ended sessions' scratchpads as "tell the owner", or that holders are not sized yet. Holders on a volume that is fine are left out. A stale answer (over 30 min), no volumes, a failing or garbled probe or no probe is not available, never ok; the hook then measures the data volume (on macOS the Data volume, not the sealed /) and the working directory's volume, and names nobody. Cached 5 minutes; said once per verdict per session, again when it worsens or after a recovery. It only adds context: no permission decision, no rewritten input, exit 0 on anything. The ci-status skill says what to do: own residue first, then SendMessage the other holders matched to ListAgents by repo (ask the owner when that is ambiguous), never another agent's files or a shared cache.
+    status: verified
+    release: 0.59.0
+    category: functional
+    priority: should
+    fields:
+      category: functional
+
+  - id: VER-DISK-PRESSURE
+    type: verification
+    title: scripts/check-disk-pressure.py with a fake warte probe, plus claim DISK-PRESSURE-NEVER-BLOCKS
+    description: >-
+      Runs the real wrapper with JSON on stdin and a fake `warte` on PATH that prints a scenario file, counts its calls and fails on --measure. 40 checks: thresholds (9.9 critical, 10 and 19.9 low, 20 ok); in-process with platform, mounts and statvfs faked, the macOS fallback measures the Data volume and the cwd's volume and the worst wins, Linux measures /; non-heavy commands are silent and never call the probe; critical names the bad volume, the session's own holding, the three biggest other live holders by repo and session, ended sessions as tell-the-owner, and leaves out holders on a fine volume; one probe call without --measure, then the cache; once per verdict per session, again on worsening and after recovery; unsized holders say so; stale volumes (volumes_at), no volumes, garbled, failing and absent probe fall back; a null measured_at keeps the volume verdict and says holders are not sized yet, and holders sized over 30 min ago are not named; a size with complete false is shown as a floor; every low or critical volume carries the batch caution and the with-device route; an unwrapped cargo mutants, cargo clean or mass delete of a target/ or worktree gets a disk-io line naming `with-device --registry ~/.config/pulseengine/bench-devices.yaml disk-io --wait 3600` (or that with-device is not installed), at most every 30 minutes per session, even with free space, while a command already wrapped in with-device and a one-file rm get nothing; bad input silent; every run exits 0 and none prints a permission decision. Negative-controlled 2026-11-08 with seventeen mutations, each failing the script: fallback on / (1 FAIL), --measure (11), no throttle (2), stale volumes accepted (1), a permissionDecision (1), holders from every volume (3), ended sessions as live (3), no cwd volume in the fallback (2), stale holders named (1), null measured_at treated as an error (1), floor sizes shown as exact (1), a wrapped command still nagged (1), no 30-minute throttle (1), the disk-io advice switched off (3), the batch note dropped (1).
+    status: verified
+    release: 0.59.0
+    method: automated-test
+    test-location: scripts/check-disk-pressure.py
+    links:
+      - type: verifies
+        target: REQ-DISK-PRESSURE

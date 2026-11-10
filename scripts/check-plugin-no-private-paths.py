@@ -18,7 +18,8 @@ Matched (a name character must follow, so documentation that writes the
 placeholder `/Volumes/<name>` or a regex whose text begins `/Volumes/[` passes):
   /Users/<name>   /Volumes/<name>   /home/<name>   -Users-<name>
 The last is the same home directory with `/` turned into `-`, as Claude Code
-names its per-project directories.
+names its per-project directories. `/System/Volumes/...` is macOS's own mount
+point for the Data volume, not a home directory, and is not matched.
 
 Scope: every tracked or untracked-not-ignored file under the plugin directory
 that decodes as UTF-8. Use a repo-relative description instead ("the sibling
@@ -37,7 +38,9 @@ import sys
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 PLUGINS = "claude-tooling/plugins"
 
-PATTERN = re.compile(r"(?:/Users/|/Volumes/|/home/|-Users-)[A-Za-z0-9_]")
+# `(?<!/System)`: macOS mounts its writable Data volume at /System/Volumes/Data,
+# a fixed system path that names no user (the disk-pressure hook measures it).
+PATTERN = re.compile(r"(?:/Users/|(?<!/System)/Volumes/|/home/|-Users-)[A-Za-z0-9_]")
 
 
 def main() -> int:
