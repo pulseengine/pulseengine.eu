@@ -1,0 +1,153 @@
+name: Incident ledger
+
+# Monthly run of scripts/incident-ledger.py (REQ-INCIDENT-LEDGER): the previous
+# calendar month (UTC) and a rolling 90 days, org-wide. The month is appended to
+# docs/incidents/trend.json (never overwritten), the 90-day run replaces
+# docs/incidents/run.json and report.md, scripts/incident-causes.py gives each
+# escape one cause class, and the job opens a PR with the four files. main is
+# protected, so the job never pushes to it.
+#
+# Fails loudly, never publishes an empty or partial report: a missing read token
+# or Claude credential, an API error, fewer repos than the org has (a token that
+# cannot read private repos lists fewer, silently), zero merges, a month already
+# in the trend, a classifier answer outside the class list, an escape without a
+# cause: each is a non-zero exit before the PR step. This is the opposite choice
+# to factory-report.yml (which skips quietly while unconfigured) on purpose: this
+# job stays red until it can measure.
+#
+# SECRETS
+#   INCIDENT_LEDGER_TOKEN, falling back to ISSUE_CLASS_TOKEN: read access to
+#     every non-fork pulseengine repo including the private ones (contents,
+#     pull requests, actions, issues, metadata). ISSUE_CLASS_TOKEN is the only
+#     existing cross-repo secret, but issue-classes.yml documents it as scoped
+#     to rivet and spar issues, which will not be enough: with only that, the
+#     run fails on the repo-count check or the first 404. INCIDENT_LEDGER_TOKEN
+#     is a NEW secret name; set it, or widen ISSUE_CLASS_TOKEN.
+#   CLAUDE_CODE_OAUTH_TOKEN: as factory-report.yml (`claude setup-token`; runs
+#     on the owner's subscription).
+#   ACTIONS_BOT_APP_ID / ACTIONS_BOT_PRIVATE_KEY: as factory-report.yml and
+#     blog-autopublish.yml; the org disables PR creation for GITHUB_TOKEN, and a
+#     PR from an App token triggers ci.yml.
+#
+# ubuntu-latest, as factory-report.yml: the CLI comes from npm and the
+# self-hosted light pool is not known to provide Node. No `gh` is used: the
+# ledger's GitHub client is REST/GraphQL over urllib with the token above, and
+# git reads private repos through an Authorization header built from the same
+# token.
+on:
+  schedule:
+    - cron: "17 5 2 * *"   # 05:17 UTC on the 2nd, for the previous month
+  workflow_dispatch:
+    inputs:
+      month:
+        description: "YYYY-MM to measure (default: the previous calendar month, UTC)"
+        required: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: incident-ledger
+  cancel-in-progress: false
+
+jobs:
+  ledger:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Self-tests (no credential, no network)
+        run: |
+          set -euo pipefail
+          echo "INCIDENT_LEDGER_CACHE=$RUNNER_TEMP/ledger-cache" >> "$GITHUB_ENV"
+          python3 scripts/incident-ledger.py --self-test
+          python3 scripts/incident-causes.py --self-test
+
+      - name: Credentials present
+        env:
+          READ_TOKEN: ${{ secrets.INCIDENT_LEDGER_TOKEN || secrets.ISSUE_CLASS_TOKEN }}
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          APP_ID: ${{ secrets.ACTIONS_BOT_APP_ID }}
+        run: |
+          set -euo pipefail
+          miss=0
+          [ -n "$READ_TOKEN" ] || { echo "::error::no INCIDENT_LEDGER_TOKEN (or ISSUE_CLASS_TOKEN) secret: cannot read the org's repos"; miss=1; }
+          [ -n "$CLAUDE_CODE_OAUTH_TOKEN" ] || { echo "::error::no CLAUDE_CODE_OAUTH_TOKEN secret: cannot classify causes"; miss=1; }
+          [ -n "$APP_ID" ] || { echo "::error::no ACTIONS_BOT_APP_ID secret: cannot open the PR"; miss=1; }
+          exit "$miss"
+
+      - name: Install PyYAML and the Claude Code CLI
+        run: |
+          set -euo pipefail
+          python3 -c 'import yaml' 2>/dev/null || python3 -m pip install --quiet --break-system-packages 'pyyaml==6.0.2'
+          # Same pin as factory-report.yml (CLI_VERSION in factory-report.py).
+          npm install --prefix "$RUNNER_TEMP/claude-code" --no-fund --no-audit --silent \
+            @anthropic-ai/claude-code@2.1.312
+          echo "$RUNNER_TEMP/claude-code/node_modules/.bin" >> "$GITHUB_PATH"
+          "$RUNNER_TEMP/claude-code/node_modules/.bin/claude" --version | grep -qx '2.1.312 (Claude Code)'
+
+      - name: Let git read the org's private repos
+        env:
+          READ_TOKEN: ${{ secrets.INCIDENT_LEDGER_TOKEN || secrets.ISSUE_CLASS_TOKEN }}
+        run: |
+          set -euo pipefail
+          auth=$(printf 'x-access-token:%s' "$READ_TOKEN" | base64 | tr -d '\n')
+          echo "::add-mask::$auth"
+          git config --global http.https://github.com/.extraheader "AUTHORIZATION: basic $auth"
+
+      - name: Previous month
+        env:
+          GITHUB_TOKEN: ${{ secrets.INCIDENT_LEDGER_TOKEN || secrets.ISSUE_CLASS_TOKEN }}
+          MONTH: ${{ inputs.month }}
+        run: |
+          set -euo pipefail
+          python3 scripts/incident-ledger.py run --month "${MONTH:-previous}" --min-repos 30 \
+            --json "$RUNNER_TEMP/month.json"
+          python3 scripts/incident-ledger.py trend --run "$RUNNER_TEMP/month.json"
+
+      - name: Rolling 90 days
+        env:
+          GITHUB_TOKEN: ${{ secrets.INCIDENT_LEDGER_TOKEN || secrets.ISSUE_CLASS_TOKEN }}
+        run: |
+          set -euo pipefail
+          python3 scripts/incident-ledger.py run --days 90 --min-repos 30 \
+            --baseline rules_wasm_component,mcp,rules_rocq_rust \
+            --json docs/incidents/run.json --md docs/incidents/report.md
+
+      - name: Cause classes
+        env:
+          GITHUB_TOKEN: ${{ secrets.INCIDENT_LEDGER_TOKEN || secrets.ISSUE_CLASS_TOKEN }}
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+        run: |
+          set -euo pipefail
+          python3 scripts/incident-causes.py classify
+          python3 scripts/incident-causes.py report
+
+      # Kept for 90 days whatever happens next, so a failed publish does not
+      # lose a month of classifier usage.
+      - name: Keep the output as a run artifact
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: incident-ledger
+          path: |
+            docs/incidents/report.md
+            docs/incidents/run.json
+            docs/incidents/trend.json
+            docs/incidents/causes.json
+
+      - name: Mint App token
+        id: app_token
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          app-id: ${{ secrets.ACTIONS_BOT_APP_ID }}
+          private-key: ${{ secrets.ACTIONS_BOT_PRIVATE_KEY }}
+
+      - name: Open a PR
+        env:
+          GITHUB_TOKEN: ${{ steps.app_token.outputs.token }}
+        run: |
+          set -euo pipefail
+          python3 scripts/incident-ledger.py publish --run "$RUNNER_TEMP/month.json" \
+            --repo "$GITHUB_REPOSITORY" --files docs/incidents/report.md \
+            docs/incidents/run.json docs/incidents/trend.json docs/incidents/causes.json
