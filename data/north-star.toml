@@ -54,8 +54,8 @@ state = "unmeasured"
 id = "O3"
 title = "Every verified claim is backed"
 summary = "Each public claim that something is verified or proved maps to a CI check that can fail."
-indicator = "Proof-carrying repositories whose proof check, with a kernel axiom audit and a trust-escape ledger, is a required check."
-guard = "Ledger entries may only shrink."
+indicator = "Proof-carrying repositories whose proof check, with a kernel axiom audit and a trust-escape ledger, is a required check. The ledger counts every assumption that narrows a harness's input range (for example a kani::assume), because a bug outside that range is invisible to the proof."
+guard = "Ledger entries, input-narrowing assumptions included, may only shrink."
 state = "unmeasured"
 
 [[objectives]]
