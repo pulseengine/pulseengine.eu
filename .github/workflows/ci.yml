@@ -185,6 +185,15 @@ jobs:
       - name: Check the layer view's classes are styled
         run: python3 scripts/check-layers-view.py
 
+      # data/north-star.toml feeds the /north-star page, every repo's `serves:`
+      # allowed-values list and the indicator scripts. The check holds the
+      # honesty rules (a guard per objective, "unmeasured" instead of a made-up
+      # zero, no date on the goal) and keeps infrastructure detail out.
+      - name: Check the North Star data (negative controls first)
+        run: |
+          python3 scripts/check-north-star.py --self-test
+          python3 scripts/check-north-star.py
+
       # The host sends no Cache-Control, only ETag/Last-Modified, so a browser
       # caches heuristically and does not revalidate. A reader got the new
       # /layers HTML and JS against a main.css from days earlier and saw an

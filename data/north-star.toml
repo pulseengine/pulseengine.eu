@@ -1,0 +1,87 @@
+# The PulseEngine North Star: where the factory is heading and how far it is.
+#
+# One source for three readers:
+#   - templates/north-star.html renders it as /north-star;
+#   - repos validate a rivet feature's `serves:` field against the objective ids
+#     below (generated allowed-values list plus a drift check per repo);
+#   - indicator scripts post their numbers against these ids at each varve layer.
+#
+# Rules, checked by scripts/check-north-star.py:
+#   - the North Star has no date; objectives have no end date, only per-period
+#     commitments;
+#   - an objective without an indicator script is "unmeasured", never 0;
+#   - every objective names a guard metric, because agents optimise for the
+#     number a gate checks;
+#   - no host, runner or pool names, and nothing private.
+
+north_star = "A safety-critical product team can take a WebAssembly component from architecture model to signed code running on a microcontroller, with evidence an assessor can re-check, using open tools only."
+
+updated = "2026-11-12"
+
+# Products have their own North Stars and pull on the platform objectives.
+[[products]]
+name = "relay"
+north_star = "Flight-software components whose named safety properties are machine-checked on their source (Kani, Verus, Rocq, Lean), shipped as signed WebAssembly components with a trace from requirement to re-runnable evidence."
+pulls = ["O2", "O3"]
+
+[[products]]
+name = "jess"
+north_star = "The falcon drone flies on PulseEngine: hardware-in-the-loop against the relay simulation, then the real drone, then flight."
+pulls = ["O1"]
+
+[[products]]
+name = "wohl"
+north_star = "A home supervision system you can leave alone: every monitor verified, and every release, updates included, carrying evidence anyone can re-check."
+pulls = ["O2"]
+
+[[objectives]]
+id = "O1"
+title = "Runs on target"
+summary = "A component dissolved by synth runs on a real microcontroller under gust, first Cortex-M, later RISC-V."
+indicator = "Per target and version: jess's ladder (HIL against the relay simulation, real drone, flight) as pass or fail per rung; from synth, reach, execution match on the shipped ELF and WCET bound as three separate numbers, never summed."
+guard = "A skipped hardware run counts as a failure. No translation-validation share is reported before whole-function validation exists."
+state = "unmeasured"
+
+[[objectives]]
+id = "O2"
+title = "One-command evidence bundle"
+summary = "A consumer release carries the rivet trace, witness MC/DC report and sigil attestation as one bundle that one command verifies."
+indicator = "Consumer repositories whose latest release carries the full bundle and passes the verify command."
+guard = "The verify command must fail when any piece of evidence is removed (negative control in CI)."
+state = "unmeasured"
+
+[[objectives]]
+id = "O3"
+title = "Every verified claim is backed"
+summary = "Each public claim that something is verified or proved maps to a CI check that can fail."
+indicator = "Proof-carrying repositories whose proof check, with a kernel axiom audit and a trust-escape ledger, is a required check."
+guard = "Ledger entries may only shrink."
+state = "unmeasured"
+
+[[objectives]]
+id = "O4"
+title = "Not only one person"
+summary = "People besides the maintainer pick up ready work and land it."
+indicator = "Merged pull requests per month by people other than the maintainer, and time from ready to first pick-up."
+guard = "Reverted or reopened work from those pull requests."
+state = "unmeasured"
+
+# Commitments per period. A period is a quarter, measured at each monthly varve
+# layer inside it. "committed" is promised; "stretch" is attempted.
+[[periods]]
+id = "2026-Q4"
+layers = ["2026.11", "2026.12"]
+
+[[periods.commitments]]
+objective = "O2"
+kind = "committed"
+target = "One wohl release carries the full bundle and passes one verify command; sigil publishes a release, so the attestation tool can be installed instead of built from git."
+
+[[periods]]
+id = "2027-Q1"
+layers = ["2027.01", "2027.02", "2027.03"]
+
+[[periods.commitments]]
+objective = "O2"
+kind = "stretch"
+target = "relay's release adds the MC/DC part, which needs witness to read component modules."
