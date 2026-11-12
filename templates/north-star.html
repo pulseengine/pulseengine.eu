@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block title %}{{ page.title }} — {{ config.title }}{% endblock %}
+{% block description %}{{ page.description }}{% endblock %}
+
+{% block content %}
+{% set ns = load_data(path="data/north-star.toml") %}
+
+<div class="container ns-wrap">
+  <header class="blog-post__header">
+    <h1 class="blog-post__title">{{ page.title }}</h1>
+    {% if page.description %}<p class="blog-post__lede">{{ page.description }}</p>{% endif %}
+  </header>
+
+  <p class="ns-star">{{ ns.north_star }}</p>
+  <p class="ns-meta">Updated {{ ns.updated }} · source <code>data/north-star.toml</code></p>
+
+  {% if page.content %}<div class="blog-post__content">{{ page.content | safe }}</div>{% endif %}
+
+  <h2 class="ns-h">Objectives</h2>
+  <div class="ns-grid">
+    {% for o in ns.objectives %}
+    <article class="ns-card ns-card--{{ o.id | lower }}" id="{{ o.id | lower }}">
+      <div class="ns-top">
+        <span class="ns-id">{{ o.id }}</span>
+        <h3 class="ns-title">{{ o.title }}</h3>
+        <span class="ns-state ns-state--{{ o.state }}">{{ o.state }}</span>
+      </div>
+      <p>{{ o.summary }}</p>
+      <dl class="ns-dl">
+        <dt>Indicator</dt><dd>{{ o.indicator }}</dd>
+        <dt>Guard</dt><dd>{{ o.guard }}</dd>
+      </dl>
+    </article>
+    {% endfor %}
+  </div>
+
+  <h2 class="ns-h">Commitments</h2>
+  {% for p in ns.periods %}
+  <section class="ns-period">
+    <h3 class="ns-title">{{ p.id }} <span class="ns-layers">varve layers {{ p.layers | join(sep=", ") }}</span></h3>
+    <ul class="ns-list">
+      {% for c in p.commitments %}
+      <li><span class="ns-kind ns-kind--{{ c.kind }}">{{ c.kind }}</span> <a href="#{{ c.objective | lower }}">{{ c.objective }}</a> {{ c.target }}</li>
+      {% endfor %}
+    </ul>
+  </section>
+  {% endfor %}
+
+  <h2 class="ns-h">Products</h2>
+  <div class="ns-grid">
+    {% for pr in ns.products %}
+    <article class="ns-card">
+      <div class="ns-top">
+        <a class="ns-title ns-repo" href="https://github.com/pulseengine/{{ pr.name }}" rel="noopener">{{ pr.name }}</a>
+      </div>
+      <p>{{ pr.north_star }}</p>
+      <p class="ns-pulls">pulls {% for id in pr.pulls %}<a href="#{{ id | lower }}">{{ id }}</a>{% if not loop.last %}, {% endif %}{% endfor %}</p>
+    </article>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}
+
+{% block head_extra %}
+<style>
+  .blog-post__lede { color: var(--text-dim); font-size: 1.05rem; line-height: 1.6; margin-top: .75rem; max-width: 46rem; }
+  .ns-star { font-size: 1.2rem; line-height: 1.5; max-width: 46rem; margin: 1.5rem 0 .4rem;
+    padding-left: 1rem; border-left: 3px solid var(--accent); color: var(--text); }
+  .ns-meta { font-size: .8rem; color: var(--text-faint); margin: 0 0 1.5rem; }
+  .ns-h { font-size: 1.2rem; margin: 2.2rem 0 .8rem; color: var(--text); }
+  .ns-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); gap: .9rem; }
+  .ns-card { background: var(--surface); border: 1px solid var(--border-subtle); border-radius: 12px;
+    padding: 1rem 1.1rem; display: grid; gap: .5rem; align-content: start; min-width: 0; scroll-margin-top: 5rem; }
+  .ns-card p { margin: 0; color: var(--text-dim); line-height: 1.55; }
+  .ns-card--o1 { border-top: 3px solid var(--cyan); }
+  .ns-card--o2 { border-top: 3px solid var(--green); }
+  .ns-card--o3 { border-top: 3px solid var(--purple); }
+  .ns-card--o4 { border-top: 3px solid var(--amber); }
+  .ns-top { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; }
+  .ns-id { font-family: var(--font-mono); font-weight: 700; color: var(--text-dim); }
+  .ns-title { font-size: 1rem; font-weight: 700; margin: 0; color: var(--text); }
+  .ns-repo { font-family: var(--font-mono); text-decoration: none; }
+  .ns-repo:hover { color: var(--accent); }
+  .ns-state, .ns-kind { font-size: .62rem; text-transform: uppercase; letter-spacing: .08em; font-weight: 700;
+    padding: .12rem .4rem; border-radius: 4px; }
+  .ns-state--unmeasured { color: var(--amber); background: rgba(251,191,36,.12); }
+  .ns-state--measured { color: var(--green); background: rgba(74,222,128,.12); }
+  .ns-kind--committed { color: var(--green); background: rgba(74,222,128,.12); }
+  .ns-kind--stretch { color: var(--text-dim); background: rgba(139,144,160,.14); }
+  .ns-dl { display: grid; grid-template-columns: auto 1fr; gap: .3rem .7rem; margin: .2rem 0 0; font-size: .85rem; }
+  .ns-dl dt { color: var(--text-faint); font-weight: 600; }
+  .ns-dl dd { margin: 0; color: var(--text-dim); }
+  .ns-period { background: var(--surface); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 1rem 1.1rem; margin-bottom: .8rem; }
+  .ns-layers { font-family: var(--font-mono); font-size: .75rem; font-weight: 400; color: var(--text-faint); margin-left: .4rem; }
+  .ns-list { margin: .6rem 0 0; padding-left: 1.1rem; display: grid; gap: .4rem; color: var(--text-dim); }
+  .ns-list a, .ns-pulls a { color: var(--accent); font-family: var(--font-mono); text-decoration: none; }
+  .ns-pulls { font-size: .85rem; }
+</style>
+{% endblock %}
