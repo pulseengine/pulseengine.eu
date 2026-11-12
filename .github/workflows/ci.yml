@@ -382,6 +382,16 @@ jobs:
           set -euo pipefail
           python3 scripts/check-loop-guard.py
 
+      # The PreToolUse(Bash) disk-pressure hook (REQ-DISK-PRESSURE). Runs the
+      # real wrapper with a fake warte probe: it must name the holders on a low
+      # or critical volume, never call the probe with --measure, treat a stale,
+      # empty or failing answer as not available, and never print a permission
+      # decision or exit non-zero.
+      - name: Check the disk-pressure hook never blocks
+        run: |
+          set -euo pipefail
+          python3 scripts/check-disk-pressure.py
+
       # The PreToolUse(Bash) commit-merge-guard hook (REQ-COMMIT-MERGE-GUARD).
       # Runs the real wrapper against throwaway git repos and a stub gh that
       # answers from fixtures. HOME, GIT_CONFIG_GLOBAL and the plugin data dir

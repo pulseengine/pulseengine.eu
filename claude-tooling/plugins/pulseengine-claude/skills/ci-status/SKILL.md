@@ -1,9 +1,9 @@
 ---
 name: ci-status
-description: Use before opening a pull request and before waiting on CI ("is CI green yet", "merge when green"). Checks queue admission, then polls the CI status API, falling back to gh.
+description: Use before opening a pull request and before waiting on CI ("is CI green yet", "merge when green"), and when the disk-pressure hook says the disk is low. Checks queue admission, polls the CI status API (falling back to gh), and frees disk by asking the named holders.
 metadata:
   author: pulseengine.eu
-  version: "0.3.0"
+  version: "0.4.0"
 ---
 
 # CI status: ask the fleet before polling GitHub
@@ -190,6 +190,62 @@ Thresholds for source 2 only, when warte does not answer:
   working context, and recheck on the next wake. Not in `pending_gates`: its
   entries are open PRs, and issue-hunt resolves each one by its PR status.
   A held change is opened later, never dropped.
+
+## When the disk is low
+
+Since 0.59.0 the plugin's PreToolUse hook checks disk pressure on a command
+that can write gigabytes (cargo build or test, clone, worktree, image pull,
+package install, model download) and adds one line when a volume is **low**
+(under 20 GB free) or **critical** (under 10 GB). The line arrives with that
+command's result, so it is about your **next** heavy command. Several agents
+share one disk; a full disk fails everyone's builds at once.
+
+The line comes from the local warte probe when it answers:
+
+```sh
+warte probe pressure --format json
+# {host, measured_at, volumes: [{mount, free_gb, total_gb, verdict, held_gb}],
+#  holders: [{kind: scratchpad|target|worktree, mount, gb, path, session_id, pid?, repo?, live}]}
+```
+
+It reads what the probe stored, with no network call; never add `--measure`
+(it sizes directories live and is slow on a full disk). Pressure is per
+volume: checkouts and `target/` can sit on another volume than the system's.
+warte's public `/api/pressure` gives the same verdicts with no names or paths;
+use it to look at another host. A stale answer, no volumes or a failing probe
+is "not available", never ok: the hook then measures the data volume and the
+working directory's volume itself and names nobody.
+
+What to do when it says low or critical:
+
+1. **Free your own residue first.** The line says what "you hold"; the
+   probe's `path` for your `session_id` says where. Your scratchpad, `target/`
+   dirs of worktrees you are not building in, worktrees whose PR merged (after
+   [`repo-hygiene`]'s gates: no uncommitted or untracked files, no unpushed
+   commits). Delete only what you own.
+2. **Then ask the other holders** with SendMessage. The probe knows a holder's
+   repo, session id and pid, not its `ListAgents` name: match by repo (and the
+   session's working directory), and if no row matches or two do, tell the
+   owner who holds what instead of guessing a recipient. Name what they hold
+   and how much, and ask them to reply with what they freed.
+3. **Ended sessions** (`live` false): their scratchpads belong to nobody
+   running. Tell the owner; do not delete them yourself.
+4. **Holders not sized yet** on low or critical: the probe sizes them within
+   10 minutes. Recheck then; do not conclude nobody holds anything.
+5. **Take turns on the disk.** Ten sessions deleting or running mutation tests
+   at once saturate a SATA disk, internal or external, and an external one can
+   disconnect and take every checkout on it along. Delete in small batches (one
+   `target/` or worktree at a time), and run the heavy part through jess's
+   `with-device` with the host's `disk-io` device so sessions queue:
+   `with-device --registry ~/.config/pulseengine/bench-devices.yaml disk-io --wait 3600 --purpose '<what>' -- cargo mutants ...`.
+   Name the host registry: with-device looks in the checkout first, so in a
+   repo with its own device list (jess) `disk-io` is unknown (exit 2) without it.
+   Exit 3 means it is busy and nothing ran; exit 4 means the lock could not be
+   read, so fix the lock directory rather than retrying. The hook says this on
+   any mass delete, `cargo clean` or `cargo mutants` not already run that way.
+6. Never delete another agent's files, and never a shared cache (`~/.rustup`,
+   `~/.cargo`, model caches) without the owner's approval. **Critical and still
+   climbing**: hold your next heavy command and tell the owner.
 
 ## Safety
 

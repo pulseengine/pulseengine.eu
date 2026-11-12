@@ -2435,6 +2435,43 @@ claims:
         glob: ['.github/workflows/ci.yml']
         max: 1
 
+  # ── The disk-pressure hook adds context and never blocks ────────────────────
+  # REQ-DISK-PRESSURE. Like the model reminder, it may only add
+  # additionalContext. Behaviour is tested by scripts/check-disk-pressure.py;
+  # this keeps the wiring, the never-blocks shape and the test in CI.
+  - id: DISK-PRESSURE-NEVER-BLOCKS
+    doc: claude-tooling/plugins/pulseengine-claude/README.md
+    text: "It never blocks: no permission decision, exit 0 on anything"
+    evidence:
+      - kind: count-min
+        pattern: '"command": "bash \$\{CLAUDE_PLUGIN_ROOT\}/hooks/disk-pressure\.sh"'
+        glob: ['claude-tooling/plugins/pulseengine-claude/hooks/hooks.json']
+        min: 1
+      - kind: count-max
+        pattern: 'disk-pressure\.sh'
+        glob: ['claude-tooling/plugins/pulseengine-claude/hooks/hooks.json']
+        max: 1
+      - kind: count-max
+        pattern: '"(?:permissionDecision|updatedInput|decision|continue)"'
+        glob: ['claude-tooling/plugins/pulseengine-claude/hooks/disk-pressure.py']
+        max: 0
+      - kind: count-max
+        pattern: 'exit\s+[1-9]|sys\.exit\([1-9]'
+        glob: ['claude-tooling/plugins/pulseengine-claude/hooks/disk-pressure.sh', 'claude-tooling/plugins/pulseengine-claude/hooks/disk-pressure.py']
+        max: 0
+      - kind: count-min
+        pattern: '2>/dev/null\nexit 0\n'
+        glob: ['claude-tooling/plugins/pulseengine-claude/hooks/disk-pressure.sh']
+        min: 1
+      - kind: count-min
+        pattern: '\n +python3 scripts/check-disk-pressure\.py\n'
+        glob: ['.github/workflows/ci.yml']
+        min: 1
+      - kind: count-max
+        pattern: '\n +python3 scripts/check-disk-pressure\.py\n'
+        glob: ['.github/workflows/ci.yml']
+        max: 1
+
   # ── The Agent model reminder is throttled per session, and fails open ───────
   # Owner decision 2026-10-29 (extends REQ-AGENT-MODEL-REMINDER). Unthrottled,
   # the heaviest local session would have been reminded 367 times. The count
@@ -2914,7 +2951,9 @@ claims:
   # REQ-PLUGIN-NO-HOME-PATH. 0.51.0 shipped an absolute home-directory path in
   # pulseengine-toolchain.md. The memory file must keep saying where tools live
   # relative to the workspace, and the CI step that rejects a path must stay
-  # wired and keep its pattern.
+  # wired and keep its pattern. The one exemption (0.59.0) is macOS's own
+  # /System/Volumes/ mount point, which names no user; the pattern is pinned
+  # with exactly that lookbehind, so a wider exemption fails this claim.
   - id: PLUGIN-NO-HOME-PATH
     doc: claude-tooling/plugins/pulseengine-claude/memory/pulseengine-toolchain.md
     text: "its own sibling checkout, `<workspace>/<name>`"
@@ -2928,7 +2967,7 @@ claims:
         glob: ['.github/workflows/ci.yml']
         min: 1
       - kind: count-min
-        pattern: '\nPATTERN = re\.compile\(r"\(\?:/Users/\|/Volumes/\|/home/\|-Users-\)'
+        pattern: '\nPATTERN = re\.compile\(r"\(\?:/Users/\|\(\?<!/System\)/Volumes/\|/home/\|-Users-\)'
         glob: ['scripts/check-plugin-no-private-paths.py']
         min: 1
 
