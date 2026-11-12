@@ -296,6 +296,13 @@ jobs:
       - name: Check the incident ledger's math and attribution can still fail
         run: python3 scripts/incident-ledger.py --self-test
 
+      # Cause classes for escapes: evidence gathering from canned API data, the
+      # class-list and schema checks, and a negative control (a fix that only
+      # adds a test is classed exactly as the canned model answers; an invalid
+      # class fails the run). No credential, no network.
+      - name: Check the incident cause classifier refuses answers outside its classes
+        run: python3 scripts/incident-causes.py --self-test
+
       - name: Check the incident ledger closes entries only on a negative control
         run: python3 scripts/incident-ledger.py check-ledger
 

@@ -3,6 +3,9 @@
 
     incident-ledger.py run [--days 90 | --since D --until D] [--repos a,b]
                            [--json OUT] [--md OUT] [--baseline REPO,...]
+    incident-ledger.py run --month YYYY-MM|previous [--min-repos N] ...
+    incident-ledger.py trend --run MONTH.json --out docs/incidents/trend.json
+    incident-ledger.py publish --files PATH... --run MONTH.json --repo OWNER/REPO
     incident-ledger.py check-ledger [--ledger docs/incidents/ledger.yaml]
     incident-ledger.py --self-test
 
@@ -62,6 +65,14 @@ bare clones (`git log --first-parent`), not the API. The cache lives outside the
 repo (INCIDENT_LEDGER_CACHE, default ~/.cache/pulseengine-incident-ledger) and
 its path is never written into any output.
 
+Monthly run (.github/workflows/incident-ledger.yml): `run --month previous`
+for the calendar month, `run --days 90` for the rolling report, `trend` appends
+the month to docs/incidents/trend.json (never overwrites a month), and
+`publish` opens a PR; scripts/incident-causes.py adds the cause classes. `run`
+exits non-zero on an API error, a missing token, fewer repos than --min-repos
+(a token that cannot read private repos lists fewer, silently) or zero
+merges: an empty report is never written.
+
 Needs python3 >= 3.9, git, a GitHub token (GITHUB_TOKEN / GH_TOKEN or
 `gh auth token`), and PyYAML for the ledger file.
 """
@@ -69,6 +80,8 @@ Needs python3 >= 3.9, git, a GitHub token (GITHUB_TOKEN / GH_TOKEN or
 from __future__ import annotations
 
 import argparse
+import base64
+import calendar
 import collections
 import datetime as dt
 import hashlib
@@ -796,7 +809,7 @@ def _md_table(title: str, agg: dict, col: str) -> list:
     return lines + [""]
 
 
-def render_md(res: dict) -> str:
+def render_md(res: dict, causes_md: str = "") -> str:
     h = res["headline"]
     L = ["# Incident ledger: run report", "",
          f"Generated {res['generated']} by `scripts/incident-ledger.py run`. Window "
@@ -859,6 +872,8 @@ def render_md(res: dict) -> str:
           "among the triaged classes says nothing yet.", ""]
     for k, v in res["net_classes"]:
         L.append(f"- {k}: {v}")
+    if causes_md:
+        L += ["", causes_md.rstrip("\n")]
     L += ["", "## Mechanical incidents", "",
           "Fields 2 to 4 (net, why, countermeasure) are manual for every row without "
           "a ledger id. PR titles are not published here; follow the repo and PR "
@@ -935,13 +950,34 @@ def summarise(units: list, entries: list, window: dict, repos: list,
     }
 
 
+def month_window(month: str, today=None):
+    """(since, until, 'YYYY-MM') for 'YYYY-MM' or 'previous' (UTC calendar month)."""
+    if month == "previous":
+        t = today or dt.datetime.now(dt.timezone.utc).date()
+        y, m = (t.year - 1, 12) if t.month == 1 else (t.year, t.month - 1)
+    else:
+        if not re.fullmatch(r"\d{4}-(0[1-9]|1[0-2])", month):
+            sys.exit(f"incident-ledger: --month wants YYYY-MM or 'previous', got {month!r}")
+        y, m = int(month[:4]), int(month[5:])
+    last = calendar.monthrange(y, m)[1]
+    return f"{y:04d}-{m:02d}-01", f"{y:04d}-{m:02d}-{last:02d}", f"{y:04d}-{m:02d}"
+
+
 def cmd_run(a) -> int:
+    month = None
+    if a.month:
+        a.since, a.until, month = month_window(a.month)
     cache = pathlib.Path(os.environ.get("INCIDENT_LEDGER_CACHE") or
                          pathlib.Path.home() / ".cache" / "pulseengine-incident-ledger")
     gh = GitHub(cache, offline=a.offline)
     until = a.until or dt.date.today().isoformat()
     since = a.since or (dt.date.fromisoformat(until) - dt.timedelta(days=a.days)).isoformat()
     repos = list_repos(gh)
+    if len(repos) < a.min_repos:
+        print(f"incident-ledger: the token sees {len(repos)} repos, --min-repos wants "
+              f"{a.min_repos}: it probably cannot read the private ones; no report written",
+              file=sys.stderr)
+        return 1
     if a.repos:
         keep = set(a.repos.split(","))
         repos = [r for r in repos if r["name"] in keep]
@@ -956,8 +992,15 @@ def cmd_run(a) -> int:
         us = repo_units(gh, cache, r, since, until + "T23:59:59Z", guards)
         print(f"{r['name']}: {len(us)} merges", file=sys.stderr)
         units += us
+    if not units:
+        print("incident-ledger: zero merges in the window; refusing to write an empty "
+              "report", file=sys.stderr)
+        return 1
     apply_ledger(units, entries)
-    res = summarise(units, entries, {"since": since, "until": until},
+    window = {"since": since, "until": until}
+    if month:
+        window["month"] = month
+    res = summarise(units, entries, window,
                     sorted(r["name"] for r in repos), a.titles)
     if a.baseline:
         res["baseline"] = baseline(gh, cache, repos, a.baseline.split(","), since, until)
@@ -1031,6 +1074,119 @@ def baseline(gh, cache, repos, names, since, until) -> dict:
             "in both eras.")
     return {"note": note, "spans": spans, "excluded": excluded,
             "table": aggregate(tagged, lambda u: u["era"])}
+
+
+def trend_entry(res: dict) -> dict:
+    """One month of a run, reduced to the numbers a trend line needs."""
+    def pick(n, g):
+        return {"n": n, "escape_k": g["escape"]["k"],
+                "escape_per100": g["escape"]["per100"],
+                "strict_k": g["strict"]["k"], "strict_per100": g["strict"]["per100"],
+                "catch_k": g["caught"]["k"],
+                "catch_share_per100": g["catch_share"]["per100"]}
+    top = pick(res["headline"]["merges"], res["headline"])
+    top["by_model"] = {m: pick(a["merges"], a) for m, a in sorted(res["by_model"].items())}
+    return top
+
+
+def append_trend(trend: dict, res: dict) -> dict:
+    """Return trend with res's month added. Never replaces an existing month."""
+    month = (res.get("window") or {}).get("month")
+    if not month:
+        raise ValueError("the run has no window.month; it was not made with --month")
+    if not res["headline"]["merges"]:
+        raise ValueError(f"{month}: zero merges; not recording an empty month")
+    months = dict(trend.get("months") or {})
+    if month in months:
+        raise ValueError(f"{month} is already in the trend; months are appended, "
+                         "never overwritten")
+    months[month] = trend_entry(res)
+    return {"note": "Per calendar month (UTC): n merges, escape and strict escape "
+            "per 100 merges (k = merges with a signal), catch share (caught / "
+            "(caught + escaped)) in percent, and the same per authoring class. "
+            "Appended by incident-ledger.py trend: one run's snapshot per month, "
+            "never recomputed.",
+            "months": dict(sorted(months.items()))}
+
+
+def cmd_trend(a) -> int:
+    res = json.loads(pathlib.Path(a.run).read_text())
+    out = pathlib.Path(a.out)
+    old = json.loads(out.read_text()) if out.exists() else {}
+    try:
+        new = append_trend(old, res)
+    except ValueError as e:
+        print(f"incident-ledger trend: {e}", file=sys.stderr)
+        return 1
+    out.write_text(json.dumps(new, indent=1) + "\n")
+    print(f"trend: added {res['window']['month']} ({len(new['months'])} months)")
+    return 0
+
+
+def _gh_rest(method, url, token, body=None):
+    req = urllib.request.Request(
+        url, method=method, data=None if body is None else json.dumps(body).encode(),
+        headers={"Accept": "application/vnd.github+json", "User-Agent": "pe-incident-ledger",
+                 "X-GitHub-Api-Version": "2022-11-28", "Authorization": f"Bearer {token}"})
+    try:
+        with urllib.request.urlopen(req, timeout=60) as r:
+            return json.loads(r.read() or b"{}")
+    except urllib.error.HTTPError as e:
+        raise RuntimeError(f"{method} {url}: HTTP {e.code} {e.read()[:300]!r}")
+    except (urllib.error.URLError, TimeoutError) as e:
+        raise RuntimeError(f"{method} {url}: {e}")
+
+
+def publish(files: list, month: str, repo: str, token: str, call=None, root=None):
+    """Branch, files and PR through the REST API; never a push to main. Raises
+    RuntimeError if the branch exists or any call errors."""
+    call = call or _gh_rest
+    root = pathlib.Path(root or ROOT)
+    api = f"https://api.github.com/repos/{repo}"
+    branch = f"incident-ledger/{month}"
+    base = call("GET", f"{api}/git/ref/heads/main", token)["object"]["sha"]
+    call("POST", f"{api}/git/refs", token, {"ref": f"refs/heads/{branch}", "sha": base})
+    for f in files:
+        rel = pathlib.Path(f)
+        rel = rel.relative_to(root) if rel.is_absolute() else rel
+        try:
+            cur = call("GET", f"{api}/contents/{rel}?ref=main", token).get("sha")
+        except RuntimeError as e:
+            if "HTTP 404" not in str(e):
+                raise
+            cur = None
+        body = {"message": f"data: incident ledger for {month}", "branch": branch,
+                "content": base64.b64encode((root / rel).read_bytes()).decode()}
+        if cur:
+            body["sha"] = cur
+        call("PUT", f"{api}/contents/{rel}", token, body)
+    text = (f"Monthly incident-ledger run for {month} (UTC) plus the rolling 90-day "
+            "report, trend line and cause classes. Numbers are a snapshot; read "
+            "`docs/incidents/report.md` Method and blind spots before quoting a rate, "
+            "and fill the `spot_check:` fields of the sampled units. The cause "
+            "classes come from a Haiku classifier and are not ground truth. Opened by "
+            "`.github/workflows/incident-ledger.yml`.")
+    return call("POST", f"{api}/pulls", token,
+                {"title": f"data: incident ledger for {month}", "head": branch,
+                 "base": "main", "body": text})
+
+
+def cmd_publish(a) -> int:
+    token = os.environ.get("GITHUB_TOKEN", "")
+    if not token:
+        print("incident-ledger publish: GITHUB_TOKEN is not set", file=sys.stderr)
+        return 2
+    month = (json.loads(pathlib.Path(a.run).read_text()).get("window") or {}).get("month")
+    if not month:
+        print("incident-ledger publish: the run has no window.month", file=sys.stderr)
+        return 2
+    try:
+        pr = publish(a.files, month, a.repo, token)
+    except RuntimeError as e:
+        print(f"incident-ledger publish: {e}", file=sys.stderr)
+        return 2
+    print(f"opened {pr.get('html_url')}")
+    return 0
 
 
 def cmd_check_ledger(a) -> int:
@@ -1259,6 +1415,75 @@ def self_test() -> int:
           "no titles in the default (committed) output")
     check("/Users/" not in md and ".cache" not in md, "no local path in report")
 
+    # 9. monthly run: window, trend append-only, publish calls, loud failures
+    check(month_window("2026-02") == ("2026-02-01", "2026-02-28", "2026-02"),
+          "month_window 2026-02")
+    check(month_window("previous", dt.date(2027, 1, 2)) == ("2026-12-01", "2026-12-31",
+                                                            "2026-12"),
+          "month_window previous across a year boundary")
+    try:
+        month_window("2026-13")
+        check(False, "month_window must reject 2026-13")
+    except SystemExit:
+        pass
+    mu = [dict(ku, sha=f"{i:040x}", shas=[f"{i:040x}"], signals=(
+        [{"kind": "revert", "by_sha": "x", "by_pr": 9}] if i < 2 else []))
+          for i in range(10)]
+    mres = summarise(mu, [], {"since": "2026-02-01", "until": "2026-02-28",
+                              "month": "2026-02"}, ["other"])
+    tr = append_trend({}, mres)
+    e = tr["months"]["2026-02"]
+    check(e["n"] == 10 and e["escape_k"] == 2 and e["escape_per100"] == 20.0
+          and e["strict_per100"] == 20.0 and "by_model" in e,
+          f"trend entry wrong: {e}")
+    tr2 = append_trend(tr, dict(mres, window={"month": "2026-03"}))
+    check(sorted(tr2["months"]) == ["2026-02", "2026-03"] and
+          tr2["months"]["2026-02"] == e, "a new month must be appended beside the old")
+    for what, bad, base in (
+            ("a month already in the trend", mres, tr),
+            ("a run without window.month", dict(mres, window={"since": "a"}), {}),
+            ("an empty month", dict(mres, headline=dict(mres["headline"], merges=0)), {})):
+        try:
+            append_trend(base, bad)
+            check(False, f"{what} must be refused")
+        except ValueError:
+            pass
+    calls = []
+
+    def fake_call(method, url, token, body=None):
+        calls.append((method, url.split("/repos/")[1], body))
+        if method == "GET" and "/contents/" in url:
+            raise RuntimeError("GET x: HTTP 404 b''")
+        if method == "GET":
+            return {"object": {"sha": "b" * 40}}
+        return {"html_url": "https://example.invalid/pr/1"}
+
+    def failing(method, url, token, body=None):
+        raise RuntimeError("HTTP 422 branch exists")
+
+    with tempfile.TemporaryDirectory() as td:
+        (pathlib.Path(td) / "docs").mkdir()
+        (pathlib.Path(td) / "docs" / "r.md").write_text("x")
+        pr = publish(["docs/r.md"], "2026-02", "o/r", "tok", fake_call, td)
+        check([c[0] for c in calls] == ["GET", "POST", "GET", "PUT", "POST"]
+              and calls[1][2]["ref"] == "refs/heads/incident-ledger/2026-02"
+              and calls[3][2]["branch"] == "incident-ledger/2026-02"
+              and "sha" not in calls[3][2] and calls[4][2]["base"] == "main"
+              and pr["html_url"].startswith("https://"),
+              f"publish call sequence wrong: {[c[:2] for c in calls]}")
+        try:
+            publish(["docs/r.md"], "2026-02", "o/r", "tok", failing, td)
+            check(False, "publish must raise when the API errors")
+        except RuntimeError:
+            pass
+    saved = os.environ.pop("GITHUB_TOKEN", None)
+    try:
+        check(cmd_publish(argparse.Namespace(files=[], run="/nonexistent", repo="o/r")) == 2,
+              "publish without GITHUB_TOKEN must exit 2")
+    finally:
+        if saved is not None:
+            os.environ["GITHUB_TOKEN"] = saved
+
     for f in fails:
         print(f"self-test FAIL: {f}", file=sys.stderr)
     print(f"incident-ledger self-test: {'FAIL' if fails else 'ok'} "
@@ -1275,6 +1500,9 @@ def main() -> int:
     r.add_argument("--days", type=int, default=90)
     r.add_argument("--since")
     r.add_argument("--until")
+    r.add_argument("--month", help="YYYY-MM or 'previous' (UTC): sets --since/--until")
+    r.add_argument("--min-repos", type=int, default=0,
+                   help="fail if the token lists fewer repos (it cannot see private ones)")
     r.add_argument("--repos")
     r.add_argument("--baseline", help="comma-separated repos to compute a pre-agent "
                    "baseline for")
@@ -1286,8 +1514,16 @@ def main() -> int:
                    "incident table, for local triage; never commit that output")
     c = sub.add_parser("check-ledger")
     c.add_argument("--ledger", default=str(LEDGER))
+    t = sub.add_parser("trend")
+    t.add_argument("--run", required=True, help="a run json made with --month")
+    t.add_argument("--out", default=str(ROOT / "docs" / "incidents" / "trend.json"))
+    pb = sub.add_parser("publish")
+    pb.add_argument("--files", nargs="+", required=True)
+    pb.add_argument("--run", required=True, help="the month's run json (names the month)")
+    pb.add_argument("--repo", required=True)
     a = ap.parse_args()
-    return cmd_run(a) if a.cmd == "run" else cmd_check_ledger(a)
+    return {"run": cmd_run, "trend": cmd_trend, "publish": cmd_publish}.get(
+        a.cmd, cmd_check_ledger)(a)
 
 
 if __name__ == "__main__":
