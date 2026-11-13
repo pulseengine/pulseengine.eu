@@ -194,6 +194,13 @@ jobs:
           python3 scripts/check-north-star.py --self-test
           python3 scripts/check-north-star.py
 
+      # data/lean-pins.toml is the Lean toolchain policy (stable only, at most N
+      # minors behind the org target, expiring exceptions). The live check runs
+      # weekly in lean-pins.yml; here only the decision table, so a PR cannot
+      # break the rules' logic unnoticed.
+      - name: Check the Lean pin policy's decision table
+        run: python3 scripts/check-lean-pins.py --self-test
+
       # The host sends no Cache-Control, only ETag/Last-Modified, so a browser
       # caches heuristically and does not revalidate. A reader got the new
       # /layers HTML and JS against a main.css from days earlier and saw an

@@ -1,0 +1,60 @@
+# Lean toolchain policy for PulseEngine repos (owner decision 2026-11-13:
+# "policy, not lockstep"). Read by scripts/check-lean-pins.py, run weekly by
+# .github/workflows/lean-pins.yml.
+#
+# Rules the check enforces:
+#   1. a pin is a stable release, never a release candidate;
+#   2. a pin is at most `max_minor_behind` minor versions behind `target`
+#      (ahead of the target is allowed);
+#   3. `target` is a stable release and is reviewed at least every
+#      `review_days` days (the quarterly bump cadence);
+#   4. an exception names a repo, a reason and an expiry date; an expired
+#      exception is a failure, so an exception cannot become permanent by being
+#      forgotten.
+#
+# Why not one version everywhere: Mathlib and aeneas tie each repo's Lean
+# version to their own revisions, so a lockstep bump is proof repair in every
+# repo at once.
+
+[policy]
+# 4.29.1 is the newest stable release rules_lean has hashes for (gale builds
+# Lean through rules_lean). Upstream latest on 2026-11-13 was v4.35.0.
+target = "4.29.1"
+target_reviewed = "2026-11-13"
+review_days = 100
+max_minor_behind = 3
+
+[[repo]]
+name = "gale"
+path = "MODULE.bazel"
+kind = "bazel"
+
+[[repo]]
+name = "ordeal"
+path = "lean/lean-toolchain"
+kind = "elan"
+
+[[repo]]
+name = "sigil"
+path = "lean/lean-toolchain"
+kind = "elan"
+
+[[repo]]
+name = "spar"
+path = "proofs/lean-toolchain"
+kind = "elan"
+
+[[exception]]
+repo = "ordeal"
+reason = "aeneas pins the Lean version; ordeal follows aeneas's release candidate"
+expires = "2027-02-01"
+
+[[exception]]
+repo = "sigil"
+reason = "4.16.0 with Mathlib is 13 minors behind the target; the bump needs proof repair"
+expires = "2027-01-15"
+
+[[exception]]
+repo = "spar"
+reason = "release-candidate pin; spar is in a refactor freeze until 2027-02-01"
+expires = "2027-02-01"
