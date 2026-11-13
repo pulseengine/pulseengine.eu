@@ -16,6 +16,7 @@
     "pulseengine/loom":  { "needs-decision_floor": 26 },
     "pulseengine/warte": { "needs-decision_floor": 40 },
     "pulseengine/varve": { "needs-decision_floor": 25 },
-    "pulseengine/pulseengine.eu": { "needs-decision_floor": 8 }
+    "pulseengine/pulseengine.eu": { "needs-decision_floor": 8 },
+    "pulseengine/witness": { "needs-decision_floor": 14 }
   }
 }
