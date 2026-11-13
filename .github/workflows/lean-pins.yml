@@ -1,0 +1,27 @@
+name: Lean pins
+
+# Weekly check of every listed repo's Lean pin against data/lean-pins.toml
+# (owner decision 2026-11-13: policy, not lockstep). Pins drift with no PR here,
+# so a PR gate alone would stay green over a repo that moved to a release
+# candidate. The decision table runs first, so a red run is never ambiguous
+# between "logic broke" and "a pin drifted". The self-test also runs on every PR
+# in ci.yml's `build` job.
+#
+# Reads public raw files only; no token beyond the default is needed.
+on:
+  schedule:
+    - cron: "23 5 * * 1"   # Mondays, 05:23 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  pins:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Decision table
+        run: python3 scripts/check-lean-pins.py --self-test
+      - name: Pins against the policy
+        run: python3 scripts/check-lean-pins.py
