@@ -1,8 +1,8 @@
 +++
 title = "Green by default: required checks that could pass on bad input"
 description = "A CI check is a claim: if the change were wrong, I would turn red. That claim is only evidence once someone has tested it by feeding the check an input it must reject. This post explains the idea, shows six ways a check stays green on bad input, and lists what a sweep of PulseEngine's own checks found."
-date = 2026-11-16
-draft = true
+date = 2026-11-14
+draft = false
 [taxonomies]
 tags = ["verification", "ci", "process", "ai-agents"]
 authors = ["Ralf Anton Beier"]
@@ -238,7 +238,7 @@ in a release.
 | 4 | scry (static analysis for WebAssembly): the MC/DC gate (a structural coverage criterion from avionics) printed PASSED when the report lacked its fields; two more scry checks failed open ([#239](https://github.com/pulseengine/scry/issues/239)) | planted input | fixed in [#240](https://github.com/pulseengine/scry/pull/240) |
 | 5 | ordeal (an SMT solver): the native-vs-WebAssembly comparison scored two crashing builds as agreeing | planted input | fixed in [#319](https://github.com/pulseengine/ordeal/pull/319) |
 | 6 | spar: in v0.49.0 the release skipped its version check on two of seven binaries | observed in a release | merged in [#621](https://github.com/pulseengine/spar/pull/621); first run at the next release |
-| 6 | varve (signed toolchain layers): signing step warns and exits 0 when its key is missing ([#366](https://github.com/pulseengine/varve/issues/366)) | latent, v0.45.0 to v0.47.0 all carry the signature file | open |
+| 6 | varve (signed toolchain layers): signing step warns and exits 0 when its key is missing ([#366](https://github.com/pulseengine/varve/issues/366)) | latent, v0.45.0 to v0.47.0 all carry the signature file | fixed in [#369](https://github.com/pulseengine/varve/pull/369) |
 
 The same failure had shown up before the sweep, one case at a time: a nightly
 fuzz job in loom, the WebAssembly optimizer, that ran no fuzzer
