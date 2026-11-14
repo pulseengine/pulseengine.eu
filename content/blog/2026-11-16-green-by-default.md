@@ -38,7 +38,7 @@ quadrantChart
     title What a check can report
     x-axis Input is good --> Input is bad
     y-axis Check is red --> Check is green
-    quadrant-1 Fail-open (green on bad input)
+    quadrant-1 Fail-open green on bad input
     quadrant-2 Correct pass
     quadrant-3 False alarm
     quadrant-4 Correct catch
