@@ -164,16 +164,16 @@ sweep is not a qualification.
 ## Turning the rule into a tool: plant
 
 A rule that depends on someone remembering to apply it rots like any other
-manual step. In the days after the sweep, four of our repositories wrote self-tests that
-plant bad workflow files into their own fork-guard checks. The next step
+manual step. The day after the sweep, four of our repositories wrote self-tests, in pull
+requests, that plant bad workflow files into their own fork-guard checks. The next step
 is to make the planted inputs a standing part of CI, so that every check is
 tested against its own bad input on every run, and a check that starts to fail
 open turns red the day it happens.
 
 That is what [plant](https://github.com/pulseengine/plant) is for. It is a new,
 open-source command-line tool, started on 14 November and not yet usable: the
-repository holds the design, a Rust skeleton and the first requirements. The
-design is simple. Each repository lists its checks in a small manifest, and for
+repository holds the design, a Rust skeleton and the first requirements.
+Each repository lists its checks in a small manifest, and for
 each one a command to run and a directory of planted files that the check must
 reject:
 
@@ -186,7 +186,7 @@ plant  = "ci-controls/empty-artifact-list"
 expect = "fail"
 ```
 
-For every entry, plant does the same five things:
+For every entry, plant runs the same steps:
 
 {% <mermaid> %}
 graph TD
@@ -209,9 +209,9 @@ itself pass by checking nothing.
 Why build it rather than reuse something? I looked on 14 November and found no
 established tool that does this. Workflow linters such as actionlint check the
 syntax of CI files, not whether a check can fail. Mutation-testing tools such as
-cargo-mutants, PIT and mutmut test a test suite by changing the code under
+cargo-mutants and PIT test a test suite by changing the code under
 test, not the checks around it. The silent-failures study cited above names
-the problem and proposes automated detection as future work. The closest thing
+the problem and recommends that researchers build automated detection. The closest thing
 I found is a single small repository with the same idea,
 [ci-gate-forgery-test](https://github.com/Kein-chronicle/ci-gate-forgery-test),
 with no stars and one commit. The search was a few web queries, not a survey,
