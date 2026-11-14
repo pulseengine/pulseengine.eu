@@ -161,6 +161,62 @@ tools typically fall at TQL-5, the lowest of its five qualification levels. I
 did not read the standard itself. Our checks are not qualified tools, and this
 sweep is not a qualification.
 
+## Turning the rule into a tool: plant
+
+A rule that depends on someone remembering to apply it rots like any other
+manual step. In the days after the sweep, four of our repositories wrote self-tests that
+plant bad workflow files into their own fork-guard checks. The next step
+is to make the planted inputs a standing part of CI, so that every check is
+tested against its own bad input on every run, and a check that starts to fail
+open turns red the day it happens.
+
+That is what [plant](https://github.com/pulseengine/plant) is for. It is a new,
+open-source command-line tool, started on 14 November and not yet usable: the
+repository holds the design, a Rust skeleton and the first requirements. The
+design is simple. Each repository lists its checks in a small manifest, and for
+each one a command to run and a directory of planted files that the check must
+reject:
+
+```toml
+[[control]]
+id     = "empty-artifact-list"
+check  = "Verification gate"
+run    = "python3 tools/run_verification.py"
+plant  = "ci-controls/empty-artifact-list"
+expect = "fail"
+```
+
+For every entry, plant does the same five things:
+
+{% <mermaid> %}
+graph TD
+    A[Copy the repository at HEAD into a scratch directory] --> B[Run the check on the real input]
+    B --> C{Green?}
+    C -->|no| X[Fail - the baseline is already red]
+    C -->|yes| D[Overlay the planted files onto a fresh copy]
+    D --> E[Run the check again]
+    E --> F{Red?}
+    F -->|yes| P[Pass - the check can fail on this mistake]
+    F -->|no| Y[Fail - the check is fail-open]
+{% </mermaid> %}
+
+It never touches the working tree, and it treats every way of not deciding as a
+failure: a timeout, a command that could not start, a planted directory that is
+missing or empty, and a manifest with no entries at all. That last rule matters
+for the same reason as the shapes above. A tool that checks checks must not
+itself pass by checking nothing.
+
+Why build it rather than reuse something? I looked on 14 November and found no
+established tool that does this. Workflow linters such as actionlint check the
+syntax of CI files, not whether a check can fail. Mutation-testing tools such as
+cargo-mutants, PIT and mutmut test a test suite by changing the code under
+test, not the checks around it. The silent-failures study cited above names
+the problem and proposes automated detection as future work. The closest thing
+I found is a single small repository with the same idea,
+[ci-gate-forgery-test](https://github.com/Kein-chronicle/ci-gate-forgery-test),
+with no stars and one commit. The search was a few web queries, not a survey,
+so something may exist that I missed.
+
 ## What the sweep of our own checks found
 
 On 13 November agent sessions read the CI workflows and checker scripts of
