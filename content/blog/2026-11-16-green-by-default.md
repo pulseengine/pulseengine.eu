@@ -1,6 +1,6 @@
 +++
 title = "Green by default: required checks that could pass on bad input"
-description = "On 13 November an agent checked the required and release CI checks of PulseEngine's repositories. In eight repositories a check could pass on bad input. A planted input showed it in five; in the other three it was read from the code, is latent or was seen in a release. Six shapes, with issues and fixes."
+description = "A CI check is a claim: if the change were wrong, I would turn red. That claim is only evidence once someone has tested it by feeding the check an input it must reject. This post explains the idea, shows six ways a check stays green on bad input, and lists what a sweep of PulseEngine's own checks found."
 date = 2026-11-16
 draft = true
 [taxonomies]
@@ -11,167 +11,193 @@ authors = ["Ralf Anton Beier"]
 {% <insight> %}
 **A required check counts as evidence once a planted bad input has turned it red.**
 
-In eight repositories a required or release check could pass on bad input. In
-five (witness, gale, rules_rocq_rust, scry, ordeal) a planted input showed it.
-In meld it was read from the code, in varve it is latent, and in spar one check
-is latent and one skip was observed in a release. The findings fall into six
-shapes, each listed below with the issue and the fix PR where one exists. As of
-13 November every issue and PR from this sweep is open.
+A green check says "nothing I looked at was wrong". It does not say whether it
+looked. The only way to find out is to give it something it must reject and
+watch what it does. This post explains that idea first, with pictures, and then
+shows what happened when we applied it to our own repositories.
 {% </insight> %}
 
-## What this is about, from the outside
+## A check is a claim about itself
 
-PulseEngine is an open-source, pre-1.0 project building a WebAssembly
-Component Model engine meant for safety-critical systems, together with the
-tools that check that work. Much of the code and many of the issues in these
-repositories are written by agent sessions. A pull request merges only when the
-repository's required checks report success. If a check can report success
-without having checked anything, the merge rule is satisfied and nothing has
-been verified.
+Every required check in a CI pipeline makes two statements. The one everybody
+reads is about the change: "this pull request is fine". The one nobody reads is
+about the check: "if this pull request were not fine, I would have said so".
+The first statement is only as good as the second.
 
-The eight repositories were witness (measures test coverage of compiled
-WebAssembly), spar (architecture models), meld (fuses components), gale (a Rust
-port of Zephyr RTOS kernel primitives with machine-checked proofs on its
-source), rules_rocq_rust (Bazel rules for Rocq proofs), scry (static analysis
-for WebAssembly), ordeal (an SMT solver) and varve (signed toolchain layers).
+Philosophers of science call the missing property falsifiability: a claim that
+no observation could ever contradict tells you nothing, because it would look the same whether it were true or
+false. A check that would report success no matter what it was given is the
+same kind of claim. Its green is not evidence; it is the default.
 
-GitHub's own documentation names one way this happens: a job skipped by a
-conditional ["reports 'Success'"](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/collaborating-on-repositories-with-code-quality-features/troubleshooting-required-status-checks).
-That case was covered in [How the factory talks](/blog/how-the-factory-talks/);
-this post covers other shapes. A 2025 study of 142,387 CI jobs across 81
-industrial projects calls the general class silent failures, jobs ["marked as
-successful but fail to complete all or part of their
-tasks"](https://arxiv.org/abs/2509.14347); its analysis of 92 public issues
-lists ignored exit codes among the most frequent causes. That study finds them afterwards, by looking at which
-successful jobs get rerun. The method here works before the fact: plant an
-input whose correct verdict is known to be "fail", and see what the check says.
+The four possible outcomes of a check make the problem visible:
 
-## How the sweep worked
+{% <mermaid> %}
+quadrantChart
+    title What a check can report
+    x-axis Input is good --> Input is bad
+    y-axis Check is red --> Check is green
+    quadrant-1 Fail-open - this post
+    quadrant-2 Correct pass
+    quadrant-3 False alarm
+    quadrant-4 Correct catch
+{% </mermaid> %}
 
-An agent read the CI workflows and checker scripts of the organization's
-repositories. Where a check looked suspicious, it ran a planted input against
-it and recorded the exit code. It changed nothing in any repository. Findings
-were filed as issues. In three of the eight (meld, gale, spar) the issue
-records a re-check by the session that owns the repository.
+False alarms get noticed, because a red check blocks work and somebody
+investigates. A check stuck in the top-right corner, green on bad input, gets
+noticed by nobody. Every day it stays green looks exactly like a good day.
 
-## Six ways a check could pass on bad input
+## Testing the check, not the change
 
-### Zero work counts as a pass
+The remedy is old and simple: occasionally give the check an input whose right
+answer is known to be "fail", and see what it says. Laboratories call this a
+negative control. Mutation testing does the same thing to a test suite by
+planting small bugs in the code and asking whether any test notices. Here the
+thing under test is the CI check itself.
 
-witness's required verification gate returns success whenever nothing
-failed. If every selected artifact is skipped because it has no runnable
-step, the summary reads `passed: 0  failed: 0  skipped: 2` and the job exits
-0. A test step whose filter matches no test prints `0 passed` and also counts
-as a pass ([witness#372](https://github.com/pulseengine/witness/issues/372),
-fix in [witness#373](https://github.com/pulseengine/witness/pull/373)).
-spar's Miri (Rust's interpreter for detecting undefined behaviour) and
-ignored-test steps run 30 and 5 tests today, but nothing asserts a floor, so a
-renamed module would make them run none. That one is latent: the tests match
-today ([spar#622](https://github.com/pulseengine/spar/issues/622)).
+{% <mermaid> %}
+graph LR
+    A[Known-bad input planted on purpose] --> B[The check]
+    B --> C{Verdict}
+    C -->|red| D[The check can fail - its green means something]
+    C -->|green| E[The check is fail-open - its green means nothing yet]
+{% </mermaid> %}
 
-### An exit code that nobody reads
+A planted input is cheap. It can be an empty list, a report with a missing
+field, a file that should fail a parser, a test that was deleted. It only has
+to be something the check must reject.
 
-meld's loss-scenario gate (a loss-scenario is a hazard scenario from the safety
-analysis, each with a regression test) runs `cargo test` for each scenario's
-regression test and never checks cargo's return code. A compile error, a
-deleted test and a renamed test all became "missing", and missing was advisory,
-so the job passed. The sweep also found that only scenarios marked `approved`
-were checked, so promoting one to `implemented` silently removed it from the
-gate. The findings were read from the code, not run, and the meld session
-confirmed them against the code ([meld#608](https://github.com/pulseengine/meld/issues/608)).
-The issue's acceptance test is that deleting one regression test turns the
-check red.
+There is an outside reference point for why this matters. GitHub's own
+documentation says a job skipped by a conditional ["reports
+'Success'"](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/collaborating-on-repositories-with-code-quality-features/troubleshooting-required-status-checks),
+which [How the factory talks](/blog/how-the-factory-talks/) covered. A 2025
+study of 142,387 CI jobs across 81 industrial projects calls the general class
+silent failures, jobs ["marked as successful but fail to complete all or part
+of their tasks"](https://arxiv.org/abs/2509.14347); its analysis of 92 public
+issues lists ignored exit codes among the most frequent causes. That study
+finds them afterwards, by looking at which successful jobs get rerun. A planted
+input finds them before anything ships.
 
-### A regex where a parser belongs
+## Six ways a check stays green on bad input
 
-gale's data-overlap gate reads the text form of a WebAssembly module and
-looks for data segments with a pattern. A segment written with a name,
-`(data $a …)`, does not match, so a module with two overlapping named
-segments printed "no data segments — nothing to check" and exited 0. The Rust
-implementation of the same gate has the same gap
-([gale#502](https://github.com/pulseengine/gale/issues/502)). gale has
-collected further checks that match text where they should parse it, such as
-its proof-completeness and vacuous-lemma checks, in
-[gale#505](https://github.com/pulseengine/gale/issues/505).
+The failures we found fall into six shapes. Each is shown first as a toy
+version, so the shape is clear before any of our code appears.
 
-The same shape appeared in a proof-hygiene check.
-rules_rocq_rust's assumptions test is meant to fail when a Rocq file
-contains axioms (assumptions taken without proof) or `Admitted` proofs (proofs
-left unfinished). The original check matched six keywords with a regex and
-returned 0 when it found none, without running the Rocq compiler. A file of
-only `Example … Admitted.`, `Definition … Admitted.`, `Local` declarations and
-`Axiom cheat : False.` passed
-([rules_rocq_rust#57](https://github.com/pulseengine/rules_rocq_rust/issues/57)).
-The first draft of the fix still matched names with a regex that accepted ASCII
-only, and an automated review caught it with a Unicode-named `Admitted`
-lemma. The fix in
-[rules_rocq_rust#58](https://github.com/pulseengine/rules_rocq_rust/pull/58)
-enumerates declarations from the compiled module, which covers both.
+**1. Zero work counts as a pass.** The check counts failures and passes when
+the count is zero. If it ran nothing, the count is also zero.
 
-### A comparison that errors into success
+```text
+selected tests: 0     failed: 0     ->  exit 0  (green)
+```
 
-scry's MC/DC gate reads values from a coverage report with `jq` and compares
-two of them against floors, for example `[ "$PROVED" -lt 155 ]`, where 155 is
-the floor for proved conditions. MC/DC is a structural coverage criterion from
-avionics. When the report lacks those fields, `jq` prints `null` and the
-comparison errors. The `if` that guards the failure branch reads the error as
-false, so the script prints "MC/DC gate PASSED" ([scry#239](https://github.com/pulseengine/scry/issues/239), fix in
-[scry#240](https://github.com/pulseengine/scry/pull/240)). Two more scry
-checks failed open in the same pass: a round-trip step for the WIT file (the
-component's interface definition), which re-prints it to check it parses, piped through `head -50 || true`, and
-a claim check (a script that checks documented claims against evidence) that
-accepted an empty claim list.
+**2. An exit code nobody reads.** The check runs a tool and looks only at the
+tool's printed summary. If the tool crashes before printing one, there is no
+failure line to find.
 
-### Agreement without a verdict
+```sh
+cargo test my_test | grep -q "FAILED" && exit 1   # a compile error prints no FAILED
+exit 0
+```
 
-ordeal checks that its native and WebAssembly builds give identical output on
-21 invocations of its fixture corpus, so two broken sides agree. When both
-sides were replaced by a stub that exits with an error, all 21 invocations
-were scored as agreeing and the script exited 0. The proposed fix requires
-each invocation to exit cleanly with the verdict its fixture is named for.
-With it ([ordeal#319](https://github.com/pulseengine/ordeal/pull/319)), the
-same stub produces 42 WRONG lines, one for each of an invocation's two
-builds, and a failure.
+**3. A regex where a parser belongs.** The check looks for a pattern in text.
+Anything written in a form the pattern does not expect is invisible, and
+"found nothing" turns into "nothing wrong".
 
-### Release steps that skip quietly
+```text
+pattern:  (data (i32.const N) ...)
+input:    (data $a (i32.const 0) ...)    -> no match -> "nothing to check"
+```
 
-spar's release confirmed that each binary reports the tagged version, but
-skipped the two targets it could not run natively, so in v0.49.0 two of seven
-binaries shipped with that check unrun. This one was observed in a release; no
-input was planted. [spar#621](https://github.com/pulseengine/spar/pull/621)
-(not yet run on a runner) proposes a job that runs them. varve's release signs
-the checksum file with the varve root key, and when that key is missing it
-skips the signing step with a warning and exits 0
-([varve#366](https://github.com/pulseengine/varve/issues/366)).
-varve checked its releases: v0.45.0 to v0.47.0 all carry the signature, so no
-release shipped unsigned and this one is latent.
+**4. A comparison that errors into success.** In shell, a comparison that
+cannot run is false, and false often means "don't fail".
 
-## Limits of the sweep
+```sh
+x=$(jq '.coverage' report.json)          # field missing -> x="null"
+if [ "$x" -lt 155 ]; then exit 1; fi     # error, treated as false -> no exit
+echo "gate PASSED"
+```
+
+**5. Agreement without a verdict.** A differential check compares two
+implementations and passes when they agree. Two broken implementations agree
+too.
+
+```text
+native build:  crash (exit 3)
+wasm build:    crash (exit 3)     -> identical -> "AGREE" -> green
+```
+
+**6. A step that skips quietly.** A release step that cannot do its job warns
+and carries on, and the release ships without that step's guarantee.
+
+```text
+signing key missing -> "warning: skipping signature" -> exit 0
+```
+
+None of these is exotic. Each is an ordinary, readable piece of script that
+does the right thing on the inputs its author had in mind.
+
+## What we are working towards
+
+PulseEngine is an open-source, pre-1.0 WebAssembly Component Model engine meant
+for safety-critical systems, together with the tools that check that work.
+Much of the code in these repositories is written by agent sessions, and a pull
+request merges only when its repository's required checks report success. That
+makes the required checks the place where trust is decided, so they are the
+first thing that has to be trustworthy.
+
+The rule I now apply is the one in the box at the top: a required check counts
+as evidence once a planted bad input has turned it red. In practice that means
+every fix to a check ships with its planted input as the acceptance test. The
+planted input turns the check red, and the real input stays green.
+
+For readers from avionics, this is a small, informal step in the direction of
+tool qualification. DO-330 is the avionics tool-qualification standard.
+Rapita's summary of [DO-330](https://rapitasystems.com/do-330) lists tools that
+could fail to detect an error among its qualification criteria; verification
+tools typically fall at TQL-5, the lowest of its five qualification levels. I
+did not read the standard itself. Our checks are not qualified tools, and this
+sweep is not a qualification.
+
+## What the sweep of our own checks found
+
+On 13 November an agent read the CI workflows and checker scripts of
+PulseEngine's repositories, ran a planted input wherever a check looked
+suspicious, and changed nothing. Findings were filed as issues in the
+repositories concerned. In eight repositories a required or release check could
+pass on bad input. A planted input showed it in five of them; in the other
+three it was read from the code, is latent, or was observed in a release.
+
+| Shape | Repository and check | How it was found | State on 14 November |
+|---|---|---|---|
+| 1 | witness (test coverage of compiled WebAssembly): verification gate passed an all-skipped run and a test step that ran 0 tests ([#372](https://github.com/pulseengine/witness/issues/372)) | planted input | fixed in [#373](https://github.com/pulseengine/witness/pull/373) |
+| 1 | spar (architecture models): Miri and ignored-test steps assert no minimum test count ([#622](https://github.com/pulseengine/spar/issues/622)) | latent, the tests run today | open |
+| 2 | meld (component fusion): loss-scenario gate ignored cargo's exit code and checked only `approved` scenarios ([#608](https://github.com/pulseengine/meld/issues/608)) | read from the code | fixed in [#610](https://github.com/pulseengine/meld/pull/610) |
+| 3 | gale (Rust port of Zephyr kernel primitives with machine-checked proofs): data-overlap gate did not see named data segments ([#502](https://github.com/pulseengine/gale/issues/502), more checks of this shape in [#505](https://github.com/pulseengine/gale/issues/505)) | planted input | open |
+| 3 | rules_rocq_rust (Bazel rules for Rocq proofs): the axiom and `Admitted` check passed when its regex found no theorems ([#57](https://github.com/pulseengine/rules_rocq_rust/issues/57)) | planted input | fixed in [#58](https://github.com/pulseengine/rules_rocq_rust/pull/58) |
+| 4 | scry (static analysis for WebAssembly): the MC/DC gate printed PASSED when the report lacked its fields; two more scry checks failed open ([#239](https://github.com/pulseengine/scry/issues/239)) | planted input | fixed in [#240](https://github.com/pulseengine/scry/pull/240) |
+| 5 | ordeal (an SMT solver): the native-vs-WebAssembly comparison scored two crashing builds as agreeing | planted input | fixed in [#319](https://github.com/pulseengine/ordeal/pull/319) |
+| 6 | spar: in v0.49.0 the release skipped its version check on two of seven binaries | observed in a release | fixed in [#621](https://github.com/pulseengine/spar/pull/621) |
+| 6 | varve (signed toolchain layers): signing step warns and exits 0 when its key is missing ([#366](https://github.com/pulseengine/varve/issues/366)) | latent, no release shipped unsigned | open |
+
+The same failure had shown up before the sweep, one case at a time: a nightly
+fuzz job in loom, the WebAssembly optimizer, that ran no fuzzer
+([loom#474](https://github.com/pulseengine/loom/issues/474)), and a release
+step in sigil, the signing and attestation tool, where a signature check
+written `cosign verify … || echo` could never fail
+([sigil#350](https://github.com/pulseengine/sigil/issues/350)). What changed on
+13 November is that planted inputs were tried across the organization's checks
+in one pass instead of one incident at a time.
+
+## Limits
 
 The sweep is not a clean bill for the repositories it did not flag. Coverage
-was uneven, and not every script behind every required check was read. One
+was uneven, and not every script behind every required check was read. A
 check the sweep read and found sound is spar's verification gate: a pull
 request can name a filter, the gate only lets that filter widen what runs, and
 a run that executes nothing fails. That last property came from an earlier
-fix: [spar#403](https://github.com/pulseengine/spar/issues/403), an all-skipped
-run counted as a pass, was fixed in v0.44.0.
+fix, [spar#403](https://github.com/pulseengine/spar/issues/403).
 
-DO-330 is the avionics tool-qualification standard. Rapita's summary of
-[DO-330](https://rapitasystems.com/do-330) lists tools that could fail to
-detect an error among its qualification criteria; verification tools typically
-fall at TQL-5, the lowest of its five qualification levels. I did not read the standard itself. Our checks are not qualified
-tools, and this sweep is not a qualification.
-
-## The rule I apply now
-
-I already had a skill for this, `gate-potency`, and earlier instances of the
-same failure: a nightly fuzz job that ran no fuzzer in loom, the WebAssembly
-optimizer ([loom#474](https://github.com/pulseengine/loom/issues/474)), and a
-release step in sigil, the signing and attestation tool, where a cosign
-signature check written `cosign verify … || echo` could never fail
-([sigil#350](https://github.com/pulseengine/sigil/issues/350)). I now count a
-required check as evidence only once a planted bad input has turned it red.
-The fix PRs for witness, rules_rocq_rust, scry and ordeal show, in local runs,
-their planted input turning the check red. For rules_rocq_rust, scry and ordeal
-they also show real input staying green; witness's is shown against a stubbed
-rivet. None is merged yet, and some have not run in CI.
+A planted input also only proves what it plants. A check that turns red on an
+empty report may still pass a report with plausible but wrong numbers. The
+rule makes a check's green mean "this check can fail on at least this kind of
+mistake", which is far more than "the job finished", and far less than "the
+change is correct".
