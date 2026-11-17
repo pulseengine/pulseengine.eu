@@ -1579,6 +1579,18 @@ claims:
       - kind: verbatim
         text: "It does not count as progress on that\n  issue."
 
+  # ── Monthly news radar (2026-11-17) ───────────────────────────────────────
+  # Owner request 2026-11-13: outside release notes that never change the
+  # factory are wasted effort; the radar files work and switches itself off.
+  - id: OUTSIDE-NEWS-RADAR-SWITCHES-OFF
+    doc: claude-tooling/plugins/pulseengine-claude/skills/outside-in-recheck/SKILL.md
+    text: "## Monthly radar: the outside material nobody shared"
+    evidence:
+      - kind: verbatim
+        text: "a decided note must carry the link that `landed` follows"
+      - kind: verbatim
+        text: "if fewer than one in three decided items landed, it exits 3"
+
   # ── Range, stretch and history-first process change (2026-11-17) ─────────────
   # From Rieseberg's "How to be more ambitious" (13 Oct 2026), mapped against the
   # plugin: Range (borrow a field's method, not its voice), Depth (an
