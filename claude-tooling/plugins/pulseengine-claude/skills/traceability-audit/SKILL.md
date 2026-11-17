@@ -174,6 +174,18 @@ So the audit also reads the requirement text. **Requirement wording rules:**
 - **Requirements that touch the same behaviour agree.** An exception stated in one
   requirement is stated, or referenced, in the other.
 
+**Then read the code the requirement names.** Measured on the same 29: of the
+findings the reviewers reported, wohl confirmed 66 of 69 from the plain review
+and 46 of 46 from the STE review against the code and tests. Both reviews missed
+the class with the highest payoff, because neither read code: a comparison
+operator that differs between text and engine (text `< 300`, engine and Kani
+harness `<= 300`; text `>`, engine `>=`). And a text ambiguity became a safety
+finding only through the code read: a rapid-drop detector that never fires on
+the requirement's own gradual-drop scenario. So for every requirement with a
+threshold, window or deadline, compare the operator, the unit and the boundary
+in the text with the engine and with the proof harness's assumptions, and list
+each difference as a finding.
+
 Keep `shall` as the normative keyword. Simplified Technical English (ASD-STE100)
 supplied several of these rules, but its full dictionary replaces `shall`,
 `should` and `may` and cannot express a recommendation or a permission, so the
