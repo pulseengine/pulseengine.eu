@@ -3,7 +3,7 @@ name: traceability-audit
 description: Use to check the rivet trace is complete and bidirectional across the V for the target safety standard ("are all artifacts linked"), while authoring and as the blocking check before tagging.
 metadata:
   author: pulseengine.eu
-  version: "0.4.0"
+  version: "0.5.0"
 ---
 
 # Traceability audit
@@ -144,6 +144,42 @@ re-derive them by eye**:
 debt this audit exists to find — one repo shipped on `FAIL (0 errors, 87
 warnings, 33 broken cross-refs)` where the warnings *were* the unmapped
 verification.
+
+## A closed link to an ambiguous requirement closes nothing
+
+A `verifies` link says a test checks a requirement. If the requirement can be
+read two ways, the test checks one reading and the trace shows it as closed.
+Measured on 2026-11-17: two fresh reviewers read wohl's 29 requirements, which
+`rivet check` passed. They found a real ambiguity in 28 of the 29 (plain review)
+and in 26 of the 29 (a Simplified Technical English review). The findings included
+a requirement that contradicts another, a boundary its own tests leave open
+(an alert "longer than 600 s", tested at 599, 600 and 601 s with no expected
+result at 600), and a unit scale written two ways.
+
+So the audit also reads the requirement text. **Requirement wording rules:**
+
+- **One term, one meaning.** A term used in two senses, or two terms for one
+  thing, is a finding. Domain terms go in the project glossary.
+- **Every number carries its unit and scale**, including a raw sensor scale
+  ("PM2.5 as 10 × µg/m³").
+- **Every boundary states which side it is on**: `> 600 s`, or a window written
+  `[22:00, 06:00)`, and the tests include the boundary value with its expected
+  result.
+- **A deadline names both ends**: "not more than N ms after <named event>".
+  "Immediately", "promptly", "within one cycle" and "within N s of detection"
+  without a defined start are findings.
+- **No pronoun whose referent has two candidates.**
+- **No vague quality word without a measure**: reliable, robust, continuous,
+  configurable (who sets it, when, in what range).
+- **Requirements that touch the same behaviour agree.** An exception stated in one
+  requirement is stated, or referenced, in the other.
+
+Keep `shall` as the normative keyword. Simplified Technical English (ASD-STE100)
+supplied several of these rules, but its full dictionary replaces `shall`,
+`should` and `may` and cannot express a recommendation or a permission, so the
+standard is not adopted as a whole. Run this read as a fresh reviewer that gets
+the requirement text and the verification criteria, not the author's intent
+([`claim-verification`] Part 2).
 
 ## "Verified" is not always decidable inside this repo
 
