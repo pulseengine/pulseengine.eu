@@ -1579,6 +1579,22 @@ claims:
       - kind: verbatim
         text: "It does not count as progress on that\n  issue."
 
+  # ── Range, stretch and history-first process change (2026-11-17) ─────────────
+  # From Rieseberg's "How to be more ambitious" (13 Oct 2026), mapped against the
+  # plugin: Range (borrow a field's method, not its voice), Depth (an
+  # unreasonable target) and Altitude (prove a process change from history and
+  # run it in parallel) had no home in the planning skill.
+  - id: RELEASE-PLANNING-RANGE-STRETCH-HISTORY
+    doc: claude-tooling/plugins/pulseengine-claude/skills/release-planning/SKILL.md
+    text: "**Name the verb and borrow a field.**"
+    evidence:
+      - kind: verbatim
+        text: "**Set one stretch target per release.**"
+      - kind: verbatim
+        text: "**Prove a process change from history, then run it beside the old one.**"
+      - kind: verbatim
+        text: "Record the borrowed method in the feature's design\n  decision"
+
   # ── AI review independence: fork rule, record, negative control (#196) ─────
   # "Fresh context" was doctrine but never a recorded field, and a fork (which
   # inherits the parent's context) produced a report shaped exactly like an

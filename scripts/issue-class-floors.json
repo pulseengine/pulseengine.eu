@@ -10,7 +10,7 @@
   ],
   "repos": {
     "pulseengine/rivet": { "needs-decision_floor": null },
-    "pulseengine/spar":  { "needs-decision_floor": null },
+    "pulseengine/spar":  { "needs-decision_floor": 29 },
     "pulseengine/relay": { "needs-decision_floor": 57 },
     "pulseengine/gale":  { "needs-decision_floor": 30 },
     "pulseengine/loom":  { "needs-decision_floor": 26 },
