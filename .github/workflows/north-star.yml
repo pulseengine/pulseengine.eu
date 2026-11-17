@@ -1,0 +1,50 @@
+name: North Star
+
+# Monthly measurement of North Star objectives that have an indicator script
+# (today O2, the one-command evidence bundle). The page renders the committed
+# data/north-star/<id>.json; this run re-measures from the live releases and
+# fails when the committed snapshot no longer matches, so a stale number on the
+# page is a red run rather than a silent one. Refresh by committing the
+# uploaded O2.json in a PR.
+#
+# Runs on a hosted runner: verify.sh needs the Linux wsc release binary and
+# nothing self-hosted. Reads public releases only.
+on:
+  schedule:
+    - cron: "37 6 2 * *"   # the 2nd of each month, 06:37 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  o2:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Snapshot rules (negative controls first)
+        run: |
+          python3 scripts/check-north-star.py --self-test
+          python3 scripts/check-north-star.py
+      - name: Measure O2 from the live releases
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          cp data/north-star/O2.json "$RUNNER_TEMP/O2.committed.json"
+          python3 scripts/north-star-o2.py
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: north-star-O2
+          path: data/north-star/O2.json
+      - name: Committed snapshot still matches
+        run: |
+          python3 - "$RUNNER_TEMP/O2.committed.json" data/north-star/O2.json <<'PY'
+          import json, sys
+          key = lambda p: [(r["repo"], r["release"], r["counts"]) for r in json.load(open(p))["repos"]]
+          a, b = key(sys.argv[1]), key(sys.argv[2])
+          if a != b:
+              print("::error::data/north-star/O2.json is stale: committed %s, live %s. Commit the uploaded artifact." % (a, b))
+              sys.exit(1)
+          print("snapshot matches:", b)
+          PY
