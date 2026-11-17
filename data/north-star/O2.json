@@ -1,0 +1,30 @@
+{
+  "objective": "O2",
+  "measured_at": "2026-11-17T19:27Z",
+  "verifier": "sigil wsc v0.12.1",
+  "value": 1,
+  "of": 2,
+  "repos": [
+    {
+      "repo": "relay",
+      "release": "falcon-v1.142.0",
+      "bundle": null,
+      "verify": "absent",
+      "controls": null,
+      "counts": false
+    },
+    {
+      "repo": "wohl",
+      "release": "v0.7.0",
+      "bundle": "wohl-v0.7.0-evidence-bundle.tar.gz",
+      "verify": "pass",
+      "controls": {
+        "deleted evidence file": "red",
+        "altered signed component": "red"
+      },
+      "counts": true,
+      "verify_last_line": "PASS: evidence bundle verified. Outer chain (SHA256SUMS + cosign + SLSA) binds it to the release workflow \u2014 see TOOLING.txt and the release notes."
+    }
+  ],
+  "blind_spot": "inner bundle consistency only; the cosign/SLSA outer chain is not checked"
+}

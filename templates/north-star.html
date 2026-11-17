@@ -27,6 +27,13 @@
         <span class="ns-state ns-state--{{ o.state }}">{{ o.state }}</span>
       </div>
       <p>{{ o.summary }}</p>
+      {% if o.state == "measured" %}{% set m = load_data(path="data/north-star/" ~ o.id ~ ".json") %}
+      <p class="ns-value"><strong>{{ m.value }} of {{ m.of }}</strong> · measured {{ m.measured_at }} with {{ m.verifier }}</p>
+      <ul class="ns-rows">
+        {% for r in m.repos %}<li><span class="ns-repo">{{ r.repo }}</span> {{ r.release }}: {% if r.counts %}bundle verifies, both negative controls fail{% elif r.verify == "absent" %}no evidence bundle in the release{% else %}{{ r.verify }}{% endif %}</li>{% endfor %}
+      </ul>
+      <p class="ns-blind">Not checked: {{ m.blind_spot }}.</p>
+      {% endif %}
       <dl class="ns-dl">
         <dt>Indicator</dt><dd>{{ o.indicator }}</dd>
         <dt>Guard</dt><dd>{{ o.guard }}</dd>
@@ -96,5 +103,9 @@
   .ns-list { margin: .6rem 0 0; padding-left: 1.1rem; display: grid; gap: .4rem; color: var(--text-dim); }
   .ns-list a, .ns-pulls a { color: var(--accent); font-family: var(--font-mono); text-decoration: none; }
   .ns-pulls { font-size: .85rem; }
+  .ns-value { color: var(--text) !important; }
+  .ns-value strong { color: var(--green); font-size: 1.1rem; }
+  .ns-rows { margin: 0; padding-left: 1.1rem; font-size: .85rem; color: var(--text-dim); display: grid; gap: .2rem; }
+  .ns-blind { font-size: .8rem; color: var(--text-faint) !important; }
 </style>
 {% endblock %}

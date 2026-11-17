@@ -17,7 +17,11 @@ syntax:
   5. the North Star sentence carries no date: the goal moves, only steps are
      dated;
   6. no private infrastructure detail: no IPv4 address and no host name under
-     a local-network suffix.
+     a local-network suffix;
+  7. "measured" and a script-written measurement go together: an objective is
+     "measured" exactly when data/north-star/<id>.json exists, names that
+     objective and carries an integer value out of a positive denominator, so
+     no number can be typed into the TOML.
 
 Exit: 0 consistent · 1 a rule is broken · 2 could not run the check.
 `--self-test` runs each rule against a planted violation (negative controls).
@@ -26,7 +30,9 @@ Exit: 0 consistent · 1 a rule is broken · 2 could not run the check.
 from __future__ import annotations
 
 import copy
+import json
 import pathlib
+import tempfile
 import re
 import sys
 
@@ -41,6 +47,7 @@ except ImportError:  # pragma: no cover - the macOS floor is 3.9
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 DATA = ROOT / "data" / "north-star.toml"
+MEASURE_DIR = ROOT / "data" / "north-star"
 
 ID_RE = re.compile(r"^O[1-9][0-9]*$")
 LAYER_RE = re.compile(r"^20[0-9]{2}\.(0[1-9]|1[0-2])$")
@@ -63,7 +70,17 @@ def _strings(node):
             yield from _strings(v)
 
 
-def check(doc: dict) -> list:
+def _measurement(oid: str, measure_dir: pathlib.Path):
+    p = measure_dir / ("%s.json" % oid)
+    if not p.is_file():
+        return None
+    try:
+        return json.loads(p.read_text(encoding="utf-8"))
+    except ValueError:
+        return {}
+
+
+def check(doc: dict, measure_dir: pathlib.Path = MEASURE_DIR) -> list:
     errors = []
     star = doc.get("north_star")
     if not isinstance(star, str) or not star.strip():
@@ -90,6 +107,15 @@ def check(doc: dict) -> list:
         state = o.get("state")
         if state and state not in STATES:
             errors.append("%s: state %r is not one of %s" % (where, state, sorted(STATES)))
+        m = _measurement(oid, measure_dir) if oid else None
+        if state == "measured":
+            if m is None:
+                errors.append("%s: state is measured but data/north-star/%s.json is missing" % (where, oid))
+            elif not (m.get("objective") == oid and isinstance(m.get("value"), int)
+                      and isinstance(m.get("of"), int) and m["of"] > 0 and 0 <= m["value"] <= m["of"]):
+                errors.append("%s: data/north-star/%s.json is not a valid measurement" % (where, oid))
+        elif m is not None:
+            errors.append("%s: data/north-star/%s.json exists but state is %r" % (where, oid, state))
 
     for i, p in enumerate(doc.get("periods") or []):
         where = "periods[%d]" % i
@@ -148,7 +174,31 @@ def self_test() -> int:
         if not check(mutate(fn)):
             print("self-test: planted %r was NOT caught" % name, file=sys.stderr)
             failed += 1
-    print("self-test: %d of %d planted violations caught" % (len(cases) - failed, len(cases)))
+
+    # Rule 7 against planted measurement directories.
+    first = base["objectives"][0]["id"]
+    good = {"objective": first, "value": 1, "of": 2}
+    dir_cases = {
+        "measured without a file": (lambda d: d["objectives"][0].update(state="measured"), None),
+        "file without measured": (lambda d: d["objectives"][0].update(state="unmeasured"), good),
+        "value above denominator": (lambda d: d["objectives"][0].update(state="measured"),
+                                    {"objective": first, "value": 3, "of": 2}),
+        "file for another objective": (lambda d: d["objectives"][0].update(state="measured"),
+                                       {"objective": "O99", "value": 1, "of": 2}),
+    }
+    for name, (fn, payload) in dir_cases.items():
+        with tempfile.TemporaryDirectory() as tmp:
+            md = pathlib.Path(tmp)
+            d = mutate(fn)
+            for o in d["objectives"][1:]:
+                o["state"] = "unmeasured"
+            if payload is not None:
+                (md / ("%s.json" % first)).write_text(json.dumps(payload))
+            if not check(d, md):
+                print("self-test: planted %r was NOT caught" % name, file=sys.stderr)
+                failed += 1
+    total = len(cases) + len(dir_cases)
+    print("self-test: %d of %d planted violations caught" % (total - failed, total))
     return 1 if failed else 0
 
 
