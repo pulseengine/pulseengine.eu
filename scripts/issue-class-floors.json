@@ -17,6 +17,8 @@
     "pulseengine/warte": { "needs-decision_floor": 40 },
     "pulseengine/varve": { "needs-decision_floor": 25 },
     "pulseengine/pulseengine.eu": { "needs-decision_floor": 8 },
-    "pulseengine/witness": { "needs-decision_floor": 14 }
+    "pulseengine/witness": { "needs-decision_floor": 14 },
+    "pulseengine/sigil": { "needs-decision_floor": 36 },
+    "pulseengine/example-kvs": { "needs-decision_floor": 1 }
   }
 }
