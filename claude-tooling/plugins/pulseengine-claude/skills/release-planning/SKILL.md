@@ -50,6 +50,25 @@ the plan, not GitHub milestones alone:
   but rivet's `release:` field is the source of truth — the milestone is a view.
 - **Move scope deliberately** — deferring a requirement to a later release is a
   scope decision (bump its `release:`), surfaced and logged, not silent.
+- **Name the verb and borrow a field.** For each feature in scope, write the verb
+  it serves, not the noun it produces: not "an MC/DC report" but "convince an
+  assessor that every condition was shown to matter". Then name two fields
+  outside software engineering that already do that verb, and take one method
+  from them as they practise it, not their vocabulary: a survival analysis for
+  flaky checks, a journalist's two-source rule for release notes, a usability
+  test for a household app. Record the borrowed method in the feature's design
+  decision, so a reviewer can check it was used.
+- **Set one stretch target per release.** Next to the correctness bar, state one
+  number that looks unreasonable, for example "every required check has a
+  planted control" or "zero `kani::assume` that narrows a caller's input", with
+  the measurement that decides it. Missing it does not block the release; it is
+  reported in the release notes with the number reached, so the next release
+  starts from it.
+- **Prove a process change from history, then run it beside the old one.** A
+  change to how work is gated or released (a new required check, a new
+  workflow) first replays the repository's recent history and shows what it
+  would have caught or wrongly blocked, then runs advisory next to the current
+  process for at least one release before it becomes required.
 
 ## Part B — The issue-driven delivery loop
 
