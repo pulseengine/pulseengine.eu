@@ -1607,6 +1607,8 @@ claims:
         text: "Keep `shall` as the normative keyword."
       - kind: verbatim
         text: "**Then read the code the requirement names.**"
+      - kind: verbatim
+        text: "**Check that the evidence the criteria name exists and can fail.**"
 
   # ── Range, stretch and history-first process change (2026-11-17) ─────────────
   # From Rieseberg's "How to be more ambitious" (13 Oct 2026), mapped against the

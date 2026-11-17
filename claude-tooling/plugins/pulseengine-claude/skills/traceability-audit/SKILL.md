@@ -186,6 +186,20 @@ threshold, window or deadline, compare the operator, the unit and the boundary
 in the text with the engine and with the proof harness's assumptions, and list
 each difference as a finding.
 
+**Check that the evidence the criteria name exists and can fail.** relay's
+pass on 84 requirements (2026-11-17) found the same high-value class again in
+the code read, not the text read: a Verus contract `ensures true`, a Kani
+harness that is a tautology, a contract that proves only the size-zero case,
+`external_body` functions with no test of the property, and a CI gate whose
+threshold is looser than the requirement (text RMS < 0.1, gate fails only at
+>= 0.5). A requirement whose criteria cite such evidence is open, whatever its
+status says.
+
+**Scope the text review to requirements that have code.** On relay, 59% of the
+reviewer's 149 claims were about prose on `proposed` or `draft` requirements
+with nothing to compare against. Review those when they are promoted. A
+reviewer subagent returns its findings as text; do not ask it to write files.
+
 Keep `shall` as the normative keyword. Simplified Technical English (ASD-STE100)
 supplied several of these rules, but its full dictionary replaces `shall`,
 `should` and `may` and cannot express a recommendation or a permission, so the
