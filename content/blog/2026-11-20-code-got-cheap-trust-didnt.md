@@ -321,7 +321,7 @@ Unsere Lehre daraus: **Eine Auflage wird zum Vorteil, wenn daraus ein
 Vertrauensgut entsteht, das schwer zu kopieren ist und für das Käufer zahlen
 müssen. Sie bleibt ein Kostenfaktor, wenn sie nur Nachfrage schafft, die jeder zu
 niedrigeren Kosten bedienen kann.** Das ist kein belegtes Gesetz, sondern eine
-Arbeitshypothese aus einer Handvoll Fälle.
+Arbeitshypothese.
 {% </lang> %}
 
 {% <lang code="note"> %}
