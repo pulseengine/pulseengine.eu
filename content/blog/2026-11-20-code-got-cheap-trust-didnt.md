@@ -52,12 +52,16 @@ Our working definition is that evidence is worth something only if it has three
 properties:
 
 1. **It can fail.** A check that cannot go red on bad input proves nothing. You
-   find out by feeding it something it must reject.
+   find out by feeding it something it must reject. Nadella describes the same
+   habit in the agent teams he watches: "how do you take every failure and then
+   build back the test case and make sure you truly verify the test" (12:19).
 2. **It is checked by someone other than the author, and re-runnable by
    anyone.** These are two separate demands. Independence means the author does
    not mark their own work; re-checkability means a result does not have to be
    taken on anyone's word. A signature shows which key signed the bundle and that
    it has not changed since; it says nothing about whether the bundle is right.
+   For agents, independence includes the model: "How do you have the critique?
+   There's so much to be said about having a separate model family" (17:05).
 3. **It is tied to an agreed definition of right.** "Correct" needs a
    requirement or a standard that says what correct means, written without
    ambiguity.
@@ -143,9 +147,11 @@ Qualified Rust tooling does exist: Ferrous Systems announced in November 2023
 that TÜV SÜD had qualified the Ferrocene 23.06.0 toolchain, which is open
 source, as a tool for ISO 26262 (ASIL D) and IEC 61508 (SIL 4)
 ([Ferrous Systems](https://ferrous-systems.com/blog/officially-qualified-ferrocene/)).
-That qualifies the compiler, not the software built with it. We read late
+That qualifies the compiler, not the software built with it. In the same
+episode the host, Gergely Orosz, expects "blueprints and certifications in, I
+don't know, five to 10 years" for agent-built systems (52:09). We read late
 rulebooks and MC/DC support that is still only a goal as room for open
-verification evidence.
+verification evidence in the meantime.
 
 ## What we are doing about it
 
@@ -164,9 +170,10 @@ properties as follows.
   Reading the code turned one finding, a safety check that never triggered in
   the scenario its own requirement describes, into a safety finding, which is
   still waiting for a design decision. Both
-  reviewers came from the same project, so they were independent of the
-  author's context, not of the organisation, and every lead was checked against
-  the code before anything changed.
+  reviewers came from the same project and the same model family as the author,
+  so they were independent of the author's context, not of the organisation or
+  the model, and every lead was checked against the code before anything
+  changed.
 - **Properties 1 and 2, evidence anyone can re-run.** wohl's
   [v0.7.0 release](https://github.com/pulseengine/wohl/releases/tag/v0.7.0)
   ships a signed evidence bundle with one verify command. A monthly workflow now
