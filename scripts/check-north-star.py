@@ -23,8 +23,11 @@ syntax:
      objective and carries an integer value out of a positive denominator, so
      no number can be typed into the TOML.
 
-Exit: 0 consistent · 1 a rule is broken · 2 could not run the check.
+Exit: 0 consistent · 1 a rule is broken · 2 could not run the check
+(including a value of a type the rules cannot handle, e.g. objectives = 5).
 `--self-test` runs each rule against a planted violation (negative controls).
+`--root DIR` checks DIR/data instead of this repository's (the component
+equivalence harness, tools/north-star-check/harness, uses it).
 """
 
 from __future__ import annotations
@@ -203,6 +206,16 @@ def self_test() -> int:
 
 
 def main() -> int:
+    global DATA, MEASURE_DIR
+    argv = sys.argv[1:]
+    if "--root" in argv:
+        i = argv.index("--root")
+        if i + 1 >= len(argv):
+            print("check-north-star: --root needs a directory", file=sys.stderr)
+            return 2
+        root = pathlib.Path(argv[i + 1])
+        DATA = root / "data" / "north-star.toml"
+        MEASURE_DIR = root / "data" / "north-star"
     if not DATA.is_file():
         print("check-north-star: %s not found" % DATA, file=sys.stderr)
         return 2
@@ -213,7 +226,11 @@ def main() -> int:
     except Exception as e:  # noqa: BLE001 - report any parse failure
         print("check-north-star: cannot parse: %s" % e, file=sys.stderr)
         return 2
-    errors = check(doc)
+    try:
+        errors = check(doc, MEASURE_DIR)
+    except Exception as e:  # noqa: BLE001 - a wrongly typed value, not a broken rule
+        print("check-north-star: cannot check: %s: %s" % (type(e).__name__, e), file=sys.stderr)
+        return 2
     for e in errors:
         print("north-star: " + e)
     if not errors:
