@@ -487,7 +487,7 @@ properties as follows.
 {% </lang> %}
 
 {% <lang code="de"> %}
-## Was wir tun
+## Woran wir arbeiten, was wir erreichen wollen
 
 PulseEngine ist eine Engine für das WebAssembly Component Model, noch in Arbeit,
 gedacht für sicherheitskritische Einsätze und zum großen Teil von KI-Agenten
