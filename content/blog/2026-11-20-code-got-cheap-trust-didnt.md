@@ -9,7 +9,7 @@ tags = ["verification", "europe", "standards", "ai-agents", "process", "deutsch"
 authors = ["Ralf Anton Beier"]
 [extra]
 bilingual = true
-title_de = "Code kostet kaum noch etwas. Vertrauen schon."
+title_de = "Code schreibt sich fast von selbst. Vertrauen nicht."
 +++
 
 {% <lang code="en"> %}
@@ -33,7 +33,7 @@ need from AI-built software, and that the work now is to make them cheap and ope
 <div class="insight__label">Kernaussage</div>
 <div class="insight__body">
 
-**Code zu erzeugen kostet kaum noch etwas. Der Engpass heißt jetzt
+**Code schreibt sich heute fast von selbst. Der Engpass heißt jetzt
 Verifikation.** Ein Nachweis zählt nur unter drei Bedingungen: Ein Test, der nicht
 fehlschlagen kann, prüft nichts. Vier-Augen-Prinzip, und für jeden nachvollziehbar.
 Und die Abnahmekriterien sind vereinbart. Unsere These: Käufer
@@ -46,8 +46,8 @@ wenig Aufwand und für jeden einsehbar.
 {% </lang> %}
 
 {% <lang code="note"> %}
-"cheap" → „kostet kaum noch etwas“: im Deutschen klingt „billig“ nach schlechter
-Ware. "the scarce thing" → „der Engpass“. "agreed definition of right" →
+"cheap" → „schreibt sich fast von selbst“: es geht um Aufwand, nicht um Preis;
+„billig“ klänge im Deutschen nach schlechter Ware. "the scarce thing" → „der Engpass“. "agreed definition of right" →
 „vereinbarte Abnahmekriterien“. "make them cheap and open" → „wenig Aufwand, für
 jeden einsehbar“. Die drei Bedingungen stehen im Deutschen als Regeln, nicht als
 Nebensätze.
@@ -62,10 +62,10 @@ turned that around: writing got cheap, and the question "is it right?" did not.
 {% </lang> %}
 
 {% <lang code="de"> %}
-## Code kostet kaum noch etwas, Verifikation schon
+## Code schreibt sich fast von selbst, Verifikation nicht
 
 Programmieren war teuer. Reviews, Tests und Beweise kamen noch dazu. Mit
-Coding-Agenten hat sich das gedreht: Code zu erzeugen kostet kaum noch etwas. Die
+Coding-Agenten hat sich das gedreht: Code schreibt sich heute fast von selbst. Die
 Frage, ob er stimmt, kostet nicht weniger als früher.
 {% </lang> %}
 
