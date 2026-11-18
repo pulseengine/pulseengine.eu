@@ -71,9 +71,9 @@ flowchart LR
 {% <lang code="de"> %}
 ## Code schreiben ist billig, Prüfen nicht
 
-Früher war das Programmieren der teure Teil. Reviews, Tests und Beweise kosteten
-zusätzlich. Mit Coding-Agenten hat sich das umgekehrt: Code entsteht heute billig,
-aber die Frage, ob er stimmt, ist nicht billiger geworden.
+Programmieren war teuer. Reviews, Tests und Beweise kamen noch dazu. Mit
+Coding-Agenten hat sich das gedreht: Code ist billig. Die Frage, ob er stimmt,
+ist es nicht.
 
 Microsofts CEO sagte dazu in einer Folge des Podcasts The Pragmatic Engineer vom
 16. November 2026: "In a world where code generation has become cheap, what has
