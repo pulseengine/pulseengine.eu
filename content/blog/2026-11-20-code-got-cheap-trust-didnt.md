@@ -33,13 +33,13 @@ need from AI-built software, and that the work now is to make them cheap and ope
 <div class="insight__label">Kernaussage</div>
 <div class="insight__body">
 
-**Code zu schreiben ist billig geworden. Knapp ist jetzt etwas anderes: zu
-zeigen, dass er stimmt.** Ein solcher Nachweis zählt nur, wenn die Prüfung auch
-rot werden kann, wenn nicht der Autor selbst prüft und jeder die Prüfung
-wiederholen kann, und wenn vorher feststeht, was „richtig“ heißt. Unser Argument,
-aus einem kleinen Projekt heraus: Normen, unabhängige Prüfung und Nachweise vor
-der Freigabe sind das, was Käufer sicherheitskritischer Systeme von KI-gebauter
-Software brauchen. Jetzt kommt es darauf an, sie billig und offen zu machen.
+**Code ist billig geworden. Knapp ist jetzt der Nachweis, dass er stimmt.** Der
+zählt nur unter drei Bedingungen: Die Prüfung muss rot werden können. Ein anderer
+als der Autor prüft, und jeder kann nachprüfen. Und was „richtig“ ist, steht
+vorher fest. Unser Argument, aus einem kleinen Projekt heraus: Normen,
+unabhängige Prüfung und Nachweise vor der Freigabe brauchen Käufer
+sicherheitskritischer Systeme auch bei KI-gebauter Software. Jetzt geht es
+darum, das billig und offen zu machen.
 
 </div>
 </aside>
@@ -69,26 +69,26 @@ flowchart LR
 {% </lang> %}
 
 {% <lang code="de"> %}
-## Code schreiben ist billig, Prüfen nicht
+## Code ist billig, Prüfen nicht
 
 Programmieren war teuer. Reviews, Tests und Beweise kamen noch dazu. Mit
 Coding-Agenten hat sich das gedreht: Code ist billig. Die Frage, ob er stimmt,
 ist es nicht.
 
-Microsofts CEO sagte dazu in einer Folge des Podcasts The Pragmatic Engineer vom
-16. November 2026: "In a world where code generation has become cheap, what has
-become hard is verification" – sinngemäß: Seit Code billig zu haben ist, ist das
-Prüfen das Schwierige
+Microsofts CEO sagt es im Podcast The Pragmatic Engineer vom 16. November 2026
+so: "In a world where code generation has become cheap, what has become hard is
+verification" – sinngemäß: Code zu erzeugen ist billig geworden, schwer ist jetzt
+das Prüfen
 ([The Pragmatic Engineer](https://newsletter.pragmaticengineer.com/p/software-engineering-after-code-becomes),
-bei 11:50). Wir fragen hier: Was macht aus einer Behauptung über Code einen
-Nachweis? Unsere vorläufige Antwort sind drei Bedingungen, nummeriert wie in der
-Liste weiter unten.
+bei 11:50). Was macht aus einer Behauptung über Code einen Nachweis? Unsere
+vorläufige Antwort: drei Bedingungen. Die Nummern gelten auch in der Liste
+weiter unten.
 
 <pre class="mermaid">
 flowchart LR
     D["3. Vorher festgelegt, was richtig ist"] --> B
     A["Behauptung"] --> B["1. Prüfung, die rot werden kann"]
-    B --> C["2. Von Dritten geprüft, von jedem wiederholbar"]
+    B --> C["2. Vier-Augen-Prinzip, von jedem nachprüfbar"]
     C --> E["Nachweis"]
 </pre>
 {% </lang> %}
@@ -142,58 +142,55 @@ they supply the agreed definition that the third property asks for.
 {% </lang> %}
 
 {% <lang code="de"> %}
-## Ein Kessel explodiert in Mannheim – und die drei Bedingungen
+## Ein Kessel explodiert in Mannheim
 
-Im Januar 1865 explodierte in einer Mannheimer Brauerei ein Dampfkessel. Am
-6. Januar 1866 gründeten Kesselbetreiber einen Überwachungsverein
+Januar 1865: In einer Mannheimer Brauerei explodiert ein Dampfkessel. Am
+6. Januar 1866 gründen Kesselbetreiber einen Überwachungsverein
 ([Deutschlandmuseum](https://www.deutschlandmuseum.de/en/geschichte/kalender/1866-01-06-origin-of-the-tuev)).
-Er sollte die Kessel seiner Mitglieder regelmäßig prüfen, stellte 1868 seinen
-ersten hauptamtlichen Sachverständigen ein und wurde zum Ausgangspunkt der
-technischen Überwachung in Deutschland
+Er soll die Kessel seiner Mitglieder regelmäßig prüfen. 1868 kommt der erste
+hauptamtliche Sachverständige. Daraus wird der Ausgangspunkt der technischen
+Überwachung in Deutschland
 ([TÜV SÜD, Geschichte](https://www.tuvsud.com/en-gb/about-us/history/our-foundation-years-1866-1900)).
 
-Als Arbeitsdefinition gilt für uns: Ein Nachweis taugt nur etwas, wenn er drei
-Bedingungen erfüllt.
+Unsere Arbeitsdefinition: Ein Nachweis taugt nur unter drei Bedingungen.
 
-1. **Die Prüfung kann rot werden.** Eine Prüfung, die bei falscher Eingabe grün
-   bleibt, beweist nichts. Ob sie rot werden kann, sieht man erst, wenn man ihr
-   etwas vorlegt, das sie ablehnen muss. Nadella beschreibt dieselbe Gewohnheit
-   bei den Agenten-Teams, die er beobachtet: "how do you take every failure and
-   then build back the test case and make sure you truly verify the test" –
-   sinngemäß: aus jedem Fehler einen Testfall machen und dafür sorgen, dass der
-   Test wirklich prüft (12:19).
-2. **Nicht der Autor prüft, und jeder kann nachprüfen.** Das sind zwei
-   Forderungen. Unabhängig heißt: Niemand nimmt seine eigene Arbeit selbst ab.
-   Nachprüfbar heißt: Niemand muss ein Ergebnis auf Treu und Glauben hinnehmen.
-   Eine Signatur zeigt nur, mit welchem Schlüssel ein Paket signiert wurde und
-   dass es seitdem unverändert ist; ob der Inhalt stimmt, zeigt sie nicht. Bei
-   Agenten gehört auch das Modell zur Unabhängigkeit: "How do you have the
-   critique? There's so much to be said about having a separate model family" –
-   sinngemäß: Wie holt man sich die Kritik? Vieles spricht für eine andere
-   Modellfamilie (17:05).
-3. **Es ist vereinbart, was richtig ist.** Dafür braucht es eine Anforderung oder
-   Norm, die eindeutig sagt, was „korrekt“ heißt.
+1. **Eine Prüfung muss rot werden können.** Bleibt sie bei falscher Eingabe
+   grün, beweist sie nichts. Das zeigt sich erst, wenn man ihr etwas vorlegt, das
+   sie ablehnen muss. Nadella sieht dieselbe Gewohnheit in den Agenten-Teams:
+   "how do you take every failure and then build back the test case and make sure
+   you truly verify the test" – sinngemäß: aus jedem Fehler einen Testfall machen
+   und sicherstellen, dass der Test wirklich prüft (12:19).
+2. **Vier-Augen-Prinzip: Ein anderer prüft, und jeder kann es nachprüfen.** Das
+   sind zwei Forderungen. Unabhängig heißt: Keiner nimmt seine eigene Arbeit ab.
+   Nachprüfbar heißt: Keiner muss das Ergebnis glauben. Eine Signatur zeigt nur,
+   welcher Schlüssel ein Paket signiert hat und dass es seitdem unverändert ist.
+   Ob der Inhalt stimmt, zeigt sie nicht. Bei Agenten gehört das Modell dazu:
+   "How do you have the critique? There's so much to be said about having a
+   separate model family" – sinngemäß: Wer liefert die Kritik? Vieles spricht für
+   eine andere Modellfamilie (17:05).
+3. **Was „richtig“ ist, steht vorher fest.** Dafür braucht es eine Anforderung
+   oder Norm, die das eindeutig sagt.
 
-Nach unserer Lesart erfüllt schon der Mannheimer Verein alle drei. Eine Prüfung,
-die einen Mangel finden kann, kann auch rot werden. Es prüft der Sachverständige
-des Vereins und nicht der Betreiber, also nicht der Autor selbst, und weil der
-Kessel regelmäßig drankommt, wird immer wieder nachgeprüft. Weil der Verein viele
-Kessel prüft, bekommen seine Prüfer ein gemeinsames Bild davon, was ein sicherer
-Kessel ist. So hängt die Prüfung an einer Definition.
+Nach unserer Lesart erfüllt schon der Mannheimer Verein alle drei. Wer einen
+Mangel finden kann, kann auch rot melden. Es prüft der Sachverständige des
+Vereins, nicht der Betreiber. Und weil der Kessel regelmäßig drankommt, wird
+immer wieder nachgeprüft. Der Verein prüft viele Kessel. So entsteht bei seinen
+Prüfern ein gemeinsames Bild davon, was ein sicherer Kessel ist, und die Prüfung
+hängt an einer Definition.
 
-Unabhängigkeit kann auch verloren gehen. Im Abschlussbericht zur Boeing 737 MAX,
-den Mitarbeiter der Mehrheitsfraktion im Verkehrsausschuss des
-US-Repräsentantenhauses erstellt haben, heißt es als einer von mehreren
-Befunden: "Excessive FAA delegation of certification functions to Boeing on the
-737 MAX eroded FAA's oversight effectiveness and the safety of the public" –
-sinngemäß: Die übermäßige Übertragung von Zertifizierungsaufgaben an Boeing
-untergrub die Wirksamkeit der FAA-Aufsicht und die Sicherheit der Öffentlichkeit
+Unabhängigkeit kann verloren gehen. Den Abschlussbericht zur Boeing 737 MAX haben
+Mitarbeiter der Mehrheitsfraktion im Verkehrsausschuss des
+US-Repräsentantenhauses geschrieben. Einer von mehreren Befunden: "Excessive FAA
+delegation of certification functions to Boeing on the 737 MAX eroded FAA's
+oversight effectiveness and the safety of the public" – sinngemäß: Die FAA hat
+zu viel Zertifizierung an Boeing abgegeben. Das hat die Wirksamkeit ihrer Aufsicht
+und die öffentliche Sicherheit geschwächt
 ([Bericht des Verkehrsausschusses](https://democrats-transportation.house.gov/imo/media/doc/final_boeing_737_max_report.pdf)).
-Für uns ist das dieselbe Lehre wie in Mannheim: Wer prüft, muss unabhängig sein.
+Für uns ist das die Lehre aus Mannheim: Wer prüft, muss unabhängig sein.
 
-Normen wirken für uns außerdem als kollektives Gedächtnis. Sie halten Lehren als
-Regeln fest, damit das nächste Team sie nicht noch einmal lernen muss, und sie
-liefern die Definition, die die dritte Bedingung verlangt.
+Normen sind für uns außerdem ein kollektives Gedächtnis. Sie machen aus Lehren
+Regeln, damit das nächste Team sie nicht noch einmal lernen muss. Und sie liefern
+die Definition, die Bedingung 3 verlangt.
 {% </lang> %}
 
 {% <lang code="en"> %}
@@ -233,39 +230,38 @@ as it keeps those properties.
 {% <lang code="de"> %}
 ## Wenn aus der Auflage ein Produkt wird
 
-**Bei Prüfung und Zertifizierung hat das funktioniert.** Für Hersteller ist
-unabhängige Prüfung ein Kostenfaktor, für die Prüfer wurde sie ein Geschäft. TÜV
-SÜD meldete für 2024 einen Umsatz von 3,4 Milliarden Euro
+**Bei Prüfung und Zertifizierung hat das geklappt.** Für Hersteller kostet
+unabhängige Prüfung Geld. Für die Prüfer wurde sie ein Geschäft. TÜV SÜD meldete
+für 2024 einen Umsatz von 3,4 Milliarden Euro
 ([Pressemitteilung](https://www.tuvsud.com/en-gb/press-and-media/2025/may/tuev-sued-achieves-significant-revenue-growth-in-2024)),
 TÜV Rheinland 2,71 Milliarden Euro
 ([Pressemitteilung](https://www.tuv.com/press/en/press-releases/tuev-rheinland-results-2024.html)),
-jeweils über alle Geschäftsfelder. Nach unserer Lesart gibt es einen großen Teil
-dieser Nachfrage, weil Prüfungen gesetzlich vorgeschrieben sind. Das Geschäft mit
-dem Vertrauen beruht also auf einer Pflicht, und seine Schwachstelle ist, dass die
-Prüfer von denen bezahlt werden, die sie prüfen.
+jeweils über alle Geschäftsfelder. Nach unserer Lesart kommt viel davon aus
+Prüfungen, die das Gesetz vorschreibt. Das Geschäft mit dem Vertrauen hängt also
+an einer Pflicht. Die Schwachstelle: Die Prüfer werden von denen bezahlt, die sie
+prüfen.
 
 **Bei der Solarindustrie ist es gescheitert.** Die Einspeisevergütung löste einen
-Boom aus, und Deutschland war eine Zeit lang der größte Solarmarkt der Welt. Im
-Mai 2017 meldete SolarWorld, der letzte große deutsche Zellhersteller, unter dem
-Druck chinesischer Konkurrenz Insolvenz an
+Boom aus. Deutschland war eine Zeit lang der größte Solarmarkt der Welt. Im Mai
+2017 meldete SolarWorld Insolvenz an, der letzte große deutsche Zellhersteller,
+unter dem Druck chinesischer Konkurrenz
 ([Clean Energy Wire](https://www.cleanenergywire.org/news/last-major-german-solar-cell-maker-surrenders-chinese-competition)).
-Die Einspeisevergütung war eine Subvention, die Nachfrage schuf, keine Auflage
-für die Hersteller. Und gefragt war Massenware, die andere billiger herstellen
+Die Einspeisevergütung war eine Subvention. Sie schuf Nachfrage, sie war keine
+Auflage für die Hersteller. Und gefragt war Massenware, die andere billiger bauen
 konnten.
 
 So lesen wir die Fälle: **Eine Auflage wird zur Stärke, wenn daraus ein
 Vertrauensgut entsteht, das schwer zu kopieren ist und für das Käufer zahlen
 müssen. Sie bleibt ein Kostenfaktor, wenn sie nur Nachfrage schafft, die jeder
-billiger bedienen kann.** Das ist unsere Zusammenschau aus einer Handvoll Fälle,
-keine geprüfte Gesetzmäßigkeit.
+billiger bedienen kann.** Das schließen wir aus einer Handvoll Fälle. Ein
+geprüftes Gesetz ist es nicht.
 
-Auf den ersten Blick widerspricht das unserer Forderung nach offenen Nachweisen:
-Was jeder kopieren kann, ist nicht schwer zu kopieren. Unsere Antwort: Offene
-Nachweise sind trotzdem schwer zu fälschen, weil ihre Prüfungen rot werden können
-und jeder sie wiederholen kann. Billig wird es, Nachweise zu erzeugen und zu
-veröffentlichen, nicht, ihnen zu vertrauen. Verifikationsnachweise für
-sicherheitskritische Software stehen damit auf der Seite der Zertifizierung,
-solange sie diese Bedingungen erfüllen.
+Das scheint unserer Forderung nach offenen Nachweisen zu widersprechen. Was jeder
+kopieren kann, ist nicht schwer zu kopieren. Unsere Antwort: Fälschen lassen sich
+offene Nachweise trotzdem schwer. Ihre Prüfungen können rot werden, und jeder
+kann sie wiederholen. Billig wird das Erstellen und Veröffentlichen, nicht das
+Vertrauen. Verifikationsnachweise für sicherheitskritische Software gehören damit
+auf die Seite der Zertifizierung, solange sie die drei Bedingungen erfüllen.
 {% </lang> %}
 
 {% <lang code="en"> %}
@@ -307,46 +303,44 @@ verification evidence in the meantime.
 {% </lang> %}
 
 {% <lang code="de"> %}
-## Regeln und Werkzeuge hinken hinterher
+## Regeln und Werkzeuge kommen spät
 
 Ein NBER-Arbeitspapier von Bick, Blandin, Deming, Fuchs-Schündeln und Jessen vom
 März 2026 berichtet: Die Arbeitsproduktivität (Leistung je Arbeitsstunde) stieg
-von 1995 bis 2025 in den USA um 85 %, in Europa um 29 %. Diese Lücke ist lange
-vor der KI entstanden. Etwa 43 % der US-Beschäftigten nutzen KI bei der Arbeit,
-in der Befragung europäischer Beschäftigter sind es etwa 32 %. Branchen, die KI
-stärker einsetzten, wurden schneller produktiver, ohne dass sich die
-Beschäftigung erkennbar veränderte. Die Autoren berichten eine Korrelation und
-behaupten keinen ursächlichen Zusammenhang
+von 1995 bis 2025 in den USA um 85 %, in Europa um 29 %. Die Lücke ist älter als
+die KI. Etwa 43 % der US-Beschäftigten nutzen KI bei der Arbeit, in der Befragung
+europäischer Beschäftigter etwa 32 %. Branchen mit mehr KI wurden schneller
+produktiver. Die Beschäftigung änderte sich dabei nicht erkennbar. Die Autoren
+berichten eine Korrelation, keinen ursächlichen Zusammenhang
 ([NBER-Arbeitspapier 34995](https://www.nber.org/papers/w34995)).
 
-Die Regeln für KI-gebaute und vernetzte Produkte kommen spät. Der Rat der EU hat
-am 29. Juni 2026 endgültig beschlossen, die Fristen der KI-Verordnung für
+Die Regeln für KI-gebaute und vernetzte Produkte kommen spät. Am 29. Juni 2026 hat
+der Rat der EU endgültig beschlossen, die Fristen der KI-Verordnung für
 Hochrisiko-KI-Systeme zu verschieben: auf den 2. Dezember 2027 für eigenständige
-Systeme und auf den 2. August 2028 für Systeme, die in regulierte Produkte
-eingebaut sind
+Systeme, auf den 2. August 2028 für Systeme in regulierten Produkten
 ([Rat der EU über EEAS](https://www.eeas.europa.eu/delegations/chile/artificial-intelligence-council-gives-final-green-light-simplify-and-streamline-rules_en)).
 Das Cyberresilienzgesetz (Cyber Resilience Act) regelt Cybersicherheit für
-Produkte mit digitalen Elementen, nicht funktionale Sicherheit. Seine
-Meldepflichten gelten seit dem 11. September 2026, die wesentlichen Pflichten ab
-dem 11. Dezember 2027
+Produkte mit digitalen Elementen, nicht funktionale Sicherheit. Die Meldepflichten
+gelten seit dem 11. September 2026, die wesentlichen Pflichten ab dem
+11. Dezember 2027
 ([Europäische Kommission](https://digital-strategy.ec.europa.eu/en/policies/cyber-resilience-act)).
 
-Bei den Werkzeugen entfernte rust-lang/rust#144999 (gemergt am 8. August 2025)
-die instabile MC/DC-Instrumentierung
+Bei den Werkzeugen sieht es ähnlich aus. rust-lang/rust#144999 hat am 8. August
+2025 die instabile MC/DC-Instrumentierung entfernt
 ([rust-lang/rust#144999](https://github.com/rust-lang/rust/pull/144999)). Das
-Rust-Projektziel für 2026 ist instabile Unterstützung; die Zielseite nennt
+Rust-Projektziel für 2026 ist instabile Unterstützung. Die Zielseite nennt
 DO-178C Level A unter den Normen, die MC/DC verlangen
 ([Zielseite](https://goals.rust-lang.org/2026/mcdc-coverage-support.html)).
 Qualifizierte Rust-Werkzeuge gibt es: Ferrous Systems gab im November 2023
 bekannt, dass TÜV SÜD die quelloffene Werkzeugkette Ferrocene 23.06.0 als
 Werkzeug für ISO 26262 (ASIL D) und IEC 61508 (SIL 4) qualifiziert hat
 ([Ferrous Systems](https://ferrous-systems.com/blog/officially-qualified-ferrocene/)).
-Qualifiziert ist damit der Compiler, nicht die Software, die man mit ihm baut. In
+Qualifiziert ist damit der Compiler, nicht die Software, die man damit baut. In
 derselben Folge rechnet der Moderator Gergely Orosz für agentengebaute Systeme
 mit "blueprints and certifications in, I don't know, five to 10 years" –
 sinngemäß: mit Bauplänen und Zertifizierungen in fünf bis zehn Jahren (52:09).
-Späte Regeln und eine MC/DC-Unterstützung, die erst noch kommen soll, sehen wir
-als Raum für offene Verifikationsnachweise in der Zwischenzeit.
+Späte Regeln und MC/DC, das erst noch kommen soll: Darin sehen wir Raum für
+offene Verifikationsnachweise bis dahin.
 {% </lang> %}
 
 {% <lang code="en"> %}
@@ -390,41 +384,39 @@ and WebAssembly.
 ## Was wir tun
 
 PulseEngine ist eine WebAssembly-Component-Model-Engine, noch in Arbeit, gedacht
-für sicherheitskritische Einsätze und zum großen Teil von KI-Agenten gebaut. Wir
-sehen ihre Aufgabe darin, die „langsamen“ Teile schnell und offen zu machen. Was
-wir zuletzt getan haben, nach den drei Bedingungen geordnet:
+für sicherheitskritische Einsätze und zum großen Teil von KI-Agenten gebaut.
+Ihre Aufgabe sehen wir so: die „langsamen“ Teile schnell und offen machen. Was
+wir zuletzt getan haben, nach Bedingung:
 
-- **Bedingung 1: Prüfungen, die rot werden können.** Im
-  [vorigen Beitrag](/blog/green-by-default/) ging es darum, Prüfungen gezielt
-  falsche Eingaben unterzuschieben und zu sehen, ob sie rot werden. Daraus ist
-  ein Werkzeug geworden: [plant](https://github.com/pulseengine/plant).
-- **Bedingungen 2 und 3: Prüfung gegen eine Definition.** Zwei Prüfer, KI-Agenten
+- **Bedingung 1, Prüfungen, die rot werden können.** Im
+  [vorigen Beitrag](/blog/green-by-default/) haben wir Prüfungen gezielt falsche
+  Eingaben untergeschoben und geschaut, ob sie rot werden. Daraus ist ein Werkzeug
+  geworden: [plant](https://github.com/pulseengine/plant).
+- **Bedingungen 2 und 3, Prüfung gegen eine Definition.** Zwei Prüfer, KI-Agenten
   ohne den Kontext des Autors, haben die 29 Anforderungen unseres Projekts `wohl`
   auf Mehrdeutigkeiten gelesen
-  ([wohl#97](https://github.com/pulseengine/wohl/issues/97)); die mechanischen
+  ([wohl#97](https://github.com/pulseengine/wohl/issues/97)). Die mechanischen
   Korrekturen stehen in [wohl#98](https://github.com/pulseengine/wohl/pull/98).
-  Der Blick in den Code machte aus einem Befund einen Sicherheitsbefund: Eine
-  Sicherheitsprüfung löste im Szenario ihrer eigenen Anforderung nie aus. Dazu
-  steht eine Designentscheidung noch aus. Beide Prüfer kamen aus demselben
-  Projekt und derselben Modellfamilie wie der Autor. Unabhängig waren sie also
-  vom Kontext des Autors, nicht von der Organisation oder vom Modell, und jeder
-  Hinweis wurde am Code überprüft, bevor wir etwas geändert haben.
-- **Bedingungen 1 und 2: Nachweise, die jeder wiederholen kann.** Das
+  Erst im Code wurde aus einem Befund ein Sicherheitsbefund: Eine
+  Sicherheitsprüfung löste im Szenario ihrer eigenen Anforderung nie aus. Die
+  Designentscheidung dazu steht noch aus. Beide Prüfer kamen aus demselben Projekt
+  und derselben Modellfamilie wie der Autor. Unabhängig waren sie also vom Kontext
+  des Autors, nicht von der Organisation oder vom Modell. Jeder Hinweis wurde am
+  Code überprüft, bevor wir etwas geändert haben.
+- **Bedingungen 1 und 2, Nachweise, die jeder wiederholen kann.** Das
   `wohl`-Release
   [v0.7.0](https://github.com/pulseengine/wohl/releases/tag/v0.7.0) enthält ein
-  signiertes Nachweispaket, das sich mit einem einzigen Befehl prüfen lässt. Ein
-  monatlicher Lauf prüft es jetzt, zusammen mit zwei absichtlich eingebauten
-  Fehlern, die rot werden müssen
+  signiertes Nachweispaket, prüfbar mit einem einzigen Befehl. Ein monatlicher Lauf
+  prüft es jetzt, mit zwei absichtlich eingebauten Fehlern, die rot werden müssen
   ([pulseengine.eu#377](https://github.com/pulseengine/pulseengine.eu/pull/377)).
-  Das zeigt, dass das Paket unversehrt ist und seine Prüfungen noch rot werden
-  können, nicht, dass die Software korrekt ist.
+  Das zeigt: Das Paket ist unversehrt, und seine Prüfungen können noch rot werden.
+  Dass die Software korrekt ist, zeigt es nicht.
 
-Als Nächstes konzentrieren wir uns auf Prüfwerkzeuge, deren
-Qualifizierungsnachweise sich erzeugen und offen veröffentlichen lassen, und auf
-signierte, maschinenlesbare Nachweispakete, die sich auf die Normen zum
-Cyberresilienzgesetz abbilden lassen, falls und sobald sie veröffentlicht sind.
-Dazu kommen die Rückverfolgbarkeit von jedem Beweis und Test zu der Klausel, die
-er abdeckt, auch bei Änderungen durch KI-Agenten, und MC/DC-Abdeckung für Rust
+Als Nächstes: Prüfwerkzeuge, deren Qualifizierungsnachweise wir offen erzeugen und
+veröffentlichen können. Signierte, maschinenlesbare Nachweispakete, die sich auf
+die Normen zum Cyberresilienzgesetz abbilden lassen, falls und sobald sie
+veröffentlicht sind. Rückverfolgbarkeit von jedem Beweis und Test zu der Klausel,
+die er abdeckt, auch bei Änderungen durch KI-Agenten. Und MC/DC-Abdeckung für Rust
 und WebAssembly.
 {% </lang> %}
 
@@ -446,16 +438,16 @@ safety-critical code needs less checking, not more.
 {% <lang code="de"> %}
 ## Grenzen
 
-Das hier ist ein Argument aus einem kleinen Projekt, keine Marktstudie. Eine
+Das ist ein Argument aus einem kleinen Projekt, keine Marktstudie. Eine
 verlässliche Zahl zur Größe des Marktes für Verifikationswerkzeuge in der
-sicherheitskritischen Entwicklung haben wir nicht gefunden, und bisher hat uns
-kein Käufer etwas bezahlt. Die Regel, wann eine Auflage zur Stärke wird, ist
-unsere Lesart weniger Fälle. Die meisten Belege zur Qualität von KI-geschriebenem
-Code, die wir gefunden haben, stammen weiterhin von Anbietern.
+sicherheitskritischen Entwicklung haben wir nicht gefunden. Bezahlt hat uns bisher
+kein Käufer. Wann eine Auflage zur Stärke wird, haben wir aus wenigen Fällen
+geschlossen. Die meisten Belege zur Qualität von KI-geschriebenem Code, die wir
+gefunden haben, stammen noch von Anbietern.
 
 Was uns umstimmen würde: ein veröffentlichtes Nachweisformat für das
-Cyberresilienzgesetz, das unsere Pakete überflüssig macht; ein Pilotprojekt, in
-dem sich niemand für offene Qualifizierungsnachweise interessiert; oder eine
+Cyberresilienzgesetz, das unsere Pakete überflüssig macht. Ein Pilotprojekt, in
+dem sich niemand für offene Qualifizierungsnachweise interessiert. Oder eine
 unabhängige Studie, die zeigt, dass KI-geschriebener sicherheitskritischer Code
 weniger Prüfung braucht, nicht mehr.
 {% </lang> %}
