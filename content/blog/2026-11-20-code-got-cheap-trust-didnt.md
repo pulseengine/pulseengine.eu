@@ -18,9 +18,9 @@ title_de = "Code schreibt sich fast von selbst. Vertrauen nicht."
 <div class="insight__body">
 
 **When writing code becomes cheap, the scarce thing is evidence that it is
-right.** Such evidence counts only if its checks can fail, if someone other than
-the author checks it and anyone can re-run it, and if it is tied to an agreed
-definition of "right". Our argument, from a small project, is that standards,
+right.** Such evidence counts only under three principles: a test that cannot
+fail tests nothing; four eyes, and anyone can re-run it; and an agreed definition
+of "right". Our argument, from a small project, is that standards,
 independent review and evidence before release are what safety-critical buyers
 need from AI-built software, and that the work now is to make them cheap and open.
 
@@ -49,7 +49,7 @@ wenig Aufwand und für jeden einsehbar.
 "cheap" → „schreibt sich fast von selbst“: es geht um Aufwand, nicht um Preis;
 „billig“ klänge im Deutschen nach schlechter Ware. "the scarce thing" → „der Engpass“. "agreed definition of right" →
 „vereinbarte Abnahmekriterien“. "make them cheap and open" → „wenig Aufwand, für
-jeden einsehbar“. Die drei "properties" stehen im Deutschen als Grundsätze, nicht als
+jeden einsehbar“. Die drei "principles" stehen im Deutschen als Grundsätze, nicht als
 Nebensätze.
 {% </lang> %}
 
@@ -84,13 +84,13 @@ Microsoft's CEO said in an episode of The Pragmatic Engineer published on
 become hard is verification"
 ([The Pragmatic Engineer](https://newsletter.pragmaticengineer.com/p/software-engineering-after-code-becomes),
 at 11:50). In this post we ask what turns a claim about code into evidence. Our
-working answer has three properties, numbered as in the list further down.
+working answer is three principles, numbered as in the list further down.
 
 <pre class="mermaid">
 flowchart LR
     D["3. Agreed definition of right"] --> B
-    A["Claim"] --> B["1. Check that can fail"]
-    B --> C["2. Checked by someone other than the author, re-runnable by anyone"]
+    A["Claim"] --> B["1. Test that can fail"]
+    B --> C["2. Four eyes, re-runnable by anyone"]
     C --> E["Evidence"]
 </pre>
 {% </lang> %}
@@ -116,12 +116,12 @@ flowchart LR
 
 {% <lang code="note"> %}
 Zitate bleiben im englischen Original, mit einer sinngemäßen Übersetzung. Aus
-"properties" werden „Grundsätze“, wie die „Grundsätze des Testens“ im deutschen
+"principles" werden „Grundsätze“, wie die „Grundsätze des Testens“ im deutschen
 ISTQB-Lehrplan: Sätze, die gelten, keine Eigenschaften.
 {% </lang> %}
 
 {% <lang code="en"> %}
-## A boiler explodes in Mannheim, and the three properties
+## A boiler explodes in Mannheim, and the three principles
 
 In January 1865 a steam boiler exploded at a brewery in Mannheim, and on
 6 January 1866 a group of boiler owners founded an inspection association
@@ -153,21 +153,20 @@ das, was der TÜV tut.
 {% </lang> %}
 
 {% <lang code="en"> %}
-Our working definition is that evidence is worth something only if it has three
-properties:
+Our working definition is that evidence is worth something only if it follows
+three principles:
 
-1. **It can fail.** A check that cannot go red on bad input proves nothing. You
+1. **A test that cannot fail tests nothing.** Whether it can fail, you only
    find out by feeding it something it must reject. Nadella describes the same
    habit in the agent teams he watches: "how do you take every failure and then
    build back the test case and make sure you truly verify the test" (12:19).
-2. **It is checked by someone other than the author, and re-runnable by
-   anyone.** These are two separate demands. Independence means the author does
+2. **Four eyes, and anyone can re-run it.** These are two separate demands. Independence means the author does
    not mark their own work; re-checkability means a result does not have to be
    taken on anyone's word. A signature shows which key signed the bundle and that
    it has not changed since; it says nothing about whether the bundle is right.
    For agents, independence includes the model: "How do you have the critique?
    There's so much to be said about having a separate model family" (17:05).
-3. **It is tied to an agreed definition of right.** "Correct" needs a
+3. **What counts as right is agreed.** "Correct" needs a
    requirement or a standard that says what correct means, written without
    ambiguity.
 {% </lang> %}
@@ -194,10 +193,11 @@ Unsere Arbeitsdefinition: Für einen Nachweis gelten drei Grundsätze.
 {% </lang> %}
 
 {% <lang code="note"> %}
-"It can fail" → „Ein Test, der nicht fehlschlagen kann, prüft nichts.“ (Satz des
-Autors): das Deutsche formuliert den Grundsatz von der Gegenseite. "someone other
-than the author" → „Vier-Augen-Prinzip“. "re-runnable" → „nachvollziehbar“.
-"tied to an agreed definition" → „Abnahmekriterien sind vereinbart“.
+„Ein Test, der nicht fehlschlagen kann, prüft nichts.“ und „Vier-Augen-Prinzip,
+und für jeden nachvollziehbar.“ sind Sätze des Autors; das Englische hat sie
+übernommen ("A test that cannot fail tests nothing.", "Four eyes, and anyone
+can re-run it."). "re-run" → „nachvollziehbar“. "What counts as right is
+agreed" → „Abnahmekriterien sind vereinbart“.
 {% </lang> %}
 
 {% <lang code="en"> %}
@@ -235,7 +235,7 @@ We read this as the same lesson as in Mannheim: the check has to be independent.
 
 Our reading is also that standards work as a collective memory. They record
 lessons in a rule, so that the next team does not have to learn them again, and
-they supply the agreed definition that the third property asks for.
+they supply the agreed definition that the third principle asks for.
 {% </lang> %}
 
 {% <lang code="de"> %}
@@ -338,7 +338,7 @@ can it be hard to copy? Our answer is that open evidence stays hard to fake
 because its checks can fail and anyone can re-run them. What gets cheap is
 producing and publishing evidence, not trusting it. Verification evidence for
 safety-critical software falls on the certification side of our line, as long
-as it keeps those properties.
+as it keeps those principles.
 {% </lang> %}
 
 {% <lang code="de"> %}
@@ -464,12 +464,12 @@ ist: Darin sehen wir Raum für offene Verifikationsnachweise bis dahin.
 PulseEngine is a work-in-progress WebAssembly Component Model engine aimed at
 safety-critical targets, built largely by AI agents. Its job, as we see it, is to
 make the "slow" parts fast and open. Our recent work maps onto the three
-properties as follows.
+principles as follows.
 
-- **Property 1, checks that can fail.** Our [previous post](/blog/green-by-default/)
+- **Principle 1, tests that can fail.** Our [previous post](/blog/green-by-default/)
   described planting bad inputs to see whether a check turns red. That is now a
   tool, [plant](https://github.com/pulseengine/plant).
-- **Properties 2 and 3, review against a definition.** Two reviewers, AI agents
+- **Principles 2 and 3, review against a definition.** Two reviewers, AI agents
   started without the author's context, read the 29 requirements of our wohl
   project for ambiguity ([wohl#97](https://github.com/pulseengine/wohl/issues/97));
   the mechanical fixes are in [wohl#98](https://github.com/pulseengine/wohl/pull/98).
@@ -479,7 +479,7 @@ properties as follows.
   and the same model family as the author, so they were independent of the
   author's context, not of the organisation or the model, and every lead was
   checked against the code before anything changed.
-- **Properties 1 and 2, evidence anyone can re-run.** wohl's
+- **Principles 1 and 2, evidence anyone can re-run.** wohl's
   [v0.7.0 release](https://github.com/pulseengine/wohl/releases/tag/v0.7.0)
   ships a signed evidence bundle with one verify command. A monthly workflow now
   runs it, with two planted failures that must go red
@@ -595,7 +595,7 @@ altogether: in German, "billig" sounds like poor goods, so the German version
 speaks of effort, not price. The checks caught the other kind of slip. One draft
 added "genau" (exactly) and made a claim stronger than the English; another
 turned "agreed" into "fixed beforehand"; a third made the Cyber Resilience Act's
-"main obligations" into "all the remaining ones". Even the word for the three properties took four tries in German:
+"main obligations" into "all the remaining ones". Even the word for the three principles took four tries in German:
 Eigenschaften, Bedingungen, Regeln, and finally Grundsätze, the word German
 testers use. The three slips above were each caught by a check that could fail,
 and did.
