@@ -34,7 +34,7 @@ need from AI-built software, and that the work now is to make them cheap and ope
 <div class="insight__body">
 
 **Code schreibt sich heute fast von selbst. Der Engpass heißt jetzt
-Verifikation.** Für einen Nachweis gelten drei Regeln: Ein Test, der nicht
+Verifikation.** Für einen Nachweis gelten drei Grundsätze: Ein Test, der nicht
 fehlschlagen kann, prüft nichts. Vier-Augen-Prinzip, und für jeden nachvollziehbar.
 Und die Abnahmekriterien sind vereinbart. Unsere These: Käufer
 sicherheitskritischer Systeme brauchen von KI-gebauter Software Normen,
@@ -49,7 +49,7 @@ wenig Aufwand und für jeden einsehbar.
 "cheap" → „schreibt sich fast von selbst“: es geht um Aufwand, nicht um Preis;
 „billig“ klänge im Deutschen nach schlechter Ware. "the scarce thing" → „der Engpass“. "agreed definition of right" →
 „vereinbarte Abnahmekriterien“. "make them cheap and open" → „wenig Aufwand, für
-jeden einsehbar“. Die drei "properties" stehen im Deutschen als Regeln, nicht als
+jeden einsehbar“. Die drei "properties" stehen im Deutschen als Grundsätze, nicht als
 Nebensätze.
 {% </lang> %}
 
@@ -102,7 +102,7 @@ verification" – sinngemäß: Wo Code kaum noch etwas kostet, wird die Verifika
 zum schwierigen Teil
 ([The Pragmatic Engineer](https://newsletter.pragmaticengineer.com/p/software-engineering-after-code-becomes),
 bei 11:50). Was macht aus einer Behauptung über Code einen Nachweis? Unsere
-vorläufige Antwort: drei Regeln. Die Nummerierung gilt auch für die Liste
+vorläufige Antwort: drei Grundsätze. Die Nummerierung gilt auch für die Liste
 weiter unten.
 
 <pre class="mermaid">
@@ -116,8 +116,8 @@ flowchart LR
 
 {% <lang code="note"> %}
 Zitate bleiben im englischen Original, mit einer sinngemäßen Übersetzung. Aus
-"properties" werden „Regeln“: Die drei Sätze des Autors sind als Regeln
-formuliert, nicht als Eigenschaften.
+"properties" werden „Grundsätze“, wie die „Grundsätze des Testens“ im deutschen
+ISTQB-Lehrplan: Sätze, die gelten, keine Eigenschaften.
 {% </lang> %}
 
 {% <lang code="en"> %}
@@ -145,7 +145,7 @@ hauptamtliche Sachverständige. Daraus wird der Ausgangspunkt der technischen
 {% </lang> %}
 
 {% <lang code="note"> %}
-Die deutsche Überschrift erzählt die Geschichte, die drei Regeln folgen
+Die deutsche Überschrift erzählt die Geschichte, die drei Grundsätze folgen
 im Text. Das Deutsche erzählt die Szene im Präsens, das Englische in der
 Vergangenheit.
 "technical inspection" → „technische Überwachung“, der eingeführte Begriff für
@@ -173,7 +173,7 @@ properties:
 {% </lang> %}
 
 {% <lang code="de"> %}
-Unsere Arbeitsdefinition: Für einen Nachweis gelten drei Regeln.
+Unsere Arbeitsdefinition: Für einen Nachweis gelten drei Grundsätze.
 
 1. **Ein Test, der nicht fehlschlagen kann, prüft nichts.** Ob er fehlschlagen kann,
    sieht man erst, wenn man ihm etwas vorlegt, das er ablehnen muss. Nadella
@@ -195,7 +195,7 @@ Unsere Arbeitsdefinition: Für einen Nachweis gelten drei Regeln.
 
 {% <lang code="note"> %}
 "It can fail" → „Ein Test, der nicht fehlschlagen kann, prüft nichts.“ (Satz des
-Autors): das Deutsche formuliert die Regel von der Gegenseite. "someone other
+Autors): das Deutsche formuliert den Grundsatz von der Gegenseite. "someone other
 than the author" → „Vier-Augen-Prinzip“. "re-runnable" → „nachvollziehbar“.
 "tied to an agreed definition" → „Abnahmekriterien sind vereinbart“.
 {% </lang> %}
@@ -249,7 +249,7 @@ Für uns ist das dieselbe Lehre wie in Mannheim: Wer prüft, muss unabhängig se
 
 Normen wirken nach unserer Einschätzung außerdem wie ein kollektives Gedächtnis. Sie
 machen aus Lehren Regeln, damit das nächste Team sie nicht noch einmal lernen
-muss. Und sie liefern die Abnahmekriterien, die Regel 3 verlangt.
+muss. Und sie liefern die Abnahmekriterien, die Grundsatz 3 verlangt.
 {% </lang> %}
 
 {% <lang code="note"> %}
@@ -345,7 +345,7 @@ lassen sich trotzdem schwer fälschen. Ihre Tests können fehlschlagen, und jede
 kann sie nachvollziehen. Der Aufwand sinkt beim Erstellen und Veröffentlichen von
 Nachweisen, nicht beim Vertrauen in sie. Verifikationsnachweise für
 sicherheitskritische Software gehören auf unserer Linie auf die Seite der
-Zertifizierung, solange sie die drei Regeln einhalten.
+Zertifizierung, solange sie die drei Grundsätze einhalten.
 {% </lang> %}
 
 {% <lang code="note"> %}
@@ -493,11 +493,11 @@ gedacht für sicherheitskritische Einsätze und zum großen Teil von KI-Agenten
 gebaut. Ihre Aufgabe sehen wir darin, die „langsamen“ Teile schnell und für jeden
 einsehbar zu machen. Was wir bisher umgesetzt haben:
 
-- **Regel 1, Tests, die fehlschlagen können.** Im
+- **Grundsatz 1, Tests, die fehlschlagen können.** Im
   [vorigen Beitrag](/blog/green-by-default/) haben wir Prüfungen gezielt falsche
   Eingaben vorgelegt und geprüft, ob sie fehlschlagen. Daraus ist ein Werkzeug
   geworden: [plant](https://github.com/pulseengine/plant).
-- **Regeln 2 und 3, Prüfung gegen vereinbarte Kriterien.** Zwei Prüfer,
+- **Grundsätze 2 und 3, Prüfung gegen vereinbarte Kriterien.** Zwei Prüfer,
   KI-Agenten ohne den Kontext des Autors, haben die 29 Anforderungen unseres
   Projekts `wohl` auf Mehrdeutigkeiten hin durchgesehen
   ([wohl#97](https://github.com/pulseengine/wohl/issues/97)). Die mechanischen
@@ -508,7 +508,7 @@ einsehbar zu machen. Was wir bisher umgesetzt haben:
   Modellfamilie wie der Autor. Unabhängig waren sie also vom Kontext des Autors,
   nicht von der Organisation oder vom Modell. Jeder Hinweis wurde am Code
   überprüft, bevor wir etwas geändert haben.
-- **Regeln 1 und 2, Nachweise, die jeder nachvollziehen kann.** Das
+- **Grundsätze 1 und 2, Nachweise, die jeder nachvollziehen kann.** Das
   `wohl`-Release
   [v0.7.0](https://github.com/pulseengine/wohl/releases/tag/v0.7.0) enthält ein
   signiertes Nachweispaket, prüfbar mit einem einzigen Befehl. Ein monatlicher Lauf
