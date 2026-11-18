@@ -199,6 +199,7 @@ component nobody uses, and one the guide invents fails the build.
 | `compliance_artifact(id, prefix)` | One rivet artifact, resolved from site data | `{{< compliance_artifact id="REQ-001" />}}` |
 | `compliance_stats(prefix)` | Artifact counts by type | `{{< compliance_stats prefix="requirement" />}}` |
 | `factory_views` | The factory views panel; takes no arguments | `{{< factory_views />}}` |
+| `lang(code)` | One language block of a bilingual post (`en`, `de`), or a translator's note (`note`, shown only side by side); needs `[extra] bilingual = true` | `{% <lang code="de"> %}...{% </lang> %}` |
 
 There is no `pipeline` component. The pipeline SVG lives in the page templates
 (`about.html`, `projects.html`, `how-it-works.html`) and is not callable from Markdown.
