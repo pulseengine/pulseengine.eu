@@ -453,3 +453,28 @@ dem sich niemand für offene Qualifizierungsnachweise interessiert. Oder eine
 unabhängige Studie, die zeigt, dass KI-geschriebener sicherheitskritischer Code
 weniger Prüfung braucht, nicht mehr.
 {% </lang> %}
+
+{% <lang code="en"> %}
+## Bloopers
+
+Writing this post in two languages was its own test. Our first German drafts
+were correct and stiff: "Früher war das Programmieren der teure Teil" became, in
+the author's hand, "Programmieren war teuer." The checks caught the other kind
+of slip. One draft added "genau" (exactly) and made a claim stronger than the
+English; another turned "agreed" into "fixed beforehand"; a third made the Cyber
+Resilience Act's "main obligations" into "all the remaining ones". Each was a
+check that could fail, and did.
+{% </lang> %}
+
+{% <lang code="de"> %}
+## Pannen
+
+Diesen Beitrag zweisprachig zu schreiben, war ein eigener Test. Unsere ersten
+deutschen Entwürfe waren richtig und steif: Aus „Früher war das Programmieren der
+teure Teil“ wurde in der Hand des Autors „Programmieren war teuer.“ Die Prüfungen
+fanden die andere Sorte Fehler. Ein Entwurf fügte „genau“ ein und machte eine
+Aussage stärker als im Englischen. Ein anderer machte aus „vereinbart“ ein „steht
+vorher fest“. Ein dritter machte aus den „wesentlichen Pflichten“ des
+Cyberresilienzgesetzes „die übrigen“. Jedes Mal eine Prüfung, die rot werden
+konnte und rot wurde.
+{% </lang> %}
