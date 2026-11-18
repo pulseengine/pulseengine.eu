@@ -210,7 +210,7 @@ a shared idea of what a sound boiler is, which ties the check to a definition.
 {% </lang> %}
 
 {% <lang code="de"> %}
-Nach unserer Einschätzung erfüllt die Mannheimer Geschichte alle drei. Eine
+Wir meinen: In Mannheim war schon alles da, was es braucht. Eine
 Kesselprüfung, die einen Mangel finden kann, kann auch fehlschlagen. Es prüft
 der Sachverständige des Vereins, nicht der Betreiber. Und weil der Kessel
 regelmäßig geprüft wird, wird immer wieder nachgeprüft. Der Verein prüft viele
