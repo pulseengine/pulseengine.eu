@@ -29,9 +29,13 @@
       <p>{{ o.summary }}</p>
       {% if o.state == "measured" %}{% set m = load_data(path="data/north-star/" ~ o.id ~ ".json") %}
       <p class="ns-value"><strong>{{ m.value }} of {{ m.of }}</strong> · measured {{ m.measured_at }} with {{ m.verifier }}</p>
-      <ul class="ns-rows">
+      {% if m.repos %}<ul class="ns-rows">
         {% for r in m.repos %}<li><span class="ns-repo">{{ r.repo }}</span> {{ r.release }}: {% if r.counts %}bundle verifies, both negative controls fail{% elif r.verify == "absent" %}no evidence bundle in the release{% else %}{{ r.verify }}{% endif %}</li>{% endfor %}
-      </ul>
+      </ul>{% endif %}
+      {% if m.items %}<ul class="ns-rows">
+        {% for i in m.items %}<li><a href="{{ i.url }}" rel="noopener">{{ i.pr }}</a></li>{% endfor %}
+      </ul>{% endif %}
+      {% if m.period %}<p class="ns-blind">Period: {{ m.period }}.</p>{% endif %}
       <p class="ns-blind">Not checked: {{ m.blind_spot }}.</p>
       {% endif %}
       <dl class="ns-dl">

@@ -1,0 +1,15 @@
+{
+  "objective": "O4",
+  "measured_at": "2026-11-18T11:32Z",
+  "verifier": "GitHub search, merged PRs 2026-10-01 to 2026-10-31",
+  "period": "2026-10-01..2026-10-31",
+  "value": 1,
+  "of": 839,
+  "items": [
+    {
+      "pr": "loom#428",
+      "url": "https://github.com/pulseengine/loom/pull/428"
+    }
+  ],
+  "blind_spot": "time from ready to first pick-up and the guard (reverted or reopened work) are not measured yet; agent PRs run under the maintainer's account"
+}
