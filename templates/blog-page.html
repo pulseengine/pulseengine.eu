@@ -5,9 +5,9 @@
 
 {% block content %}
 <div class="container">
-  <article class="blog-post">
+  <article class="blog-post{% if page.extra.bilingual %} blog-post--bilingual{% endif %}" {% if page.extra.bilingual %}data-mode="en"{% endif %}>
     <header class="blog-post__header">
-      <h1 class="blog-post__title">{{ page.title }}</h1>
+      <h1 class="blog-post__title"><span class="bl-title bl-title--en" lang="en">{{ page.title }}</span>{% if page.extra.title_de %}<span class="bl-title bl-title--de" lang="de">{{ page.extra.title_de }}</span>{% endif %}</h1>
       <div class="blog-post__meta">
         {% if page.taxonomies.authors %}
         <span>
@@ -56,6 +56,13 @@
     </nav>
     {% endif %}
 
+    {% if page.extra.bilingual %}
+    <div class="bl-switch" role="group" aria-label="Language / Sprache">
+      <button type="button" data-set="en" aria-pressed="true">English</button>
+      <button type="button" data-set="de" aria-pressed="false">Deutsch</button>
+      <button type="button" data-set="both" aria-pressed="false">Side by side · Nebeneinander</button>
+    </div>
+    {% endif %}
     <div class="blog-post__content">
       {{ page.content | safe }}
     </div>
@@ -63,4 +70,31 @@
 </div>
 
 {% include "partials/content-scripts.html" %}
+{% if page.extra.bilingual %}
+<script>
+(function () {
+  var post = document.querySelector('.blog-post--bilingual');
+  if (!post) return;
+  var buttons = post.querySelectorAll('.bl-switch button');
+  function set(mode) {
+    post.setAttribute('data-mode', mode);
+    for (var i = 0; i < buttons.length; i++) {
+      buttons[i].setAttribute('aria-pressed', String(buttons[i].getAttribute('data-set') === mode));
+    }
+    try { localStorage.setItem('pe-blog-lang', mode); } catch (e) {}
+  }
+  var start = null;
+  var q = new URLSearchParams(location.search).get('lang');
+  if (q === 'en' || q === 'de' || q === 'both') start = q;
+  if (!start) { try { start = localStorage.getItem('pe-blog-lang'); } catch (e) {} }
+  if (start !== 'en' && start !== 'de' && start !== 'both') {
+    start = (navigator.language || '').toLowerCase().indexOf('de') === 0 ? 'de' : 'en';
+  }
+  set(start);
+  for (var i = 0; i < buttons.length; i++) {
+    buttons[i].addEventListener('click', function () { set(this.getAttribute('data-set')); });
+  }
+})();
+</script>
+{% endif %}
 {% endblock %}

@@ -612,3 +612,85 @@ body.diagram-modal-open {
     &.fit-na::before { background: rgba(128, 134, 152, 0.35); }
   }
 }
+
+// Bilingual posts: one page, English / Deutsch / side by side.
+// Hidden language blocks stay laid out (off-screen) instead of display:none,
+// so mermaid can measure and render the diagrams in both languages.
+.blog-post--bilingual {
+  .bl-title--de { display: none; }
+  &[data-mode="de"] .bl-title--en { display: none; }
+  &[data-mode="de"] .bl-title--de { display: inline; }
+  &[data-mode="both"] .bl-title--de { display: block; font-size: 0.7em; opacity: 0.75; margin-top: 0.4rem; }
+
+  .bl-switch {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 0 0 1.5rem;
+
+    button {
+      font: inherit;
+      font-size: 0.8rem;
+      padding: 0.3rem 0.75rem;
+      border-radius: 999px;
+      border: 1px solid rgba(123, 147, 255, 0.3);
+      background: transparent;
+      color: $text-dim;
+      cursor: pointer;
+
+      &[aria-pressed="true"] {
+        background: rgba(123, 147, 255, 0.15);
+        color: $text;
+        border-color: $accent;
+      }
+      &:focus-visible { outline: 2px solid $accent; outline-offset: 2px; }
+    }
+  }
+
+  .bl--note { display: none; }
+  &[data-mode="both"] .bl--note {
+    display: block;
+    grid-column: 1 / -1;
+    margin: -0.25rem 0 1.5rem;
+    padding: 0.5rem 0.9rem;
+    border-left: 3px solid $accent;
+    background: rgba(123, 147, 255, 0.06);
+    border-radius: 6px;
+    font-size: 0.82rem;
+    line-height: 1.55;
+    color: $text-dim;
+
+    p { margin: 0.2rem 0; }
+  }
+  .bl-note__label {
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    color: $accent;
+  }
+
+  &[data-mode="en"] .bl--de,
+  &[data-mode="de"] .bl--en {
+    position: absolute;
+    left: -10000px;
+    width: $content-width;
+    visibility: hidden;
+  }
+
+  &[data-mode="both"] {
+    max-width: $max-width;
+
+    .blog-post__content {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      column-gap: 2.5rem;
+      align-items: start;
+    }
+    .bl--de { border-left: 1px solid rgba(123, 147, 255, 0.15); padding-left: 2.5rem; margin-left: -1.25rem; }
+  }
+}
+
+@media (max-width: 900px) {
+  .blog-post--bilingual[data-mode="both"] .blog-post__content { display: block; }
+  .blog-post--bilingual[data-mode="both"] .bl--de { border-left: 0; padding-left: 0; margin-left: 0; }
+}
