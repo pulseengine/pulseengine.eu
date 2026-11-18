@@ -317,7 +317,7 @@ Die Einspeisevergütung war eine Subvention. Sie schuf Nachfrage, sie war keine
 Auflage für die Hersteller. Und gefragt war Massenware, die andere zu niedrigeren
 Kosten herstellen konnten.
 
-So schätzen wir die Fälle ein: **Eine Auflage wird zum Vorteil, wenn daraus ein
+Unsere Lehre daraus: **Eine Auflage wird zum Vorteil, wenn daraus ein
 Vertrauensgut entsteht, das schwer zu kopieren ist und für das Käufer zahlen
 müssen. Sie bleibt ein Kostenfaktor, wenn sie nur Nachfrage schafft, die jeder zu
 niedrigeren Kosten bedienen kann.** Das ist kein belegtes Gesetz, sondern eine
