@@ -133,7 +133,7 @@ inspection in Germany
 {% </lang> %}
 
 {% <lang code="de"> %}
-## Ein Kessel explodiert in Mannheim, und die drei Bedingungen
+## Wie aus einer Kesselexplosion der TÜV wurde
 
 Januar 1865: In einer Mannheimer Brauerei explodiert ein Dampfkessel. Am
 6. Januar 1866 gründen Kesselbesitzer einen Überwachungsverein
@@ -145,7 +145,9 @@ hauptamtliche Sachverständige. Daraus wird der Ausgangspunkt der technischen
 {% </lang> %}
 
 {% <lang code="note"> %}
-Das Deutsche erzählt die Szene im Präsens, das Englische in der Vergangenheit.
+Die deutsche Überschrift erzählt die Geschichte, die drei Bedingungen folgen
+im Text. Das Deutsche erzählt die Szene im Präsens, das Englische in der
+Vergangenheit.
 "technical inspection" → „technische Überwachung“, der eingeführte Begriff für
 das, was der TÜV tut.
 {% </lang> %}
