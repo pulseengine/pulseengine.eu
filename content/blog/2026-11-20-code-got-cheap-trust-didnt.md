@@ -218,8 +218,10 @@ sicherer Kessel ist. Das bindet die Prüfung an eine Definition.
 {% </lang> %}
 
 {% <lang code="note"> %}
-"In our reading" → „Nach unserer Einschätzung“, die übliche Abschwächung in
-deutschen Fachtexten.
+"In our reading, the boiler story has all three" → „Wir meinen: In Mannheim war
+schon alles da, was es braucht.“ (Satz des Autors). Sonst wird "in our reading"
+zu „nach unserer Einschätzung“, der üblichen Abschwächung in deutschen
+Fachtexten.
 {% </lang> %}
 
 {% <lang code="en"> %}
@@ -324,7 +326,8 @@ Arbeitshypothese.
 {% </lang> %}
 
 {% <lang code="note"> %}
-"commodity" → „Massenware“. "not a tested law" → „kein belegtes Gesetz, sondern
+"The pattern, as we read the cases" → „Unsere Lehre daraus:“. "commodity" →
+„Massenware“. "not a tested law" → „kein belegtes Gesetz, sondern
 eine Arbeitshypothese“. "more cheaply" → „zu niedrigeren Kosten“, wieder ohne
 „billig“.
 {% </lang> %}
@@ -520,7 +523,9 @@ einsehbar zu machen. Was wir bisher umgesetzt haben:
 {% </lang> %}
 
 {% <lang code="note"> %}
-"work-in-progress" → „noch in Arbeit“. "planting bad inputs" → „gezielt falsche
+Die Überschrift nennt im Deutschen auch die Ziele: „Woran wir arbeiten, was wir
+erreichen wollen“. "work-in-progress" → „noch in Arbeit“. "evidence bundle" →
+„Nachweisarchiv“. "planting bad inputs" → „gezielt falsche
 Eingaben vorgelegt“ („unterschieben“ klänge nach Betrug).
 {% </lang> %}
 
@@ -573,6 +578,13 @@ unabhängige Studie, die zeigt, dass KI-geschriebener sicherheitskritischer Code
 weniger Prüfung braucht, nicht mehr.
 {% </lang> %}
 
+{% <lang code="note"> %}
+"Limits" → „Wo unser Argument endet“. "This is an argument from a small project"
+→ „Hinter diesem Beitrag steht ein kleines Projekt“, damit „Argument“ nicht
+zweimal hintereinander steht. "makes our bundles irrelevant" → „mit dem unsere
+Lösung nicht mehr gebraucht wird“.
+{% </lang> %}
+
 {% <lang code="en"> %}
 ## Bloopers
 
@@ -583,8 +595,10 @@ altogether: in German, "billig" sounds like poor goods, so the German version
 speaks of effort, not price. The checks caught the other kind of slip. One draft
 added "genau" (exactly) and made a claim stronger than the English; another
 turned "agreed" into "fixed beforehand"; a third made the Cyber Resilience Act's
-"main obligations" into "all the remaining ones". Each was a check that could
-fail, and did.
+"main obligations" into "all the remaining ones". Even the word for the three properties took four tries in German:
+Eigenschaften, Bedingungen, Regeln, and finally Grundsätze, the word German
+testers use. The three slips above were each caught by a check that could fail,
+and did.
 {% </lang> %}
 
 {% <lang code="de"> %}
@@ -598,6 +612,8 @@ spricht die deutsche Fassung von Aufwand, nicht von Preis. Die Tests fanden die
 andere Sorte Fehler. Ein Entwurf fügte „genau“ ein und machte eine Aussage
 stärker als im Englischen. Ein anderer machte aus „vereinbart“ ein „steht vorher
 fest“. Ein dritter machte aus den „wesentlichen Pflichten“ des
-Cyber Resilience Act „alle übrigen“. Jedes Mal ein Test, der fehlschlagen
+Cyber Resilience Act „alle übrigen“. Selbst das Wort für die drei Grundsätze brauchte vier Anläufe:
+Eigenschaften, Bedingungen, Regeln und schließlich Grundsätze, wie deutsche
+Tester sagen. Die drei Fehler oben fand jedes Mal ein Test, der fehlschlagen
 konnte und fehlschlug.
 {% </lang> %}
