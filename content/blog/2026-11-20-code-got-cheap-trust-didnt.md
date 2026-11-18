@@ -34,7 +34,7 @@ need from AI-built software, and that the work now is to make them cheap and ope
 <div class="insight__body">
 
 **Code schreibt sich heute fast von selbst. Der Engpass heißt jetzt
-Verifikation.** Für einen Nachweis gelten drei Grundsätze: Ein Test, der nicht
+Verifikation.** Ein Nachweis zählt nur, wenn er drei Grundsätzen folgt: Ein Test, der nicht
 fehlschlagen kann, prüft nichts. Vier-Augen-Prinzip, und für jeden nachvollziehbar.
 Und die Abnahmekriterien sind vereinbart. Unsere These: Käufer
 sicherheitskritischer Systeme brauchen von KI-gebauter Software Normen,
@@ -98,8 +98,8 @@ flowchart LR
 {% <lang code="de"> %}
 Microsofts CEO sagt es im Podcast The Pragmatic Engineer vom 16. November 2026
 so: "In a world where code generation has become cheap, what has become hard is
-verification" – sinngemäß: Wo Code kaum noch etwas kostet, wird die Verifikation
-zum schwierigen Teil
+verification" – sinngemäß: Wo Code wenig kostet, wird die Verifikation
+schwer
 ([The Pragmatic Engineer](https://newsletter.pragmaticengineer.com/p/software-engineering-after-code-becomes),
 bei 11:50). Was macht aus einer Behauptung über Code einen Nachweis? Unsere
 vorläufige Antwort: drei Grundsätze. Die Nummerierung gilt auch für die Liste
@@ -167,12 +167,13 @@ three principles:
    For agents, independence includes the model: "How do you have the critique?
    There's so much to be said about having a separate model family" (17:05).
 3. **What counts as right is agreed.** "Correct" needs a
-   requirement or a standard that says what correct means, written without
-   ambiguity.
+   requirement or a standard that the parties have agreed on and that says
+   without ambiguity what correct means.
 {% </lang> %}
 
 {% <lang code="de"> %}
-Unsere Arbeitsdefinition: Für einen Nachweis gelten drei Grundsätze.
+Unsere Arbeitsdefinition: Ein Nachweis ist nur etwas wert, wenn er drei
+Grundsätzen folgt.
 
 1. **Ein Test, der nicht fehlschlagen kann, prüft nichts.** Ob er fehlschlagen kann,
    sieht man erst, wenn man ihm etwas vorlegt, das er ablehnen muss. Nadella
@@ -188,8 +189,8 @@ Unsere Arbeitsdefinition: Für einen Nachweis gelten drei Grundsätze.
    Bei Agenten gehört zur Unabhängigkeit auch das Modell: "How do you have the critique? There's so
    much to be said about having a separate model family" – sinngemäß: Wie kommt
    man zur Kritik? Zu einer anderen Modellfamilie gibt es viel zu sagen (17:05).
-3. **Die Abnahmekriterien sind vereinbart.** Eine Anforderung oder Norm legt
-   eindeutig fest, was als korrekt gilt.
+3. **Die Abnahmekriterien sind vereinbart.** Eine Anforderung oder Norm, auf die man
+   sich geeinigt hat, legt eindeutig fest, was als korrekt gilt.
 {% </lang> %}
 
 {% <lang code="note"> %}
@@ -209,7 +210,7 @@ a shared idea of what a sound boiler is, which ties the check to a definition.
 {% </lang> %}
 
 {% <lang code="de"> %}
-Wir meinen: In Mannheim war schon alles da, was es braucht. Eine
+Wir meinen: In Mannheim waren schon alle drei Grundsätze da. Eine
 Kesselprüfung, die einen Mangel finden kann, kann auch fehlschlagen. Es prüft
 der Sachverständige des Vereins, nicht der Betreiber. Und weil der Kessel
 regelmäßig geprüft wird, wird immer wieder nachgeprüft. Der Verein prüft viele
@@ -218,8 +219,9 @@ sicherer Kessel ist. Das bindet die Prüfung an eine Definition.
 {% </lang> %}
 
 {% <lang code="note"> %}
-"In our reading, the boiler story has all three" → „Wir meinen: In Mannheim war
-schon alles da, was es braucht.“ (Satz des Autors). Sonst wird "in our reading"
+"In our reading, the boiler story has all three" → „Wir meinen: In Mannheim waren
+schon alle drei Grundsätze da.“ (Satz des Autors, auf die drei Grundsätze
+zugespitzt). Sonst wird "in our reading"
 zu „nach unserer Einschätzung“, der üblichen Abschwächung in deutschen
 Fachtexten.
 {% </lang> %}
@@ -251,7 +253,7 @@ Für uns ist das dieselbe Lehre wie in Mannheim: Wer prüft, muss unabhängig se
 
 Normen wirken nach unserer Einschätzung außerdem wie ein kollektives Gedächtnis. Sie
 machen aus Lehren Regeln, damit das nächste Team sie nicht noch einmal lernen
-muss. Und sie liefern die Abnahmekriterien, die Grundsatz 3 verlangt.
+muss. Und sie liefern die vereinbarten Abnahmekriterien, die Grundsatz 3 verlangt.
 {% </lang> %}
 
 {% <lang code="note"> %}
@@ -282,8 +284,8 @@ für 2024 einen Umsatz von 3,4 Milliarden Euro
 ([Pressemitteilung](https://www.tuvsud.com/en-gb/press-and-media/2025/may/tuev-sued-achieves-significant-revenue-growth-in-2024)),
 TÜV Rheinland 2,71 Milliarden Euro
 ([Pressemitteilung](https://www.tuv.com/press/en/press-releases/tuev-rheinland-results-2024.html)),
-jeweils über alle Geschäftsfelder. Nach unserer Einschätzung kommt viel davon aus
-Prüfungen, die das Gesetz vorschreibt. Das Geschäft mit dem Vertrauen hängt also
+jeweils über alle Geschäftsfelder. Nach unserer Einschätzung gibt es viel von dieser
+Nachfrage nur, weil das Gesetz Prüfungen vorschreibt. Das Geschäft mit dem Vertrauen hängt also
 an einer Pflicht, und seine Schwachstelle ist nach unserer Einschätzung, dass die
 Prüfer von denen bezahlt werden, die sie prüfen.
 {% </lang> %}
@@ -500,7 +502,7 @@ einsehbar zu machen. Was wir bisher umgesetzt haben:
   [vorigen Beitrag](/blog/green-by-default/) haben wir Prüfungen gezielt falsche
   Eingaben vorgelegt und geprüft, ob sie fehlschlagen. Daraus ist ein Werkzeug
   geworden: [plant](https://github.com/pulseengine/plant).
-- **Grundsätze 2 und 3, Prüfung gegen vereinbarte Kriterien.** Zwei Prüfer,
+- **Grundsätze 2 und 3, Prüfung gegen eine Definition.** Zwei Prüfer,
   KI-Agenten ohne den Kontext des Autors, haben die 29 Anforderungen unseres
   Projekts `wohl` auf Mehrdeutigkeiten hin durchgesehen
   ([wohl#97](https://github.com/pulseengine/wohl/issues/97)). Die mechanischen
@@ -591,8 +593,8 @@ Lösung nicht mehr gebraucht wird“.
 Writing this post in two languages was its own test. Our first German drafts
 were correct and stiff: "Früher war das Programmieren der teure Teil" became, in
 the author's hand, "Programmieren war teuer." The word "cheap" had to go
-altogether: in German, "billig" sounds like poor goods, so the German version
-speaks of effort, not price. The checks caught the other kind of slip. One draft
+altogether: in German, "billig" sounds like poor goods, so the German version avoids it
+and speaks mostly of effort. The checks caught the other kind of slip. One draft
 added "genau" (exactly) and made a claim stronger than the English; another
 turned "agreed" into "fixed beforehand"; a third made the Cyber Resilience Act's
 "main obligations" into "all the remaining ones". Even the word for the three principles took four tries in German:
@@ -607,8 +609,8 @@ and did.
 Diesen Beitrag zweisprachig zu schreiben, war ein eigener Test. Unsere ersten
 deutschen Entwürfe waren richtig und steif: Aus „Früher war das Programmieren der
 teure Teil“ wurde in der Hand des Autors „Programmieren war teuer.“ Das Wort
-„billig“ musste ganz raus: Billig klingt im Deutschen nach schlechter Ware, deshalb
-spricht die deutsche Fassung von Aufwand, nicht von Preis. Die Tests fanden die
+„billig“ musste ganz raus: Billig klingt im Deutschen nach schlechter Ware, deshalb meidet die
+deutsche Fassung das Wort und spricht meist von Aufwand. Die Tests fanden die
 andere Sorte Fehler. Ein Entwurf fügte „genau“ ein und machte eine Aussage
 stärker als im Englischen. Ein anderer machte aus „vereinbart“ ein „steht vorher
 fest“. Ein dritter machte aus den „wesentlichen Pflichten“ des
