@@ -36,7 +36,7 @@ need from AI-built software, and that the work now is to make them cheap and ope
 **Code ist billig geworden. Knapp ist jetzt der Nachweis, dass er stimmt.** Dieser
 Nachweis zählt nur unter drei Bedingungen: Ein Test, der nie fehlschlägt, prüft nichts.
 Vier-Augen-Prinzip, und für jeden nachvollziehbar. Und was „richtig“ ist, ist
-vereinbart. Unser Argument, aus einem kleinen Projekt heraus: Käufer
+vereinbart. Unsere These: Käufer
 sicherheitskritischer Systeme brauchen Normen, unabhängige Prüfung und Nachweise
 vor der Freigabe, auch bei KI-gebauter Software. Jetzt geht es
 darum, das billig und offen zu machen.
