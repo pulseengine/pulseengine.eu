@@ -68,6 +68,14 @@ guard = "Reverted or reopened work from those pull requests."
 # Written by scripts/north-star-o4.py into data/north-star/O4.json; never typed here.
 state = "measured"
 
+[[objectives]]
+id = "O5"
+title = "We run on our own chain"
+summary = "Our own tools and CI gates run as WebAssembly components that our chain builds, optimises and signs, and that kiln runs."
+indicator = "Our tools and CI gates that run as signed WASI components under kiln, with wasmtime as the differential, out of all our tools and gates."
+guard = "A gate counts only if its equivalence test against the old version runs in CI; a gate behind a *_GAP switch counts as not running until the switch is removed."
+state = "unmeasured"
+
 # Commitments per period. A period is a quarter, measured at each monthly varve
 # layer inside it. "committed" is promised; "stretch" is attempted.
 [[periods]]
