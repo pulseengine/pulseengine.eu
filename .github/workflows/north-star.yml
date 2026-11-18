@@ -48,3 +48,32 @@ jobs:
               sys.exit(1)
           print("snapshot matches:", b)
           PY
+
+  o4:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Decision table
+        run: python3 scripts/north-star-o4.py --self-test
+      - name: Measure O4 for the last full month
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          cp data/north-star/O4.json "$RUNNER_TEMP/O4.committed.json"
+          python3 scripts/north-star-o4.py
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: north-star-O4
+          path: data/north-star/O4.json
+      - name: Committed snapshot still matches
+        run: |
+          python3 - "$RUNNER_TEMP/O4.committed.json" data/north-star/O4.json <<'PY'
+          import json, sys
+          key = lambda p: (lambda d: (d["period"], d["value"], d["of"]))(json.load(open(p)))
+          a, b = key(sys.argv[1]), key(sys.argv[2])
+          if a != b:
+              print("::error::data/north-star/O4.json is stale: committed %s, live %s. Commit the uploaded artifact." % (a, b))
+              sys.exit(1)
+          print("snapshot matches:", b)
+          PY

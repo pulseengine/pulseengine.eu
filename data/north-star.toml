@@ -16,7 +16,7 @@
 
 north_star = "A safety-critical product team can take a WebAssembly component from architecture model to signed code running on a microcontroller, with evidence an assessor can re-check, using open tools only."
 
-updated = "2026-11-17"
+updated = "2026-11-18"
 
 # Products have their own North Stars and pull on the platform objectives.
 [[products]]
@@ -65,7 +65,8 @@ title = "Not only one person"
 summary = "People besides the maintainer pick up ready work and land it."
 indicator = "Merged pull requests per month by people other than the maintainer, and time from ready to first pick-up."
 guard = "Reverted or reopened work from those pull requests."
-state = "unmeasured"
+# Written by scripts/north-star-o4.py into data/north-star/O4.json; never typed here.
+state = "measured"
 
 # Commitments per period. A period is a quarter, measured at each monthly varve
 # layer inside it. "committed" is promised; "stretch" is attempted.
