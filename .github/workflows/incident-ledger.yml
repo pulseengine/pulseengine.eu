@@ -29,7 +29,7 @@ name: Incident ledger
 #     blog-autopublish.yml; the org disables PR creation for GITHUB_TOKEN, and a
 #     PR from an App token triggers ci.yml.
 #
-# ubuntu-latest, as factory-report.yml: the CLI comes from npm and the
+# ubuntu-24.04, as factory-report.yml: the CLI comes from npm and the
 # self-hosted light pool is not known to provide Node. No `gh` is used: the
 # ledger's GitHub client is REST/GraphQL over urllib with the token above, and
 # git reads private repos through an Authorization header built from the same
@@ -52,7 +52,7 @@ concurrency:
 
 jobs:
   ledger:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 300
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

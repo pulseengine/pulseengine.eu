@@ -26,7 +26,7 @@ name: Factory report
 # made through the contents API, which GitHub is expected to sign; check that
 # the first report PR's commit shows Verified, since main requires it.
 #
-# ubuntu-latest, as issue-classes.yml uses: the job installs the Claude Code
+# ubuntu-24.04, as issue-classes.yml uses: the job installs the Claude Code
 # CLI from npm, pinned to an exact version, and the self-hosted `light` pool is
 # not known to provide Node.
 # No `gh` is used anywhere; every GitHub call is REST over urllib.
@@ -49,7 +49,7 @@ concurrency:
 
 jobs:
   report:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

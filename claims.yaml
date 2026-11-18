@@ -1591,6 +1591,41 @@ claims:
       - kind: verbatim
         text: "if fewer than one in three decided items landed, it exits 3"
 
+  # ── No new Python (owner, 2026-11-18) ───────────────────────────────────────
+  - id: CORE-NO-NEW-PYTHON
+    doc: claude-tooling/plugins/pulseengine-claude/core/pulseengine-core.md
+    text: "**No new Python.**"
+    evidence:
+      - kind: verbatim
+        text: "with an equivalence test against the old script as the gate"
+
+  # ── Probe liveness is not idleness (2026-11-18) ─────────────────────────────
+  - id: CI-STATUS-LIVE-FALSE-IS-UNKNOWN
+    doc: claude-tooling/plugins/pulseengine-claude/skills/ci-status/SKILL.md
+    text: "**`live: false` is\n   not \"idle\".**"
+    evidence:
+      - kind: verbatim
+        text: "treat `live: false` on a worktree or `target/` as unknown and ask the repo's\n   session."
+
+  # ── Requirement wording rules (2026-11-17 pilot) ──────────────────────────
+  # Owner-approved after a pilot on wohl's 29 requirements: a trace rivet passes
+  # can still link tests to ambiguous text. STE100 contributed word rules but is
+  # not adopted whole (it replaces shall/should/may).
+  - id: TRACE-AUDIT-READS-REQUIREMENT-TEXT
+    doc: claude-tooling/plugins/pulseengine-claude/skills/traceability-audit/SKILL.md
+    text: "## A closed link to an ambiguous requirement closes nothing"
+    evidence:
+      - kind: verbatim
+        text: "**Every boundary states which side it is on**"
+      - kind: verbatim
+        text: "**A deadline names both ends**"
+      - kind: verbatim
+        text: "Keep `shall` as the normative keyword."
+      - kind: verbatim
+        text: "**Then read the code the requirement names.**"
+      - kind: verbatim
+        text: "**Check that the evidence the criteria name exists and can fail.**"
+
   # ── Range, stretch and history-first process change (2026-11-17) ─────────────
   # From Rieseberg's "How to be more ambitious" (13 Oct 2026), mapped against the
   # plugin: Range (borrow a field's method, not its voice), Depth (an
