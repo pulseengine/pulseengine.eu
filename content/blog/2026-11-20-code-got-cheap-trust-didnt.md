@@ -59,20 +59,23 @@ Nebensätze.
 For most of software's history, writing the code was the expensive part.
 Reviews, tests and proofs were overhead you paid on top. Coding agents have
 turned that around: writing got cheap, and the question "is it right?" did not.
+By "code" we mean everything an agent now writes: requirements, architecture,
+code and tests.
 {% </lang> %}
 
 {% <lang code="de"> %}
-## Code schreibt sich fast von selbst, Verifikation nicht
+## Was sich geändert hat
 
 Programmieren war teuer. Reviews, Tests und Beweise kamen noch dazu. Mit
 Coding-Agenten hat sich das gedreht: Code schreibt sich heute fast von selbst. Die
-Frage, ob er stimmt, kostet nicht weniger als früher.
+Frage, ob er stimmt, kostet nicht weniger als früher. Mit „Code“ meinen wir alles,
+was ein Agent heute schreibt: Anforderungen, Architektur, Code und Tests.
 {% </lang> %}
 
 {% <lang code="note"> %}
 „Programmieren war teuer.“ ist der Satz des Autors. Das Deutsche beginnt mit der
-Aussage selbst und lässt "for most of software's history" weg; die Überschrift sagt, was
-teuer bleibt, statt "is not".
+Aussage selbst und lässt "for most of software's history" weg; die Überschrift heißt „Was sich
+geändert hat“, damit sie nicht die Kernaussage wiederholt.
 {% </lang> %}
 
 {% <lang code="en"> %}
