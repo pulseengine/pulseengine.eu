@@ -560,7 +560,7 @@ safety-critical code needs less checking, not more.
 {% <lang code="de"> %}
 ## Wo unser Argument endet
 
-Das ist ein Argument aus einem kleinen Projekt, keine Marktstudie. Eine
+Hinter diesem Beitrag steht ein kleines Projekt, keine Marktstudie. Eine
 verlässliche Zahl zur Größe des Marktes für Verifikationswerkzeuge in der
 sicherheitskritischen Entwicklung haben wir nicht gefunden. Bezahlt hat uns
 bisher kein Käufer. Wann eine Auflage zum Vorteil wird, ist unsere Einschätzung
