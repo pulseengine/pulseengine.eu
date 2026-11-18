@@ -34,7 +34,7 @@ need from AI-built software, and that the work now is to make them cheap and ope
 <div class="insight__body">
 
 **Code ist billig geworden. Knapp ist jetzt der Nachweis, dass er stimmt.** Dieser
-Nachweis zählt nur unter drei Bedingungen: Die Prüfung muss rot werden können. Ein anderer
+Nachweis zählt nur unter drei Bedingungen: Ein Test, der nie fehlschlägt, prüft nichts. Ein anderer
 als der Autor prüft, und jeder kann nachprüfen. Und was „richtig“ ist, ist
 vereinbart. Unser Argument, aus einem kleinen Projekt heraus: Käufer
 sicherheitskritischer Systeme brauchen Normen, unabhängige Prüfung und Nachweise
@@ -81,13 +81,13 @@ verification" – sinngemäß: Code zu erzeugen ist billig geworden, schwer ist 
 das Prüfen
 ([The Pragmatic Engineer](https://newsletter.pragmaticengineer.com/p/software-engineering-after-code-becomes),
 bei 11:50). Was macht aus einer Behauptung über Code einen Nachweis? Unsere
-vorläufige Antwort: drei Bedingungen. Die Nummern gelten auch in der Liste
-weiter unten.
+vorläufige Antwort: drei Bedingungen. Die Nummerierung gilt auch für die
+Liste weiter unten.
 
 <pre class="mermaid">
 flowchart LR
     D["3. Vereinbart, was richtig ist"] --> B
-    A["Behauptung"] --> B["1. Prüfung, die rot werden kann"]
+    A["Behauptung"] --> B["1. Test, der fehlschlagen kann"]
     B --> C["2. Vier-Augen-Prinzip, von jedem nachprüfbar"]
     C --> E["Nachweis"]
 </pre>
@@ -152,17 +152,18 @@ hauptamtliche Sachverständige. Daraus wird der Ausgangspunkt der technischen
 Überwachung in Deutschland
 ([TÜV SÜD, Geschichte](https://www.tuvsud.com/en-gb/about-us/history/our-foundation-years-1866-1900)).
 
-Unsere Arbeitsdefinition: Ein Nachweis taugt nur unter drei Bedingungen.
+Unsere Arbeitsdefinition: Ein Nachweis zählt nur, wenn drei Bedingungen erfüllt
+sind.
 
-1. **Eine Prüfung muss rot werden können.** Bleibt sie bei falscher Eingabe
-   grün, beweist sie nichts. Das zeigt sich erst, wenn man ihr etwas vorlegt, das
-   sie ablehnen muss. Nadella beschreibt dieselbe Gewohnheit in den Agenten-Teams, die er
+1. **Ein Test, der nie fehlschlägt, prüft nichts.** Ob er fehlschlagen kann,
+   zeigt sich erst, wenn man ihm etwas vorlegt, das
+   er ablehnen muss. Nadella beschreibt dieselbe Gewohnheit in den Agenten-Teams, die er
    beobachtet:
    "how do you take every failure and then build back the test case and make sure
    you truly verify the test" – sinngemäß: aus jedem Fehler einen Testfall machen
    und sicherstellen, dass der Test wirklich prüft (12:19).
 2. **Vier-Augen-Prinzip: Ein anderer prüft, und jeder kann es nachprüfen.** Das
-   sind zwei Forderungen. Unabhängig heißt: Keiner nimmt seine eigene Arbeit ab.
+   sind zwei Forderungen. Unabhängig heißt: Keiner prüft seine eigene Arbeit.
    Nachprüfbar heißt: Keiner muss das Ergebnis glauben. Eine Signatur zeigt nur,
    welcher Schlüssel ein Paket signiert hat und dass es seitdem unverändert ist.
    Ob der Inhalt stimmt, zeigt sie nicht. Bei Agenten gehört das Modell dazu:
@@ -172,12 +173,12 @@ Unsere Arbeitsdefinition: Ein Nachweis taugt nur unter drei Bedingungen.
 3. **Was „richtig“ ist, ist vereinbart.** Dafür braucht es eine Anforderung
    oder Norm, die das eindeutig sagt.
 
-Nach unserer Lesart erfüllt die Mannheimer Geschichte alle drei. Wer einen
-Mangel finden kann, kann auch rot melden. Es prüft der Sachverständige des
-Vereins, nicht der Betreiber. Und weil der Kessel regelmäßig drankommt, wird
-immer wieder nachgeprüft. Der Verein prüft viele Kessel. So entsteht bei seinen
+Nach unserer Lesart erfüllt die Mannheimer Geschichte alle drei. Eine
+Kesselprüfung, die einen Mangel finden kann, kann auch fehlschlagen. Es prüft der Sachverständige des
+Vereins, nicht der Betreiber. Und weil der Kessel regelmäßig geprüft wird,
+wird immer wieder nachgeprüft. Der Verein prüft viele Kessel. So entsteht bei seinen
 Prüfern ein gemeinsames Bild davon, was ein sicherer Kessel ist, und die Prüfung
-hängt an einer Definition.
+ist an eine Definition gebunden.
 
 Unabhängigkeit kann verloren gehen. Den Abschlussbericht zur Boeing 737 MAX haben
 Mitarbeiter der Mehrheitsfraktion im Verkehrsausschuss des
@@ -258,8 +259,8 @@ billiger bedienen kann.** Das schließen wir aus einer Handvoll Fälle. Eine
 getestete Gesetzmäßigkeit ist es nicht.
 
 Das scheint unserer Forderung nach offenen Nachweisen zu widersprechen. Was jeder
-kopieren kann, ist nicht schwer zu kopieren. Unsere Antwort: Fälschen lassen sich
-offene Nachweise trotzdem schwer. Ihre Prüfungen können rot werden, und jeder
+kopieren kann, ist nicht schwer zu kopieren. Unsere Antwort: Offene Nachweise lassen sich
+trotzdem schwer fälschen. Ihre Tests können fehlschlagen, und jeder
 kann sie wiederholen. Billig wird das Erstellen und Veröffentlichen, nicht das
 Vertrauen. Verifikationsnachweise für sicherheitskritische Software gehören auf
 unserer Linie auf die Seite der Zertifizierung, solange sie die drei Bedingungen erfüllen.
@@ -310,8 +311,8 @@ Ein NBER-Arbeitspapier von Bick, Blandin, Deming, Fuchs-Schündeln und Jessen vo
 März 2026 berichtet: Die Arbeitsproduktivität (Leistung je Arbeitsstunde) stieg
 von 1995 bis 2025 in den USA um 85 %, in Europa um 29 %. Die Lücke entstand lange
 vor der KI. Etwa 43 % der US-Beschäftigten nutzen KI bei der Arbeit, in der Befragung
-europäischer Beschäftigter etwa 32 %. Branchen mit mehr KI wurden schneller
-produktiver. Die Beschäftigung änderte sich dabei nicht erkennbar. Die Autoren
+europäischer Beschäftigter etwa 32 %. Branchen mit stärkerer KI-Nutzung wurden
+schneller produktiver. Die Beschäftigung änderte sich dabei nicht erkennbar. Die Autoren
 berichten eine Korrelation und behaupten keine Ursache
 ([NBER-Arbeitspapier 34995](https://www.nber.org/papers/w34995)).
 
@@ -337,7 +338,7 @@ bekannt, dass TÜV SÜD die quelloffene Werkzeugkette Ferrocene 23.06.0 als
 Werkzeug für ISO 26262 (ASIL D) und IEC 61508 (SIL 4) qualifiziert hat
 ([Ferrous Systems](https://ferrous-systems.com/blog/officially-qualified-ferrocene/)).
 Qualifiziert ist damit der Compiler, nicht die Software, die man damit baut. In
-derselben Folge rechnet der Moderator Gergely Orosz für agentengebaute Systeme
+derselben Folge rechnet der Moderator Gergely Orosz für von Agenten gebaute Systeme
 mit "blueprints and certifications in, I don't know, five to 10 years" –
 sinngemäß: mit Bauplänen und Zertifizierungen in vielleicht fünf bis zehn
 Jahren (52:09).
@@ -390,9 +391,9 @@ für sicherheitskritische Einsätze und zum großen Teil von KI-Agenten gebaut.
 Ihre Aufgabe sehen wir so: die „langsamen“ Teile schnell und offen machen. Was
 wir zuletzt getan haben, nach Bedingung:
 
-- **Bedingung 1, Prüfungen, die rot werden können.** Im
+- **Bedingung 1, Tests, die fehlschlagen können.** Im
   [vorigen Beitrag](/blog/green-by-default/) haben wir Prüfungen gezielt falsche
-  Eingaben untergeschoben und geschaut, ob sie rot werden. Daraus ist ein Werkzeug
+  Eingaben vorgelegt und geprüft, ob sie fehlschlagen. Daraus ist ein Werkzeug
   geworden: [plant](https://github.com/pulseengine/plant).
 - **Bedingungen 2 und 3, Prüfung gegen eine Definition.** Zwei Prüfer, KI-Agenten
   ohne den Kontext des Autors, haben die 29 Anforderungen unseres Projekts `wohl`
@@ -409,9 +410,9 @@ wir zuletzt getan haben, nach Bedingung:
   `wohl`-Release
   [v0.7.0](https://github.com/pulseengine/wohl/releases/tag/v0.7.0) enthält ein
   signiertes Nachweispaket, prüfbar mit einem einzigen Befehl. Ein monatlicher Lauf
-  prüft es jetzt, mit zwei absichtlich eingebauten Fehlern, die rot werden müssen
+  prüft es jetzt, mit zwei absichtlich eingebauten Fehlern, bei denen der Test fehlschlagen muss
   ([pulseengine.eu#377](https://github.com/pulseengine/pulseengine.eu/pull/377)).
-  Das zeigt: Das Paket ist unversehrt, und seine Prüfungen können noch rot werden.
+  Das zeigt: Das Paket ist unversehrt, und seine Tests können noch fehlschlagen.
   Dass die Software korrekt ist, zeigt es nicht.
 
 Als Nächstes: Prüfwerkzeuge, die wir so bauen, dass sich ihre
@@ -475,6 +476,6 @@ teure Teil“ wurde in der Hand des Autors „Programmieren war teuer.“ Die Pr
 fanden die andere Sorte Fehler. Ein Entwurf fügte „genau“ ein und machte eine
 Aussage stärker als im Englischen. Ein anderer machte aus „vereinbart“ ein „steht
 vorher fest“. Ein dritter machte aus den „wesentlichen Pflichten“ des
-Cyberresilienzgesetzes „die übrigen“. Jedes Mal eine Prüfung, die rot werden
-konnte und rot wurde.
+Cyberresilienzgesetzes „die übrigen“. Jedes Mal ein Test, der fehlschlagen konnte
+und fehlschlug.
 {% </lang> %}
