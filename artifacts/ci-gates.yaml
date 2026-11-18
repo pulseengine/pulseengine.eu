@@ -1472,19 +1472,19 @@ artifacts:
     type: requirement
     title: The North Star check runs as a WebAssembly component through PulseEngine's own chain, with the same verdicts as the Python script
     description: >-
-      Owner decision 2026-11-18, the first dog-food tool: scripts/check-north-star.py rebuilt as a WASI Preview 2 command component (tools/north-star-check), optimised with loom, signed and verified with sigil (wsc), lowered with meld and run under wasmtime and kiln, with every tool taken from the varve layer pinned in varve.toml. Same seven rules, same messages on stdout, same exit codes (0, 1, 2) as the Python script on the committed data, on each planted violation of its --self-test and on seeded random cases. The Python check stays in CI until the owner retires it. Known gaps, recorded rather than worked around: kiln 0.7.2 (the pinned layer) and 0.7.3 refuse to instantiate the meld-fused module (four imports unresolved: descriptor.write-via-stream, append-via-stream and get-flags of wasi:filesystem/types, and wasi:cli/exit exit-with-code), and run directly on the component they stop at "No core instance exports _start", and exit code 2 needs WASI's unstable exit-with-code (wasmtime -S cli-exit-with-code=y), because stable WASI 0.2 exit carries only ok or err.
+      Owner decision 2026-11-18, the first dog-food tool: scripts/check-north-star.py rebuilt as a WASI Preview 2 command component (tools/north-star-check), optimised with loom, signed and verified with sigil (wsc), lowered with meld and run under wasmtime and kiln, with every tool taken from the varve layer pinned in varve.toml. Same seven rules, same messages on stdout, same exit codes (0, 1, 2) as the Python script on the committed data, on each planted violation of its --self-test and on seeded random cases. The Python check stays in CI until the owner retires it. Known gaps, recorded rather than worked around: kiln 0.7.2 (layer 2026.11.10) and 0.7.3 (layer 2026.11.15, the pin since this change) refuse to instantiate the meld-fused module (four imports unresolved: descriptor.write-via-stream, append-via-stream and get-flags of wasi:filesystem/types, and wasi:cli/exit exit-with-code), and run directly on the component they stop at "No core instance exports _start", and exit code 2 needs WASI's unstable exit-with-code (wasmtime -S cli-exit-with-code=y), because stable WASI 0.2 exit carries only ok or err.
     status: implemented
     category: functional
     priority: should
 
   - id: VER-NORTH-STAR-COMPONENT-EQUIV
     type: verification
-    title: tools/north-star-check/cases.py, the component against the Python script
+    title: tools/north-star-check/harness (north-star-cases), the component against the Python script
     description: >-
-      One table of cases, each a directory laid out like the repository, run through the Python script and the component: the committed data (must exit 0), the 15 planted violations of check-north-star.py --self-test (every implementation must exit 1) and seeded random mutations (wrong types, edge-case strings, TOML datetimes, malformed and edge-case measurement JSON), where stdout and exit code must be identical. Red-first 2026-11-18: before the exit-with-code fix the component returned 1 where Python returned 2 and the harness reported 262 failures over 316 cases; a mutant that drops rule 3's kind check fails it on the "bad kind" planted case. CI repeats the mutant as a negative control on every run.
+      One table of cases, each a directory laid out like the repository, run through the Python script and the component: the committed data (must exit 0), the 15 planted violations of check-north-star.py --self-test (every implementation must exit 1) and seeded random mutations (wrong types, edge-case strings, TOML datetimes, malformed and edge-case measurement JSON), where stdout and exit code must be identical. Written first in Python and ported to Rust the same day (owner decision: no new Python). Red-first 2026-11-18, on the Python version: before the exit-with-code fix the component returned 1 where Python returned 2 and the harness reported 262 failures over 316 cases; a mutant that drops rule 3's kind check fails it on the "bad kind" planted case. CI repeats the mutant as a negative control on every run.
     status: verified
     method: automated-test
-    test-location: tools/north-star-check/cases.py
+    test-location: tools/north-star-check/harness/src/main.rs
     links:
       - type: verifies
         target: REQ-NORTH-STAR-COMPONENT
@@ -1493,7 +1493,7 @@ artifacts:
     type: verification
     title: tools/north-star-check/pipeline.sh, the component through loom, wsc, meld, wasmtime and kiln
     description: >-
-      Builds the component, optimises it with loom, signs it with wsc under a one-off key and verifies it (a copy with one flipped byte must fail verification), fuses it with meld for kiln, then runs cases.py with five runners: Python, the component, the loom output and the signed output under wasmtime, and kiln. kiln is expected not to start (KILN_GAP=1, the recorded gap); if it starts, the harness fails so the expectation is removed and kiln is compared like the others.
+      Builds the component, optimises it with loom, signs it with wsc under a one-off key and verifies it (a copy with one flipped byte must fail verification), fuses it with meld for kiln, then runs the Rust harness with five runners: Python, the component, the loom output and the signed output under wasmtime, and kiln. kiln is expected not to start (KILN_GAP=1, the recorded gap); if it starts, the harness fails so the expectation is removed and kiln is compared like the others.
     status: implemented
     method: automated-test
     test-location: tools/north-star-check/pipeline.sh

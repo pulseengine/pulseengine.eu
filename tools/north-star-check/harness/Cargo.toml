@@ -1,0 +1,15 @@
+[package]
+name = "north-star-cases"
+version = "0.1.0"
+edition = "2024"
+publish = false
+description = "Runs the North Star check's cases through every implementation; all must agree"
+
+# Standalone and host-native: the component crate one level up builds for
+# wasm32-wasip2, this one runs the comparison on the build machine.
+[workspace]
+
+[dependencies]
+# Same parser and spec (TOML 1.0) as the component; preserve_order so the
+# written case files keep the document order the check's output depends on.
+toml = { version = "0.8", default-features = false, features = ["parse", "display", "preserve_order"] }

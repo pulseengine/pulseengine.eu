@@ -27,7 +27,7 @@ Exit: 0 consistent · 1 a rule is broken · 2 could not run the check
 (including a value of a type the rules cannot handle, e.g. objectives = 5).
 `--self-test` runs each rule against a planted violation (negative controls).
 `--root DIR` checks DIR/data instead of this repository's (the component
-equivalence harness, tools/north-star-check/cases.py, uses it).
+equivalence harness, tools/north-star-check/harness, uses it).
 """
 
 from __future__ import annotations

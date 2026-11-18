@@ -10,7 +10,7 @@
 //! stable WASI 0.2 exit has only ok/err, see Cargo.toml).
 //!
 //! The Python script's `--self-test` is not repeated here: its planted
-//! violations live in tools/north-star-check/cases.py, which runs every case
+//! violations live in tools/north-star-check/harness, which runs every case
 //! through both implementations and requires them to agree.
 
 mod check;
@@ -35,7 +35,7 @@ fn run() -> u8 {
             root = PathBuf::from(&args[k + 1]);
             k += 1;
         } else if args[k] == "--self-test" {
-            eprintln!("check-north-star: --self-test lives in tools/north-star-check/cases.py for the component");
+            eprintln!("check-north-star: --self-test lives in tools/north-star-check/harness for the component");
             return 2;
         }
         k += 1;
