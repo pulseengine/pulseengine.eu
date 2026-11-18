@@ -238,6 +238,13 @@ We read this as the same lesson as in Mannheim: the check has to be independent.
 Our reading is also that standards work as a collective memory. They record
 lessons in a rule, so that the next team does not have to learn them again, and
 they supply the agreed definition that the third principle asks for.
+
+Language keeps that memory too. German has fixed words for whole practices:
+Vier-Augen-Prinzip (four eyes), Abnahme (formal acceptance against agreed
+criteria), technische Überwachung (independent inspection). Where English
+describes the practice, German names it, and a practice with a name gets passed
+on. That is our reading, and translating this post showed it: every loose
+translation landed on the wrong one of those words.
 {% </lang> %}
 
 {% <lang code="de"> %}
@@ -254,11 +261,18 @@ Für uns ist das dieselbe Lehre wie in Mannheim: Wer prüft, muss unabhängig se
 Normen wirken nach unserer Einschätzung außerdem wie ein kollektives Gedächtnis. Sie
 machen aus Lehren Regeln, damit das nächste Team sie nicht noch einmal lernen
 muss. Und sie liefern die vereinbarten Abnahmekriterien, die Grundsatz 3 verlangt.
+
+Auch die Sprache hält dieses Gedächtnis fest. Für ganze Verfahren hat das
+Deutsche feste Begriffe: Vier-Augen-Prinzip, Abnahme, technische Überwachung.
+Wo das Englische beschreibt, benennt das Deutsche. Und was einen Namen hat, wird
+weitergegeben. So sehen wir es, und die Übersetzung dieses Beitrags hat es
+gezeigt: Wer ungenau übersetzt, landet beim falschen dieser Wörter.
 {% </lang> %}
 
 {% <lang code="note"> %}
 "the check has to be independent" → „Wer prüft, muss unabhängig sein.“ Das
-Deutsche macht aus der Sache eine Person.
+Deutsche macht aus der Sache eine Person. Der Absatz über Sprache als Gedächtnis ist das Argument des
+Autors; die Beispielwörter stehen in beiden Fassungen auf Deutsch.
 {% </lang> %}
 
 {% <lang code="en"> %}
