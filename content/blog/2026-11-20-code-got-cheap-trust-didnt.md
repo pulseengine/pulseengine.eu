@@ -34,8 +34,8 @@ need from AI-built software, and that the work now is to make them cheap and ope
 <div class="insight__body">
 
 **Code ist billig geworden. Knapp ist jetzt der Nachweis, dass er stimmt.** Dieser
-Nachweis zählt nur unter drei Bedingungen: Ein Test, der nie fehlschlägt, prüft nichts. Ein anderer
-als der Autor prüft, und jeder kann nachprüfen. Und was „richtig“ ist, ist
+Nachweis zählt nur unter drei Bedingungen: Ein Test, der nie fehlschlägt, prüft nichts.
+Vier-Augen-Prinzip, und für jeden nachvollziehbar. Und was „richtig“ ist, ist
 vereinbart. Unser Argument, aus einem kleinen Projekt heraus: Käufer
 sicherheitskritischer Systeme brauchen Normen, unabhängige Prüfung und Nachweise
 vor der Freigabe, auch bei KI-gebauter Software. Jetzt geht es
@@ -88,7 +88,7 @@ Liste weiter unten.
 flowchart LR
     D["3. Vereinbart, was richtig ist"] --> B
     A["Behauptung"] --> B["1. Test, der fehlschlagen kann"]
-    B --> C["2. Vier-Augen-Prinzip, von jedem nachprüfbar"]
+    B --> C["2. Vier-Augen-Prinzip, für jeden nachvollziehbar"]
     C --> E["Nachweis"]
 </pre>
 {% </lang> %}
@@ -162,9 +162,10 @@ sind.
    "how do you take every failure and then build back the test case and make sure
    you truly verify the test" – sinngemäß: aus jedem Fehler einen Testfall machen
    und sicherstellen, dass der Test wirklich prüft (12:19).
-2. **Vier-Augen-Prinzip: Ein anderer prüft, und jeder kann es nachprüfen.** Das
-   sind zwei Forderungen. Unabhängig heißt: Keiner prüft seine eigene Arbeit.
-   Nachprüfbar heißt: Keiner muss das Ergebnis glauben. Eine Signatur zeigt nur,
+2. **Vier-Augen-Prinzip, und für jeden nachvollziehbar.** Das sind zwei
+   Forderungen. Vier Augen heißt: Keiner prüft seine eigene Arbeit.
+   Nachvollziehbar heißt: Keiner muss das Ergebnis glauben, jeder kann es selbst
+   wiederholen. Eine Signatur zeigt nur,
    welcher Schlüssel ein Paket signiert hat und dass es seitdem unverändert ist.
    Ob der Inhalt stimmt, zeigt sie nicht. Bei Agenten gehört das Modell dazu:
    "How do you have the critique? There's so much to be said about having a
@@ -261,7 +262,7 @@ getestete Gesetzmäßigkeit ist es nicht.
 Das scheint unserer Forderung nach offenen Nachweisen zu widersprechen. Was jeder
 kopieren kann, ist nicht schwer zu kopieren. Unsere Antwort: Offene Nachweise lassen sich
 trotzdem schwer fälschen. Ihre Tests können fehlschlagen, und jeder
-kann sie wiederholen. Billig wird das Erstellen und Veröffentlichen, nicht das
+kann sie nachvollziehen. Billig wird das Erstellen und Veröffentlichen, nicht das
 Vertrauen. Verifikationsnachweise für sicherheitskritische Software gehören auf
 unserer Linie auf die Seite der Zertifizierung, solange sie die drei Bedingungen erfüllen.
 {% </lang> %}
@@ -406,7 +407,7 @@ wir zuletzt getan haben, nach Bedingung:
   und derselben Modellfamilie wie der Autor. Unabhängig waren sie also vom Kontext
   des Autors, nicht von der Organisation oder vom Modell. Jeder Hinweis wurde am
   Code überprüft, bevor wir etwas geändert haben.
-- **Bedingungen 1 und 2, Nachweise, die jeder wiederholen kann.** Das
+- **Bedingungen 1 und 2, Nachweise, die jeder nachvollziehen kann.** Das
   `wohl`-Release
   [v0.7.0](https://github.com/pulseengine/wohl/releases/tag/v0.7.0) enthält ein
   signiertes Nachweispaket, prüfbar mit einem einzigen Befehl. Ein monatlicher Lauf
