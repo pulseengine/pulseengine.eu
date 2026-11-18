@@ -184,7 +184,7 @@ Unsere Arbeitsdefinition: Für einen Nachweis gelten drei Grundsätze.
 2. **Vier-Augen-Prinzip, und für jeden nachvollziehbar.** Das sind zwei
    Forderungen. Vier Augen heißt: Niemand prüft seine eigene Arbeit.
    Nachvollziehbar heißt: Niemand muss das Ergebnis glauben, jeder kann es selbst
-   wiederholen. Eine Signatur zeigt nur, welcher Schlüssel ein Paket signiert hat
+   wiederholen. Eine Signatur zeigt nur, welcher Schlüssel ein Archiv signiert hat
    und dass es seitdem unverändert ist. Ob der Inhalt stimmt, zeigt sie nicht.
    Bei Agenten gehört zur Unabhängigkeit auch das Modell: "How do you have the critique? There's so
    much to be said about having a separate model family" – sinngemäß: Wie kommt
@@ -511,11 +511,11 @@ einsehbar zu machen. Was wir bisher umgesetzt haben:
 - **Grundsätze 1 und 2, Nachweise, die jeder nachvollziehen kann.** Das
   `wohl`-Release
   [v0.7.0](https://github.com/pulseengine/wohl/releases/tag/v0.7.0) enthält ein
-  signiertes Nachweispaket, prüfbar mit einem einzigen Befehl. Ein monatlicher Lauf
+  signiertes Nachweisarchiv, prüfbar mit einem einzigen Befehl. Ein monatlicher Lauf
   prüft es jetzt, mit zwei absichtlich eingebauten Fehlern, bei denen der Test
   fehlschlagen muss
   ([pulseengine.eu#377](https://github.com/pulseengine/pulseengine.eu/pull/377)).
-  Das zeigt: Das Paket ist unversehrt, und seine Tests können noch fehlschlagen.
+  Das zeigt: Das Archiv ist unversehrt, und seine Tests können noch fehlschlagen.
   Dass die Software korrekt ist, zeigt es nicht.
 {% </lang> %}
 
@@ -535,8 +535,7 @@ and WebAssembly.
 
 {% <lang code="de"> %}
 Als Nächstes: Prüfwerkzeuge, die wir so bauen, dass sich ihre
-Qualifizierungsnachweise offen erzeugen und veröffentlichen lassen. Signierte,
-maschinenlesbare Nachweispakete, die sich auf die Normen zum
+Qualifizierungsnachweise offen erzeugen und veröffentlichen lassen. Signierte, maschinenlesbare Nachweise, die sich auf die Normen zum
 Cyber Resilience Act abbilden lassen, falls und sobald sie veröffentlicht sind.
 Rückverfolgbarkeit von jedem Beweis und Test zu der Klausel, die er abdeckt, auch
 bei Änderungen durch KI-Agenten. Und MC/DC-Abdeckung für Rust und WebAssembly.
@@ -568,7 +567,7 @@ aus wenigen Fällen. Die meisten Belege zur Qualität von KI-geschriebenem Code,
 wir gefunden haben, stammen noch von Anbietern.
 
 Was uns umstimmen würde: ein veröffentlichtes Nachweisformat für den
-Cyber Resilience Act, das unsere Pakete überflüssig macht. Ein Pilotprojekt, in
+Cyber Resilience Act, mit dem unsere Lösung nicht mehr gebraucht wird. Ein Pilotprojekt, in
 dem sich niemand für offene Qualifizierungsnachweise interessiert. Oder eine
 unabhängige Studie, die zeigt, dass KI-geschriebener sicherheitskritischer Code
 weniger Prüfung braucht, nicht mehr.
