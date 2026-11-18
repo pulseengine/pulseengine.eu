@@ -3,10 +3,13 @@ title = "Code got cheap. Trust didn't."
 description = "When AI makes writing code cheap, the hard part is showing that it is right. Germany once turned boiler explosions into independent inspection; this post asks what that means for verifying AI-built software in Europe."
 date = 2026-11-20
 draft = true
+ready = true
 [taxonomies]
 tags = ["verification", "europe", "standards", "ai-agents", "process"]
 authors = ["Ralf Anton Beier"]
 +++
+
+*A German version of this post: [„Code ist billig geworden. Vertrauen nicht."](/blog/code-ist-billig-vertrauen-nicht/).*
 
 {% <insight> %}
 **When writing code becomes cheap, the scarce thing is evidence that it is
