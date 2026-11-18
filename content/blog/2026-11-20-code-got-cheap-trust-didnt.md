@@ -34,8 +34,8 @@ need from AI-built software, and that the work now is to make them cheap and ope
 <div class="insight__body">
 
 **Code zu erzeugen kostet kaum noch etwas. Der Engpass heißt jetzt
-Verifikation.** Ein Nachweis zählt nur unter drei Bedingungen: Ein Test, der nie
-fehlschlägt, prüft nichts. Vier-Augen-Prinzip, und für jeden nachvollziehbar.
+Verifikation.** Ein Nachweis zählt nur unter drei Bedingungen: Ein Test, der nicht
+fehlschlagen kann, prüft nichts. Vier-Augen-Prinzip, und für jeden nachvollziehbar.
 Und die Abnahmekriterien sind vereinbart. Unsere These: Käufer
 sicherheitskritischer Systeme brauchen von KI-gebauter Software Normen,
 unabhängige Prüfung und Nachweise vor der Freigabe. Unser Ziel: das alles mit
@@ -171,7 +171,7 @@ properties:
 Unsere Arbeitsdefinition: Ein Nachweis zählt nur, wenn drei Bedingungen erfüllt
 sind:
 
-1. **Ein Test, der nie fehlschlägt, prüft nichts.** Ob er fehlschlagen kann,
+1. **Ein Test, der nicht fehlschlagen kann, prüft nichts.** Ob er fehlschlagen kann,
    sieht man erst, wenn man ihm etwas vorlegt, das er ablehnen muss. Nadella
    beschreibt dieselbe Gewohnheit in den Agenten-Teams, die er beobachtet: "how
    do you take every failure and then build back the test case and make sure you
@@ -190,7 +190,7 @@ sind:
 {% </lang> %}
 
 {% <lang code="note"> %}
-"It can fail" → „Ein Test, der nie fehlschlägt, prüft nichts.“ (Satz des
+"It can fail" → „Ein Test, der nicht fehlschlagen kann, prüft nichts.“ (Satz des
 Autors): das Deutsche formuliert die Regel von der Gegenseite. "someone other
 than the author" → „Vier-Augen-Prinzip“. "re-runnable" → „nachvollziehbar“.
 "tied to an agreed definition" → „Abnahmekriterien sind vereinbart“.
