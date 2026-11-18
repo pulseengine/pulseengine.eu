@@ -229,7 +229,13 @@ What to do when it says low or critical:
    owner who holds what instead of guessing a recipient. Name what they hold
    and how much, and ask them to reply with what they freed.
 3. **Ended sessions** (`live` false): their scratchpads belong to nobody
-   running. Tell the owner; do not delete them yourself.
+   running. Tell the owner; do not delete them yourself. **`live: false` is
+   not "idle".** The probe sets `live` only when a session's working directory
+   is inside the path, so a worktree another session works in from its main
+   checkout reads `live: false`. On 2026-11-18 two such worktrees held
+   uncommitted work and a running test. Until warte's `verdict` field ships,
+   treat `live: false` on a worktree or `target/` as unknown and ask the repo's
+   session.
 4. **Holders not sized yet** on low or critical: the probe sizes them within
    10 minutes. Recheck then; do not conclude nobody holds anything.
 5. **Take turns on the disk.** Ten sessions deleting or running mutation tests

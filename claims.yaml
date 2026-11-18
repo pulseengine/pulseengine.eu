@@ -1591,6 +1591,14 @@ claims:
       - kind: verbatim
         text: "if fewer than one in three decided items landed, it exits 3"
 
+  # ── Probe liveness is not idleness (2026-11-18) ─────────────────────────────
+  - id: CI-STATUS-LIVE-FALSE-IS-UNKNOWN
+    doc: claude-tooling/plugins/pulseengine-claude/skills/ci-status/SKILL.md
+    text: "**`live: false` is\n   not \"idle\".**"
+    evidence:
+      - kind: verbatim
+        text: "treat `live: false` on a worktree or `target/` as unknown and ask the repo's\n   session."
+
   # ── Requirement wording rules (2026-11-17 pilot) ──────────────────────────
   # Owner-approved after a pilot on wohl's 29 requirements: a trace rivet passes
   # can still link tests to ambiguous text. STE100 contributed word rules but is
