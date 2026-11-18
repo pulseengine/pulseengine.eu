@@ -1591,6 +1591,14 @@ claims:
       - kind: verbatim
         text: "if fewer than one in three decided items landed, it exits 3"
 
+  # ── No new Python (owner, 2026-11-18) ───────────────────────────────────────
+  - id: CORE-NO-NEW-PYTHON
+    doc: claude-tooling/plugins/pulseengine-claude/core/pulseengine-core.md
+    text: "**No new Python.**"
+    evidence:
+      - kind: verbatim
+        text: "with an equivalence test against the old script as the gate"
+
   # ── Probe liveness is not idleness (2026-11-18) ─────────────────────────────
   - id: CI-STATUS-LIVE-FALSE-IS-UNKNOWN
     doc: claude-tooling/plugins/pulseengine-claude/skills/ci-status/SKILL.md
