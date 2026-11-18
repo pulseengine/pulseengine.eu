@@ -152,6 +152,10 @@ def cmd_pull(a):
 
 
 def cmd_mark(a):
+    if len(a.note) > 300:
+        print("news-radar: warte keeps notes of at most 300 characters (this one is %d); "
+              "link the main issues or PRs only" % len(a.note), file=sys.stderr)
+        return 1
     if a.state == "decided" and not links(a.note):
         print("news-radar: a decided item's note must link the issue, PR or notice it became",
               file=sys.stderr)
