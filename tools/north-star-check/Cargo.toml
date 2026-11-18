@@ -1,0 +1,32 @@
+[package]
+name = "north-star-check"
+version = "0.1.0"
+edition = "2024"
+publish = false
+description = "scripts/check-north-star.py as a WASI Preview 2 command component"
+
+# Standalone: not part of any parent workspace.
+[workspace]
+
+[dependencies]
+# 0.8 parses TOML 1.0, the same spec Python's tomllib reads; toml 1.x reads
+# TOML 1.1 and would accept files the Python check rejects.
+# preserve_order keeps tables in document order, as Python dicts do; rule 6
+# reports the first offending string, so order is part of the output.
+toml = { version = "0.8", default-features = false, features = ["parse", "preserve_order"] }
+# Python's \b and str.isprintable() are defined by general category.
+unicode-general-category = "1"
+
+# Exit code 2 ("could not run the check"): the stable wasi:cli/exit of WASI 0.2
+# carries only ok/err, so Rust's std turns every non-zero code into 1. The
+# unstable `exit-with-code` carries the number; hosts must enable it
+# (wasmtime: -S cli-exit-with-code=y).
+[target.'cfg(all(target_os = "wasi", target_env = "p2"))'.dependencies]
+wasip2 = "1.0.4"
+
+[profile.release]
+opt-level = "s"
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true
