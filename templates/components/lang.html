@@ -1,0 +1,5 @@
+{% component lang(code: string) %}
+<div class="bl bl--{{ code }}" lang="{{ code }}">
+{{ body | markdown | safe }}
+</div>
+{% endcomponent %}
