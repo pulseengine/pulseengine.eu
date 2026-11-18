@@ -37,9 +37,9 @@ need from AI-built software, and that the work now is to make them cheap and ope
 Verifikation.** Ein Nachweis zählt nur unter drei Bedingungen: Ein Test, der nie
 fehlschlägt, prüft nichts. Vier-Augen-Prinzip, und für jeden nachvollziehbar.
 Und die Abnahmekriterien sind vereinbart. Unsere These: Käufer
-sicherheitskritischer Systeme brauchen Normen, unabhängige Prüfung und Nachweise
-vor der Freigabe, auch bei KI-gebauter Software. Unser Ziel: Verifikation, die
-wenig Aufwand kostet und für jeden einsehbar ist.
+sicherheitskritischer Systeme brauchen von KI-gebauter Software Normen,
+unabhängige Prüfung und Nachweise vor der Freigabe. Unser Ziel: das alles mit
+wenig Aufwand und für jeden einsehbar.
 
 </div>
 </aside>
@@ -70,8 +70,8 @@ Frage, ob er stimmt, kostet nicht weniger als früher.
 {% </lang> %}
 
 {% <lang code="note"> %}
-„Programmieren war teuer.“ ist der Satz des Autors. Das Deutsche stellt die Regel
-voran und lässt "for most of software's history" weg; die Überschrift sagt, was
+„Programmieren war teuer.“ ist der Satz des Autors. Das Deutsche beginnt mit der
+Aussage selbst und lässt "for most of software's history" weg; die Überschrift sagt, was
 teuer bleibt, statt "is not".
 {% </lang> %}
 
@@ -130,7 +130,7 @@ inspection in Germany
 {% </lang> %}
 
 {% <lang code="de"> %}
-## Ein Kessel explodiert in Mannheim
+## Ein Kessel explodiert in Mannheim, und die drei Bedingungen
 
 Januar 1865: In einer Mannheimer Brauerei explodiert ein Dampfkessel. Am
 6. Januar 1866 gründen Kesselbesitzer einen Überwachungsverein
@@ -168,7 +168,7 @@ properties:
 {% </lang> %}
 
 {% <lang code="de"> %}
-Nach unserer Einschätzung zählt ein Nachweis nur, wenn drei Bedingungen erfüllt
+Unsere Arbeitsdefinition: Ein Nachweis zählt nur, wenn drei Bedingungen erfüllt
 sind:
 
 1. **Ein Test, der nie fehlschlägt, prüft nichts.** Ob er fehlschlagen kann,
@@ -176,15 +176,15 @@ sind:
    beschreibt dieselbe Gewohnheit in den Agenten-Teams, die er beobachtet: "how
    do you take every failure and then build back the test case and make sure you
    truly verify the test" – sinngemäß: aus jedem Fehler einen Testfall machen und
-   sicherstellen, dass der Test wirklich prüft (12:19).
+   den Test selbst wirklich überprüfen (12:19).
 2. **Vier-Augen-Prinzip, und für jeden nachvollziehbar.** Das sind zwei
    Forderungen. Vier Augen heißt: Niemand prüft seine eigene Arbeit.
    Nachvollziehbar heißt: Niemand muss das Ergebnis glauben, jeder kann es selbst
    wiederholen. Eine Signatur zeigt nur, welcher Schlüssel ein Paket signiert hat
    und dass es seitdem unverändert ist. Ob der Inhalt stimmt, zeigt sie nicht.
-   Bei Agenten gehört das Modell dazu: "How do you have the critique? There's so
+   Bei Agenten gehört zur Unabhängigkeit auch das Modell: "How do you have the critique? There's so
    much to be said about having a separate model family" – sinngemäß: Wie kommt
-   man zur Kritik? Zu einer eigenen Modellfamilie gibt es viel zu sagen (17:05).
+   man zur Kritik? Zu einer anderen Modellfamilie gibt es viel zu sagen (17:05).
 3. **Die Abnahmekriterien sind vereinbart.** Eine Anforderung oder Norm legt
    eindeutig fest, was als korrekt gilt.
 {% </lang> %}
@@ -210,7 +210,7 @@ Kesselprüfung, die einen Mangel finden kann, kann auch fehlschlagen. Es prüft
 der Sachverständige des Vereins, nicht der Betreiber. Und weil der Kessel
 regelmäßig geprüft wird, wird immer wieder nachgeprüft. Der Verein prüft viele
 Kessel; so entsteht bei seinen Prüfern ein gemeinsames Bild davon, was ein
-sicherer Kessel ist. Das sind die vereinbarten Kriterien.
+sicherer Kessel ist. Das bindet die Prüfung an eine Definition.
 {% </lang> %}
 
 {% <lang code="note"> %}
@@ -234,16 +234,16 @@ they supply the agreed definition that the third property asks for.
 
 {% <lang code="de"> %}
 Unabhängigkeit kann verloren gehen. Den Abschlussbericht zur Boeing 737 MAX haben
-Mitarbeiter der Mehrheitsfraktion im Verkehrsausschuss des
+Mitarbeiter der Mehrheit im Verkehrsausschuss des
 US-Repräsentantenhauses geschrieben. Einer von mehreren Befunden: "Excessive FAA
 delegation of certification functions to Boeing on the 737 MAX eroded FAA's
-oversight effectiveness and the safety of the public" – sinngemäß: Die FAA hat zu
-viel Zertifizierung an Boeing abgegeben. Das hat die Wirksamkeit ihrer Aufsicht
+oversight effectiveness and the safety of the public" – sinngemäß: Die FAA hat bei der
+737 MAX zu viel Zertifizierung an Boeing abgegeben. Das hat die Wirksamkeit ihrer Aufsicht
 und die öffentliche Sicherheit geschwächt
 ([Bericht des Verkehrsausschusses](https://democrats-transportation.house.gov/imo/media/doc/final_boeing_737_max_report.pdf)).
 Für uns ist das dieselbe Lehre wie in Mannheim: Wer prüft, muss unabhängig sein.
 
-Normen sind nach unserer Einschätzung außerdem ein kollektives Gedächtnis. Sie
+Normen wirken nach unserer Einschätzung außerdem wie ein kollektives Gedächtnis. Sie
 machen aus Lehren Regeln, damit das nächste Team sie nicht noch einmal lernen
 muss. Und sie liefern die Abnahmekriterien, die Bedingung 3 verlangt.
 {% </lang> %}
@@ -278,8 +278,8 @@ TÜV Rheinland 2,71 Milliarden Euro
 ([Pressemitteilung](https://www.tuv.com/press/en/press-releases/tuev-rheinland-results-2024.html)),
 jeweils über alle Geschäftsfelder. Nach unserer Einschätzung kommt viel davon aus
 Prüfungen, die das Gesetz vorschreibt. Das Geschäft mit dem Vertrauen hängt also
-an einer Pflicht. Und seine Schwachstelle ist, dass die Prüfer von denen bezahlt
-werden, die sie prüfen.
+an einer Pflicht, und seine Schwachstelle ist nach unserer Einschätzung, dass die
+Prüfer von denen bezahlt werden, die sie prüfen.
 {% </lang> %}
 
 {% <lang code="note"> %}
@@ -306,7 +306,7 @@ our synthesis from a handful of cases, not a tested law.
 **Bei der Solarindustrie ist es gescheitert.** Die Einspeisevergütung löste einen
 Boom aus. Deutschland war eine Zeit lang der größte Solarmarkt der Welt. Im Mai
 2017 meldete SolarWorld Insolvenz an, der letzte große deutsche Zellhersteller,
-unter dem Druck chinesischer Konkurrenz
+angesichts chinesischer Konkurrenz
 ([Clean Energy Wire](https://www.cleanenergywire.org/news/last-major-german-solar-cell-maker-surrenders-chinese-competition)).
 Die Einspeisevergütung war eine Subvention. Sie schuf Nachfrage, sie war keine
 Auflage für die Hersteller. Und gefragt war Massenware, die andere zu niedrigeren
@@ -340,8 +340,8 @@ kopieren kann, ist nicht schwer zu kopieren. Unsere Antwort: Offene Nachweise
 lassen sich trotzdem schwer fälschen. Ihre Tests können fehlschlagen, und jeder
 kann sie nachvollziehen. Der Aufwand sinkt beim Erstellen und Veröffentlichen von
 Nachweisen, nicht beim Vertrauen in sie. Verifikationsnachweise für
-sicherheitskritische Software gehören nach unserer Einschätzung auf die Seite
-der Zertifizierung, solange sie die drei Bedingungen erfüllen.
+sicherheitskritische Software gehören auf unserer Linie auf die Seite der
+Zertifizierung, solange sie die drei Bedingungen erfüllen.
 {% </lang> %}
 
 {% <lang code="note"> %}
@@ -362,20 +362,20 @@ causal ([NBER working paper 34995](https://www.nber.org/papers/w34995)).
 {% </lang> %}
 
 {% <lang code="de"> %}
-## Normen und Werkzeuge hinken hinterher
+## Regelwerke und Werkzeuge hinken hinterher
 
 Ein NBER-Arbeitspapier von Bick, Blandin, Deming, Fuchs-Schündeln und Jessen vom
 März 2026 berichtet: Die Arbeitsproduktivität (Leistung je Arbeitsstunde) stieg
 von 1995 bis 2025 in den USA um 85 %, in Europa um 29 %. Die Lücke entstand lange
-vor der KI. Etwa 43 % der US-Beschäftigten nutzen KI bei der Arbeit, in der
+vor der KI. Etwa 43 % der US-Beschäftigten nutzen KI bei der Arbeit, in ihrer
 Befragung europäischer Beschäftigter etwa 32 %. Branchen mit stärkerer
 KI-Nutzung wurden schneller produktiver, ohne dass sich die Beschäftigung
-erkennbar veränderte. Die Autoren berichten eine Korrelation und behaupten keine
-Ursache ([NBER-Arbeitspapier 34995](https://www.nber.org/papers/w34995)).
+erkennbar veränderte. Die Autoren berichten eine Korrelation und behaupten keinen
+ursächlichen Zusammenhang ([NBER-Arbeitspapier 34995](https://www.nber.org/papers/w34995)).
 {% </lang> %}
 
 {% <lang code="note"> %}
-"Rulebooks" → „Normen“ (ein „Regelbuch“ gibt es im Deutschen so nicht). "output
+"Rulebooks" → „Regelwerke“ (ein „Regelbuch“ gibt es im Deutschen so nicht). "output
 per hour" → „Arbeitsproduktivität“.
 {% </lang> %}
 
@@ -397,7 +397,7 @@ Die Regelwerke für KI-gebaute und vernetzte Produkte kommen spät. Am 29. Juni
 Hochrisiko-KI-Systeme zu verschieben: auf den 2. Dezember 2027 für eigenständige
 Systeme, auf den 2. August 2028 für Systeme in regulierten Produkten
 ([Rat der EU über EEAS](https://www.eeas.europa.eu/delegations/chile/artificial-intelligence-council-gives-final-green-light-simplify-and-streamline-rules_en)).
-Das Cyberresilienzgesetz (Cyber Resilience Act) regelt Cybersicherheit für
+Der Cyber Resilience Act (Cyberresilienz-Verordnung) regelt Cybersicherheit für
 Produkte mit digitalen Elementen, nicht funktionale Sicherheit. Die
 Meldepflichten gelten seit dem 11. September 2026, die wesentlichen Pflichten ab
 dem 11. Dezember 2027
@@ -406,7 +406,7 @@ dem 11. Dezember 2027
 
 {% <lang code="note"> %}
 "AI Act" → „KI-Verordnung“, "high-risk systems" → „Hochrisiko-KI-Systeme“, "the
-Council" → „der Rat der EU“: die amtlichen deutschen Begriffe.
+Council" → „der Rat der EU“: die üblichen deutschen Begriffe.
 {% </lang> %}
 
 {% <lang code="en"> %}
@@ -442,8 +442,8 @@ Qualifiziert ist damit der Compiler, nicht die Software, die man damit baut. In
 derselben Folge rechnet der Moderator Gergely Orosz für von Agenten gebaute
 Systeme mit "blueprints and certifications in, I don't know, five to 10 years" –
 sinngemäß: mit Bauplänen und Zertifizierungen in vielleicht fünf bis zehn Jahren
-(52:09). Späte Regelwerke und MC/DC, das erst noch kommen soll: Darin sehen wir
-Raum für offene Verifikationsnachweise bis dahin.
+(52:09). Späte Regelwerke und eine MC/DC-Unterstützung, die noch ein bloßes Ziel
+ist: Darin sehen wir Raum für offene Verifikationsnachweise bis dahin.
 {% </lang> %}
 
 {% <lang code="note"> %}
@@ -533,7 +533,7 @@ and WebAssembly.
 Als Nächstes: Prüfwerkzeuge, die wir so bauen, dass sich ihre
 Qualifizierungsnachweise offen erzeugen und veröffentlichen lassen. Signierte,
 maschinenlesbare Nachweispakete, die sich auf die Normen zum
-Cyberresilienzgesetz abbilden lassen, falls und sobald sie veröffentlicht sind.
+Cyber Resilience Act abbilden lassen, falls und sobald sie veröffentlicht sind.
 Rückverfolgbarkeit von jedem Beweis und Test zu der Klausel, die er abdeckt, auch
 bei Änderungen durch KI-Agenten. Und MC/DC-Abdeckung für Rust und WebAssembly.
 {% </lang> %}
@@ -563,8 +563,8 @@ bisher kein Käufer. Wann eine Auflage zum Vorteil wird, ist unsere Einschätzun
 aus wenigen Fällen. Die meisten Belege zur Qualität von KI-geschriebenem Code, die
 wir gefunden haben, stammen noch von Anbietern.
 
-Was uns umstimmen würde: ein veröffentlichtes Nachweisformat für das
-Cyberresilienzgesetz, das unsere Pakete überflüssig macht. Ein Pilotprojekt, in
+Was uns umstimmen würde: ein veröffentlichtes Nachweisformat für den
+Cyber Resilience Act, das unsere Pakete überflüssig macht. Ein Pilotprojekt, in
 dem sich niemand für offene Qualifizierungsnachweise interessiert. Oder eine
 unabhängige Studie, die zeigt, dass KI-geschriebener sicherheitskritischer Code
 weniger Prüfung braucht, nicht mehr.
@@ -590,11 +590,11 @@ fail, and did.
 Diesen Beitrag zweisprachig zu schreiben, war ein eigener Test. Unsere ersten
 deutschen Entwürfe waren richtig und steif: Aus „Früher war das Programmieren der
 teure Teil“ wurde in der Hand des Autors „Programmieren war teuer.“ Das Wort
-„billig“ musste ganz raus: Billig ist im Deutschen schlechte Ware, deshalb
+„billig“ musste ganz raus: Billig klingt im Deutschen nach schlechter Ware, deshalb
 spricht die deutsche Fassung von Aufwand, nicht von Preis. Die Tests fanden die
 andere Sorte Fehler. Ein Entwurf fügte „genau“ ein und machte eine Aussage
 stärker als im Englischen. Ein anderer machte aus „vereinbart“ ein „steht vorher
 fest“. Ein dritter machte aus den „wesentlichen Pflichten“ des
-Cyberresilienzgesetzes „die übrigen“. Jedes Mal ein Test, der fehlschlagen
+Cyber Resilience Act „alle übrigen“. Jedes Mal ein Test, der fehlschlagen
 konnte und fehlschlug.
 {% </lang> %}
