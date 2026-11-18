@@ -558,7 +558,7 @@ safety-critical code needs less checking, not more.
 {% </lang> %}
 
 {% <lang code="de"> %}
-## Grenzen
+## Wo unser Argument endet
 
 Das ist ein Argument aus einem kleinen Projekt, keine Marktstudie. Eine
 verlässliche Zahl zur Größe des Marktes für Verifikationswerkzeuge in der
