@@ -647,6 +647,28 @@ body.diagram-modal-open {
     }
   }
 
+  .bl--note { display: none; }
+  &[data-mode="both"] .bl--note {
+    display: block;
+    grid-column: 1 / -1;
+    margin: -0.25rem 0 1.5rem;
+    padding: 0.5rem 0.9rem;
+    border-left: 3px solid $accent;
+    background: rgba(123, 147, 255, 0.06);
+    border-radius: 6px;
+    font-size: 0.82rem;
+    line-height: 1.55;
+    color: $text-dim;
+
+    p { margin: 0.2rem 0; }
+  }
+  .bl-note__label {
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    color: $accent;
+  }
+
   &[data-mode="en"] .bl--de,
   &[data-mode="de"] .bl--en {
     position: absolute;

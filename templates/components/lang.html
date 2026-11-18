@@ -1,5 +1,12 @@
 {% component lang(code: string) %}
+{% if code == "note" %}
+<aside class="bl bl--note">
+<span class="bl-note__label">EN → DE</span>
+{{ body | markdown | safe }}
+</aside>
+{% else %}
 <div class="bl bl--{{ code }}" lang="{{ code }}">
 {{ body | markdown | safe }}
 </div>
+{% endif %}
 {% endcomponent %}

@@ -9,7 +9,7 @@ tags = ["verification", "europe", "standards", "ai-agents", "process", "deutsch"
 authors = ["Ralf Anton Beier"]
 [extra]
 bilingual = true
-title_de = "Code ist billig geworden. Vertrauen nicht."
+title_de = "Code kostet kaum noch etwas. Vertrauen schon."
 +++
 
 {% <lang code="en"> %}
@@ -33,16 +33,24 @@ need from AI-built software, and that the work now is to make them cheap and ope
 <div class="insight__label">Kernaussage</div>
 <div class="insight__body">
 
-**Code ist billig geworden. Knapp ist jetzt der Nachweis, dass er stimmt.** Dieser
-Nachweis zählt nur unter drei Bedingungen: Ein Test, der nie fehlschlägt, prüft nichts.
-Vier-Augen-Prinzip, und für jeden nachvollziehbar. Und was „richtig“ ist, ist
-vereinbart. Unsere These: Käufer
+**Code zu erzeugen kostet kaum noch etwas. Der Engpass heißt jetzt
+Verifikation.** Ein Nachweis zählt nur unter drei Bedingungen: Ein Test, der nie
+fehlschlägt, prüft nichts. Vier-Augen-Prinzip, und für jeden nachvollziehbar.
+Und die Abnahmekriterien sind vereinbart. Unsere These: Käufer
 sicherheitskritischer Systeme brauchen Normen, unabhängige Prüfung und Nachweise
-vor der Freigabe, auch bei KI-gebauter Software. Jetzt geht es
-darum, das billig und offen zu machen.
+vor der Freigabe, auch bei KI-gebauter Software. Unser Ziel: Verifikation, die
+wenig Aufwand kostet und für jeden einsehbar ist.
 
 </div>
 </aside>
+{% </lang> %}
+
+{% <lang code="note"> %}
+"cheap" → „kostet kaum noch etwas“: im Deutschen klingt „billig“ nach schlechter
+Ware. "the scarce thing" → „der Engpass“. "agreed definition of right" →
+„vereinbarte Abnahmekriterien“. "make them cheap and open" → „wenig Aufwand, für
+jeden einsehbar“. Die drei Bedingungen stehen im Deutschen als Regeln, nicht als
+Nebensätze.
 {% </lang> %}
 
 {% <lang code="en"> %}
@@ -51,7 +59,23 @@ darum, das billig und offen zu machen.
 For most of software's history, writing the code was the expensive part.
 Reviews, tests and proofs were overhead you paid on top. Coding agents have
 turned that around: writing got cheap, and the question "is it right?" did not.
+{% </lang> %}
 
+{% <lang code="de"> %}
+## Code kostet kaum noch etwas, Verifikation schon
+
+Programmieren war teuer. Reviews, Tests und Beweise kamen noch dazu. Mit
+Coding-Agenten hat sich das gedreht: Code zu erzeugen kostet kaum noch etwas. Die
+Frage, ob er stimmt, kostet nicht weniger als früher.
+{% </lang> %}
+
+{% <lang code="note"> %}
+„Programmieren war teuer.“ ist der Satz des Autors. Das Deutsche stellt die Regel
+voran und lässt "for most of software's history" weg; die Überschrift sagt, was
+teuer bleibt, statt "is not".
+{% </lang> %}
+
+{% <lang code="en"> %}
 Microsoft's CEO said in an episode of The Pragmatic Engineer published on
 16 November 2026: "In a world where code generation has become cheap, what has
 become hard is verification"
@@ -69,28 +93,28 @@ flowchart LR
 {% </lang> %}
 
 {% <lang code="de"> %}
-## Code ist billig, Prüfen nicht
-
-Programmieren war teuer. Reviews, Tests und Beweise kamen noch dazu. Mit
-Coding-Agenten hat sich das gedreht: Code ist billig. Die Frage, ob er stimmt,
-ist es nicht.
-
 Microsofts CEO sagt es im Podcast The Pragmatic Engineer vom 16. November 2026
 so: "In a world where code generation has become cheap, what has become hard is
-verification" – sinngemäß: Code zu erzeugen ist billig geworden, schwer ist jetzt
-das Prüfen
+verification" – sinngemäß: Wo Code kaum noch etwas kostet, wird die Verifikation
+zum schwierigen Teil
 ([The Pragmatic Engineer](https://newsletter.pragmaticengineer.com/p/software-engineering-after-code-becomes),
 bei 11:50). Was macht aus einer Behauptung über Code einen Nachweis? Unsere
-vorläufige Antwort: drei Bedingungen. Die Nummerierung gilt auch für die
-Liste weiter unten.
+vorläufige Antwort: drei Bedingungen. Die Nummerierung gilt auch für die Liste
+weiter unten.
 
 <pre class="mermaid">
 flowchart LR
-    D["3. Vereinbart, was richtig ist"] --> B
+    D["3. Vereinbarte Abnahmekriterien"] --> B
     A["Behauptung"] --> B["1. Test, der fehlschlagen kann"]
     B --> C["2. Vier-Augen-Prinzip, für jeden nachvollziehbar"]
     C --> E["Nachweis"]
 </pre>
+{% </lang> %}
+
+{% <lang code="note"> %}
+Zitate bleiben im englischen Original, mit einer sinngemäßen Übersetzung. Aus
+"properties" werden „Bedingungen“: Eigenschaften hat ein Nachweis, Bedingungen
+muss er erfüllen.
 {% </lang> %}
 
 {% <lang code="en"> %}
@@ -103,7 +127,27 @@ Its aim was regular inspection of the members' boilers, its first full-time
 expert started in 1868, and it became the starting point for technical
 inspection in Germany
 ([TÜV SÜD history](https://www.tuvsud.com/en-gb/about-us/history/our-foundation-years-1866-1900)).
+{% </lang> %}
 
+{% <lang code="de"> %}
+## Ein Kessel explodiert in Mannheim
+
+Januar 1865: In einer Mannheimer Brauerei explodiert ein Dampfkessel. Am
+6. Januar 1866 gründen Kesselbesitzer einen Überwachungsverein
+([Deutschlandmuseum](https://www.deutschlandmuseum.de/en/geschichte/kalender/1866-01-06-origin-of-the-tuev)).
+Er soll die Kessel seiner Mitglieder regelmäßig prüfen. 1868 kommt der erste
+hauptamtliche Sachverständige. Daraus wird der Ausgangspunkt der technischen
+Überwachung in Deutschland
+([TÜV SÜD, Geschichte](https://www.tuvsud.com/en-gb/about-us/history/our-foundation-years-1866-1900)).
+{% </lang> %}
+
+{% <lang code="note"> %}
+Das Deutsche erzählt die Szene im Präsens, das Englische in der Vergangenheit.
+"technical inspection" → „technische Überwachung“, der eingeführte Begriff für
+das, was der TÜV tut.
+{% </lang> %}
+
+{% <lang code="en"> %}
 Our working definition is that evidence is worth something only if it has three
 properties:
 
@@ -121,13 +165,60 @@ properties:
 3. **It is tied to an agreed definition of right.** "Correct" needs a
    requirement or a standard that says what correct means, written without
    ambiguity.
+{% </lang> %}
 
+{% <lang code="de"> %}
+Nach unserer Einschätzung zählt ein Nachweis nur, wenn drei Bedingungen erfüllt
+sind:
+
+1. **Ein Test, der nie fehlschlägt, prüft nichts.** Ob er fehlschlagen kann,
+   sieht man erst, wenn man ihm etwas vorlegt, das er ablehnen muss. Nadella
+   beschreibt dieselbe Gewohnheit in den Agenten-Teams, die er beobachtet: "how
+   do you take every failure and then build back the test case and make sure you
+   truly verify the test" – sinngemäß: aus jedem Fehler einen Testfall machen und
+   sicherstellen, dass der Test wirklich prüft (12:19).
+2. **Vier-Augen-Prinzip, und für jeden nachvollziehbar.** Das sind zwei
+   Forderungen. Vier Augen heißt: Niemand prüft seine eigene Arbeit.
+   Nachvollziehbar heißt: Niemand muss das Ergebnis glauben, jeder kann es selbst
+   wiederholen. Eine Signatur zeigt nur, welcher Schlüssel ein Paket signiert hat
+   und dass es seitdem unverändert ist. Ob der Inhalt stimmt, zeigt sie nicht.
+   Bei Agenten gehört das Modell dazu: "How do you have the critique? There's so
+   much to be said about having a separate model family" – sinngemäß: Wie kommt
+   man zur Kritik? Zu einer eigenen Modellfamilie gibt es viel zu sagen (17:05).
+3. **Die Abnahmekriterien sind vereinbart.** Eine Anforderung oder Norm legt
+   eindeutig fest, was als korrekt gilt.
+{% </lang> %}
+
+{% <lang code="note"> %}
+"It can fail" → „Ein Test, der nie fehlschlägt, prüft nichts.“ (Satz des
+Autors): das Deutsche formuliert die Regel von der Gegenseite. "someone other
+than the author" → „Vier-Augen-Prinzip“. "re-runnable" → „nachvollziehbar“.
+"tied to an agreed definition" → „Abnahmekriterien sind vereinbart“.
+{% </lang> %}
+
+{% <lang code="en"> %}
 In our reading, the boiler story has all three. An inspection that can find a
 fault is a check that can fail. An expert of the association, not the operator,
 is a checker other than the author, and a boiler inspected regularly is checked
 again and again. An association that examines many boilers gives its examiners
 a shared idea of what a sound boiler is, which ties the check to a definition.
+{% </lang> %}
 
+{% <lang code="de"> %}
+Nach unserer Einschätzung erfüllt die Mannheimer Geschichte alle drei. Eine
+Kesselprüfung, die einen Mangel finden kann, kann auch fehlschlagen. Es prüft
+der Sachverständige des Vereins, nicht der Betreiber. Und weil der Kessel
+regelmäßig geprüft wird, wird immer wieder nachgeprüft. Der Verein prüft viele
+Kessel; so entsteht bei seinen Prüfern ein gemeinsames Bild davon, was ein
+sicherer Kessel ist. Das sind die vereinbarten Kriterien.
+{% </lang> %}
+
+{% <lang code="note"> %}
+"In our reading" → „Nach unserer Einschätzung“, die übliche Abschwächung in
+deutschen Fachtexten.
+{% </lang> %}
+
+{% <lang code="en"> %}
 Independence can also be lost along the way. The final report on the Boeing
 737 MAX prepared by the majority staff of the US House transportation committee
 states, as one of several findings: "Excessive FAA delegation of certification
@@ -142,58 +233,24 @@ they supply the agreed definition that the third property asks for.
 {% </lang> %}
 
 {% <lang code="de"> %}
-## Ein Kessel explodiert in Mannheim
-
-Januar 1865: In einer Mannheimer Brauerei explodiert ein Dampfkessel. Am
-6. Januar 1866 gründen Kesselbesitzer einen Überwachungsverein
-([Deutschlandmuseum](https://www.deutschlandmuseum.de/en/geschichte/kalender/1866-01-06-origin-of-the-tuev)).
-Er soll die Kessel seiner Mitglieder regelmäßig prüfen. 1868 kommt der erste
-hauptamtliche Sachverständige. Daraus wird der Ausgangspunkt der technischen
-Überwachung in Deutschland
-([TÜV SÜD, Geschichte](https://www.tuvsud.com/en-gb/about-us/history/our-foundation-years-1866-1900)).
-
-Unsere Arbeitsdefinition: Ein Nachweis zählt nur, wenn drei Bedingungen erfüllt
-sind.
-
-1. **Ein Test, der nie fehlschlägt, prüft nichts.** Ob er fehlschlagen kann,
-   zeigt sich erst, wenn man ihm etwas vorlegt, das
-   er ablehnen muss. Nadella beschreibt dieselbe Gewohnheit in den Agenten-Teams, die er
-   beobachtet:
-   "how do you take every failure and then build back the test case and make sure
-   you truly verify the test" – sinngemäß: aus jedem Fehler einen Testfall machen
-   und sicherstellen, dass der Test wirklich prüft (12:19).
-2. **Vier-Augen-Prinzip, und für jeden nachvollziehbar.** Das sind zwei
-   Forderungen. Vier Augen heißt: Keiner prüft seine eigene Arbeit.
-   Nachvollziehbar heißt: Keiner muss das Ergebnis glauben, jeder kann es selbst
-   wiederholen. Eine Signatur zeigt nur,
-   welcher Schlüssel ein Paket signiert hat und dass es seitdem unverändert ist.
-   Ob der Inhalt stimmt, zeigt sie nicht. Bei Agenten gehört das Modell dazu:
-   "How do you have the critique? There's so much to be said about having a
-   separate model family" – sinngemäß: Wie kommt man zur Kritik? Zu einer eigenen
-   Modellfamilie gibt es viel zu sagen (17:05).
-3. **Was „richtig“ ist, ist vereinbart.** Dafür braucht es eine Anforderung
-   oder Norm, die das eindeutig sagt.
-
-Nach unserer Lesart erfüllt die Mannheimer Geschichte alle drei. Eine
-Kesselprüfung, die einen Mangel finden kann, kann auch fehlschlagen. Es prüft der Sachverständige des
-Vereins, nicht der Betreiber. Und weil der Kessel regelmäßig geprüft wird,
-wird immer wieder nachgeprüft. Der Verein prüft viele Kessel. So entsteht bei seinen
-Prüfern ein gemeinsames Bild davon, was ein sicherer Kessel ist, und die Prüfung
-ist an eine Definition gebunden.
-
 Unabhängigkeit kann verloren gehen. Den Abschlussbericht zur Boeing 737 MAX haben
 Mitarbeiter der Mehrheitsfraktion im Verkehrsausschuss des
 US-Repräsentantenhauses geschrieben. Einer von mehreren Befunden: "Excessive FAA
 delegation of certification functions to Boeing on the 737 MAX eroded FAA's
-oversight effectiveness and the safety of the public" – sinngemäß: Die FAA hat
-zu viel Zertifizierung an Boeing abgegeben. Das hat die Wirksamkeit ihrer Aufsicht
+oversight effectiveness and the safety of the public" – sinngemäß: Die FAA hat zu
+viel Zertifizierung an Boeing abgegeben. Das hat die Wirksamkeit ihrer Aufsicht
 und die öffentliche Sicherheit geschwächt
 ([Bericht des Verkehrsausschusses](https://democrats-transportation.house.gov/imo/media/doc/final_boeing_737_max_report.pdf)).
 Für uns ist das dieselbe Lehre wie in Mannheim: Wer prüft, muss unabhängig sein.
 
-Normen sind für uns außerdem ein kollektives Gedächtnis. Sie machen aus Lehren
-Regeln, damit das nächste Team sie nicht noch einmal lernen muss. Und sie liefern
-die vereinbarte Definition, die Bedingung 3 verlangt.
+Normen sind nach unserer Einschätzung außerdem ein kollektives Gedächtnis. Sie
+machen aus Lehren Regeln, damit das nächste Team sie nicht noch einmal lernen
+muss. Und sie liefern die Abnahmekriterien, die Bedingung 3 verlangt.
+{% </lang> %}
+
+{% <lang code="note"> %}
+"the check has to be independent" → „Wer prüft, muss unabhängig sein.“ Das
+Deutsche macht aus der Sache eine Person.
 {% </lang> %}
 
 {% <lang code="en"> %}
@@ -208,7 +265,29 @@ and TÜV Rheinland €2.71 billion
 across all their services. In our reading, much of that demand exists because
 inspection is required by law, so this trust business rests on a mandate, and
 its weak spot is that certifiers are paid by the firms they certify.
+{% </lang> %}
 
+{% <lang code="de"> %}
+## Aus der Auflage wird das Produkt
+
+**Bei Prüfung und Zertifizierung hat das geklappt.** Für Hersteller kostet
+unabhängige Prüfung Geld. Für die Prüfer wurde sie ein Geschäft. TÜV SÜD meldete
+für 2024 einen Umsatz von 3,4 Milliarden Euro
+([Pressemitteilung](https://www.tuvsud.com/en-gb/press-and-media/2025/may/tuev-sued-achieves-significant-revenue-growth-in-2024)),
+TÜV Rheinland 2,71 Milliarden Euro
+([Pressemitteilung](https://www.tuv.com/press/en/press-releases/tuev-rheinland-results-2024.html)),
+jeweils über alle Geschäftsfelder. Nach unserer Einschätzung kommt viel davon aus
+Prüfungen, die das Gesetz vorschreibt. Das Geschäft mit dem Vertrauen hängt also
+an einer Pflicht. Und seine Schwachstelle ist, dass die Prüfer von denen bezahlt
+werden, die sie prüfen.
+{% </lang> %}
+
+{% <lang code="note"> %}
+"constraint" → „Auflage“, "mandate" → „Pflicht“: zwei Begriffe, die im Deutschen
+getrennt bleiben müssen. Die Überschrift wird zur Aussage statt "When …".
+{% </lang> %}
+
+{% <lang code="en"> %}
 **It failed for solar.** After feed-in tariffs drove a boom, Germany was once
 the world's largest solar market. In May 2017 SolarWorld, the last major German
 cell maker, filed for insolvency amid Chinese competition
@@ -221,7 +300,32 @@ The pattern, as we read the cases: **a constraint becomes a strength when it
 produces a trust good that is hard to copy and that buyers must pay for. It stays
 a cost when it only creates demand that anyone can serve more cheaply.** That is
 our synthesis from a handful of cases, not a tested law.
+{% </lang> %}
 
+{% <lang code="de"> %}
+**Bei der Solarindustrie ist es gescheitert.** Die Einspeisevergütung löste einen
+Boom aus. Deutschland war eine Zeit lang der größte Solarmarkt der Welt. Im Mai
+2017 meldete SolarWorld Insolvenz an, der letzte große deutsche Zellhersteller,
+unter dem Druck chinesischer Konkurrenz
+([Clean Energy Wire](https://www.cleanenergywire.org/news/last-major-german-solar-cell-maker-surrenders-chinese-competition)).
+Die Einspeisevergütung war eine Subvention. Sie schuf Nachfrage, sie war keine
+Auflage für die Hersteller. Und gefragt war Massenware, die andere zu niedrigeren
+Kosten herstellen konnten.
+
+So schätzen wir die Fälle ein: **Eine Auflage wird zum Vorteil, wenn daraus ein
+Vertrauensgut entsteht, das schwer zu kopieren ist und für das Käufer zahlen
+müssen. Sie bleibt ein Kostenfaktor, wenn sie nur Nachfrage schafft, die jeder zu
+niedrigeren Kosten bedienen kann.** Das ist kein belegtes Gesetz, sondern eine
+Arbeitshypothese aus einer Handvoll Fälle.
+{% </lang> %}
+
+{% <lang code="note"> %}
+"commodity" → „Massenware“. "not a tested law" → „kein belegtes Gesetz, sondern
+eine Arbeitshypothese“. "more cheaply" → „zu niedrigeren Kosten“, wieder ohne
+„billig“.
+{% </lang> %}
+
+{% <lang code="en"> %}
 This seems to clash with our call for open evidence: if anyone can copy it, how
 can it be hard to copy? Our answer is that open evidence stays hard to fake
 because its checks can fail and anyone can re-run them. What gets cheap is
@@ -231,40 +335,18 @@ as it keeps those properties.
 {% </lang> %}
 
 {% <lang code="de"> %}
-## Wenn aus der Auflage ein Produkt wird
+Das scheint unserer Forderung nach offenen Nachweisen zu widersprechen: Was jeder
+kopieren kann, ist nicht schwer zu kopieren. Unsere Antwort: Offene Nachweise
+lassen sich trotzdem schwer fälschen. Ihre Tests können fehlschlagen, und jeder
+kann sie nachvollziehen. Der Aufwand sinkt beim Erstellen und Veröffentlichen von
+Nachweisen, nicht beim Vertrauen in sie. Verifikationsnachweise für
+sicherheitskritische Software gehören nach unserer Einschätzung auf die Seite
+der Zertifizierung, solange sie die drei Bedingungen erfüllen.
+{% </lang> %}
 
-**Bei Prüfung und Zertifizierung hat das geklappt.** Für Hersteller kostet
-unabhängige Prüfung Geld. Für die Prüfer wurde sie ein Geschäft. TÜV SÜD meldete
-für 2024 einen Umsatz von 3,4 Milliarden Euro
-([Pressemitteilung](https://www.tuvsud.com/en-gb/press-and-media/2025/may/tuev-sued-achieves-significant-revenue-growth-in-2024)),
-TÜV Rheinland 2,71 Milliarden Euro
-([Pressemitteilung](https://www.tuv.com/press/en/press-releases/tuev-rheinland-results-2024.html)),
-jeweils über alle Geschäftsfelder. Nach unserer Lesart kommt viel davon aus
-Prüfungen, die das Gesetz vorschreibt. Das Geschäft mit dem Vertrauen hängt also
-an einer Pflicht. Und seine Schwachstelle ist, nach unserer Lesart, dass die
-Prüfer von denen bezahlt werden, die sie prüfen.
-
-**Bei der Solarindustrie ist es gescheitert.** Die Einspeisevergütung löste einen
-Boom aus. Deutschland war eine Zeit lang der größte Solarmarkt der Welt. Im Mai
-2017 meldete SolarWorld Insolvenz an, der letzte große deutsche Zellhersteller,
-unter dem Druck chinesischer Konkurrenz
-([Clean Energy Wire](https://www.cleanenergywire.org/news/last-major-german-solar-cell-maker-surrenders-chinese-competition)).
-Die Einspeisevergütung war eine Subvention. Sie schuf Nachfrage, sie war keine
-Auflage für die Hersteller. Und gefragt war Massenware, die andere billiger bauen
-konnten.
-
-So lesen wir die Fälle: **Eine Auflage wird zur Stärke, wenn daraus ein
-Vertrauensgut entsteht, das schwer zu kopieren ist und für das Käufer zahlen
-müssen. Sie bleibt ein Kostenfaktor, wenn sie nur Nachfrage schafft, die jeder
-billiger bedienen kann.** Das schließen wir aus einer Handvoll Fälle. Eine
-getestete Gesetzmäßigkeit ist es nicht.
-
-Das scheint unserer Forderung nach offenen Nachweisen zu widersprechen. Was jeder
-kopieren kann, ist nicht schwer zu kopieren. Unsere Antwort: Offene Nachweise lassen sich
-trotzdem schwer fälschen. Ihre Tests können fehlschlagen, und jeder
-kann sie nachvollziehen. Billig wird das Erstellen und Veröffentlichen, nicht das
-Vertrauen. Verifikationsnachweise für sicherheitskritische Software gehören auf
-unserer Linie auf die Seite der Zertifizierung, solange sie die drei Bedingungen erfüllen.
+{% <lang code="note"> %}
+"What gets cheap" → „Der Aufwand sinkt“. Das Deutsche spricht über Aufwand, nicht
+über Preis.
 {% </lang> %}
 
 {% <lang code="en"> %}
@@ -277,7 +359,27 @@ of US workers use AI at work against about 32% in its survey of European
 workers. Industries that adopted AI more saw faster productivity growth, with no
 clear employment changes. The authors report a correlation and do not claim it is
 causal ([NBER working paper 34995](https://www.nber.org/papers/w34995)).
+{% </lang> %}
 
+{% <lang code="de"> %}
+## Normen und Werkzeuge hinken hinterher
+
+Ein NBER-Arbeitspapier von Bick, Blandin, Deming, Fuchs-Schündeln und Jessen vom
+März 2026 berichtet: Die Arbeitsproduktivität (Leistung je Arbeitsstunde) stieg
+von 1995 bis 2025 in den USA um 85 %, in Europa um 29 %. Die Lücke entstand lange
+vor der KI. Etwa 43 % der US-Beschäftigten nutzen KI bei der Arbeit, in der
+Befragung europäischer Beschäftigter etwa 32 %. Branchen mit stärkerer
+KI-Nutzung wurden schneller produktiver, ohne dass sich die Beschäftigung
+erkennbar veränderte. Die Autoren berichten eine Korrelation und behaupten keine
+Ursache ([NBER-Arbeitspapier 34995](https://www.nber.org/papers/w34995)).
+{% </lang> %}
+
+{% <lang code="note"> %}
+"Rulebooks" → „Normen“ (ein „Regelbuch“ gibt es im Deutschen so nicht). "output
+per hour" → „Arbeitsproduktivität“.
+{% </lang> %}
+
+{% <lang code="en"> %}
 The rulebooks for AI-built and connected products are arriving late. The Council
 gave final approval on 29 June 2026 to move the AI Act's high-risk deadlines to
 2 December 2027 for stand-alone systems and 2 August 2028 for systems embedded in
@@ -287,7 +389,27 @@ The Cyber Resilience Act is a cybersecurity law for products with digital
 elements, not a functional-safety law. Its reporting obligations have applied
 since 11 September 2026, and its main obligations apply from 11 December 2027
 ([European Commission](https://digital-strategy.ec.europa.eu/en/policies/cyber-resilience-act)).
+{% </lang> %}
 
+{% <lang code="de"> %}
+Die Regelwerke für KI-gebaute und vernetzte Produkte kommen spät. Am 29. Juni
+2026 hat der Rat der EU endgültig beschlossen, die Fristen der KI-Verordnung für
+Hochrisiko-KI-Systeme zu verschieben: auf den 2. Dezember 2027 für eigenständige
+Systeme, auf den 2. August 2028 für Systeme in regulierten Produkten
+([Rat der EU über EEAS](https://www.eeas.europa.eu/delegations/chile/artificial-intelligence-council-gives-final-green-light-simplify-and-streamline-rules_en)).
+Das Cyberresilienzgesetz (Cyber Resilience Act) regelt Cybersicherheit für
+Produkte mit digitalen Elementen, nicht funktionale Sicherheit. Die
+Meldepflichten gelten seit dem 11. September 2026, die wesentlichen Pflichten ab
+dem 11. Dezember 2027
+([Europäische Kommission](https://digital-strategy.ec.europa.eu/en/policies/cyber-resilience-act)).
+{% </lang> %}
+
+{% <lang code="note"> %}
+"AI Act" → „KI-Verordnung“, "high-risk systems" → „Hochrisiko-KI-Systeme“, "the
+Council" → „der Rat der EU“: die amtlichen deutschen Begriffe.
+{% </lang> %}
+
+{% <lang code="en"> %}
 On the tooling side, rust-lang/rust#144999, merged on 8 August 2025, removed the
 unstable MC/DC instrumentation
 ([rust-lang/rust#144999](https://github.com/rust-lang/rust/pull/144999)). The
@@ -306,30 +428,8 @@ verification evidence in the meantime.
 {% </lang> %}
 
 {% <lang code="de"> %}
-## Regeln und Werkzeuge kommen spät
-
-Ein NBER-Arbeitspapier von Bick, Blandin, Deming, Fuchs-Schündeln und Jessen vom
-März 2026 berichtet: Die Arbeitsproduktivität (Leistung je Arbeitsstunde) stieg
-von 1995 bis 2025 in den USA um 85 %, in Europa um 29 %. Die Lücke entstand lange
-vor der KI. Etwa 43 % der US-Beschäftigten nutzen KI bei der Arbeit, in der Befragung
-europäischer Beschäftigter etwa 32 %. Branchen mit stärkerer KI-Nutzung wurden
-schneller produktiver. Die Beschäftigung änderte sich dabei nicht erkennbar. Die Autoren
-berichten eine Korrelation und behaupten keine Ursache
-([NBER-Arbeitspapier 34995](https://www.nber.org/papers/w34995)).
-
-Die Regeln für KI-gebaute und vernetzte Produkte kommen spät. Am 29. Juni 2026 hat
-der Rat der EU endgültig beschlossen, die Fristen der KI-Verordnung für
-Hochrisiko-KI-Systeme zu verschieben: auf den 2. Dezember 2027 für eigenständige
-Systeme, auf den 2. August 2028 für Systeme in regulierten Produkten
-([Rat der EU über EEAS](https://www.eeas.europa.eu/delegations/chile/artificial-intelligence-council-gives-final-green-light-simplify-and-streamline-rules_en)).
-Das Cyberresilienzgesetz (Cyber Resilience Act) regelt Cybersicherheit für
-Produkte mit digitalen Elementen, nicht funktionale Sicherheit. Die Meldepflichten
-gelten seit dem 11. September 2026, die wesentlichen Pflichten ab dem
-11. Dezember 2027
-([Europäische Kommission](https://digital-strategy.ec.europa.eu/en/policies/cyber-resilience-act)).
-
-Zu den Werkzeugen: rust-lang/rust#144999 hat am 8. August
-2025 die instabile MC/DC-Instrumentierung entfernt
+Zu den Werkzeugen: rust-lang/rust#144999 hat am 8. August 2025 die instabile
+MC/DC-Instrumentierung entfernt
 ([rust-lang/rust#144999](https://github.com/rust-lang/rust/pull/144999)). Das
 Rust-Projektziel für 2026 zielt auf instabile Unterstützung. Die Zielseite nennt
 DO-178C Level A unter den Normen, die MC/DC verlangen
@@ -339,12 +439,16 @@ bekannt, dass TÜV SÜD die quelloffene Werkzeugkette Ferrocene 23.06.0 als
 Werkzeug für ISO 26262 (ASIL D) und IEC 61508 (SIL 4) qualifiziert hat
 ([Ferrous Systems](https://ferrous-systems.com/blog/officially-qualified-ferrocene/)).
 Qualifiziert ist damit der Compiler, nicht die Software, die man damit baut. In
-derselben Folge rechnet der Moderator Gergely Orosz für von Agenten gebaute Systeme
-mit "blueprints and certifications in, I don't know, five to 10 years" –
-sinngemäß: mit Bauplänen und Zertifizierungen in vielleicht fünf bis zehn
-Jahren (52:09).
-Späte Regeln und MC/DC, das erst noch kommen soll: Darin sehen wir Raum für
-offene Verifikationsnachweise bis dahin.
+derselben Folge rechnet der Moderator Gergely Orosz für von Agenten gebaute
+Systeme mit "blueprints and certifications in, I don't know, five to 10 years" –
+sinngemäß: mit Bauplänen und Zertifizierungen in vielleicht fünf bis zehn Jahren
+(52:09). Späte Regelwerke und MC/DC, das erst noch kommen soll: Darin sehen wir
+Raum für offene Verifikationsnachweise bis dahin.
+{% </lang> %}
+
+{% <lang code="note"> %}
+"toolchain" → „Werkzeugkette“, "open source" → „quelloffen“. "We read … as room"
+→ „Darin sehen wir Raum“.
 {% </lang> %}
 
 {% <lang code="en"> %}
@@ -375,7 +479,48 @@ properties as follows.
   ([pulseengine.eu#377](https://github.com/pulseengine/pulseengine.eu/pull/377)).
   That shows the bundle is intact and its checks can still fail, not that the
   software is correct.
+{% </lang> %}
 
+{% <lang code="de"> %}
+## Was wir tun
+
+PulseEngine ist eine Engine für das WebAssembly Component Model, noch in Arbeit,
+gedacht für sicherheitskritische Einsätze und zum großen Teil von KI-Agenten
+gebaut. Ihre Aufgabe sehen wir darin, die „langsamen“ Teile schnell und für jeden
+einsehbar zu machen. Was wir zuletzt getan haben, nach den drei Bedingungen:
+
+- **Bedingung 1, Tests, die fehlschlagen können.** Im
+  [vorigen Beitrag](/blog/green-by-default/) haben wir Prüfungen gezielt falsche
+  Eingaben vorgelegt und geprüft, ob sie fehlschlagen. Daraus ist ein Werkzeug
+  geworden: [plant](https://github.com/pulseengine/plant).
+- **Bedingungen 2 und 3, Prüfung gegen vereinbarte Kriterien.** Zwei Prüfer,
+  KI-Agenten ohne den Kontext des Autors, haben die 29 Anforderungen unseres
+  Projekts `wohl` auf Mehrdeutigkeiten hin durchgesehen
+  ([wohl#97](https://github.com/pulseengine/wohl/issues/97)). Die mechanischen
+  Korrekturen stehen in [wohl#98](https://github.com/pulseengine/wohl/pull/98).
+  Im Code wurde aus einem Befund ein Sicherheitsbefund: Eine Sicherheitsprüfung
+  löste im Szenario ihrer eigenen Anforderung nie aus. Die Designentscheidung dazu
+  steht noch aus. Beide Prüfer kamen aus demselben Projekt und derselben
+  Modellfamilie wie der Autor. Unabhängig waren sie also vom Kontext des Autors,
+  nicht von der Organisation oder vom Modell. Jeder Hinweis wurde am Code
+  überprüft, bevor wir etwas geändert haben.
+- **Bedingungen 1 und 2, Nachweise, die jeder nachvollziehen kann.** Das
+  `wohl`-Release
+  [v0.7.0](https://github.com/pulseengine/wohl/releases/tag/v0.7.0) enthält ein
+  signiertes Nachweispaket, prüfbar mit einem einzigen Befehl. Ein monatlicher Lauf
+  prüft es jetzt, mit zwei absichtlich eingebauten Fehlern, bei denen der Test
+  fehlschlagen muss
+  ([pulseengine.eu#377](https://github.com/pulseengine/pulseengine.eu/pull/377)).
+  Das zeigt: Das Paket ist unversehrt, und seine Tests können noch fehlschlagen.
+  Dass die Software korrekt ist, zeigt es nicht.
+{% </lang> %}
+
+{% <lang code="note"> %}
+"work-in-progress" → „noch in Arbeit“. "planting bad inputs" → „gezielt falsche
+Eingaben vorgelegt“ („unterschieben“ klänge nach Betrug).
+{% </lang> %}
+
+{% <lang code="en"> %}
 Next we concentrate on verifiers designed so that their qualification evidence
 can be produced and published openly; on signed, machine-readable evidence
 bundles that can be mapped onto the Cyber Resilience Act's standards if and when
@@ -385,43 +530,12 @@ and WebAssembly.
 {% </lang> %}
 
 {% <lang code="de"> %}
-## Was wir tun
-
-PulseEngine ist eine WebAssembly-Component-Model-Engine, noch in Arbeit, gedacht
-für sicherheitskritische Einsätze und zum großen Teil von KI-Agenten gebaut.
-Ihre Aufgabe sehen wir so: die „langsamen“ Teile schnell und offen machen. Was
-wir zuletzt getan haben, nach Bedingung:
-
-- **Bedingung 1, Tests, die fehlschlagen können.** Im
-  [vorigen Beitrag](/blog/green-by-default/) haben wir Prüfungen gezielt falsche
-  Eingaben vorgelegt und geprüft, ob sie fehlschlagen. Daraus ist ein Werkzeug
-  geworden: [plant](https://github.com/pulseengine/plant).
-- **Bedingungen 2 und 3, Prüfung gegen eine Definition.** Zwei Prüfer, KI-Agenten
-  ohne den Kontext des Autors, haben die 29 Anforderungen unseres Projekts `wohl`
-  auf Mehrdeutigkeiten gelesen
-  ([wohl#97](https://github.com/pulseengine/wohl/issues/97)). Die mechanischen
-  Korrekturen stehen in [wohl#98](https://github.com/pulseengine/wohl/pull/98).
-  Im Code wurde aus einem Befund ein Sicherheitsbefund: Eine
-  Sicherheitsprüfung löste im Szenario ihrer eigenen Anforderung nie aus. Die
-  Designentscheidung dazu steht noch aus. Beide Prüfer kamen aus demselben Projekt
-  und derselben Modellfamilie wie der Autor. Unabhängig waren sie also vom Kontext
-  des Autors, nicht von der Organisation oder vom Modell. Jeder Hinweis wurde am
-  Code überprüft, bevor wir etwas geändert haben.
-- **Bedingungen 1 und 2, Nachweise, die jeder nachvollziehen kann.** Das
-  `wohl`-Release
-  [v0.7.0](https://github.com/pulseengine/wohl/releases/tag/v0.7.0) enthält ein
-  signiertes Nachweispaket, prüfbar mit einem einzigen Befehl. Ein monatlicher Lauf
-  prüft es jetzt, mit zwei absichtlich eingebauten Fehlern, bei denen der Test fehlschlagen muss
-  ([pulseengine.eu#377](https://github.com/pulseengine/pulseengine.eu/pull/377)).
-  Das zeigt: Das Paket ist unversehrt, und seine Tests können noch fehlschlagen.
-  Dass die Software korrekt ist, zeigt es nicht.
-
 Als Nächstes: Prüfwerkzeuge, die wir so bauen, dass sich ihre
-Qualifizierungsnachweise offen erzeugen und veröffentlichen lassen. Signierte, maschinenlesbare Nachweispakete, die sich auf
-die Normen zum Cyberresilienzgesetz abbilden lassen, falls und sobald sie
-veröffentlicht sind. Rückverfolgbarkeit von jedem Beweis und Test zu der Klausel,
-die er abdeckt, auch bei Änderungen durch KI-Agenten. Und MC/DC-Abdeckung für Rust
-und WebAssembly.
+Qualifizierungsnachweise offen erzeugen und veröffentlichen lassen. Signierte,
+maschinenlesbare Nachweispakete, die sich auf die Normen zum
+Cyberresilienzgesetz abbilden lassen, falls und sobald sie veröffentlicht sind.
+Rückverfolgbarkeit von jedem Beweis und Test zu der Klausel, die er abdeckt, auch
+bei Änderungen durch KI-Agenten. Und MC/DC-Abdeckung für Rust und WebAssembly.
 {% </lang> %}
 
 {% <lang code="en"> %}
@@ -444,10 +558,10 @@ safety-critical code needs less checking, not more.
 
 Das ist ein Argument aus einem kleinen Projekt, keine Marktstudie. Eine
 verlässliche Zahl zur Größe des Marktes für Verifikationswerkzeuge in der
-sicherheitskritischen Entwicklung haben wir nicht gefunden. Bezahlt hat uns bisher
-kein Käufer. Wann eine Auflage zur Stärke wird, haben wir aus wenigen Fällen
-geschlossen. Die meisten Belege zur Qualität von KI-geschriebenem Code, die wir
-gefunden haben, stammen noch von Anbietern.
+sicherheitskritischen Entwicklung haben wir nicht gefunden. Bezahlt hat uns
+bisher kein Käufer. Wann eine Auflage zum Vorteil wird, ist unsere Einschätzung
+aus wenigen Fällen. Die meisten Belege zur Qualität von KI-geschriebenem Code, die
+wir gefunden haben, stammen noch von Anbietern.
 
 Was uns umstimmen würde: ein veröffentlichtes Nachweisformat für das
 Cyberresilienzgesetz, das unsere Pakete überflüssig macht. Ein Pilotprojekt, in
@@ -461,11 +575,13 @@ weniger Prüfung braucht, nicht mehr.
 
 Writing this post in two languages was its own test. Our first German drafts
 were correct and stiff: "Früher war das Programmieren der teure Teil" became, in
-the author's hand, "Programmieren war teuer." The checks caught the other kind
-of slip. One draft added "genau" (exactly) and made a claim stronger than the
-English; another turned "agreed" into "fixed beforehand"; a third made the Cyber
-Resilience Act's "main obligations" into "all the remaining ones". Each was a
-check that could fail, and did.
+the author's hand, "Programmieren war teuer." The word "cheap" had to go
+altogether: in German, "billig" sounds like poor goods, so the German version
+speaks of effort, not price. The checks caught the other kind of slip. One draft
+added "genau" (exactly) and made a claim stronger than the English; another
+turned "agreed" into "fixed beforehand"; a third made the Cyber Resilience Act's
+"main obligations" into "all the remaining ones". Each was a check that could
+fail, and did.
 {% </lang> %}
 
 {% <lang code="de"> %}
@@ -473,10 +589,12 @@ check that could fail, and did.
 
 Diesen Beitrag zweisprachig zu schreiben, war ein eigener Test. Unsere ersten
 deutschen Entwürfe waren richtig und steif: Aus „Früher war das Programmieren der
-teure Teil“ wurde in der Hand des Autors „Programmieren war teuer.“ Die Prüfungen
-fanden die andere Sorte Fehler. Ein Entwurf fügte „genau“ ein und machte eine
-Aussage stärker als im Englischen. Ein anderer machte aus „vereinbart“ ein „steht
-vorher fest“. Ein dritter machte aus den „wesentlichen Pflichten“ des
-Cyberresilienzgesetzes „die übrigen“. Jedes Mal ein Test, der fehlschlagen konnte
-und fehlschlug.
+teure Teil“ wurde in der Hand des Autors „Programmieren war teuer.“ Das Wort
+„billig“ musste ganz raus: Billig ist im Deutschen schlechte Ware, deshalb
+spricht die deutsche Fassung von Aufwand, nicht von Preis. Die Tests fanden die
+andere Sorte Fehler. Ein Entwurf fügte „genau“ ein und machte eine Aussage
+stärker als im Englischen. Ein anderer machte aus „vereinbart“ ein „steht vorher
+fest“. Ein dritter machte aus den „wesentlichen Pflichten“ des
+Cyberresilienzgesetzes „die übrigen“. Jedes Mal ein Test, der fehlschlagen
+konnte und fehlschlug.
 {% </lang> %}
