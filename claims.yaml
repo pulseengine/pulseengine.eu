@@ -1629,6 +1629,20 @@ claims:
         glob: ['claude-tooling/plugins/pulseengine-claude/skills/factory-notice/SKILL.md']
         min: 1
 
+  # ── port-with-equivalence skill (owner, 2026-11-19) ─────────────────────────
+  - id: SKILL-PORT-WITH-EQUIVALENCE
+    doc: claude-tooling/plugins/pulseengine-claude/skills/port-with-equivalence/SKILL.md
+    text: "**Plant a mutant in the old script; the harness must fail.**"
+    evidence:
+      - kind: verbatim
+        text: "the harness\n   fails; it never skips."
+  - id: CORE-OUR-PROCEDURES-WIN
+    doc: claude-tooling/plugins/pulseengine-claude/core/pulseengine-core.md
+    text: "**Our procedures win over other plugins'.**"
+    evidence:
+      - kind: verbatim
+        text: "take precedence; use the other one only where ours has no step"
+
   # ── Probe liveness is not idleness (2026-11-18) ─────────────────────────────
   - id: CI-STATUS-LIVE-FALSE-IS-UNKNOWN
     doc: claude-tooling/plugins/pulseengine-claude/skills/ci-status/SKILL.md
