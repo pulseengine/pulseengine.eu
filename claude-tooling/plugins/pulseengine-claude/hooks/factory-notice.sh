@@ -3,6 +3,7 @@
 #   start  record the session start, then tell the agent which answers are waiting
 #          and, inside the owner's decision windows only, which decisions are
 #          surfaced (read-only: nothing is consumed here)
+#   stop   at most every 10 minutes, a detached liveness heartbeat to warte
 #   end    if the agent posted no session-summary and the session changed
 #          something, post a minimal automatic one; then flush the outbox to warte
 # The hook JSON arrives on stdin and is passed through. Never blocks, never

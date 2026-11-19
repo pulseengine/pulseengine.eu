@@ -580,6 +580,50 @@ def sync(store, warte, root_schema, repo=None):
     return sent, len(store.outbox())
 
 
+BEAT_EVERY = 600  # seconds between end-of-turn heartbeats
+
+
+def beat_due(store, now=None, every=BEAT_EVERY):
+    """True when the last heartbeat attempt is older than `every` seconds (or never happened).
+
+    The stamp records the attempt, not the answer: a turn-end hook must stay cheap
+    even while warte is down, so at most one detached attempt runs per interval.
+    """
+    stamp = store.dir / "last-heartbeat"
+    now = time.time() if now is None else now
+    try:
+        return now - stamp.stat().st_mtime >= every
+    except OSError:
+        return True
+
+
+def spawn_beat(store, cwd):
+    """Mark the attempt, then send the heartbeat from a detached process (never blocks the session)."""
+    if not os.environ.get("PULSEENGINE_WARTE_URL"):
+        return False
+    stamp = store.dir / "last-heartbeat"
+    with contextlib.suppress(OSError):
+        stamp.parent.mkdir(parents=True, exist_ok=True)
+        stamp.touch()
+    with contextlib.suppress(OSError):
+        subprocess.Popen([sys.executable, str(pathlib.Path(__file__).resolve()), "beat",
+                          "--agent", store.agent, "--timeout", "10"],
+                         stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                         start_new_session=True, cwd=cwd)
+    return True
+
+
+def beat(store, warte, repo=None):
+    """POST /api/agents/{id}/heartbeat. Returns True when warte accepted it."""
+    if not warte.available():
+        return False
+    try:
+        warte.heartbeat(warte.resolve(store, repo))
+        return True
+    except Exception:
+        return False
+
+
 def post_notice(store, warte, root_schema, n, do_sync=True):
     errs = check_notice(n, root_schema)
     if not errs and n.get("status") == "queued":
@@ -1632,6 +1676,7 @@ def hook_start(root_schema, inp, budget=3.0, out=None, now=None):
         Store._write(store.dir / "sessions" / f"{key}.json",
                      {"started_at": now_iso(), "cwd": cwd, "head": _git("rev-parse", "HEAD", cwd=cwd)})
     res = poll(store, Warte("", err=io.StringIO()), root_schema, peek=True, cfg=cfg)
+    spawn_beat(store, cwd)
     box = {}
 
     def remote():
@@ -1717,11 +1762,24 @@ def hook_end(root_schema, inp, out=None):
             post_notice(store, warte, root_schema, n, do_sync=False)
         with contextlib.suppress(Exception):
             (store.dir / "sessions" / f"{key}.json").unlink()
+    spawn_beat(store, cwd)
     if store.outbox() and os.environ.get("PULSEENGINE_WARTE_URL"):
         subprocess.Popen([sys.executable, str(pathlib.Path(__file__).resolve()), "sync",
                           "--agent", store.agent, "--timeout", "10"],
                          stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
                          start_new_session=True, cwd=cwd)
+
+
+def hook_stop(inp):
+    """Stop hook: a liveness heartbeat at most every BEAT_EVERY seconds, detached.
+
+    Sessions on the mini run for days, so start and end alone say nothing about
+    whether an agent is alive. No output, no network in the hook itself.
+    """
+    cwd = inp.get("cwd") or os.getcwd()
+    store = Store(store_root(), default_agent(cwd))
+    if beat_due(store):
+        spawn_beat(store, cwd)
 
 
 # ── CLI ─────────────────────────────────────────────────────────────────────
@@ -2391,6 +2449,23 @@ def self_test():
         hook_end(root_schema, {"session_id": "never-started", "cwd": str(repo)})
         check("hook-end: no summary for a session it did not see start",
               len([n for n in hs.notices() if n.get("auto")]) == 1)
+        # 9b. heartbeat: rate limit on the stamp; no warte URL means no attempt and no stamp
+        bs = Store(tmp.name, "beattest")
+        url = os.environ.pop("PULSEENGINE_WARTE_URL", None)
+        try:
+            check("heartbeat: due when no attempt was ever made", beat_due(bs))
+            check("heartbeat: no warte URL, nothing spawned and no stamp written",
+                  not spawn_beat(bs, str(repo)) and not (bs.dir / "last-heartbeat").exists())
+        finally:
+            if url is not None:
+                os.environ["PULSEENGINE_WARTE_URL"] = url
+        (bs.dir).mkdir(parents=True, exist_ok=True)
+        (bs.dir / "last-heartbeat").touch()
+        t0 = (bs.dir / "last-heartbeat").stat().st_mtime
+        check("heartbeat: not due 9 minutes after an attempt", not beat_due(bs, now=t0 + 540))
+        check("heartbeat: due 10 minutes after an attempt", beat_due(bs, now=t0 + 600))
+        check("heartbeat: an unreachable warte is a failed beat, not an exception",
+              beat(bs, Warte("%s://%s:%d/warte" % ("http", "127.0.0.1", 9), timeout=0.5, err=io.StringIO())) is False)
 
         # 10. attention budget: config, flow cap, windows, digest, tick, review (fake clock, no network)
         def local(h, m, day=28):
@@ -2894,10 +2969,22 @@ def main(argv=None):
 
     sub.add_parser("hook-start", help="SessionStart hook (reads hook JSON on stdin)")
     sub.add_parser("hook-end", help="SessionEnd hook (reads hook JSON on stdin)")
+    sub.add_parser("hook-stop", help="Stop hook: a detached heartbeat at most every 10 minutes")
+    sp = sub.add_parser("beat", help="send one liveness heartbeat to warte")
+    sp.add_argument("--agent")
+    sp.add_argument("--timeout", type=float, default=DEFAULT_TIMEOUT)
 
     args = p.parse_args(argv)
     if args.self_test:
         return self_test()
+    if args.cmd == "hook-stop":
+        with contextlib.suppress(Exception):
+            hook_stop(_hook_input())
+        return 0
+    if args.cmd == "beat":
+        store = Store(store_root(), args.agent or default_agent())
+        ok = beat(store, Warte.from_env(timeout=args.timeout, err=io.StringIO()), repo_slug(os.getcwd()))
+        return 0 if ok else 1
     if args.cmd in ("hook-start", "hook-end"):
         try:
             root_schema = load_schema()

@@ -74,7 +74,14 @@ stream of them is noise he learns to ignore.
 | `shipped` | a PR merged, a tag pushed, a release published, with the links |
 | `session-summary` | the session ends: done, in flight, blocked, needs you, each item with its PR or issue links |
 | `info` | anything else an orchestrator needs to know |
-| `heartbeat` | only when an orchestrator asked for liveness |
+| `heartbeat` | rarely: the hooks already send liveness (below) |
+
+**Liveness is automatic.** The plugin's hooks send `POST /api/agents/{id}/heartbeat`
+at session start, at session end and, at most every 10 minutes, at the end of a
+turn, each from a detached process that never blocks the session. A session on
+the mini runs for days, so start and end alone say nothing about whether it is
+alive. The stamp `<store>/<agent>/last-heartbeat` records the last attempt;
+`notice.py beat` sends one by hand and exits 1 when warte did not accept it.
 
 Every notice carries lineage: `agent`, `session`, `parent` (the orchestrator, if
 any), `repo`, `flow` (the task or loop this belongs to) and `links`. The schema is
@@ -247,6 +254,13 @@ take. It carries on with independent work and polls on each wake, exactly as
 for a surfaced one; `poll` lists it as `QUEUED`.
 
 ### Decision windows
+
+**Outside the available hours the factory runs dark** (owner, 2026-11-18). Agents
+keep working; they ask nothing, wait for nothing and take no step that needs the
+owner's approval (a tag, a merge he must approve, a settings change). Each such
+fork is posted as a decision and queues for the next window, and the agent moves
+to independent work. Only always-open kinds reach him at night. `off` is
+stricter: during an off period even those wait.
 
 **Outside the windows the SessionStart hook shows answers waiting and never a
 routine question:** no title, question or option of an open decision that is not
