@@ -1,0 +1,138 @@
+{
+  "files": {
+    "pulseengine/gale": {},
+    "pulseengine/plant": {
+      "action.yml": "files/plant.action.yml.txt",
+      "src/guard.rs": "files/plant.src.guard.rs.txt",
+      "src/main.rs": "files/plant.src.main.rs.txt",
+      "src/manifest.rs": "files/plant.src.manifest.rs.txt",
+      "tests/guard.rs": null,
+      "tests/selftest.rs": null
+    },
+    "pulseengine/pulseengine.eu": {
+      "claude-tooling/plugins/pulseengine-claude/skills/factory-notice/attention.schema.json": "files/pulseengine.eu.claude-tooling.plugins.pulseengine-claude.skills.factory-notice.attention.schema.json.txt"
+    },
+    "pulseengine/relay": {},
+    "pulseengine/sieve": {
+      "src/classify.rs": "files/sieve.src.classify.rs.txt",
+      "src/main.rs": "files/sieve.src.main.rs.txt"
+    },
+    "pulseengine/sigil": {},
+    "pulseengine/spar": {},
+    "pulseengine/temper": {},
+    "pulseengine/warte": {
+      "docs/topics/api-reference.md": "files/warte.docs.topics.api-reference.md.txt",
+      "src/login/mod.rs": "files/warte.src.login.mod.rs.txt",
+      "src/server/api.rs": "files/warte.src.server.api.rs.txt",
+      "src/triage/mod.rs": "files/warte.src.triage.mod.rs.txt"
+    }
+  },
+  "issues": [
+    {
+      "body_file": "bodies/plant-14.md",
+      "comments": [
+        {
+          "body_file": "bodies/plant-14.c0.md",
+          "created_at": "2026-11-19T04:14:45Z",
+          "id": 6999490123
+        }
+      ],
+      "labels": [
+        "seam"
+      ],
+      "number": 14,
+      "repo": "pulseengine/plant",
+      "state": "open",
+      "title": "seam: plant guard CLI, plant-guard.toml and plant.guard.v1",
+      "url": "https://github.com/pulseengine/plant/issues/14"
+    },
+    {
+      "body_file": "bodies/plant-8.md",
+      "comments": [
+        {
+          "body_file": "bodies/plant-8.c0.md",
+          "created_at": "2026-11-19T04:12:18Z",
+          "id": 6999452117
+        },
+        {
+          "body_file": "bodies/plant-8.c1.md",
+          "created_at": "2026-11-19T08:52:14Z",
+          "id": 7004355305
+        }
+      ],
+      "labels": [
+        "seam"
+      ],
+      "number": 8,
+      "repo": "pulseengine/plant",
+      "state": "open",
+      "title": "seam: ci-controls.toml format and the GitHub Action interface",
+      "url": "https://github.com/pulseengine/plant/issues/8"
+    },
+    {
+      "body_file": "bodies/sieve-3.md",
+      "comments": [
+        {
+          "body_file": "bodies/sieve-3.c0.md",
+          "created_at": "2026-11-18T21:04:01Z",
+          "id": 6991582154
+        },
+        {
+          "body_file": "bodies/sieve-3.c1.md",
+          "created_at": "2026-11-19T10:56:32Z",
+          "id": 7007089342
+        }
+      ],
+      "labels": [
+        "seam"
+      ],
+      "number": 3,
+      "repo": "pulseengine/sieve",
+      "state": "open",
+      "title": "Seam: sieve classify/graph CLI and JSON interface (sieve.classify.v1, sieve.graph.v1)",
+      "url": "https://github.com/pulseengine/sieve/issues/3"
+    },
+    {
+      "body_file": "bodies/warte-179.md",
+      "comments": [],
+      "labels": [
+        "seam"
+      ],
+      "number": 179,
+      "repo": "pulseengine/warte",
+      "state": "open",
+      "title": "Night glance: one line that says whether anything needs the owner now",
+      "url": "https://github.com/pulseengine/warte/issues/179"
+    },
+    {
+      "body_file": "bodies/warte-181.md",
+      "comments": [],
+      "labels": [
+        "seam"
+      ],
+      "number": 181,
+      "repo": "pulseengine/warte",
+      "state": "open",
+      "title": "Attention schedule per user, set in warte and served at GET /api/attention",
+      "url": "https://github.com/pulseengine/warte/issues/181"
+    },
+    {
+      "body_file": "bodies/warte-185.md",
+      "comments": [
+        {
+          "body_file": "bodies/warte-185.c0.md",
+          "created_at": "2026-11-19T08:04:02Z",
+          "id": 7003366358
+        }
+      ],
+      "labels": [
+        "seam"
+      ],
+      "number": 185,
+      "repo": "pulseengine/warte",
+      "state": "open",
+      "title": "Seam: temper replies to triaged issues through warte's triage routes",
+      "url": "https://github.com/pulseengine/warte/issues/185"
+    }
+  ]
+}

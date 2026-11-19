@@ -100,6 +100,8 @@ artifacts:
       - type: satisfies
         target: REQ-SEAM-CONTRACT-CHECK
       - type: satisfies
+        target: REQ-SEAM-CHECK-RUST
+      - type: satisfies
         target: REQ-INCIDENT-LEDGER
       - type: satisfies
         target: REQ-COMMIT-MERGE-GUARD
@@ -1500,3 +1502,26 @@ artifacts:
     links:
       - type: verifies
         target: REQ-NORTH-STAR-COMPONENT
+
+  - id: REQ-SEAM-CHECK-RUST
+    type: requirement
+    title: seam-check runs without Python, with the same output and exit codes as seam-check.py
+    description: >-
+      Owner decision 2026-11-19: Python is a runtime dependency gates should not have. On one machine a system update left python3 without PyYAML, so seam-check.py exited 2 ("PyYAML is required") and blocked every release tag that needs the seam check. tools/seam-check is the same checker as a Rust binary: same flags (--issue, --block, --party, --fixtures, --format, --stale-days, --strict, --now, --org, --label, --api, --http, --self-test), same text and JSON (seam-check.v1) output, same exit codes (0 pass, 1 violation or no seam, 2 evidence unreachable). It parses blocks with rivet's own YAML parser, rivet-yaml, as a git dependency pinned to an exact rivet rev, and uses no other crate; GitHub is REST over curl, as in the Python script. Deliberate difference: rivet-yaml reads YAML 1.2 where PyYAML reads YAML 1.1, so unquoted yes/no/on/off, 012, 1_000, 1:30, 1e3, 0o17, =, tags, integers beyond 64 bits and C0 control characters resolve differently, and a parser error is worded differently after "block is not valid YAML: ". seam-check.py stays in place as the reference until the owner retires it.
+    status: implemented
+    release: "0.67.0"
+    category: functional
+    priority: should
+
+  - id: VER-SEAM-CHECK-RUST-EQUIV
+    type: verification
+    title: tools/seam-check/tests/equivalence.rs, the binary against seam-check.py
+    description: >-
+      Runs seam-check.py and the binary on the same inputs and requires identical stdout and exit code: --self-test, every self-test fixture case in text and JSON, the --block drafts, 42 YAML edge cases, the 2026-10-29 drone-seam pilot (with --party, --strict, --stale-days and the drift block), six real seam issues recorded 2026-11-19 (warte#179, #181, #185, sieve#3, plant#14, #8, with their interface files) under --issue, --party, --org and --label, CLI edge cases (abbreviations, --opt=value, bad values, unknown options) and the HTTP path against a loopback stub (urllib against the std client, curl against curl). One normalisation only: the parser's own words after "block is not valid YAML: ". 2026-11-19: 290/290 identical, 12 of them after that normalisation. Negative control on every run: a rule mutant of the Python script (options needs one option, not two) makes 3 cases differ, an output mutant (one space less indent) 81. A third test requires the 11 documented YAML 1.1/1.2 differences to still differ, so the boundary stays exact. Without python3 and PyYAML the harness fails rather than skips.
+    status: verified
+    release: "0.67.0"
+    method: automated-test
+    test-location: tools/seam-check/tests/equivalence.rs
+    links:
+      - type: verifies
+        target: REQ-SEAM-CHECK-RUST
