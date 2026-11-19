@@ -593,6 +593,44 @@ jobs:
           FUZZ: "200"
         run: bash tools/north-star-check/pipeline.sh "$RUNNER_TEMP/north-star-check"
 
+  # seam-check in Rust (owner decision 2026-11-19: no Python runtime for gates;
+  # a python3 without PyYAML made seam-check.py exit 2 and block release tags).
+  # tools/seam-check reads blocks with rivet's own parser (rivet-yaml, pinned
+  # by rev). The equivalence harness runs seam-check.py (the reference, while
+  # it exists) and the binary on every self-test case in text and JSON, the
+  # drone-seam pilot, six real seam issues recorded 2026-11-19, CLI and YAML
+  # edge cases and the HTTP path against a loopback stub, and requires the same
+  # stdout and exit code. Two planted mutants of the Python script must each
+  # break it (negative control), and the documented YAML 1.1/1.2 differences
+  # must still differ. The harness fails, never skips, without PyYAML.
+  # rivet: verifies REQ-SEAM-CHECK-RUST
+  seam-check-rust:
+    runs-on: ${{ (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && fromJSON('["self-hosted","linux","x64","light"]') || 'ubuntu-24.04' }}
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache seam-check build
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
+        with:
+          path: tools/seam-check/target
+          key: seam-check-${{ runner.os }}-${{ hashFiles('tools/seam-check/Cargo.lock') }}
+
+      - name: The reference interpreter has PyYAML
+        run: python3 -c 'import yaml; print("PyYAML", yaml.__version__)'
+
+      - name: Build seam-check
+        run: cargo build --locked --release --manifest-path tools/seam-check/Cargo.toml
+
+      - name: seam-check self-test
+        run: tools/seam-check/target/release/seam-check --self-test
+
+      - name: Equivalence with seam-check.py, negative controls included
+        run: cargo test --locked --no-fail-fast --manifest-path tools/seam-check/Cargo.toml -- --show-output
+
   # The deploy runs on the same `light` pool as this job. This proves, before a
   # merge, that the pool can do everything the deploy needs — rather than
   # finding out on main, where a failed deploy leaves the live site stale.

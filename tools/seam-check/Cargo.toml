@@ -1,0 +1,23 @@
+[package]
+name = "seam-check"
+version = "0.1.0"
+edition = "2021"
+publish = false
+description = "The seam-contract checker (seam-check.py) in Rust: same CLI, output and exit codes"
+license = "Apache-2.0"
+
+# Standalone: not part of any parent workspace.
+[workspace]
+
+[dependencies]
+# rivet's own YAML parser, the one rivet reads its files with and sieve is
+# moving to. Not on crates.io yet (rivet#1099), so a git pin at an exact rev
+# of rivet main (2026-11-19); it becomes a tag pin once rivet v0.43.0 exists.
+# No other dependency: HTTPS is curl's job, as in the Python script.
+rivet-yaml = { git = "https://github.com/pulseengine/rivet", rev = "5072986f55c3457b27c7f8a4afd79a952fb0ab58" }
+
+[profile.release]
+opt-level = "s"
+lto = true
+codegen-units = 1
+strip = true

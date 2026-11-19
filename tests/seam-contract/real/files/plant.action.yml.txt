@@ -1,0 +1,47 @@
+name: plant
+description: Prove your CI checks can fail by running them against planted bad inputs
+author: pulseengine
+
+# Work in progress, pre-1.0. Builds plant from this action's own source, so the
+# runner needs a Rust toolchain, git, tar and bash. Do not run it under
+# pull_request_target (it refuses), and keep fork pull requests off
+# self-hosted runners: plant executes the run commands of ci-controls.toml.
+
+inputs:
+  manifest:
+    description: Path to the manifest, relative to the working directory
+    default: ci-controls.toml
+  only:
+    description: Space-separated control ids to run (default all)
+    default: ""
+  format:
+    description: Output format, text or json
+    default: text
+
+outputs:
+  report:
+    description: Path of the file holding plant's output
+    value: ${{ steps.run.outputs.report }}
+
+runs:
+  using: composite
+  steps:
+    - name: build plant
+      shell: bash
+      env:
+        PLANT_SRC: ${{ github.action_path }}
+        PLANT_ROOT: ${{ runner.temp }}/plant-bin
+      run: cargo install --locked --quiet --path "$PLANT_SRC" --root "$PLANT_ROOT"
+    - name: run plant
+      id: run
+      shell: bash
+      env:
+        PLANT_BIN: ${{ runner.temp }}/plant-bin/bin/plant
+        PLANT_MANIFEST: ${{ inputs.manifest }}
+        PLANT_ONLY: ${{ inputs.only }}
+        PLANT_FORMAT: ${{ inputs.format }}
+        PLANT_REPORT: ${{ runner.temp }}/plant-report
+        PLANT_ACTION: ${{ github.action_path }}
+      run: |
+        echo "report=$PLANT_REPORT" >> "$GITHUB_OUTPUT"
+        "$PLANT_ACTION/action/run.sh"
