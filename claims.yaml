@@ -2724,6 +2724,45 @@ claims:
         glob: ['claude-tooling/plugins/pulseengine-claude/skills/seam-contract/seam-check.py']
         min: 1
 
+  # Owner decision 2026-11-19 (REQ-SEAM-CHECK-RUST): no Python runtime for
+  # gates. The Rust seam-check must parse with rivet-yaml at a pinned rev, never
+  # spawn python, and be held to seam-check.py's output by a harness that a
+  # planted mutant breaks and that fails, not skips, without the reference.
+  - id: SEAM-CHECK-RUST-SAME-OUTPUT
+    doc: claude-tooling/plugins/pulseengine-claude/skills/seam-contract/SKILL.md
+    text: "CI runs both on the same cases and requires identical output."
+    evidence:
+      - kind: verbatim
+        text: "It needs no python3 and no PyYAML"
+      - kind: count-min
+        pattern: 'rivet-yaml = \{ git = "https://github\.com/pulseengine/rivet", rev = "[0-9a-f]{40}" \}'
+        glob: ['tools/seam-check/Cargo.toml']
+        min: 1
+      - kind: count-max
+        pattern: 'serde_yaml|yaml-rust|saphyr|serde_yml'
+        glob: ['tools/seam-check/Cargo.toml']
+        max: 0
+      - kind: count-max
+        pattern: 'Command::new\("python'
+        glob: ['tools/seam-check/src/*.rs']
+        max: 0
+      - kind: count-min
+        pattern: 'assert_eq!\(t\.identical, t\.total'
+        glob: ['tools/seam-check/tests/equivalence.rs']
+        min: 1
+      - kind: count-min
+        pattern: 'was not caught: the harness compares nothing'
+        glob: ['tools/seam-check/tests/equivalence.rs']
+        min: 1
+      - kind: count-min
+        pattern: 'refusing to pass without it'
+        glob: ['tools/seam-check/tests/equivalence.rs']
+        min: 1
+      - kind: count-min
+        pattern: 'run: cargo test --locked --no-fail-fast --manifest-path tools/seam-check/Cargo\.toml'
+        glob: ['.github/workflows/ci.yml']
+        min: 1
+
   - id: SEAM-CONTRACT-SINGLE-SOURCE
     doc: claude-tooling/plugins/pulseengine-claude/skills/release-execution/SKILL.md
     text: "The block format and the rules live in `seam-contract`, not here."

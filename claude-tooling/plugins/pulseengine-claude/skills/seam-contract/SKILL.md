@@ -3,7 +3,7 @@ name: seam-contract
 description: Use at a seam between two repos, before building against another repo's interface, changing something another repo binds to, or at release-execution step 4c. It writes a seam block in the owning issue and checks it.
 metadata:
   author: pulseengine.eu
-  version: "0.1.0"
+  version: "0.2.0"
 ---
 
 # Seam contract: write the interface between repos down, then check it
@@ -108,6 +108,25 @@ python3 $S --block draft.md                 # a draft, before posting it
 python3 $S --format json                    # schema seam-check.v1, for warte or a loop
 python3 $S --self-test                      # every rule's negative control
 ```
+
+**Without Python.** The same check is a Rust binary, `seam-check`, built from
+`tools/seam-check` in pulseengine.eu. It needs no python3 and no PyYAML, and
+it reads blocks with rivet's own YAML parser, rivet-yaml. It takes the same
+flags, prints the same lines and exits with the same codes as seam-check.py.
+CI runs both on the same cases and requires identical output. Use it where
+python3 has no PyYAML, which makes the script exit 2:
+
+```sh
+cargo install --locked --git https://github.com/pulseengine/pulseengine.eu seam-check
+seam-check --party pulseengine/relay        # any flag above works the same way
+seam-check --self-test
+```
+
+One difference is deliberate. rivet-yaml reads YAML 1.2 and PyYAML reads YAML
+1.1. So an unquoted `yes`, `no`, `on`, `off`, `012`, `1_000` or `1e3` gets a
+different type in each tool. Quote such values. A YAML syntax error gets the
+same `[parse]` rule in both, worded by each tool's own parser. seam-check.py
+stays as the reference until the owner retires it.
 
 The rules are: the block parses; required fields are present; `kind` and
 `status` are valid; both sides name an owner repo; every open question has an
