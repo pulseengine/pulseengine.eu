@@ -1599,6 +1599,36 @@ claims:
       - kind: verbatim
         text: "with an equivalence test against the old script as the gate"
 
+  # ── Factory notice: automatic liveness (smithy, owner-approved 2026-11-18) ──
+  - id: FACTORY-NOTICE-HEARTBEAT-AUTOMATIC
+    doc: claude-tooling/plugins/pulseengine-claude/skills/factory-notice/SKILL.md
+    text: "at most every 10 minutes, at the end of a\nturn, each from a detached process that never blocks the session."
+    evidence:
+      - kind: count-min
+        pattern: '"Stop"'
+        glob: ['claude-tooling/plugins/pulseengine-claude/hooks/hooks.json']
+        min: 1
+      - kind: count-min
+        pattern: 'BEAT_EVERY = 600'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/factory-notice/notice.py']
+        min: 1
+      - kind: count-min
+        pattern: 'check\("heartbeat: (not due 9 minutes after an attempt|due 10 minutes after an attempt|no warte URL, nothing spawned and no stamp written)"'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/factory-notice/notice.py']
+        min: 3
+
+  # ── Night is a dark-factory window (owner, 2026-11-18) ──────────────────────
+  - id: CORE-NIGHT-DARK-FACTORY
+    doc: claude-tooling/plugins/pulseengine-claude/core/pulseengine-core.md
+    text: "**The night is a dark-factory window**"
+    evidence:
+      - kind: verbatim
+        text: "Only always-open kinds (security, red main) reach him"
+      - kind: count-min
+        pattern: 'Outside the available hours the factory runs dark'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/factory-notice/SKILL.md']
+        min: 1
+
   # ── Probe liveness is not idleness (2026-11-18) ─────────────────────────────
   - id: CI-STATUS-LIVE-FALSE-IS-UNKNOWN
     doc: claude-tooling/plugins/pulseengine-claude/skills/ci-status/SKILL.md

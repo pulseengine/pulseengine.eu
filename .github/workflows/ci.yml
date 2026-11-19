@@ -185,6 +185,22 @@ jobs:
       - name: Check the layer view's classes are styled
         run: python3 scripts/check-layers-view.py
 
+      # No new Python (plugin core contract, owner 2026-11-18). The tracked .py
+      # files are frozen in scripts/python-frozen.txt: a new one fails here, and
+      # a ported one must leave the list, so the list only shrinks.
+      - name: No new Python (frozen list only shrinks)
+        run: |
+          # C collation on both sides: the list was once sorted under a UTF-8
+          # locale and comm refused it ("not in sorted order").
+          export LC_ALL=C
+          git ls-files '*.py' | sort > "$RUNNER_TEMP/py-now.txt"
+          sort -c scripts/python-frozen.txt || { echo "::error::scripts/python-frozen.txt is not in C sort order (LC_ALL=C sort it)"; exit 1; }
+          new=$(comm -23 "$RUNNER_TEMP/py-now.txt" scripts/python-frozen.txt)
+          gone=$(comm -13 "$RUNNER_TEMP/py-now.txt" scripts/python-frozen.txt)
+          if [ -n "$new" ]; then echo "::error::new Python files (write Rust instead):"; echo "$new"; exit 1; fi
+          if [ -n "$gone" ]; then echo "::error::ported or removed, drop from scripts/python-frozen.txt:"; echo "$gone"; exit 1; fi
+          echo "python files: $(wc -l < scripts/python-frozen.txt) (frozen)"
+
       # data/north-star.toml feeds the /north-star page, every repo's `serves:`
       # allowed-values list and the indicator scripts. The check holds the
       # honesty rules (a guard per objective, "unmeasured" instead of a made-up
