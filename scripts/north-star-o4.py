@@ -100,6 +100,7 @@ def measure(today: dt.date) -> dict:
     if of <= 0:
         raise CannotMeasure("no human-opened PRs merged in %s..%s" % (start, end))
     return {
+        "schema_version": 1,
         "objective": "O4",
         "measured_at": dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%dT%H:%MZ"),
         "verifier": "GitHub search, merged PRs %s to %s" % (start, end),

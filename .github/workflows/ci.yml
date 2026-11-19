@@ -631,6 +631,39 @@ jobs:
       - name: Equivalence with seam-check.py, negative controls included
         run: cargo test --locked --no-fail-fast --manifest-path tools/seam-check/Cargo.toml -- --show-output
 
+  # The North Star consumer for O1, O3 and O5 (seam pulseengine.eu#393), run
+  # monthly by north-star.yml. Offline here: one fixture per counting rule
+  # (unsigned, wrong signer, tampered or unlisted input, missing asset, name
+  # and objective disagreeing, schema violations, ran=false, a failed planted
+  # control, a missing rung, gap_switch=true and the other O5 gate fields),
+  # each required to move the result exactly as the rule says. cosign is a
+  # stub with cosign's identity, issuer and digest semantics
+  # (tests/cosign-stub.sh); the real-cosign test needs the network and runs
+  # with --ignored. Negative control on every run: the suite is run again
+  # against a counter that ignores ran=false, and one that ignores
+  # control_failed_as_expected=false, and must fail at exactly those cases.
+  # rivet: verifies REQ-NORTH-STAR-MEASURE
+  north-star-measure:
+    runs-on: ${{ (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && fromJSON('["self-hosted","linux","x64","light"]') || 'ubuntu-24.04' }}
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache north-star-measure build
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
+        with:
+          path: tools/north-star-measure/target
+          key: north-star-measure-${{ runner.os }}-${{ hashFiles('tools/north-star-measure/Cargo.lock') }}
+
+      - name: Build north-star-measure
+        run: cargo build --locked --release --manifest-path tools/north-star-measure/Cargo.toml
+
+      - name: Counting rules, negative controls included
+        run: cargo test --locked --no-fail-fast --manifest-path tools/north-star-measure/Cargo.toml -- --show-output
+
   # The deploy runs on the same `light` pool as this job. This proves, before a
   # merge, that the pool can do everything the deploy needs — rather than
   # finding out on main, where a failed deploy leaves the live site stale.

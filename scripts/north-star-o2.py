@@ -228,6 +228,7 @@ def main() -> int:
         return 2
     n = sum(1 for r in rows if r["counts"])
     out = {
+        "schema_version": 1,
         "objective": "O2",
         "measured_at": dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%dT%H:%MZ"),
         "verifier": "sigil wsc " + wsc_tag,

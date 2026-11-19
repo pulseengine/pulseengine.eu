@@ -102,6 +102,8 @@ artifacts:
       - type: satisfies
         target: REQ-SEAM-CHECK-RUST
       - type: satisfies
+        target: REQ-NORTH-STAR-MEASURE
+      - type: satisfies
         target: REQ-INCIDENT-LEDGER
       - type: satisfies
         target: REQ-COMMIT-MERGE-GUARD
@@ -1525,3 +1527,26 @@ artifacts:
     links:
       - type: verifies
         target: REQ-SEAM-CHECK-RUST
+
+  - id: REQ-NORTH-STAR-MEASURE
+    type: requirement
+    title: O1, O3 and O5 are measured only from signed, valid producer inputs, and never zero-filled
+    description: >-
+      Seam pulseengine.eu#393. tools/north-star-measure (Rust, owner decision 2026-11-18: no new Python) reads the latest release of every product in data/north-star.toml that pulls the objective, takes north-star-input.<Ox>.json only if the release's SHA256SUMS lists it with the right sha256 and cosign verifies SHA256SUMS as signed by a workflow of that repository at that tag (GitHub OIDC), validates it against data/north-star/input.schema.json v1 (file name and objective agree, repo is the product's), and counts. Missing, unsigned or invalid input is not counted and is listed with its reason; ran=false and control_failed_as_expected=false are fails. O1 counts (target, named rung) facts for hil, real-drone and flight, with r0 and synth's fields reported apart; O3 counts products whose proof_check_required, axiom_audit and ledger all pass with a planted control; O5 counts gates with signed, kiln_runs, wasmtime_equal and equivalence_in_ci true and gap_switch false. With no countable input it writes nothing and exits 2, so the objective stays unmeasured; without cosign it exits 2.
+    status: implemented
+    release: "0.67.0"
+    category: functional
+    priority: should
+
+  - id: VER-NORTH-STAR-MEASURE-RULES
+    type: verification
+    title: tools/north-star-measure/tests, one planted defect per counting rule plus two counter mutants
+    description: >-
+      Offline fixtures with a cosign stub that keeps cosign's identity, issuer and digest semantics. 38 rule cases, each planting one defect next to a countable fixture and requiring the exact change: unsigned SHA256SUMS, signer on a branch, at another tag or in another repository, tampered or unlisted input, no SHA256SUMS, missing asset, the old single-file name, name and objective disagreeing, schema violations, repo mismatch, malformed O1 ids, ran=false, control_failed_as_expected=false (and absent, for O3), a missing rung or fact, a product with no input staying in the O3 denominator, gap_switch=true and each other O5 gate field, and no input anywhere giving no measurement. 8 CLI tests cover exit codes (no cosign, no input, rule 7), the written shape with schema_version 1, snapshot comparison and --help stating every rule. Negative control on every run: the whole suite runs against a counter that ignores ran=false and one that ignores failed controls, and each must fail at exactly its three cases. An ignored test verifies a real jess release signature with the real cosign and rejects another tag and another repository.
+    status: verified
+    release: "0.67.0"
+    method: automated-test
+    test-location: tools/north-star-measure/tests/rules.rs
+    links:
+      - type: verifies
+        target: REQ-NORTH-STAR-MEASURE
