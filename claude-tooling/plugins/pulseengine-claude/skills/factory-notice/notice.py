@@ -1885,12 +1885,34 @@ def cmd_poll(args, root_schema):
     return 0
 
 
+def sync_targets(agent_arg, token_set, every, own):
+    """Which outboxes one sync flushes.
+
+    warte binds a token to one agent name, so with a token set only that
+    agent's outbox can go out: flushing every outbox in the store let the
+    first foreign one fail with 403, which marked warte unwritable for the
+    whole run and left the session's own outbox unsent.
+    """
+    if agent_arg:
+        return [agent_arg]
+    return [own] if token_set else list(every)
+
+
 def cmd_sync(args, root_schema):
-    warte = Warte.from_env(timeout=args.timeout)
-    agents = [check_agent(args.agent)] if args.agent else all_agents(store_root())
+    token, _ = load_token()
+    every = all_agents(store_root())
+    agents = sync_targets(check_agent(args.agent) if args.agent else None,
+                          bool(token), every, check_agent(default_agent()))
     for name in agents:
+        # One client per agent: a refusal for one outbox must not mark warte
+        # unwritable for the next.
+        warte = Warte.from_env(timeout=args.timeout)
         sent, kept = sync(Store(store_root(), name), warte, root_schema)
         print(f"{name}: sent {sent}, {kept} left in outbox")
+    skipped = [a for a in every if a not in agents]
+    if skipped and token:
+        print(f"skipped {len(skipped)} other agent outbox(es): the token is bound to "
+              f"{agents[0]}; each agent flushes its own ({', '.join(skipped[:5])})")
     return 0
 
 
@@ -2449,6 +2471,12 @@ def self_test():
         hook_end(root_schema, {"session_id": "never-started", "cwd": str(repo)})
         check("hook-end: no summary for a session it did not see start",
               len([n for n in hs.notices() if n.get("auto")]) == 1)
+        # 9a. sync targets: a token is bound to one agent, so sync flushes only that outbox
+        check("sync: with a token, only the session's own outbox is flushed",
+              sync_targets(None, True, ["mcp", "rythm", "pulseengine.eu"], "rythm") == ["rythm"])
+        check("sync: without a token, every outbox is tried (local-store mode)",
+              sync_targets(None, False, ["mcp", "rythm"], "rythm") == ["mcp", "rythm"])
+        check("sync: --agent names exactly one outbox", sync_targets("mcp", True, ["mcp", "rythm"], "rythm") == ["mcp"])
         # 9b. heartbeat: rate limit on the stamp; no warte URL means no attempt and no stamp
         bs = Store(tmp.name, "beattest")
         url = os.environ.pop("PULSEENGINE_WARTE_URL", None)
