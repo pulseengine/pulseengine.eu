@@ -17,12 +17,13 @@ title_de = "Code schreibt sich fast von selbst. Vertrauen nicht."
 <div class="insight__label">Insight</div>
 <div class="insight__body">
 
-**When writing code becomes cheap, the scarce thing is evidence that it is
-right.** Such evidence counts only under three principles: a test that cannot
-fail tests nothing; four eyes, and anyone can re-run it; and an agreed definition
-of "right". Our argument, from a small project, is that standards,
-independent review and evidence before release are what safety-critical buyers
-need from AI-built software, and that the work now is to make them cheap and open.
+**AI has made writing code cheap. Proving that the code is right is no cheaper
+than before.** That proof only counts if three things hold: the test must be able
+to fail, the review must be independent and repeatable by anyone, and everyone
+must agree in advance what "right" means. We are a small project, but our view is
+that standards, independent review and evidence before release are what buyers of
+safety-critical software need from AI-built code, and that the job now is to make
+them cheap and open to all.
 
 </div>
 </aside>
@@ -47,9 +48,10 @@ wenig Aufwand und für jeden einsehbar.
 
 {% <lang code="note"> %}
 "cheap" → „schreibt sich fast von selbst“: es geht um Aufwand, nicht um Preis;
-„billig“ klänge im Deutschen nach schlechter Ware. "the scarce thing" → „der Engpass“. "agreed definition of right" →
-„vereinbarte Abnahmekriterien“. "make them cheap and open" → „wenig Aufwand, für
-jeden einsehbar“. Die drei "principles" stehen im Deutschen als Grundsätze, nicht als
+„billig“ klänge im Deutschen nach schlechter Ware. "Proving that the code is right
+is no cheaper than before" → „Der Engpass heißt jetzt Verifikation“. "everyone
+must agree in advance what right means" → „die Abnahmekriterien sind vereinbart“.
+"make them cheap and open to all" → „wenig Aufwand, für jeden einsehbar“. Die drei "principles" stehen im Deutschen als Grundsätze, nicht als
 Nebensätze.
 {% </lang> %}
 
@@ -58,7 +60,7 @@ Nebensätze.
 
 For most of software's history, writing the code was the expensive part.
 Reviews, tests and proofs were overhead you paid on top. Coding agents have
-turned that around: writing got cheap, and the question "is it right?" did not.
+turned that around: writing got cheap, and answering "is it right?" did not.
 By "code" we mean everything an agent now writes: requirements, architecture,
 code and tests.
 {% </lang> %}
@@ -79,18 +81,18 @@ geändert hat“, damit sie nicht die Kernaussage wiederholt.
 {% </lang> %}
 
 {% <lang code="en"> %}
-Microsoft's CEO said in an episode of The Pragmatic Engineer published on
-16 November 2026: "In a world where code generation has become cheap, what has
+Microsoft CEO Satya Nadella said in an episode of the podcast The Pragmatic
+Engineer, published on 16 November 2026: "In a world where code generation has become cheap, what has
 become hard is verification"
 ([The Pragmatic Engineer](https://newsletter.pragmaticengineer.com/p/software-engineering-after-code-becomes),
 at 11:50). In this post we ask what turns a claim about code into evidence. Our
-working answer is three principles, numbered as in the list further down.
+working answer is three principles, numbered to match the list below.
 
 <pre class="mermaid">
 flowchart LR
     D["3. Agreed definition of right"] --> B
     A["Claim"] --> B["1. Test that can fail"]
-    B --> C["2. Four eyes, re-runnable by anyone"]
+    B --> C["2. Independent review, repeatable by anyone"]
     C --> E["Evidence"]
 </pre>
 {% </lang> %}
@@ -126,8 +128,8 @@ ISTQB-Lehrplan: Sätze, die gelten, keine Eigenschaften.
 In January 1865 a steam boiler exploded at a brewery in Mannheim, and on
 6 January 1866 a group of boiler owners founded an inspection association
 ([Deutschlandmuseum](https://www.deutschlandmuseum.de/en/geschichte/kalender/1866-01-06-origin-of-the-tuev)).
-Its aim was regular inspection of the members' boilers, its first full-time
-expert started in 1868, and it became the starting point for technical
+Its aim was regular inspection of the members' boilers, it hired its first
+full-time inspector in 1868, and it became the starting point for technical
 inspection in Germany
 ([TÜV SÜD history](https://www.tuvsud.com/en-gb/about-us/history/our-foundation-years-1866-1900)).
 {% </lang> %}
@@ -156,17 +158,17 @@ das, was der TÜV tut.
 Our working definition is that evidence is worth something only if it follows
 three principles:
 
-1. **A test that cannot fail tests nothing.** Whether it can fail, you only
-   find out by feeding it something it must reject. Nadella describes the same
+1. **A test that cannot fail tests nothing.** The only way to find
+   out whether it can fail is to feed it something it must reject. Nadella describes the same
    habit in the agent teams he watches: "how do you take every failure and then
    build back the test case and make sure you truly verify the test" (12:19).
-2. **Four eyes, and anyone can re-run it.** These are two separate demands. Independence means the author does
-   not mark their own work; re-checkability means a result does not have to be
-   taken on anyone's word. A signature shows which key signed the bundle and that
+2. **Independent review that anyone can repeat.** These are two separate demands. Independence means the author does
+   not grade their own work; repeatability means no one has to take a result on
+   trust. A signature shows which key signed the bundle and that
    it has not changed since; it says nothing about whether the bundle is right.
    For agents, independence includes the model: "How do you have the critique?
    There's so much to be said about having a separate model family" (17:05).
-3. **What counts as right is agreed.** "Correct" needs a
+3. **Everyone agrees in advance what "right" means.** "Correct" needs a
    requirement or a standard that the parties have agreed on and that says
    without ambiguity what correct means.
 {% </lang> %}
@@ -196,15 +198,16 @@ Grundsätzen folgt.
 {% <lang code="note"> %}
 „Ein Test, der nicht fehlschlagen kann, prüft nichts.“ und „Vier-Augen-Prinzip,
 und für jeden nachvollziehbar.“ sind Sätze des Autors; das Englische hat sie
-übernommen ("A test that cannot fail tests nothing.", "Four eyes, and anyone
-can re-run it."). "re-run" → „nachvollziehbar“. "What counts as right is
-agreed" → „Abnahmekriterien sind vereinbart“.
+übernommen ("A test that cannot fail tests nothing."). Das Englische kennt kein
+Vier-Augen-Prinzip und sagt "Independent review that anyone can repeat"; "repeat"
+→ „nachvollziehbar“. "Everyone agrees in advance what right means" →
+„Abnahmekriterien sind vereinbart“.
 {% </lang> %}
 
 {% <lang code="en"> %}
 In our reading, the boiler story has all three. An inspection that can find a
-fault is a check that can fail. An expert of the association, not the operator,
-is a checker other than the author, and a boiler inspected regularly is checked
+fault is a check that can fail. An inspector from the association, not the
+boiler's operator, is a checker other than the author, and a boiler inspected regularly is checked
 again and again. An association that examines many boilers gives its examiners
 a shared idea of what a sound boiler is, which ties the check to a definition.
 {% </lang> %}
@@ -227,24 +230,25 @@ Fachtexten.
 {% </lang> %}
 
 {% <lang code="en"> %}
-Independence can also be lost along the way. The final report on the Boeing
-737 MAX prepared by the majority staff of the US House transportation committee
-states, as one of several findings: "Excessive FAA delegation of certification
+Independence can also be lost along the way. In its final report on the Boeing
+737 MAX, the majority staff of the US House Transportation Committee lists among
+its findings: "Excessive FAA delegation of certification
 functions to Boeing on the 737 MAX eroded FAA's oversight effectiveness and the
 safety of the public"
 ([House Transportation Committee report](https://democrats-transportation.house.gov/imo/media/doc/final_boeing_737_max_report.pdf)).
 We read this as the same lesson as in Mannheim: the check has to be independent.
 
-Our reading is also that standards work as a collective memory. They record
-lessons in a rule, so that the next team does not have to learn them again, and
+Our reading is also that standards work as a collective memory. They turn
+lessons into rules, so that the next team does not have to learn them all over
+again, and
 they supply the agreed definition that the third principle asks for.
 
-Language keeps that memory too. German has fixed words for whole practices:
-Vier-Augen-Prinzip (four eyes), Abnahme (formal acceptance against agreed
+Language keeps that memory too. German has set names for whole practices:
+Vier-Augen-Prinzip (literally "four-eyes principle": a second person checks), Abnahme (formal acceptance against agreed
 criteria), technische Überwachung (independent inspection). Where English
 describes the practice, German names it, and a practice with a name gets passed
 on. That is our reading, and translating this post showed it: every loose
-translation landed on the wrong one of those words.
+translation picked the wrong one of those words.
 {% </lang> %}
 
 {% <lang code="de"> %}
@@ -279,8 +283,8 @@ Autors; die Beispielwörter stehen in beiden Fassungen auf Deutsch.
 ## When a constraint becomes the product
 
 **It worked for certification.** Independent testing is a cost for every
-manufacturer, and it became a paid business for the testers. TÜV SÜD reported
-€3.4 billion of 2024 revenue
+manufacturer, and for the testers it became a business. TÜV SÜD reported
+€3.4 billion in revenue for 2024
 ([press release](https://www.tuvsud.com/en-gb/press-and-media/2025/may/tuev-sued-achieves-significant-revenue-growth-in-2024))
 and TÜV Rheinland €2.71 billion
 ([press release](https://www.tuv.com/press/en/press-releases/tuev-rheinland-results-2024.html)),
@@ -319,7 +323,8 @@ producers, and the demand was for a commodity that others could make more
 cheaply.
 
 The pattern, as we read the cases: **a constraint becomes a strength when it
-produces a trust good that is hard to copy and that buyers must pay for. It stays
+produces something buyers must be able to trust, that is hard to copy and that
+they must pay for. It stays
 a cost when it only creates demand that anyone can serve more cheaply.** That is
 our synthesis from a handful of cases, not a tested law.
 {% </lang> %}
@@ -354,7 +359,7 @@ can it be hard to copy? Our answer is that open evidence stays hard to fake
 because its checks can fail and anyone can re-run them. What gets cheap is
 producing and publishing evidence, not trusting it. Verification evidence for
 safety-critical software falls on the certification side of our line, as long
-as it keeps those principles.
+as it meets those three principles.
 {% </lang> %}
 
 {% <lang code="de"> %}
@@ -434,9 +439,10 @@ Council" → „der Rat der EU“: die üblichen deutschen Begriffe.
 
 {% <lang code="en"> %}
 On the tooling side, rust-lang/rust#144999, merged on 8 August 2025, removed the
-unstable MC/DC instrumentation
+unstable instrumentation for MC/DC (a strict coverage measure: tests must show
+that every condition in a decision can change its outcome on its own)
 ([rust-lang/rust#144999](https://github.com/rust-lang/rust/pull/144999)). The
-2026 project goal aims at unstable support, and the goal page names DO-178C
+2026 project goal aims to bring it back as an experimental feature, and the goal page names DO-178C
 level A among the standards that require MC/DC
 ([goal page](https://goals.rust-lang.org/2026/mcdc-coverage-support.html)).
 Qualified Rust tooling does exist: Ferrous Systems announced in November 2023
@@ -445,8 +451,8 @@ source, as a tool for ISO 26262 (ASIL D) and IEC 61508 (SIL 4)
 ([Ferrous Systems](https://ferrous-systems.com/blog/officially-qualified-ferrocene/)).
 That qualifies the compiler, not the software built with it. In the same
 episode the host, Gergely Orosz, expects "blueprints and certifications in, I
-don't know, five to 10 years" for agent-built systems (52:09). We read late
-rulebooks and MC/DC support that is still only a goal as room for open
+don't know, five to 10 years" for agent-built systems (52:09). As we see it, late
+rules and MC/DC support that is still only a goal leave room for open
 verification evidence in the meantime.
 {% </lang> %}
 
@@ -470,8 +476,8 @@ ist: Darin sehen wir Raum für offene Verifikationsnachweise bis dahin.
 {% </lang> %}
 
 {% <lang code="note"> %}
-"toolchain" → „Werkzeugkette“, "open source" → „quelloffen“. "We read … as room"
-→ „Darin sehen wir Raum“.
+"toolchain" → „Werkzeugkette“, "open source" → „quelloffen“. "As we see it, … leave
+room" → „Darin sehen wir Raum“.
 {% </lang> %}
 
 {% <lang code="en"> %}
@@ -486,18 +492,19 @@ principles as follows.
   described planting bad inputs to see whether a check turns red. That is now a
   tool, [plant](https://github.com/pulseengine/plant).
 - **Principles 2 and 3, review against a definition.** Two reviewers, AI agents
-  started without the author's context, read the 29 requirements of our wohl
+  that started fresh, without the author's context, read the 29 requirements of our wohl
   project for ambiguity ([wohl#97](https://github.com/pulseengine/wohl/issues/97));
   the mechanical fixes are in [wohl#98](https://github.com/pulseengine/wohl/pull/98).
-  Reading the code turned one finding, a safety check that never triggered in
-  the scenario its own requirement describes, into a safety finding, which is
-  still waiting for a design decision. Both reviewers came from the same project
+  When we read the code, one finding turned out to be a safety issue: a safety
+  check that never triggered in the very scenario its own requirement
+  describes. It is still waiting for a design decision. Both reviewers came from the same project
   and the same model family as the author, so they were independent of the
   author's context, not of the organisation or the model, and every lead was
   checked against the code before anything changed.
 - **Principles 1 and 2, evidence anyone can re-run.** wohl's
   [v0.7.0 release](https://github.com/pulseengine/wohl/releases/tag/v0.7.0)
-  ships a signed evidence bundle with one verify command. A monthly workflow now
+  comes with a signed package of evidence that anyone can check with a single
+  command. A monthly workflow now
   runs it, with two planted failures that must go red
   ([pulseengine.eu#377](https://github.com/pulseengine/pulseengine.eu/pull/377)).
   That shows the bundle is intact and its checks can still fail, not that the
@@ -565,7 +572,7 @@ bei Änderungen durch KI-Agenten. Und MC/DC-Abdeckung für Rust und WebAssembly.
 {% <lang code="en"> %}
 ## Limits
 
-This is an argument from a small project, not a market study. We found no
+This post comes from a small project; it is not a market study. We found no
 reliable figure for the size of the market for safety-critical verification
 tools, and no buyer has paid us anything. The rule about when a constraint
 becomes a strength is our reading of a few cases. Most evidence we found about
@@ -595,9 +602,8 @@ weniger Prüfung braucht, nicht mehr.
 {% </lang> %}
 
 {% <lang code="note"> %}
-"Limits" → „Wo unser Argument endet“. "This is an argument from a small project"
-→ „Hinter diesem Beitrag steht ein kleines Projekt“, damit „Argument“ nicht
-zweimal hintereinander steht. "makes our bundles irrelevant" → „mit dem unsere
+"Limits" → „Wo unser Argument endet“. "This post comes from a small project"
+→ „Hinter diesem Beitrag steht ein kleines Projekt“. "makes our bundles irrelevant" → „mit dem unsere
 Lösung nicht mehr gebraucht wird“.
 {% </lang> %}
 
@@ -605,9 +611,9 @@ Lösung nicht mehr gebraucht wird“.
 ## Bloopers
 
 Writing this post in two languages was its own test. Our first German drafts
-were correct and stiff: "Früher war das Programmieren der teure Teil" became, in
+were correct but stiff: "Früher war das Programmieren der teure Teil" became, in
 the author's hand, "Programmieren war teuer." The word "cheap" had to go
-altogether: in German, "billig" sounds like poor goods, so the German version avoids it
+altogether: in German, "billig" suggests shoddy goods, so the German version avoids it
 and speaks mostly of effort. The checks caught the other kind of slip. One draft
 added "genau" (exactly) and made a claim stronger than the English; another
 turned "agreed" into "fixed beforehand"; a third made the Cyber Resilience Act's
