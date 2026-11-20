@@ -2,7 +2,7 @@
 title = "Code got cheap. Trust didn't."
 description = "When AI makes writing code cheap, the hard part is showing that it is right. Germany once turned a boiler explosion into independent inspection; this post asks what that means for verifying AI-built software in Europe. In English and German."
 date = 2026-11-20
-draft = true
+draft = false
 ready = true
 [taxonomies]
 tags = ["verification", "europe", "standards", "ai-agents", "process", "deutsch"]
