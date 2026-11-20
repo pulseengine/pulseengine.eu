@@ -1,0 +1,29 @@
+# The PulseEngine North Star as a rivet schema fragment (rivet >= 0.43.0).
+#
+# Adds an optional `serves` field to the dev schema's `feature`: the North Star
+# objective(s) the feature serves, as `serves: O2` or `serves: [O1, O5]`. A
+# value outside the objective ids fails `rivet validate` (error, not warning),
+# and a list is checked item by item. Leaving `serves` out is allowed.
+#
+# Canonical copy for every PulseEngine repository. To use it, put this file in
+# the repository's schemas/ directory (or point `rivet --schemas` at a
+# directory holding it) and list it after `dev` in rivet.yaml:
+#
+#   project:
+#     schemas: [common, dev, north-star]
+#
+# allowed-values must equal the `id`s of [[objectives]] in
+# data/north-star.toml, in the same order; CI checks this with
+# scripts/check-north-star-serves.sh. Change both together, and keep the list
+# on one line.
+schema:
+  name: north-star
+  version: "0.1.0"
+artifact-types:
+  - name: feature
+    description: Feature (adds the North Star objective it serves)
+    fields:
+      - name: serves
+        type: string
+        allowed-values: [O1, O2, O3, O4, O5]
+        allowed-values-severity: error

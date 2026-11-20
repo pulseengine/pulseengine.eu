@@ -1,0 +1,16 @@
+# Must pass `rivet validate`: one objective, a list of two, and none.
+artifacts:
+  - id: FEAT-SERVES-ONE
+    type: feature
+    title: Serves one objective
+    status: draft
+    serves: O2
+  - id: FEAT-SERVES-LIST
+    type: feature
+    title: Serves two objectives
+    status: draft
+    serves: [O1, O5]
+  - id: FEAT-SERVES-NONE
+    type: feature
+    title: Serves no objective yet
+    status: draft

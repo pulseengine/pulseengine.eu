@@ -9,7 +9,8 @@
 # Each `verification` carries a `verifies` link AND the script carries a
 # `# rivet: verifies REQ-...` source marker, so `rivet verify` cites both the
 # artifact link and the line of code. Written against rivet 0.39.0, the version
-# the signed layer ships.
+# the signed layer shipped; CI pins 0.43.0 since REQ-NORTH-STAR-SERVES, whose
+# schema needs allowed-values-severity.
 
 artifacts:
   - id: FEAT-CI-GATES
@@ -113,6 +114,8 @@ artifacts:
         target: REQ-CORE-CONTRACT-WHOLE
       - type: satisfies
         target: REQ-SKILL-DESC-CAP
+      - type: satisfies
+        target: REQ-NORTH-STAR-SERVES
   - id: REQ-LINKS
     type: requirement
     title: Every internal link in the built site resolves
@@ -1550,3 +1553,28 @@ artifacts:
     links:
       - type: verifies
         target: REQ-NORTH-STAR-MEASURE
+
+  - id: REQ-NORTH-STAR-SERVES
+    type: requirement
+    title: A feature's serves field accepts exactly the North Star objective ids
+    description: >-
+      schemas/north-star.yaml is the canonical rivet schema fragment (rivet 0.43.0 or later) that adds an optional `serves` field to the dev schema's `feature`, with allowed-values equal to the `id`s of [[objectives]] in data/north-star.toml and allowed-values-severity error, so `serves: O9` fails `rivet validate` and a list is checked item by item. Its allowed-values may not drift from the objective ids: scripts/check-north-star-serves.sh fails on any difference in members or order, and exits 2 rather than passing when either file yields no list.
+    verification-criteria: >-
+      Fails if the drift check passes on a schema copy with an extra O9, if a rivet project loading the fragment rejects serves: O2 or serves: [O1, O5], or if it accepts serves: O9 without an ERROR naming the field and value.
+    status: verified
+    release: "0.68.0"
+    category: functional
+    priority: should
+
+  - id: VER-NORTH-STAR-SERVES
+    type: verification
+    title: Drift check with a planted O9, and rivet fixtures that pass on O2 and [O1, O5] and fail on O9
+    description: >-
+      In CI's build job: scripts/check-north-star-serves.sh passes on the committed files, then runs against a temporary copy of the schema with O9 appended and must exit 1 (drift), not 0 and not 2. With the pinned rivet 0.43.0 and `--schemas schemas`, tests/north-star-serves/pass (serves: O2, serves: [O1, O5], and no serves) must validate, and tests/north-star-serves/fail (serves: O9) must fail with "ERROR: [FEAT-SERVES-UNKNOWN] field 'serves' has value 'O9'". Before wiring, the script was also seen to fail on a missing O5, swapped order, an empty list, an unreadable or objective-less TOML, and a renamed objective.
+    status: verified
+    release: "0.68.0"
+    method: automated-test
+    test-location: scripts/check-north-star-serves.sh
+    links:
+      - type: verifies
+        target: REQ-NORTH-STAR-SERVES

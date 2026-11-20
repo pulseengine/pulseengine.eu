@@ -1,0 +1,11 @@
+# Negative fixture: same project as ../pass, with a feature that serves an
+# objective id that does not exist. CI runs it with `--schemas schemas` from the
+# repository root and requires `rivet validate` to fail with an error.
+project:
+  name: north-star-serves-fail
+  version: "0.0.0"
+  schemas: [common, dev, north-star]
+
+sources:
+  - path: artifacts
+    format: generic-yaml

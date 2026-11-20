@@ -19,6 +19,7 @@ project:
   schemas:
     - common
     - dev
+    - north-star
 
 sources:
   - path: artifacts
