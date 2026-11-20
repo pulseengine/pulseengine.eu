@@ -16,7 +16,7 @@
 
 north_star = "A safety-critical product team can take a WebAssembly component from architecture model to signed code running on a microcontroller, with evidence an assessor can re-check, using open tools only."
 
-updated = "2026-11-18"
+updated = "2026-11-20"
 
 # Products have their own North Stars and pull on the platform objectives.
 [[products]]
@@ -33,6 +33,39 @@ pulls = ["O1"]
 name = "wohl"
 north_star = "A home supervision system you can leave alone: every monitor verified, and every release, updates included, carrying evidence anyone can re-check."
 pulls = ["O2"]
+
+# Platform tool repositories that pull objectives. They carry no North Star of
+# their own; they are proof-carrying repositories that count in an objective's
+# denominator next to the products (decided 2026-11-20 for O3: every
+# proof-carrying tool repository counts, not only products). Names are unique
+# across products and tool_repos.
+[[tool_repos]]
+name = "gale"
+pulls = ["O3"]
+
+[[tool_repos]]
+name = "synth"
+pulls = ["O3"]
+
+[[tool_repos]]
+name = "meld"
+pulls = ["O3"]
+
+[[tool_repos]]
+name = "spar"
+pulls = ["O3"]
+
+[[tool_repos]]
+name = "ordeal"
+pulls = ["O3"]
+
+[[tool_repos]]
+name = "loom"
+pulls = ["O3"]
+
+[[tool_repos]]
+name = "scry"
+pulls = ["O3"]
 
 [[objectives]]
 id = "O1"

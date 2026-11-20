@@ -165,6 +165,24 @@ fn planted(base: &Table, meas: &Files) -> Vec<Case> {
             d.get_mut("products").unwrap().as_array_mut().unwrap()[0]
                 .get_mut("pulls").unwrap().as_array_mut().unwrap().push(s("O99"));
         }, meas.clone()),
+        m("unknown tool repo pull", &|d| {
+            d.get_mut("tool_repos").unwrap().as_array_mut().unwrap()[0]
+                .get_mut("pulls").unwrap().as_array_mut().unwrap().push(s("O99"));
+        }, meas.clone()),
+        m("empty tool repo name", &|d| {
+            d.get_mut("tool_repos").unwrap().as_array_mut().unwrap()[0]
+                .as_table_mut().unwrap().insert("name".into(), s(" "));
+        }, meas.clone()),
+        m("tool repo duplicates a product", &|d| {
+            let n = d["products"][0]["name"].as_str().unwrap().to_string();
+            d.get_mut("tool_repos").unwrap().as_array_mut().unwrap()[0]
+                .as_table_mut().unwrap().insert("name".into(), s(&n));
+        }, meas.clone()),
+        m("duplicate tool repo", &|d| {
+            let n = d["tool_repos"][0]["name"].as_str().unwrap().to_string();
+            d.get_mut("tool_repos").unwrap().as_array_mut().unwrap()[1]
+                .as_table_mut().unwrap().insert("name".into(), s(&n));
+        }, meas.clone()),
         m("dated north star", &|d| {
             let star = format!("{} By 2027.", d["north_star"].as_str().unwrap());
             d.insert("north_star".into(), s(&star));
@@ -293,6 +311,8 @@ fn paths() -> Vec<Vec<K>> {
         vec![S("periods"), I(0), S("commitments"), I(0), S("target")], vec![S("periods"), I(1)],
         vec![S("products"), I(0), S("pulls")], vec![S("products"), I(1), S("pulls"), I(0)],
         vec![S("products"), I(2), S("name")], vec![S("products"), I(0)],
+        vec![S("tool_repos")], vec![S("tool_repos"), I(0), S("pulls")], vec![S("tool_repos"), I(1), S("pulls"), I(0)],
+        vec![S("tool_repos"), I(2), S("name")], vec![S("tool_repos"), I(0)],
     ]
 }
 

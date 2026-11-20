@@ -52,6 +52,11 @@ impl Drop for Fx {
 impl Fx {
     /// `products`: (name, pulls). `measured`: objective ids whose state is "measured".
     pub fn new(products: &[(&str, &[&str])], measured: &[&str]) -> Fx {
+        Fx::with_tool_repos(products, &[], measured)
+    }
+
+    /// Like `new`, plus `tool_repos`: (name, pulls), written as `[[tool_repos]]`.
+    pub fn with_tool_repos(products: &[(&str, &[&str])], tool_repos: &[(&str, &[&str])], measured: &[&str]) -> Fx {
         let root = std::env::temp_dir().join(format!(
             "ns-measure-test-{}-{}",
             std::process::id(),
@@ -65,6 +70,10 @@ impl Fx {
         for (name, pulls) in products {
             let p: Vec<String> = pulls.iter().map(|x| format!("{x:?}")).collect();
             t.push_str(&format!("\n[[products]]\nname = {name:?}\nnorth_star = \"x\"\npulls = [{}]\n", p.join(", ")));
+        }
+        for (name, pulls) in tool_repos {
+            let p: Vec<String> = pulls.iter().map(|x| format!("{x:?}")).collect();
+            t.push_str(&format!("\n[[tool_repos]]\nname = {name:?}\npulls = [{}]\n", p.join(", ")));
         }
         for id in ["O1", "O2", "O3", "O4", "O5"] {
             let state = if measured.contains(&id) { "measured" } else { "unmeasured" };

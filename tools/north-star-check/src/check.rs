@@ -1,4 +1,4 @@
-//! The seven rules of scripts/check-north-star.py, statement for statement.
+//! The eight rules of scripts/check-north-star.py, statement for statement.
 //! Keep the order of the checks: the output is compared line by line.
 
 use crate::py::{Py, PyErr, str_repr, strip_nonempty};
@@ -167,6 +167,40 @@ pub fn check(doc: &Py, measure_dir: &Path) -> Result<Vec<String>, PyErr> {
                 let name = pr.get("name")?.cloned().unwrap_or(Py::None);
                 errors.push(format!(
                     "products[{}] ({}): pulls unknown objective {}",
+                    i,
+                    name.py_str(),
+                    pid.py_repr()
+                ));
+            }
+        }
+    }
+
+    let mut seen: Vec<String> = Vec::new();
+    for kind in ["products", "tool_repos"] {
+        for (i, e) in Py::iter_or_empty(doc.get(kind)?)?.iter().enumerate() {
+            match e.get("name")? {
+                Some(Py::Str(n)) if strip_nonempty(n) => {
+                    if seen.contains(n) {
+                        errors.push(format!(
+                            "{}[{}]: duplicate name {} across products and tool_repos",
+                            kind,
+                            i,
+                            str_repr(n)
+                        ));
+                    } else {
+                        seen.push(n.clone());
+                    }
+                }
+                _ => errors.push(format!("{}[{}]: name is missing or empty", kind, i)),
+            }
+        }
+    }
+    for (i, tr) in Py::iter_or_empty(doc.get("tool_repos")?)?.iter().enumerate() {
+        for pid in Py::iter_or_empty(tr.get("pulls")?)? {
+            if !in_set(&pid, &ids)? {
+                let name = tr.get("name")?.cloned().unwrap_or(Py::None);
+                errors.push(format!(
+                    "tool_repos[{}] ({}): pulls unknown objective {}",
                     i,
                     name.py_str(),
                     pid.py_repr()

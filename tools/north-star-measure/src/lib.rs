@@ -51,7 +51,7 @@ impl Objective {
     pub fn rule(self) -> &'static str {
         match self {
             Objective::O1 => "O1: the value counts (target, named rung) facts that pass, named rungs being hil, real-drone and flight (jess's ladder); of = 3 named rungs per target the input reports, so a named rung not reported is a fail; r0 and synth's execution_match, reach and wcet are listed in items with in_value=false and never enter the value; an absent control_failed_as_expected is not penalised",
-            Objective::O3 => "O3: a product counts only if its facts proof_check_required, axiom_audit and ledger all pass, each with control_failed_as_expected=true (absent counts as a fail, the seam requires a planted control per fact); of = products pulling O3 in data/north-star.toml, so a product that is not counted stays in the denominator",
+            Objective::O3 => "O3: a product or tool repository counts only if its facts proof_check_required, axiom_audit and ledger all pass, each with control_failed_as_expected=true (absent counts as a fail, the seam requires a planted control per fact); of = products plus tool repositories pulling O3 in data/north-star.toml, so a product or tool repository that is not counted stays in the denominator",
             Objective::O5 => "O5: a gate counts only if detail.signed, kiln_runs, wasmtime_equal and equivalence_in_ci are true and gap_switch is false; of = the gates the counted inputs report, not all our tools and gates (a better denominator is an open question); an absent control_failed_as_expected is not penalised",
         }
     }
@@ -73,7 +73,7 @@ pub fn help() -> String {
         "north-star-measure: measure North Star objective O1, O3 or O5 from signed release inputs\n\n\
          usage: north-star-measure o1|o3|o5 [--offline FIXTURE_DIR] [--root DIR]\n       \
          north-star-measure snapshot-matches COMMITTED.json LIVE.json\n\n\
-         For every product in DIR/data/north-star.toml whose pulls include the objective, reads its\n\
+         For every product and tool repository ([[products]] and [[tool_repos]]) in DIR/data/north-star.toml whose pulls include the objective, reads its\n\
          latest release, finds north-star-input.<Ox>.json, checks its sha256 in the release's SHA256SUMS\n\
          (or SHA256SUMS.txt), runs cosign verify-blob on SHA256SUMS against\n\
          ^https://github.com/pulseengine/<repo>/.github/workflows/<file>@refs/tags/<tag>$ with the GitHub\n\
@@ -104,17 +104,20 @@ pub fn blind_spot(o: Objective) -> String {
     format!("counting rules: {}; {}. Not checked: {NOT_CHECKED}", COMMON_RULES.join("; "), o.rule())
 }
 
-/// Products in north-star.toml that pull `objective`, in file order, and the
+/// Products and tool repositories in north-star.toml that pull `objective`, in file order, and the
 /// objective's `state`.
 pub fn products_pulling(toml_text: &str, objective: &str) -> Result<(Vec<String>, Option<String>), String> {
     let doc: toml::Table = toml_text.parse().map_err(|e| format!("data/north-star.toml: {e}"))?;
     let mut out = Vec::new();
-    for p in doc.get("products").and_then(|v| v.as_array()).cloned().unwrap_or_default() {
+    let entries = ["products", "tool_repos"]
+        .iter()
+        .flat_map(|k| doc.get(*k).and_then(|v| v.as_array()).cloned().unwrap_or_default());
+    for p in entries {
         let name = p.get("name").and_then(|v| v.as_str()).unwrap_or("");
         let pulls = p.get("pulls").and_then(|v| v.as_array()).cloned().unwrap_or_default();
         if !name.is_empty() && pulls.iter().any(|x| x.as_str() == Some(objective)) {
             if !schema::repo_ok(&format!("{ORG}/{name}")) {
-                return Err(format!("product name {name:?} is not a repository name"));
+                return Err(format!("product or tool repository name {name:?} is not a repository name"));
             }
             out.push(name.to_string());
         }

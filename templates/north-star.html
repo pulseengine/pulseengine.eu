@@ -71,6 +71,20 @@
     </article>
     {% endfor %}
   </div>
+
+  {% if ns.tool_repos %}
+  <h2 class="ns-h">Tool repositories</h2>
+  <div class="ns-grid">
+    {% for tr in ns.tool_repos %}
+    <article class="ns-card">
+      <div class="ns-top">
+        <a class="ns-title ns-repo" href="https://github.com/pulseengine/{{ tr.name }}" rel="noopener">{{ tr.name }}</a>
+      </div>
+      <p class="ns-pulls">pulls {% for id in tr.pulls %}<a href="#{{ id | lower }}">{{ id }}</a>{% if not loop.last %}, {% endif %}{% endfor %}</p>
+    </article>
+    {% endfor %}
+  </div>
+  {% endif %}
 </div>
 {% endblock %}
 

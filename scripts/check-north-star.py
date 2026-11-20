@@ -22,6 +22,8 @@ syntax:
      "measured" exactly when data/north-star/<id>.json exists, names that
      objective and carries an integer value out of a positive denominator, so
      no number can be typed into the TOML.
+  8. every tool repository (`[[tool_repos]]`) has a name, unique across
+     products and tool repositories, and pulls only objectives that exist;
 
 Exit: 0 consistent · 1 a rule is broken · 2 could not run the check
 (including a value of a type the rules cannot handle, e.g. objectives = 5).
@@ -142,6 +144,24 @@ def check(doc: dict, measure_dir: pathlib.Path = MEASURE_DIR) -> list:
             if pid not in ids:
                 errors.append("products[%d] (%s): pulls unknown objective %r" % (i, pr.get("name"), pid))
 
+    # Tool repositories (platform tools that pull objectives, e.g. as part of
+    # O3's denominator) are named like products; a name is one repository, so
+    # it may appear once across both arrays.
+    seen = set()
+    for kind in ("products", "tool_repos"):
+        for i, e in enumerate(doc.get(kind) or []):
+            name = e.get("name")
+            if not isinstance(name, str) or not name.strip():
+                errors.append("%s[%d]: name is missing or empty" % (kind, i))
+            elif name in seen:
+                errors.append("%s[%d]: duplicate name %r across products and tool_repos" % (kind, i, name))
+            else:
+                seen.add(name)
+    for i, tr in enumerate(doc.get("tool_repos") or []):
+        for pid in tr.get("pulls") or []:
+            if pid not in ids:
+                errors.append("tool_repos[%d] (%s): pulls unknown objective %r" % (i, tr.get("name"), pid))
+
     for s in _strings(doc):
         if IPV4_RE.search(s) or HOST_RE.search(s):
             errors.append("private infrastructure detail in text: %r" % s[:60])
@@ -168,6 +188,10 @@ def self_test() -> int:
         "bad kind": lambda d: d["periods"][0]["commitments"][0].update(kind="maybe"),
         "bad layer": lambda d: d["periods"][0]["layers"].append("2026-11"),
         "unknown pull": lambda d: d["products"][0]["pulls"].append("O99"),
+        "unknown tool repo pull": lambda d: d["tool_repos"][0]["pulls"].append("O99"),
+        "empty tool repo name": lambda d: d["tool_repos"][0].update(name=" "),
+        "tool repo duplicates a product": lambda d: d["tool_repos"][0].update(name=d["products"][0]["name"]),
+        "duplicate tool repo": lambda d: d["tool_repos"][1].update(name=d["tool_repos"][0]["name"]),
         "dated north star": lambda d: d.update(north_star=d["north_star"] + " By 2027."),
         "ipv4": lambda d: d["objectives"][0].update(summary="runs on 10.0.0.5"),
         "local host": lambda d: d["objectives"][0].update(summary="measured on box.lan"),
@@ -234,8 +258,9 @@ def main() -> int:
     for e in errors:
         print("north-star: " + e)
     if not errors:
-        print("north-star: %d objectives, %d periods, %d products: consistent"
-              % (len(doc.get("objectives") or []), len(doc.get("periods") or []), len(doc.get("products") or [])))
+        print("north-star: %d objectives, %d periods, %d products, %d tool repos: consistent"
+              % (len(doc.get("objectives") or []), len(doc.get("periods") or []), len(doc.get("products") or []),
+                 len(doc.get("tool_repos") or [])))
     return 1 if errors else 0
 
 
