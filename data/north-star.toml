@@ -37,8 +37,10 @@ pulls = ["O2"]
 # Platform tool repositories that pull objectives. They carry no North Star of
 # their own; they are proof-carrying repositories that count in an objective's
 # denominator next to the products (decided 2026-11-20 for O3: every
-# proof-carrying tool repository counts, not only products). Names are unique
-# across products and tool_repos.
+# proof-carrying tool repository counts, not only products; and for O5: every
+# repository whose signed release ships a CI gate or tool as a WASI component
+# counts, added as its O5 input lands). Names are unique across products and
+# tool_repos.
 [[tool_repos]]
 name = "gale"
 pulls = ["O3"]
@@ -66,6 +68,10 @@ pulls = ["O3"]
 [[tool_repos]]
 name = "scry"
 pulls = ["O3"]
+
+[[tool_repos]]
+name = "sieve"
+pulls = ["O5"]
 
 [[objectives]]
 id = "O1"
