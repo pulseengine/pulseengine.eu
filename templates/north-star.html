@@ -33,8 +33,9 @@
         {% for r in m.repos %}<li><span class="ns-repo">{{ r.repo }}</span> {{ r.release }}: {% if r.counts %}bundle verifies, both negative controls fail{% elif r.verify == "absent" %}no evidence bundle in the release{% else %}{{ r.verify }}{% endif %}</li>{% endfor %}
       </ul>{% endif %}
       {% if m.items %}<ul class="ns-rows">
-        {% for i in m.items %}<li><a href="{{ i.url }}" rel="noopener">{{ i.pr }}</a></li>{% endfor %}
+        {% for i in m.items %}<li>{% if i.pr %}<a href="{{ i.url }}" rel="noopener">{{ i.pr }}</a>{% else %}{{ i.label }}: {% if i.in_value == false %}reported separately, not in the value{% elif i.counts %}counts{% elif i.verdict %}{{ i.verdict }}{% else %}does not count{% endif %}{% if i.url %} (<a href="{{ i.url }}" rel="noopener">evidence</a>){% endif %}{% endif %}</li>{% endfor %}
       </ul>{% endif %}
+      {% if m.not_counted %}<p class="ns-blind">Not counted: {% for n in m.not_counted %}{{ n.product }} ({{ n.reason }}){% if not loop.last %}; {% endif %}{% endfor %}.</p>{% endif %}
       {% if m.period %}<p class="ns-blind">Period: {{ m.period }}.</p>{% endif %}
       <p class="ns-blind">Not checked: {{ m.blind_spot }}.</p>
       {% endif %}

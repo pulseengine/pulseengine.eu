@@ -1,14 +1,15 @@
 name: North Star
 
 # Monthly measurement of North Star objectives that have an indicator script
-# (today O2, the one-command evidence bundle). The page renders the committed
+# (O2 and O4 here; O1, O3 and O5 from signed producer inputs, see the
+# `measure` job at the end). The page renders the committed
 # data/north-star/<id>.json; this run re-measures from the live releases and
 # fails when the committed snapshot no longer matches, so a stale number on the
 # page is a red run rather than a silent one. Refresh by committing the
 # uploaded O2.json in a PR.
 #
-# Runs on a hosted runner: verify.sh needs the Linux wsc release binary and
-# nothing self-hosted. Reads public releases only.
+# o2 and o4 run on a hosted runner: verify.sh needs the Linux wsc release
+# binary and nothing self-hosted. Reads public releases only.
 on:
   schedule:
     - cron: "37 6 2 * *"   # the 2nd of each month, 06:37 UTC
@@ -77,3 +78,108 @@ jobs:
               sys.exit(1)
           print("snapshot matches:", b)
           PY
+
+  # O1, O3 and O5 come from producers: each product in data/north-star.toml
+  # that pulls the objective attaches north-star-input.<Ox>.json to its release,
+  # listed in its cosign-signed SHA256SUMS (seam pulseengine.eu#393).
+  # tools/north-star-measure checks the signature (a workflow of that
+  # repository at that tag), validates the input against schema v1 and counts.
+  # One job per objective (o1, o3, o5) from one matrix.
+  #
+  # "Could not measure" (exit 2) is green only while the objective is
+  # unmeasured: no committed data/north-star/<Ox>.json, so the page shows
+  # "unmeasured" and no number. Once a snapshot is committed, exit 2 is red, as
+  # it is for o2. Exit 1 (a rule broke, e.g. the first countable input arrived
+  # while the TOML still says unmeasured) is always red: commit the uploaded
+  # artifact and set state = "measured" in one PR.
+  #
+  # Self-hosted light behind the fail-closed fork guard (these runs are
+  # schedule or dispatch only, so the guard picks self-hosted). cosign is
+  # pinned by path and sha256 like zola in ci.yml; without cosign the tool
+  # exits 2 and counts nothing, it never skips the signature check.
+  measure:
+    name: ${{ matrix.objective }}
+    runs-on: ${{ (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && fromJSON('["self-hosted","linux","x64","light"]') || 'ubuntu-24.04' }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {objective: o1, id: O1}
+          - {objective: o3, id: O3}
+          - {objective: o5, id: O5}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      # COSIGN_SHA256 is the release asset's `digest` for cosign-linux-amd64
+      # from https://github.com/sigstore/cosign/releases/tag/v3.1.4; it matches
+      # the release's cosign_checksums.txt and was re-hashed locally on
+      # 2026-11-20.
+      - name: Install cosign (pinned by path and sha256)
+        env:
+          COSIGN_VERSION: 3.1.4
+          COSIGN_SHA256: 424e2c97d0b45fd7a6b608a87f090f35633f4c23ece5f092d48bba11aaf4bbfa
+        run: |
+          set -euo pipefail
+          dir="$RUNNER_TEMP/cosign-$COSIGN_VERSION"
+          rm -rf "$dir" && mkdir -p "$dir"
+          curl -fsSL --retry 3 -o "$dir/cosign" \
+            "https://github.com/sigstore/cosign/releases/download/v$COSIGN_VERSION/cosign-linux-amd64"
+          echo "$COSIGN_SHA256  $dir/cosign" | sha256sum -c -
+          chmod 0755 "$dir/cosign"
+          if ! "$dir/cosign" version 2>&1 | grep -q "v$COSIGN_VERSION"; then
+            echo "::error::pinned cosign does not report v$COSIGN_VERSION"
+            exit 1
+          fi
+          echo "COSIGN=$dir/cosign" >> "$GITHUB_ENV"
+
+      - name: Build north-star-measure
+        run: cargo build --locked --release --manifest-path tools/north-star-measure/Cargo.toml
+
+      - name: Measure ${{ matrix.id }} from the live releases
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          OBJ: ${{ matrix.objective }}
+          ID: ${{ matrix.id }}
+        run: |
+          set -euo pipefail
+          : "${COSIGN:?COSIGN is not set; the pinned install step did not run}"
+          snap="data/north-star/$ID.json"
+          committed=""
+          if [ -f "$snap" ]; then
+            cp "$snap" "$RUNNER_TEMP/$ID.committed.json"
+            committed="$RUNNER_TEMP/$ID.committed.json"
+          fi
+          bin=tools/north-star-measure/target/release/north-star-measure
+          rc=0
+          "$bin" "$OBJ" || rc=$?
+          case "$rc" in
+            0)
+              if [ -z "$committed" ]; then
+                echo "::error::$ID measured but no snapshot is committed. Commit the uploaded artifact."
+                exit 1
+              fi
+              "$bin" snapshot-matches "$committed" "$snap"
+              ;;
+            2)
+              if [ -n "$committed" ]; then
+                echo "::error::$ID could not be measured, but $snap is committed and the page shows it as measured."
+                exit 1
+              fi
+              echo "::notice::$ID stays unmeasured: no countable north-star-input.$ID.json yet (the log names each product and why)."
+              ;;
+            *)
+              echo "::error::$ID: a rule broke (exit $rc). If the first countable input arrived, commit the uploaded $snap and set state = \"measured\" in one PR."
+              exit 1
+              ;;
+          esac
+
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: north-star-${{ matrix.id }}
+          path: data/north-star/${{ matrix.id }}.json
+          if-no-files-found: ignore
