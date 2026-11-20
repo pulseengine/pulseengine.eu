@@ -713,6 +713,72 @@ jobs:
       - name: Counting rules, negative controls included
         run: cargo test --locked --no-fail-fast --manifest-path tools/north-star-measure/Cargo.toml -- --show-output
 
+  # Every committed Cargo.lock is audited and binds the build. Two planted
+  # controls prove the job can fail: a lock with a known advisory must make
+  # cargo audit exit non-zero, and a manifest edited past its lock must make
+  # `cargo metadata --locked` refuse (fleet lockfile sweep, 2026-11-20).
+  lockfiles:
+    runs-on: ${{ (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && fromJSON('["self-hosted","linux","x64","light"]') || 'ubuntu-24.04' }}
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@39008827e6b4319a349e9a42dfc90579dd25f1ca # stable
+
+      - name: Install cargo-audit (pinned)
+        run: cargo install --locked cargo-audit --version 0.22.1 --root "$RUNNER_TEMP/audit"
+
+      - name: Every Cargo.toml has a committed lock that binds it
+        run: |
+          set -euo pipefail
+          n=0
+          for m in $(git ls-files '*Cargo.toml'); do
+            d=$(dirname "$m")
+            if ! git ls-files --error-unmatch "$d/Cargo.lock" >/dev/null 2>&1; then
+              # a workspace member resolves through its workspace root's lock
+              if cargo metadata --format-version 1 --no-deps --manifest-path "$m" 2>/dev/null \
+                 | python3 -c 'import json,sys,os; d=json.load(sys.stdin); sys.exit(0 if os.path.isfile(os.path.join(d["workspace_root"],"Cargo.lock")) and os.path.dirname(os.path.abspath(sys.argv[1]))!=d["workspace_root"] else 1)' "$m"; then
+                continue
+              fi
+              echo "MISSING lock for $m"; exit 1
+            fi
+            cargo metadata --locked --format-version 1 --manifest-path "$m" >/dev/null
+            n=$((n+1))
+          done
+          echo "$n manifests bound by a committed lock"
+          test "$n" -gt 0
+
+      - name: cargo audit every committed lock
+        run: |
+          set -euo pipefail
+          n=0
+          for l in $(git ls-files '*Cargo.lock'); do
+            echo "== $l"; "$RUNNER_TEMP/audit/bin/cargo-audit" audit -f "$l"; n=$((n+1))
+          done
+          echo "$n locks audited"
+          test "$n" -gt 0
+
+      - name: "Control: a lock with a known advisory fails the audit"
+        run: |
+          set -uo pipefail
+          d=$(mktemp -d); cp scripts/fixtures/lock-controls/vulnerable.Cargo.lock "$d/Cargo.lock"
+          if "$RUNNER_TEMP/audit/bin/cargo-audit" audit -f "$d/Cargo.lock"; then
+            echo "control FAILED: audit passed a lock with tar 0.4.44"; exit 1
+          fi
+          echo "control ok: audit refused the planted lock"
+
+      - name: "Control: a manifest edited past its lock is refused"
+        run: |
+          set -uo pipefail
+          d=$(mktemp -d); cp -R tools/seam-check/. "$d/"
+          printf '\n[target.%s.dependencies]\nplanted_control = { package = "once_cell", version = "=1.19.0" }\n' "'cfg(any())'" >> "$d/Cargo.toml"
+          out=$(cargo metadata --locked --format-version 1 --manifest-path "$d/Cargo.toml" 2>&1 >/dev/null); rc=$?
+          if [ "$rc" -eq 0 ]; then echo "control FAILED: --locked accepted a stale lock"; exit 1; fi
+          # the refusal must be the lock check, not a TOML or network error
+          echo "$out" | grep -q -- "--locked" || { echo "control FAILED for the wrong reason:"; echo "$out"; exit 1; }
+          echo "control ok: --locked refused the stale lock"
+
   # The deploy runs on the same `light` pool as this job. This proves, before a
   # merge, that the pool can do everything the deploy needs — rather than
   # finding out on main, where a failed deploy leaves the live site stale.
@@ -742,4 +808,4 @@ jobs:
           key: fetch-reports-${{ hashFiles('tools/fetch-reports/Cargo.lock') }}
 
       - name: fetch-reports builds on the deploy pool
-        run: cargo build --release --manifest-path tools/fetch-reports/Cargo.toml
+        run: cargo build --locked --release --manifest-path tools/fetch-reports/Cargo.toml
