@@ -1,0 +1,15 @@
+# Planted control for the lockfile audit (not a real lockfile; the .Cargo.lock
+# suffix keeps it out of `git ls-files '*Cargo.lock'`). tar 0.4.44 carries
+# RUSTSEC-2026-0067/0068, so `cargo audit` on this file must exit non-zero.
+version = 4
+
+[[package]]
+name = "control"
+version = "0.0.0"
+dependencies = ["tar"]
+
+[[package]]
+name = "tar"
+version = "0.4.44"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1d863878d212c87a19c1a610eb53bb01fe12951c0501cf5a0d65f724914a667a"
