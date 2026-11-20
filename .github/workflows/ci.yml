@@ -65,23 +65,33 @@ jobs:
           echo "ZOLA=$dir/zola" >> "$GITHUB_ENV"
           echo "ZOLA_VERSION=$ZOLA_VERSION" >> "$GITHUB_ENV"
 
-      # The V for the gates themselves. rivet is pinned to the version the
-      # signed varve layer ships, not "latest", so CI and a local run agree —
-      # a project that validates on one version and runs another is the same
-      # shape as a gate that passes against the wrong instrument.
+      # The V for the gates themselves. rivet is pinned to an exact release,
+      # not "latest", so CI and a local run agree — a project that validates
+      # on one version and runs another is the same shape as a gate that
+      # passes against the wrong instrument. v0.43.0 is the first release with
+      # `allowed-values-severity`, which schemas/north-star.yaml needs; 0.39.0
+      # refuses to load that schema. Bump VER and RIVET_SHA256 together here,
+      # in deploy.yml and in release.yml.
+      # RIVET_SHA256 is the x86_64-unknown-linux-gnu line of the release's
+      # SHA256SUMS.txt, taken after `cosign verify-blob` accepted SHA256SUMS
+      # as signed by rivet's .github/workflows/release.yml@refs/tags/v0.43.0
+      # (GitHub OIDC). The check below refuses any other bytes.
       # curl, not `gh`: the self-hosted runners do not have the GitHub CLI.
       # Measured the hard way — the first version of this step died on
       # `gh: command not found`, which is the same thing that made the report
       # freshness check silently examine nothing (#214). The release asset is
       # public, so no token is needed.
       - name: Install rivet
+        env:
+          RIVET_SHA256: b3681544f1a49d9ec71ba271daa8de1f45e50a8a1362370ca068603b8a94f22c
         run: |
           set -euo pipefail
-          VER=v0.39.0
+          VER=v0.43.0
           ASSET="rivet-$VER-x86_64-unknown-linux-gnu.tar.gz"
           rm -rf /tmp/rivet-bin && mkdir -p /tmp/rivet-bin "$HOME/.local/bin"
           curl -fsSL --retry 3 -o /tmp/rivet.tar.gz \
             "https://github.com/pulseengine/rivet/releases/download/$VER/$ASSET"
+          echo "$RIVET_SHA256  /tmp/rivet.tar.gz" | sha256sum -c -
           tar xzf /tmp/rivet.tar.gz -C /tmp/rivet-bin
           BIN=$(find /tmp/rivet-bin -type f -name rivet | head -1)
           test -n "$BIN"
@@ -238,6 +248,45 @@ jobs:
         run: |
           rivet validate
           rivet coverage --tests --scan-paths scripts --strict-empty
+
+      # schemas/north-star.yaml is the canonical rivet fragment every repo uses
+      # for a feature's `serves:`; its allowed-values must be exactly the
+      # objective ids in data/north-star.toml. Planted control on every run: a
+      # copy with an extra O9 must fail with exit 1 (drift), not pass and not
+      # exit 2 (parse failure), or the check is not seeing the list.
+      # rivet: verifies REQ-NORTH-STAR-SERVES
+      - name: North Star schema matches the objectives (planted O9 must fail)
+        run: |
+          set -euo pipefail
+          bash scripts/check-north-star-serves.sh
+          planted="$RUNNER_TEMP/north-star-o9.yaml"
+          sed 's/^\( *allowed-values: \[.*\)\]/\1, O9]/' schemas/north-star.yaml > "$planted"
+          grep -q 'allowed-values: \[.*, O9\]' "$planted"
+          rc=0
+          bash scripts/check-north-star-serves.sh data/north-star.toml "$planted" || rc=$?
+          if [ "$rc" != "1" ]; then
+            echo "::error::planted O9 control: expected exit 1 (drift), got $rc"
+            exit 1
+          fi
+          echo "planted O9 control failed as expected (exit 1)"
+
+      # The fragment bites: run against the fixtures with --schemas schemas, so
+      # the file under test is the canonical one, not a copy. serves: O2 and
+      # serves: [O1, O5] must validate; serves: O9 must fail with an ERROR
+      # naming the field and value.
+      - name: North Star schema accepts objective ids and rejects O9
+        run: |
+          set -euo pipefail
+          rivet --project tests/north-star-serves/pass --schemas schemas validate
+          out="$RUNNER_TEMP/north-star-serves-fail.txt"
+          rc=0
+          rivet --project tests/north-star-serves/fail --schemas schemas validate > "$out" 2>&1 || rc=$?
+          cat "$out"
+          if [ "$rc" = "0" ]; then
+            echo "::error::serves: O9 passed rivet validate"
+            exit 1
+          fi
+          grep -F "ERROR: [FEAT-SERVES-UNKNOWN] field 'serves' has value 'O9'" "$out"
 
       # The plugin's load-bearing claims, bound to re-derivable evidence
       # (pulseengine.eu#202). We ship the claim-verification skill and were one

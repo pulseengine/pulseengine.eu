@@ -121,13 +121,18 @@ jobs:
       # a previous evidence.json, so nothing old is carried forward.
       - name: Install rivet
         continue-on-error: true
+        # Same pin and sha256 as ci.yml (see the comment there for where the
+        # value comes from). Bump VER and RIVET_SHA256 together in all three.
+        env:
+          RIVET_SHA256: b3681544f1a49d9ec71ba271daa8de1f45e50a8a1362370ca068603b8a94f22c
         run: |
           set -euo pipefail
-          VER=v0.39.0
+          VER=v0.43.0
           ASSET="rivet-$VER-x86_64-unknown-linux-gnu.tar.gz"
           rm -rf /tmp/rivet-bin && mkdir -p /tmp/rivet-bin "$HOME/.local/bin"
           curl -fsSL --retry 3 -o /tmp/rivet.tar.gz \
             "https://github.com/pulseengine/rivet/releases/download/$VER/$ASSET"
+          echo "$RIVET_SHA256  /tmp/rivet.tar.gz" | sha256sum -c -
           tar xzf /tmp/rivet.tar.gz -C /tmp/rivet-bin
           BIN=$(find /tmp/rivet-bin -type f -name rivet | head -1)
           test -n "$BIN"

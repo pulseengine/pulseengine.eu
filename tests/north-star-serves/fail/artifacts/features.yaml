@@ -1,0 +1,7 @@
+# Must fail `rivet validate` with an error: O9 is not an objective id.
+artifacts:
+  - id: FEAT-SERVES-UNKNOWN
+    type: feature
+    title: Serves an objective that does not exist
+    status: draft
+    serves: O9

@@ -1,0 +1,11 @@
+# Fixture: a minimal rivet project that loads the canonical North Star schema
+# fragment. CI runs it with `--schemas schemas` from the repository root, so the
+# fragment under test is schemas/north-star.yaml itself, not a copy.
+project:
+  name: north-star-serves-pass
+  version: "0.0.0"
+  schemas: [common, dev, north-star]
+
+sources:
+  - path: artifacts
+    format: generic-yaml
