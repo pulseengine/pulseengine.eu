@@ -1,6 +1,6 @@
 //! scripts/check-north-star.py as a WASI Preview 2 command component.
 //!
-//! Same seven rules, same messages on stdout, same exit codes:
+//! Same eight rules, same messages on stdout, same exit codes:
 //! 0 consistent · 1 a rule is broken · 2 could not run the check.
 //!
 //! Usage: north-star-check [--root DIR]
@@ -85,10 +85,11 @@ fn run() -> u8 {
             _ => 0,
         };
         println!(
-            "north-star: {} objectives, {} periods, {} products: consistent",
+            "north-star: {} objectives, {} periods, {} products, {} tool repos: consistent",
             len("objectives"),
             len("periods"),
-            len("products")
+            len("products"),
+            len("tool_repos")
         );
     }
     if errors.is_empty() { 0 } else { 1 }

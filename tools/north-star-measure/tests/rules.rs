@@ -289,6 +289,37 @@ fn o3_missing_input_stays_in_denominator(rules: Rules) -> Result<(), String> {
     Ok(())
 }
 
+/// A tool repository pulling O3 that publishes nothing stays in the
+/// denominator (it is listed under not_counted, never dropped).
+fn o3_tool_repo_without_input_stays_in_denominator(rules: Rules) -> Result<(), String> {
+    let fx = Fx::with_tool_repos(&[("relay", &["O3"])], &[("gale", &["O3"])], &[]);
+    fx.publish("relay", "falcon-v1.143.0", &input("O3", "relay", o3_facts()), Sign::Good);
+    fx.publish("gale", "v0.9.0", &input("O3", "gale", o3_facts()), Sign::NoAsset);
+    let d = doc(&fx, Objective::O3, rules)?;
+    ensure!(vo(&d) == (1, 2), "want 1 of 2 (product plus tool repository), got {:?}", vo(&d));
+    let r = reasons(&d);
+    ensure!(r.len() == 1 && r[0].starts_with("gale: no north-star-input.O3.json"), "not_counted: {r:?}");
+    Ok(())
+}
+
+/// A tool repository pulling O3 that publishes passing facts is counted in
+/// the numerator, and one pulling only another objective is not in the
+/// denominator.
+fn o3_tool_repo_with_passing_facts_counts(rules: Rules) -> Result<(), String> {
+    let fx = Fx::with_tool_repos(
+        &[("relay", &["O3"])],
+        &[("gale", &["O3"]), ("loom", &["O1"])],
+        &[],
+    );
+    fx.publish("relay", "falcon-v1.143.0", &input("O3", "relay", o3_facts()), Sign::Good);
+    fx.publish("gale", "v0.9.0", &input("O3", "gale", o3_facts()), Sign::Good);
+    let d = doc(&fx, Objective::O3, rules)?;
+    ensure!(vo(&d) == (2, 2), "want 2 of 2, got {:?}", vo(&d));
+    let gale = item(&d, "gale").ok_or("gale item missing")?;
+    ensure!(gale["counts"] == true, "gale not counted: {gale}");
+    Ok(())
+}
+
 // ---------------------------------------------------------------- O5
 
 fn gate(id: &str) -> Value {
@@ -383,6 +414,8 @@ const CASES: &[(&str, Case)] = &[
     ("o3_pass_false_is_fail", o3_pass_false_is_fail),
     ("o3_missing_fact_is_fail", o3_missing_fact_is_fail),
     ("o3_missing_input_stays_in_denominator", o3_missing_input_stays_in_denominator),
+    ("o3_tool_repo_without_input_stays_in_denominator", o3_tool_repo_without_input_stays_in_denominator),
+    ("o3_tool_repo_with_passing_facts_counts", o3_tool_repo_with_passing_facts_counts),
     ("o5_baseline", o5_baseline),
     ("o5_gap_switch_is_fail", o5_gap_switch_is_fail),
     ("o5_equivalence_not_in_ci_is_fail", o5_equivalence_not_in_ci_is_fail),
@@ -472,6 +505,8 @@ mod case {
         o3_pass_false_is_fail,
         o3_missing_fact_is_fail,
         o3_missing_input_stays_in_denominator,
+        o3_tool_repo_without_input_stays_in_denominator,
+        o3_tool_repo_with_passing_facts_counts,
         o5_baseline,
         o5_gap_switch_is_fail,
         o5_equivalence_not_in_ci_is_fail,

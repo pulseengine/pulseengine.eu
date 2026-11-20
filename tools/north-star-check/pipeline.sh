@@ -9,7 +9,7 @@
 #   harness (Rust)        -> a rule-3 mutant must fail the comparison; then the
 #                            Python script, the component, the optimised and
 #                            the signed component (wasmtime) and kiln must
-#                            agree on the committed data, the 15 planted
+#                            agree on the committed data, the 19 planted
 #                            violations and FUZZ seeded random cases
 #
 # The tools come from the varve layer pinned in varve.toml (scripts/install-varve.sh
