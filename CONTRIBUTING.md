@@ -195,9 +195,6 @@ component nobody uses, and one the guide invents fails the build.
 | `mermaid` | Mermaid diagram | `{% <mermaid> %}...{% </mermaid> %}` |
 | `figure(src, alt, caption)` | Raster/vector image with semantic caption | `{{< figure src="img.png", alt="...", caption="..." />}}` |
 | `tree(root, parts)` | ASCII-art directory tree | `{% <tree root="crates"> %}...{% </tree> %}` |
-| `project_card(name, desc, url, ...)` | Glass card for a project; optional `icon`, `badge`, `label`, `releases`, `vscode` | `{{< project_card name="meld", desc="...", url="...", icon="🔗", badge="accent" />}}` |
-| `compliance_artifact(id, prefix)` | One rivet artifact, resolved from site data | `{{< compliance_artifact id="REQ-001" />}}` |
-| `compliance_stats(prefix)` | Artifact counts by type | `{{< compliance_stats prefix="requirement" />}}` |
 | `factory_views` | The factory views panel; takes no arguments | `{{< factory_views />}}` |
 | `lang(code)` | One language block of a bilingual post (`en`, `de`), or a translator's note (`note`, shown only side by side); needs `[extra] bilingual = true` | `{% <lang code="de"> %}...{% </lang> %}` |
 
