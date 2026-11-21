@@ -763,6 +763,7 @@ jobs:
 
       - name: "Control: a lock with a known advisory fails the audit"
         run: |
+          set +e
           set -uo pipefail
           d=$(mktemp -d); cp scripts/fixtures/lock-controls/vulnerable-lock.toml "$d/Cargo.lock"
           if "$RUNNER_TEMP/audit/bin/cargo-audit" audit -f "$d/Cargo.lock"; then
@@ -772,6 +773,8 @@ jobs:
 
       - name: "Control: a manifest edited past its lock is refused"
         run: |
+          # GitHub runs steps with bash -e; the planted failure must not end the step
+          set +e
           set -uo pipefail
           d=$(mktemp -d); cp -R tools/seam-check/. "$d/"
           printf '\n[target.%s.dependencies]\nplanted_control = { package = "once_cell", version = "=1.19.0" }\n' "'cfg(any())'" >> "$d/Cargo.toml"
