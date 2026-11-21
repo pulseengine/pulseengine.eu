@@ -87,9 +87,16 @@
       z-index: 1;
     }
   </style>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* Self-hosted, same file as sass/_fonts.scss (variable font, latin). No CDN. */
+    @font-face {
+      font-family: 'Atkinson Hyperlegible Next';
+      font-style: normal;
+      font-weight: 400 700;
+      font-display: swap;
+      src: url(/fonts/NaPNcYPdHfdVxJw0IfIP0lvYFqijb-UxCtm5_wdGseiJn3q0pkZ_.woff2) format('woff2');
+    }
+  </style>
 </head>
 <body>
   <div class="content">
