@@ -754,6 +754,8 @@ jobs:
           set -euo pipefail
           n=0
           for l in $(git ls-files '*Cargo.lock'); do
+            # a fixture named *.Cargo.lock would match the glob; only real lockfiles count
+            [ "$(basename "$l")" = "Cargo.lock" ] || { echo "not a lockfile, rename it: $l"; exit 1; }
             echo "== $l"; "$RUNNER_TEMP/audit/bin/cargo-audit" audit -f "$l"; n=$((n+1))
           done
           echo "$n locks audited"
@@ -762,7 +764,7 @@ jobs:
       - name: "Control: a lock with a known advisory fails the audit"
         run: |
           set -uo pipefail
-          d=$(mktemp -d); cp scripts/fixtures/lock-controls/vulnerable.Cargo.lock "$d/Cargo.lock"
+          d=$(mktemp -d); cp scripts/fixtures/lock-controls/vulnerable-lock.toml "$d/Cargo.lock"
           if "$RUNNER_TEMP/audit/bin/cargo-audit" audit -f "$d/Cargo.lock"; then
             echo "control FAILED: audit passed a lock with tar 0.4.44"; exit 1
           fi

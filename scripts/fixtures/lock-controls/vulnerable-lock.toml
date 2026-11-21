@@ -1,5 +1,5 @@
-# Planted control for the lockfile audit (not a real lockfile; the .Cargo.lock
-# suffix keeps it out of `git ls-files '*Cargo.lock'`). tar 0.4.44 carries
+# Planted control for the lockfile audit (not a real lockfile). The name must
+# not end in Cargo.lock, or the audit picks it up. tar 0.4.44 carries
 # RUSTSEC-2026-0067/0068, so `cargo audit` on this file must exit non-zero.
 version = 4
 
