@@ -50,7 +50,7 @@ Colors are aligned with the thrum unified dashboard (`thrum/crates/thrum-api/ass
 - Text: `#e1e4ed` / `#8b90a0` (dim) / `#5c6070` (faint)
 - Semantic: green `#4ade80`, red `#f87171`, amber `#fbbf24`, cyan `#22d3ee`, purple `#c084fc`
 
-Fonts: Atkinson Hyperlegible Next (sans) + Mono, loaded from Google Fonts.
+Fonts: Atkinson Hyperlegible Next (sans) + Mono, self-hosted from `static/fonts` via `sass/_fonts.scss`. No CDN: every script, stylesheet and font is served from `static/`, and CI's "No third-party loads" step fails the build otherwise.
 
 ## Git workflow
 

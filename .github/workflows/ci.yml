@@ -134,6 +134,23 @@ jobs:
           fi
           "$ZOLA" build
 
+      # The site self-hosts every script, stylesheet and font (no CDN). The
+      # Playwright watchdog in tests/playwright is not run by any job, and
+      # Google Fonts plus a floating mermaid@11 from jsdelivr were live until
+      # this check landed. The control plants a CDN script and must go red.
+      - name: No third-party loads in the built site
+        run: |
+          set +e
+          bash scripts/check-no-third-party.sh public
+          rc=$?
+          [ "$rc" -eq 0 ] || exit "$rc"
+          ctl="$RUNNER_TEMP/third-party-control"
+          mkdir -p "$ctl"
+          printf '<script src="https://cdn.jsdelivr.net/npm/x@1/x.js"></script>\n' > "$ctl/index.html"
+          bash scripts/check-no-third-party.sh "$ctl" >/dev/null
+          if [ $? -ne 1 ]; then echo "control: a planted CDN script was not caught"; exit 1; fi
+          echo "control: planted CDN script caught"
+
       # `zola build` does not validate links, and `zola check
       # --skip-external-links` only understands Zola's `@/path.md` syntax —
       # measured: it exits 0 with a deliberately dead `/docs/guide/compliance/`

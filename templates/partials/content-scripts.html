@@ -5,8 +5,10 @@
 <script src="{{ get_url(path='codecopy.js', cachebust=true) }}" defer></script>
 <script src="{{ get_url(path='diagram-zoom.js', cachebust=true) }}" defer></script>
 {% if page.content is matching(pat="mermaid") %}
+{# Self-hosted mermaid (static/mermaid.min.js, vendored by `npm run vendor:mermaid`). No CDN. #}
+<script src="{{ get_url(path='mermaid.min.js', cachebust=true) }}"></script>
 <script type="module">
-  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+  const mermaid = globalThis.mermaid;
 
   // Mermaid's theming uses a JSON config object — it does not consume CSS
   // custom properties — so we mirror the two palettes here and pick the
