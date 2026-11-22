@@ -121,7 +121,7 @@ in one is less likely to be shared by the others:
   translation-validation engine. It is a pure-Rust, wasm-native QF_BV SMT solver
   whose untrusted core is paired with an LRAT (RUP) checker whose soundness
   (*accept ⇒ UNSAT*) is machine-checked in Lean 4 over an Aeneas-generated model
-  of the Rust (Charon/Aeneas, its front ends and rustc trusted). Each UNSAT answer carries an LRAT
+  of the Rust (ordeal's SMT-LIB and Verus front ends, the mirror copy, Charon/Aeneas, Lean's kernel and rustc trusted). Each UNSAT answer carries an LRAT
   certificate that the Lean-checked checker re-verifies.
 
 Proof and abstract interpretation cover all inputs *in principle*; witness
@@ -135,7 +135,7 @@ what is bounded and what is only tested. (For an honest look at the limits, see
 <div class="tool"><span class="tool__name">Verus · Rocq · Lean 4</span><p class="tool__does">Deductive proof, wired into Bazel by <a href="https://github.com/pulseengine/rules_verus" rel="noopener">rules_verus</a>, <a href="https://github.com/pulseengine/rules_rocq_rust" rel="noopener">rules_rocq_rust</a> and <a href="https://github.com/pulseengine/rules_lean" rel="noopener">rules_lean</a>.</p><p class="tool__maturity">Specific properties per project. Verus trusts <code>external_body</code>; Rocq accepts <code>Admitted</code>; some legs prove models, not the Rust.</p></div>
 <div class="tool"><a class="tool__name" href="https://github.com/pulseengine/scry" rel="noopener">scry</a><p class="tool__does">Abstract interpretation, designed to be sound, over the fused wasm; designed to feed loom.</p><p class="tool__maturity">Core domains and transfers proven in Rocq over scry's integer model; harder transfers tested, not proven; proof against WasmCert-Coq deferred.</p></div>
 <div class="tool"><a class="tool__name" href="https://github.com/pulseengine/witness" rel="noopener">witness</a><p class="tool__does">MC/DC-style structural coverage on the compiled wasm.</p><p class="tool__maturity">Source-level mapping rests on a stated DWARF-correctness assumption.</p></div>
-<div class="tool"><a class="tool__name" href="https://github.com/pulseengine/ordeal" rel="noopener">ordeal</a><p class="tool__does">Certificate-checked SMT solver: untrusted core, checked LRAT certificates.</p><p class="tool__maturity">Checker soundness machine-checked in Lean 4 over an Aeneas-generated model; Charon/Aeneas, its front ends and rustc trusted.</p></div>
+<div class="tool"><a class="tool__name" href="https://github.com/pulseengine/ordeal" rel="noopener">ordeal</a><p class="tool__does">Certificate-checked SMT solver: untrusted core, checked LRAT certificates.</p><p class="tool__maturity">Checker soundness machine-checked in Lean 4 over an Aeneas-generated model; ordeal's front ends, the mirror copy, Charon/Aeneas, Lean's kernel and rustc trusted.</p></div>
 </div>
 
 ### 5 · Ship — sigil · varve {#ship}
@@ -238,7 +238,7 @@ the methodology meets a real domain; each card says how far it has got.
 <div class="tools tools--built">
 <div class="tool"><a class="tool__name" href="https://github.com/pulseengine/relay" rel="noopener">relay</a><p class="tool__domain">flight software</p><p class="tool__does">Flight-software components for WebAssembly, inspired by NASA's cFS and reimagined as generic components, with formal proofs of specific safety properties: Verus contracts on the mission-layer crates, Kani bounded model checking, Lean for the controller's Lyapunov algebra.</p><p class="tool__maturity">Lean proves the Lyapunov algebra behind the SE(3) attitude controller (a model, not the Rust); the IEKF estimator is property-tested, with a proof still to land.</p></div>
 <div class="tool"><a class="tool__name" href="https://github.com/pulseengine/wohl" rel="noopener">wohl</a><p class="tool__domain">home supervision</p><p class="tool__does">Home supervision: sensor nodes send CCSDS packets to a hub that runs Kani-checked monitor components. Today's sensor is a wired STM32G0 bench node; sub-GHz field nodes are planned.</p></div>
-<div class="tool"><a class="tool__name" href="https://github.com/pulseengine/jess" rel="noopener">jess</a><p class="tool__domain">hardware integration</p><p class="tool__does">Where software meets metal: an evidence-as-code hub for taking relay's falcon flight stack from simulation, through hardware-in-the-loop, toward a real drone, tracked in rivet the whole way.</p><p class="tool__maturity">It hasn't run on drone hardware yet: Phase 2 is bench and tethered, free flight is Phase 3.</p></div>
+<div class="tool"><a class="tool__name" href="https://github.com/pulseengine/jess" rel="noopener">jess</a><p class="tool__domain">hardware integration</p><p class="tool__does">Where software meets metal: an evidence-as-code hub for taking relay's falcon flight stack from simulation, through hardware-in-the-loop, toward a real drone, tracked in rivet the whole way.</p><p class="tool__maturity">falcon's estimator has run from RAM on the Pixhawk 6X-RT's RT1176 in one-off bench runs, bit-exact with wasmtime; not yet repeatable, and it has not flown. Phase 2 is bench and tethered, free flight is Phase 3.</p></div>
 </div>
 
 ## Worked examples
@@ -274,7 +274,7 @@ examples, and integration tooling.
 <div class="tool"><a class="tool__name" href="https://github.com/pulseengine/rules_wasm_component" rel="noopener">rules_wasm_component</a><p class="tool__domain">Bazel rules</p><p class="tool__does">Bazel rules for WebAssembly Component Model development with multi-profile builds.</p></div>
 <div class="tool"><a class="tool__name" href="https://github.com/pulseengine/bazel-file-ops-component" rel="noopener">bazel-file-ops-component</a><p class="tool__domain">Bazel + WASM</p><p class="tool__does">Universal file operations for Bazel build systems via WebAssembly components.</p></div>
 <div class="tool"><a class="tool__name" href="https://github.com/pulseengine/covalent-layers" rel="noopener">covalent-layers</a><p class="tool__domain">layer composition</p><p class="tool__does">A layer that composes the pulseengine and pulseengine-wasm realms.</p></div>
-<div class="tool"><a class="tool__name" href="https://github.com/pulseengine/example-kvs" rel="noopener">example-kvs</a><p class="tool__domain">example</p><p class="tool__does">Eclipse S-CORE persistency through the PulseEngine stack: rivet, spar and WIT live; witness and sigil still skeletons.</p></div>
+<div class="tool"><a class="tool__name" href="https://github.com/pulseengine/example-kvs" rel="noopener">example-kvs</a><p class="tool__domain">example</p><p class="tool__does">Eclipse S-CORE persistency through the PulseEngine stack: rivet and WIT live; a spar model is present (its check is optional, not in CI); witness and sigil still skeletons.</p></div>
 <div class="tool"><a class="tool__name" href="https://github.com/pulseengine/playground-eclipse-score" rel="noopener">playground-eclipse-score</a><p class="tool__domain">playground</p><p class="tool__does">Eclipse S-CORE typed-traceability playground: sphinx-needs artifacts converted to rivet.</p></div>
 </div>
 
