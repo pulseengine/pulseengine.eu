@@ -74,8 +74,7 @@ Component code compiles to wasm. [meld](https://github.com/pulseengine/meld)
 fuses multiple components into one module,
 [loom](https://github.com/pulseengine/loom) optimizes it (multi-pass, via
 Cranelift ISLE), and [synth](https://github.com/pulseengine/synth) transcodes it
-toward native ARM and RISC-V; constructs without a lowering are refused, not
-miscompiled.
+toward native ARM and RISC-V; it refuses constructs it has no lowering for.
 
 In loom, translation validation is on by default: after each pass, a changed
 function is reverted unless Z3 (or ordeal) proves it equivalent, or it is listed
