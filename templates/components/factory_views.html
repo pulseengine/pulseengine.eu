@@ -40,11 +40,11 @@
       }
     </style>
 
-    <text class="fv-tag" fill="#4ade80" x="20" y="26">CHECKED BY — witness, scry and ordeal re-derive what they report</text>
+    <text class="fv-tag" fill="#4ade80" x="20" y="26">CHECKED BY — witness measures coverage, scry computes invariants, ordeal re-checks its answers by certificate</text>
     <text class="fv-mono" x="20" y="52" font-size="11">witness</text>
     <text class="fv-role" x="20" y="66">MC/DC on the shipped bytecode</text>
     <text class="fv-mono" x="300" y="52" font-size="11">scry</text>
-    <text class="fv-role" x="300" y="66">sound abstract interpretation</text>
+    <text class="fv-role" x="300" y="66">abstract interpretation, designed to be sound</text>
     <text class="fv-mono" x="580" y="52" font-size="11">ordeal</text>
     <text class="fv-role" x="580" y="66">certificate-checked SMT</text>
     <line class="fv-tick" stroke="#4ade80" x1="20" y1="78" x2="823" y2="78" />
@@ -65,7 +65,8 @@
     <text class="fv-role" x="400" y="182" text-anchor="middle">translation-validated by default</text>
     <text class="fv-role" x="580" y="182" text-anchor="middle">→ ARM · RISC-V, ahead of time</text>
     <text class="fv-role" x="760" y="182" text-anchor="middle">→ the same module, on a host</text>
-    <text class="fv-role" x="20" y="222" font-size="12">loom and synth re-check each transformation; witness, scry and ordeal re-derive what they report.</text>
+    <text class="fv-role" x="20" y="214" font-size="12">loom translation-validates each pass by default (exceptions listed in its trust ledger);</text>
+    <text class="fv-role" x="20" y="232" font-size="12">synth checks its lowering when run with --verify.</text>
   </svg>
 
   <svg class="fviews__svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 850 250" fill="none" role="img" data-panel="build" hidden
@@ -85,7 +86,7 @@
     <line class="fv-tick" stroke="#4ade80" x1="400" y1="78" x2="400" y2="105" />
     <line class="fv-tick" stroke="#4ade80" x1="580" y1="78" x2="580" y2="105" />
     <line class="fv-tick" stroke="#4ade80" x1="760" y1="78" x2="760" y2="105" />
-    <text class="fv-tag" fill="#4ade80" x="20" y="94">GATED — the build stops when the evidence is not there</text>
+    <text class="fv-tag" fill="#4ade80" x="20" y="94">GATED — each tool's CI fails when its checks fail</text>
 
     <rect class="fv-box" x="158" y="105" width="125" height="50" rx="8"/><text class="fv-name" x="220" y="127" text-anchor="middle">meld</text><text class="fv-role" x="220" y="143" text-anchor="middle">fuse</text>
     <rect class="fv-box" x="338" y="105" width="125" height="50" rx="8"/><text class="fv-name" x="400" y="127" text-anchor="middle">loom</text><text class="fv-role" x="400" y="143" text-anchor="middle">optimize</text>
@@ -96,9 +97,9 @@
     <line class="fv-tick" stroke="#c084fc" x1="400" y1="155" x2="400" y2="180" />
     <line class="fv-tick" stroke="#c084fc" x1="580" y1="155" x2="580" y2="180" />
     <line class="fv-tick" stroke="#c084fc" x1="760" y1="155" x2="760" y2="180" />
-    <text class="fv-tag" fill="#c084fc" x="20" y="198">ATTESTED — sigil signs what each stage produced, and the chain verifies detached</text>
+    <text class="fv-tag" fill="#c084fc" x="20" y="198">ATTESTED — sigil can sign what a stage produces; meld and loom embed transformation attestations</text>
     <line class="fv-tick" stroke="#c084fc" x1="20" y1="208" x2="823" y2="208" />
-    <text class="fv-role" x="20" y="234" font-size="12">A release is not a tag. It is every artifact above, traced to a requirement and carrying evidence a third party can re-check.</text>
+    <text class="fv-role" x="20" y="234" font-size="12">A release is meant to be every artifact above, traced to a requirement and carrying evidence a third party can re-check.</text>
   </svg>
 
   <svg class="fviews__svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 850 250" fill="none" role="img" data-panel="use" hidden
