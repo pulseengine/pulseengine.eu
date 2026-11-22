@@ -10,14 +10,14 @@
    three questions and forced a three-sentence reading key. Here every edge
    inside a view means one thing, so no key is needed. #}
 <div class="fviews" id="fviews">
-  <div class="fviews__nav" role="tablist" aria-label="Views of the toolchain">
+  <div class="fviews__nav" role="tablist" aria-label="Views of the PulseEngine tools">
     <button class="fviews__btn fviews__btn--on" role="tab" aria-selected="true"  data-view="wasm">Manipulate &amp; check</button>
     <button class="fviews__btn"                 role="tab" aria-selected="false" data-view="build">Build, verify, release</button>
     <button class="fviews__btn"                 role="tab" aria-selected="false" data-view="use">Use it</button>
   </div>
 
   <svg class="fviews__svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 850 250" fill="none" role="img" data-panel="wasm"
-       aria-label="What the toolchain does to a WebAssembly component, and what checks each step">
+       aria-label="What the PulseEngine tools do to a WebAssembly component, and what checks them">
     <style>
       .fv-box   { fill: #1a1d27; stroke: #2e3345; stroke-width: 1.2; }
       .fv-name  { fill: #e1e4ed; font-family: 'Atkinson Hyperlegible Next', system-ui, sans-serif; font-size: 15px; font-weight: 600; }
@@ -40,18 +40,16 @@
       }
     </style>
 
-    <text class="fv-tag" fill="#4ade80" x="20" y="26">CHECKED BY — every step re-derives its own claim</text>
+    <text class="fv-tag" fill="#4ade80" x="20" y="26">CHECKED BY — witness measures coverage, scry computes invariants, ordeal re-checks its answers by certificate</text>
     <text class="fv-mono" x="20" y="52" font-size="11">witness</text>
     <text class="fv-role" x="20" y="66">MC/DC on the shipped bytecode</text>
     <text class="fv-mono" x="300" y="52" font-size="11">scry</text>
-    <text class="fv-role" x="300" y="66">sound abstract interpretation</text>
+    <text class="fv-role" x="300" y="66">abstract interpretation, designed to be sound</text>
     <text class="fv-mono" x="580" y="52" font-size="11">ordeal</text>
     <text class="fv-role" x="580" y="66">certificate-checked SMT</text>
     <line class="fv-tick" stroke="#4ade80" x1="20" y1="78" x2="823" y2="78" />
-    <line class="fv-tick" stroke="#4ade80" x1="220" y1="78" x2="220" y2="105" />
     <line class="fv-tick" stroke="#4ade80" x1="400" y1="78" x2="400" y2="105" />
     <line class="fv-tick" stroke="#4ade80" x1="580" y1="78" x2="580" y2="105" />
-    <line class="fv-tick" stroke="#4ade80" x1="760" y1="78" x2="760" y2="105" />
 
     <text class="fv-mono" x="75" y="134">.wasm</text>
     <line class="fv-edge" x1="112" y1="130" x2="148" y2="130" /><polygon class="fv-head" points="148,126 158,130 148,134" />
@@ -64,10 +62,11 @@
     <a href="https://github.com/pulseengine/kiln" target="_blank"><rect class="fv-box" x="698" y="105" width="125" height="50" rx="8" style="cursor:pointer"/><text class="fv-name" x="760" y="127" text-anchor="middle">kiln</text><text class="fv-role" x="760" y="143" text-anchor="middle">interpret</text></a>
 
     <text class="fv-role" x="220" y="182" text-anchor="middle">many components → one module</text>
-    <text class="fv-role" x="400" y="182" text-anchor="middle">each pass validated per run</text>
+    <text class="fv-role" x="400" y="182" text-anchor="middle">translation-validated by default</text>
     <text class="fv-role" x="580" y="182" text-anchor="middle">→ ARM · RISC-V, ahead of time</text>
     <text class="fv-role" x="760" y="182" text-anchor="middle">→ the same module, on a host</text>
-    <text class="fv-role" x="20" y="222" font-size="12">Manipulation and checking are one claim: the transformation preserved meaning, and something independent re-derived that.</text>
+    <text class="fv-role" x="20" y="214" font-size="12">loom translation-validates each pass by default (exceptions listed in its trust ledger);</text>
+    <text class="fv-role" x="20" y="232" font-size="12">synth checks its lowering when run with --verify.</text>
   </svg>
 
   <svg class="fviews__svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 850 250" fill="none" role="img" data-panel="build" hidden
@@ -87,7 +86,7 @@
     <line class="fv-tick" stroke="#4ade80" x1="400" y1="78" x2="400" y2="105" />
     <line class="fv-tick" stroke="#4ade80" x1="580" y1="78" x2="580" y2="105" />
     <line class="fv-tick" stroke="#4ade80" x1="760" y1="78" x2="760" y2="105" />
-    <text class="fv-tag" fill="#4ade80" x="20" y="94">GATED — the build stops when the evidence is not there</text>
+    <text class="fv-tag" fill="#4ade80" x="20" y="94">GATED — one CI gate per tool</text>
 
     <rect class="fv-box" x="158" y="105" width="125" height="50" rx="8"/><text class="fv-name" x="220" y="127" text-anchor="middle">meld</text><text class="fv-role" x="220" y="143" text-anchor="middle">fuse</text>
     <rect class="fv-box" x="338" y="105" width="125" height="50" rx="8"/><text class="fv-name" x="400" y="127" text-anchor="middle">loom</text><text class="fv-role" x="400" y="143" text-anchor="middle">optimize</text>
@@ -98,13 +97,13 @@
     <line class="fv-tick" stroke="#c084fc" x1="400" y1="155" x2="400" y2="180" />
     <line class="fv-tick" stroke="#c084fc" x1="580" y1="155" x2="580" y2="180" />
     <line class="fv-tick" stroke="#c084fc" x1="760" y1="155" x2="760" y2="180" />
-    <text class="fv-tag" fill="#c084fc" x="20" y="198">ATTESTED — wsc signs what each stage produced, and the chain verifies detached</text>
+    <text class="fv-tag" fill="#c084fc" x="20" y="198">ATTESTED — sigil can sign what a stage produces; meld and loom embed transformation attestations</text>
     <line class="fv-tick" stroke="#c084fc" x1="20" y1="208" x2="823" y2="208" />
-    <text class="fv-role" x="20" y="234" font-size="12">A release is not a tag. It is every artifact above, traced to a requirement and carrying evidence a third party can re-check.</text>
+    <text class="fv-role" x="20" y="234" font-size="12">A release is meant to be every artifact above, traced to a requirement and carrying evidence a third party can re-check.</text>
   </svg>
 
   <svg class="fviews__svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 850 250" fill="none" role="img" data-panel="use" hidden
-       aria-label="How the toolchain is delivered and consumed">
+       aria-label="How the PulseEngine tools are delivered and consumed">
     <text class="fv-tag" fill="#22d3ee" x="20" y="26">DELIVERED AS ONE LAYER — signed, dated, digest-pinned</text>
     <text class="fv-mono" x="20" y="46">pulseengine-layers/layer.toml</text>
     <line class="fv-edge" stroke="#22d3ee" x1="250" y1="42" x2="290" y2="42" /><polygon class="fv-head" fill="#22d3ee" points="290,38 300,42 290,46" />
@@ -117,7 +116,7 @@
     <rect class="fv-box" x="338" y="105" width="125" height="50" rx="8"/><text class="fv-name" x="400" y="127" text-anchor="middle">loom</text><text class="fv-role" x="400" y="143" text-anchor="middle">optimize</text>
     <rect class="fv-box" x="518" y="105" width="125" height="50" rx="8"/><text class="fv-name" x="580" y="127" text-anchor="middle">synth</text><text class="fv-role" x="580" y="143" text-anchor="middle">transcode</text>
     <rect class="fv-box" x="698" y="105" width="125" height="50" rx="8"/><text class="fv-name" x="760" y="127" text-anchor="middle">kiln</text><text class="fv-role" x="760" y="143" text-anchor="middle">interpret</text>
-    <text class="fv-role" x="20" y="134">the same nine tools</text>
+    <text class="fv-role" x="20" y="134">the same four tools</text>
 
     <line class="fv-tick" stroke="#22d3ee" x1="300" y1="167" x2="300" y2="192" />
     <line class="fv-tick" stroke="#22d3ee" x1="620" y1="167" x2="620" y2="192" />
@@ -125,7 +124,7 @@
     <text class="fv-role" x="300" y="222" text-anchor="middle">your terminal</text>
     <text class="fv-mono" x="620" y="208" text-anchor="middle">varve.configure</text>
     <text class="fv-role" x="620" y="222" text-anchor="middle">Bazel, via rules_wasm_component</text>
-    <text class="fv-role" x="20" y="243" font-size="12">One varve.toml governs both surfaces, so the terminal and CI cannot silently run different tools.</text>
+    <text class="fv-role" x="20" y="243" font-size="12">One varve.toml is meant to govern both surfaces (the Bazel extension is experimental).</text>
   </svg>
 </div>
 {% endcomponent %}

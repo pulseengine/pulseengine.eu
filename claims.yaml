@@ -1419,8 +1419,8 @@ claims:
         text: "the job is inert until the `CLAUDE_CODE_OAUTH_TOKEN`"
 
   # ── relay and the org are not described as flatly "formally verified" ──────
-  # relay was "formally verified flight software" on the projects page and in
-  # the guide. What relay records is proofs of specific properties: Verus on the
+  # relay was "formally verified flight software" on the projects page (now
+  # merged into how-it-works) and in the guide. What relay records is proofs of specific properties: Verus on the
   # cFS mission-layer crates, Kani on their engines, Rocq over models of five of
   # them, Lean for the controller's Lyapunov algebra and WCET composition; the
   # estimator is property-tested and the composed pipeline's MC/DC is 0/2713
@@ -1428,7 +1428,7 @@ claims:
   # WebAssembly toolchain", which is both unscoped and the wrong noun. The
   # social-card generator carried the same flat headline.
   - id: SITE-NO-FLAT-VERIFIED-RELAY-OR-TOOLCHAIN
-    doc: templates/projects.html
+    doc: content/how-it-works.md
     text: "with formal proofs of specific safety properties"
     evidence:
       - kind: count-max
