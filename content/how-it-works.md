@@ -148,7 +148,7 @@ registry and the trust root, so no environment variable is involved. Outside a
 pinned project a shim **refuses**, naming the missing `varve.toml` (exit 1),
 rather than silently running whatever is on PATH. Anti-rollback is
 offline after the first install (a fresh consumer has no high-water mark yet): an
-older layer is rejected with no network and no clock.
+older layer is rejected by a check that needs no network and no clock.
 
 Realms compose:
 `pulseengine` carries PulseEngine's own tools, `pulseengine-wasm` carries the
