@@ -3329,3 +3329,25 @@ claims:
         pattern: '\n +python3 scripts/check-loop-guard\.py\n'
         glob: ['.github/workflows/ci.yml']
         max: 1
+
+  # ── the owner's notice view never swallows a refused warte read ──────────
+  # warte 1.6.44 makes agent data reads need agents:read (agents:any for other
+  # agents). gather() used to `except Exception: pass`, so a refusal would have
+  # shown only local copies with no sign anything was missing.
+  - id: PLUGIN-NOTICE-GATHER-SAYS-REFUSED
+    doc: claude-tooling/plugins/pulseengine-claude/skills/factory-notice/notice.py
+    text: "The owner view needs a token with agents:read and agents:any"
+    evidence:
+      - kind: count-min
+        pattern: 'refused notices for \{len\(refused\)\} agent'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/factory-notice/notice.py']
+        min: 1
+      - kind: count-min
+        pattern: 'check\("gather: a 403 on agent rows is said'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/factory-notice/notice.py']
+        min: 1
+      - kind: count-max
+        pattern: 'except Exception:\n\s+pass\n\s+return sorted\(seen'
+        glob: ['claude-tooling/plugins/pulseengine-claude/skills/factory-notice/notice.py']
+        max: 0
+

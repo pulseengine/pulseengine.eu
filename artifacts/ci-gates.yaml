@@ -1578,3 +1578,29 @@ artifacts:
     links:
       - type: verifies
         target: REQ-NORTH-STAR-SERVES
+
+  - id: REQ-NOTICE-GATHER-SAYS-REFUSED
+    type: requirement
+    title: The owner's notice view says when warte refuses or fails a read
+    description: >-
+      factory-notice gather(), which feeds list, the digest and window-tick, reports on stderr when warte refuses (401/403) or fails to list agents or an agent's notice rows, naming the agents affected and, for a refusal, that the owner view needs a token with agents:read and agents:any. It keeps listing local copies and never reports a refused read as a refused write. warte 1.6.44 makes these reads need agents:read (and agents:any for other agents), so a silent failure would hide warte-held notices from the owner's decision view.
+    verification-criteria: >-
+      Fails if a 403 on an agent's rows produces no message naming agents:read and agents:any, if the message says "refused the write", if the client is marked unwritable by a refused read, or if local notices disappear from the list.
+    status: verified
+    release: "0.69.0"
+    category: functional
+    priority: must
+
+  - id: VER-NOTICE-GATHER-SAYS-REFUSED
+    type: verification
+    title: Self-test with a stub warte that answers 403 to agent data reads
+    description: >-
+      notice.py --self-test (run in CI's build job) sets the in-process stub to answer 403 on GET /api/agents/{id}/data and calls gather(): it must print "refused notices for" with "agents:read and agents:any", must not print "refused the write", must leave the client writable, and must still list local copies. Negative control: a copy of notice.py whose gather() skips a refused agent without recording it fails the first check.
+    status: verified
+    release: "0.69.0"
+    method: automated-test
+    test-location: claude-tooling/plugins/pulseengine-claude/skills/factory-notice/notice.py
+    links:
+      - type: verifies
+        target: REQ-NOTICE-GATHER-SAYS-REFUSED
+
