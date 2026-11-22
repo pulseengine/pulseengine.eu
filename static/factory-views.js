@@ -1,8 +1,7 @@
 // Stacked views of one factory (#194).
 //
-// Deliberately NOT cube.js: that is 308 lines of 3D transform, pointer drag and
-// touch handling for the Projects cube. This is the same [data-view] / panel
-// idiom with none of the geometry — switching a layer, not rotating a solid.
+// A [data-view] / panel switcher with no geometry: switching a layer, not
+// rotating a solid.
 //
 // The chosen view lives in the URL hash so a view is linkable: someone arguing
 // about the supply chain can send #view=use directly.

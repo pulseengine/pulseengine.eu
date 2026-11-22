@@ -1,15 +1,16 @@
 +++
 title = "How it works"
-description = "One path from a system-architecture model to signed code running on hardware — and how the PulseEngine tools compose along it. The Projects page shows the parts; this shows the flow."
+description = "One path from a system-architecture model to signed code running on hardware — the PulseEngine tools that compose along it, stage by stage, and the projects built on top."
 template = "how-it-works.html"
+aliases = ["/projects/"]
 +++
 
 PulseEngine is not a single program. It's a set of small, independent tools —
 each doing one job in the life of a safety-critical WebAssembly component, and
-each independently verifiable. The [Projects](@/projects/_index.md) page lays out
-the parts by role. This page shows the **flow**: how one thing travels from a
-system-architecture model, through build and verification, to signed artifacts
-running on a real target.
+each independently verifiable. This page shows the **flow**: how one thing
+travels from a system-architecture model, through build and verification, to
+signed artifacts running on a real target — and, stage by stage, which tools do
+the work and how far along each one is.
 
 {% <note kind="tip"> %}
 Everything here is **work in progress**, at varying maturity. The tools compose
@@ -38,49 +39,127 @@ would repeat the error the arrows made. They have their own section below.
 
 ## Following the flow
 
-### 1 · Design — spar
+<nav class="stage-key" aria-label="Stages">
+<a href="#design">Design</a><a href="#trace">Trace</a><a href="#build">Build</a><a href="#verify">Verify</a><a href="#ship">Ship</a><a href="#gate">Gate</a><a href="#run">Run</a>
+</nav>
 
-[spar](https://github.com/pulseengine/spar) ingests AADL v2.3, SysML v2, and
-CAN/DBC into one semantic model, runs safety analysis and TSN timing bounds, and
-then *generates* what everything downstream starts from: WIT interfaces, Rust
-skeletons, Lean 4 proof-obligation skeletons (theorem statements to discharge
-downstream), and rivet artifacts. The design is checked before any code exists.
-(spar's scheduling proofs are fully discharged; its TSN timing bounds are
-cross-validated against a reference tool, not yet machine-proven.)
+### 1 · Design — spar {#design}
 
-### 2 · Trace — rivet (the spine)
+[spar](https://github.com/pulseengine/spar) is a compiler for system-architecture
+models. It ingests AADL v2.3, SysML v2, and CAN/DBC into one semantic model, runs
+pluggable analysis passes — safety analysis, ARINC 653 partitioning, and TSN
+timing bounds — plus a deployment solver, and then *generates* what everything
+downstream starts from: WIT interfaces, Rust skeletons, Lean 4 proof-obligation
+skeletons (theorem statements to discharge downstream), and rivet artifacts. It
+also renders SVG, ships an LSP server and a
+[VS Code extension](https://marketplace.visualstudio.com/items?itemName=pulseengine.spar-aadl),
+and compiles to a single WebAssembly component. The design is checked before any
+code exists.
+
+<div class="tools tools--design">
+<div class="tool"><a class="tool__name" href="https://github.com/pulseengine/spar" rel="noopener">spar</a><p class="tool__does">Architecture models (AADL, SysML v2, CAN/DBC) in; analyses, WIT, Rust and Lean 4 skeletons and rivet artifacts out.</p><p class="tool__maturity">Scheduling proofs fully discharged; TSN timing bounds cross-validated against a reference tool, not yet machine-proven. Among the most exercised tools.</p></div>
+</div>
+
+### 2 · Trace — rivet (the spine) {#trace}
 
 [rivet](https://github.com/pulseengine/rivet) is a schema-driven SDLC artifact
 manager: requirement → architecture → design → code → test, with built-in schemas
-for ISO 26262, DO-178C, IEC 61508, EN 50128, IEC 62304, the EU AI Act, and STPA /
-STPA-Sec / STPA-AI. It imports spar's models and CI's test results, validates the
-traceability integrity of the whole V on every commit, and generates compliance
-reports each release. It's the thread every other tool hangs its evidence on.
+for ISO 26262, ISO/PAS 8800, ASPICE, DO-178C, IEC 61508, EN 50128, IEC 62304,
+SOTIF, the EU AI Act, STPA / STPA-Sec / STPA-AI and GSN safety cases, plus
+cross-domain bridge schemas. It imports spar's models and CI's test results,
+validates the traceability integrity of the whole V on every commit — broken
+links fail the build — and generates compliance reports each release
+([Reports](@/reports/_index.md)). It's the thread every other tool hangs its
+evidence on.
 
-### 3 · Build — meld → loom → synth
+<div class="tools tools--trace">
+<div class="tool"><a class="tool__name" href="https://github.com/pulseengine/rivet" rel="noopener">rivet</a><p class="tool__does">Typed, schema-checked traceability across the V; validates on every commit and generates compliance reports per release.</p><p class="tool__maturity">Among the most exercised tools.</p></div>
+</div>
+
+### 3 · Build — meld → loom → synth {#build}
 
 Component code compiles to wasm; [meld](https://github.com/pulseengine/meld)
 fuses multiple components into one module;
-[loom](https://github.com/pulseengine/loom) optimizes it and is
-**translation-validated** — each optimization is *checked* per run (Z3 where the
-function is in scope, a structural + differential backstop otherwise), not trusted;
-[synth](https://github.com/pulseengine/synth) transcodes wasm toward native **ARM —
-Cortex-M, Cortex-R5, and AArch64 (ARMv8) — and RISC-V**, and it's exercised on **real
-silicon**: bare-metal and cycle-gated on Cortex-M3, Cortex-M4, and RISC-V (ESP32-C3),
-and host-native on **Apple Silicon** (AArch64/ARMv8-A, differential-tested against
-wasmtime). Still early: integer only (scalar float is rejected, not miscompiled), no
-fused multi-memory yet.
+[loom](https://github.com/pulseengine/loom) optimizes it (multi-pass, via
+Cranelift ISLE) and is **translation-validated** — each optimization is *checked*
+per run (Z3 where the function is in scope, a structural + differential backstop
+otherwise), not trusted; [synth](https://github.com/pulseengine/synth) transcodes
+wasm toward native **ARM — Cortex-M, Cortex-R5, and AArch64 (ARMv8) — and
+RISC-V**, and it's exercised on **real silicon**: bare-metal and cycle-gated on
+Cortex-M3, Cortex-M4, and RISC-V (ESP32-C3), and host-native on **Apple Silicon**
+(AArch64/ARMv8-A, differential-tested against wasmtime). Three separate tools, one
+flow; every stage is independently verifiable.
 
+<div class="tools tools--build">
+<div class="tool"><a class="tool__name" href="https://github.com/pulseengine/meld" rel="noopener">meld</a><p class="tool__does">Fuses multiple WebAssembly components into a single module.</p><p class="tool__maturity">Work in progress.</p></div>
+<div class="tool"><a class="tool__name" href="https://github.com/pulseengine/loom" rel="noopener">loom</a><p class="tool__does">Multi-pass optimizer for the fused module.</p><p class="tool__maturity">Translation-validated per run: Z3 where the function is in scope, a structural + differential backstop otherwise.</p></div>
+<div class="tool"><a class="tool__name" href="https://github.com/pulseengine/synth" rel="noopener">synth</a><p class="tool__does">Transcodes wasm toward native ARM (Cortex-M, Cortex-R5, AArch64) and RISC-V.</p><p class="tool__maturity">Still early: integer only (scalar float is rejected, not miscompiled), no fused multi-memory yet.</p></div>
+</div>
+
+### 4 · Verify — the gate on the code {#verify}
+
+Not one technique but several, deliberately independent, so no single blind spot
+is shared across them:
+
+- **Verus · Rocq · Lean 4** — deductive proof. **Verus** checks requires/ensures
+  contracts on Rust source via SMT/Z3; functions marked `external_body` are
+  trusted, not checked. **Rocq** machine-checks invariants; in gale and relay
+  these are hand-written abstract models, not connected to the Rust. **Lean 4**
+  proves results about models of the domain: in gale, rate-monotonic utilization
+  bounds, the priority ceiling protocol and ring-buffer index arithmetic. Some
+  legs prove the Rust source directly; others prove a hand-transcribed model, and
+  where they do, that model↔code link is itself named as trusted base (see
+  [the maturity series](/tags/how-it-works/)).
+- **[scry](https://github.com/pulseengine/scry)** — sound abstract interpretation
+  over the fused *wasm* (the third DO-333 leg), computing invariants that hold for
+  all executions and feeding them downstream to loom. Soundness is machine-checked
+  over scry's integer model; the proof against canonical Wasm semantics is still
+  in progress.
+- **[witness](https://github.com/pulseengine/witness)** — MC/DC-style structural
+  coverage on the *compiled* wasm: it measures the bytecode that actually ships
+  (source-level mapping rests on a stated DWARF-correctness assumption).
+- **[ordeal](https://github.com/pulseengine/ordeal)** underwrites the deductive
+  layer itself — a pure-Rust, wasm-native QF_BV SMT solver whose untrusted core is
+  paired with an LRAT (RUP) checker whose soundness (*accept ⇒ UNSAT*) is
+  machine-checked in Lean 4 over an Aeneas-generated model of the Rust
+  (Charon/Aeneas trusted). Even its UNSAT answers carry evidence a checker can
+  re-verify — a rare, strong core.
+
+Proof and abstract interpretation cover all inputs *in principle*; witness
+measures the bytecode that actually ships. No single technique spans both — which
+is the point. How far each technique reaches differs by project: gale and relay
+run Verus, Kani, Rocq and Lean in CI on specific properties, and their docs say
+what is proven, what is bounded and what is only tested. A green proof job is not
+the same as everything proven: Rocq accepts `Admitted`, and Verus trusts
+`external_body`. (For an honest look at the limits, see
+[this eval](@/blog/2026-07-09-honest-failure-by-construction.md).)
+
+<div class="tools tools--verify">
+<div class="tool"><span class="tool__name">Verus · Rocq · Lean 4</span><p class="tool__does">Deductive proof, wired into Bazel by <a href="https://github.com/pulseengine/rules_verus" rel="noopener">rules_verus</a>, <a href="https://github.com/pulseengine/rules_rocq_rust" rel="noopener">rules_rocq_rust</a> and <a href="https://github.com/pulseengine/rules_lean" rel="noopener">rules_lean</a>.</p><p class="tool__maturity">Specific properties per project. Verus trusts <code>external_body</code>; Rocq accepts <code>Admitted</code>; some legs prove models, not the Rust.</p></div>
+<div class="tool"><a class="tool__name" href="https://github.com/pulseengine/scry" rel="noopener">scry</a><p class="tool__does">Sound abstract interpretation over the fused wasm.</p><p class="tool__maturity">Soundness machine-checked over scry's integer model; the proof against canonical Wasm semantics is still in progress.</p></div>
+<div class="tool"><a class="tool__name" href="https://github.com/pulseengine/witness" rel="noopener">witness</a><p class="tool__does">MC/DC-style structural coverage on the compiled wasm.</p><p class="tool__maturity">Source-level mapping rests on a stated DWARF-correctness assumption. Among the most exercised tools.</p></div>
+<div class="tool"><a class="tool__name" href="https://github.com/pulseengine/ordeal" rel="noopener">ordeal</a><p class="tool__does">Certificate-checked SMT solver: untrusted core, checked LRAT certificates.</p><p class="tool__maturity">Checker soundness machine-checked in Lean 4 over an Aeneas-generated model; Charon/Aeneas trusted.</p></div>
+</div>
+
+### 5 · Ship — sigil · varve {#ship}
+
+[sigil](https://github.com/pulseengine/sigil) can sign artifacts and
+transformations — embedded signatures, Sigstore keyless or Ed25519, SLSA
+provenance — so what Verify establishes stays bound to exactly the bytes that run.
+sigil's embedded-signature lineage traces to Frank Denis's
+[wasmsign2](https://github.com/jedisct1/wasmsign2) (MIT): we took it over and
+diverged substantially — roughly 18× the code and the signing engine rewritten — but
+the original DNA is his.
 
 **The two bands read in opposite directions.**
-[sigil](https://github.com/pulseengine/sigil) spans *above* the line because it
-acts on what flows through it — attesting the artifacts the pipeline produces.
+sigil spans *above* the line in the factory views because it acts on what flows
+through it — attesting the artifacts the pipeline produces.
 [varve](https://github.com/pulseengine/varve) spans *below* because it delivers
 the boxes themselves: the exact meld, loom, synth and kiln binaries a build ran,
 as one signed, dated, digest-pinned layer. sigil answers *"is this component what
 it claims to be?"* — varve answers *"is the toolchain that produced it the one you
 think, on every machine and every runner?"* A packaging line, not another station
-on the assembly line.
+on the assembly line: it is what makes "which pipeline" answerable.
 
 A per-project `varve.toml` names a realm and a layer; the realm supplies both the
 registry and the trust root, so no environment variable is involved. Outside a
@@ -100,44 +179,35 @@ composes the other two: `pulseengine` carries the tools that *check* our work,
 together. Each included layer is verified against its own realm's root, so a
 composing realm asserts a pairing and cannot widen trust.
 
-### 4 · Verify — the gate
+<div class="tools tools--ship">
+<div class="tool"><a class="tool__name" href="https://github.com/pulseengine/sigil" rel="noopener">sigil</a><p class="tool__does">Signs and attests artifacts and transformations: embedded signatures, Sigstore keyless or Ed25519, SLSA provenance.</p><p class="tool__maturity">Among the most exercised tools.</p></div>
+<div class="tool"><a class="tool__name" href="https://github.com/pulseengine/varve" rel="noopener">varve</a><p class="tool__does">Delivers the pinned, signed toolchain layer: the exact binaries a build ran, signed, dated and digest-pinned.</p><p class="tool__maturity">Rolling channel provisional, no qualification promise; no key rotation, revocation, expiry, threshold or transparency log yet.</p></div>
+</div>
 
-Not one technique but several, deliberately independent, so no single blind spot
-is shared across them:
+### 6 · Gate — jig · plant · sieve {#gate}
 
-- **Verus · Rocq · Lean 4** — deductive proof (SMT/Z3, theorem proving, scheduling
-  theory). Some legs prove the Rust source directly; others prove a hand-transcribed
-  model, and where they do, that model↔code link is itself named as trusted base
-  (see [the maturity series](/tags/how-it-works/)).
-- **[scry](https://github.com/pulseengine/scry)** — sound abstract interpretation
-  over the fused *wasm* (the third DO-333 leg). Soundness is machine-checked over
-  scry's integer model; the proof against canonical Wasm semantics is still in
-  progress.
-- **[witness](https://github.com/pulseengine/witness)** — MC/DC-style structural
-  coverage on the *compiled* wasm: it measures the bytecode that actually ships
-  (source-level mapping rests on a stated DWARF-correctness assumption).
-- **[ordeal](https://github.com/pulseengine/ordeal)** underwrites the deductive
-  layer itself — a certificate-checked SMT solver whose untrusted core is paired
-  with an LRAT (RUP) checker whose soundness (*accept ⇒ UNSAT*) is machine-checked
-  in Lean 4 over an Aeneas-generated model of the Rust (Charon/Aeneas trusted). Even
-  its UNSAT answers carry evidence a checker can re-verify — a rare, strong core.
+Every stage above reports through CI, so the CI checks are evidence too. A green
+CI check means "nothing I looked at was wrong". It does not say whether the check
+looked. This stage is about proving the checks themselves can fail.
+[plant](https://github.com/pulseengine/plant) runs each check against an input it
+must reject, a planted bad input, and fails when the check stays green.
+[jig](https://github.com/pulseengine/jig) is the shared CI baseline for
+pulseengine repositories: reusable GitHub Actions workflows, pinned by commit
+SHA, and the Rust checker they run — a fail-closed fork guard, a lockfile and
+audit check, an action-pin check, and a required verdict that is red on any
+failure, cancellation or unselected skip. jig runs its own plant controls.
+[sieve](https://github.com/pulseengine/sieve) decides per pull request which heavy
+CI jobs a change touches; when it is unsure, everything runs. The false-skip
+controls against sieve live in plant, by design: the decider and its check live
+apart. All three are work in progress.
 
-Proof and abstract interpretation cover all inputs *in principle*; witness
-measures the bytecode that actually ships. No single technique spans both — which
-is the point. (For an honest look at the limits, see
-[this eval](@/blog/2026-07-09-honest-failure-by-construction.md).)
+<div class="tools tools--gate">
+<div class="tool"><a class="tool__name" href="https://github.com/pulseengine/plant" rel="noopener">plant</a><p class="tool__does">Runs each CI check against a planted bad input and fails when the check stays green.</p><p class="tool__maturity">Work in progress, pre-1.0.</p></div>
+<div class="tool"><a class="tool__name" href="https://github.com/pulseengine/jig" rel="noopener">jig</a><p class="tool__does">Shared CI baseline: reusable workflows pinned by SHA, plus fork guard, lockfile audit, action pins and a required verdict.</p><p class="tool__maturity">v0.1.0 in preparation, work in progress. No repository can adopt it before a pending plant release and jig's own first signed release.</p></div>
+<div class="tool"><a class="tool__name" href="https://github.com/pulseengine/sieve" rel="noopener">sieve</a><p class="tool__does">Shared CI path classifier: picks which heavy jobs a pull request touches; unsure means everything runs.</p><p class="tool__maturity">Work in progress.</p></div>
+</div>
 
-### 5 · Attest — sigil
-
-[sigil](https://github.com/pulseengine/sigil) can sign artifacts and
-transformations — embedded signatures, Sigstore keyless, SLSA provenance — so what
-Verify establishes stays bound to exactly the bytes that run. sigil's
-embedded-signature lineage traces to Frank Denis's
-[wasmsign2](https://github.com/jedisct1/wasmsign2) (MIT): we took it over and
-diverged substantially — roughly 18× the code and the signing engine rewritten — but
-the original DNA is his.
-
-### 6 · Run — kiln · gale
+### 7 · Run — kiln · gale {#run}
 
 [kiln](https://github.com/pulseengine/kiln) is an interpreter and runtime for
 Component-Model wasm (partial WASI 0.2, early development). The interpreter runs on
@@ -158,38 +228,22 @@ that runs on **real silicon across three chips and two architectures** — Corte
 same components and bit-identical to native, with no runtime underneath; the same
 components also [run live in a browser](https://pulseengine.github.io/gale/).
 
-### 7 · Built on the base — relay · wohl · jess
+<div class="tools tools--run">
+<div class="tool"><a class="tool__name" href="https://github.com/pulseengine/kiln" rel="noopener">kiln</a><p class="tool__does">Interpreter and runtime for Component-Model wasm.</p><p class="tool__maturity">Early development, partial WASI 0.2. The interpreter runs on std; bare metal is synth's native path.</p></div>
+<div class="tool"><a class="tool__name" href="https://github.com/pulseengine/gale" rel="noopener">gale</a><p class="tool__does">Rust replacements for Zephyr kernel primitives, with Verus contracts on the source; its North Star is gust, a multi-tenant verified OS.</p><p class="tool__maturity">Some primitives proven, parts of the scheduler still admitted stubs; Rocq/Lean proofs over abstract models; multi-tenant isolation on the roadmap.</p></div>
+</div>
 
-Applications exercise the chain end-to-end.
+## Built on the base — relay · wohl · jess {#built}
+
 These are not another stage of the pipeline — they are products built *with*
-it, and the place the methodology meets a real domain.
-[relay](https://github.com/pulseengine/relay) is flight software — a formally
-*verifiable* control cascade: its geometric SE(3) attitude loop carries a
-Lean-proven Lyapunov argument, while the IEKF estimator is property-tested with a
-proof still to land. [wohl](https://github.com/pulseengine/wohl) is home
-supervision. [jess](https://github.com/pulseengine/jess) is where software meets
-metal: an evidence-as-code hub for taking the falcon stack from simulation, through
-hardware-in-the-loop, *toward* a real drone. It hasn't flown on hardware — that's
-the Phase-2 arc (its name is the falconry tether, on purpose).
+it. Each one drives the same loop end to end, and each is where the methodology
+has to survive contact with a real domain.
 
-### Across all of it — the agent loop
-
-Today PulseEngine's agents coordinate the plain way — they synchronize through
-**GitHub issues and releases**, running in loops to hunt issues, implement features,
-and check whether a new release actually works. That is a deliberate choice rather
-than a gap: issues and releases are already durable, signed and auditable, with no new
-infrastructure to trust. Around that, [rivet](https://github.com/pulseengine/rivet)'s
-MCP tools expose validate / add / link / coverage to agents, and
-[temper](https://github.com/pulseengine/temper) (a GitHub App) holds every repo to
-the same standards. The [mcp](https://github.com/pulseengine/mcp) framework was our
-early Rust MCP bet — its future is now unclear, since the official MCP Rust SDK went
-its own way and mcp was stripped back.
-
-And the methodology those agents follow is itself packaged as tooling — the
-[**pulseengine-claude**](https://github.com/pulseengine/pulseengine.eu/tree/main/claude-tooling/plugins/pulseengine-claude)
-skills (proof-synthesis, oracle-gating, clean-room verification, release-execution,
-and more), which live in this very site's repo. "Write the code and close the V" is
-an installable practice here, not tribal knowledge.
+<div class="tools tools--built">
+<div class="tool"><a class="tool__name" href="https://github.com/pulseengine/relay" rel="noopener">relay</a><p class="tool__domain">flight software</p><p class="tool__does">Flight-software components for WebAssembly, inspired by NASA's cFS and reimagined as generic components, with formal proofs of specific safety properties: Verus contracts on the mission-layer crates, Kani bounded model checking, Lean for the controller's Lyapunov algebra.</p><p class="tool__maturity">The geometric SE(3) attitude loop carries a Lean-proven Lyapunov argument; the IEKF estimator is property-tested, with a proof still to land.</p></div>
+<div class="tool"><a class="tool__name" href="https://github.com/pulseengine/wohl" rel="noopener">wohl</a><p class="tool__domain">home supervision</p><p class="tool__does">A wireless field-sensor product on STM32G0 — CCSDS payloads over a sub-GHz radio, bridged at the hub. The small-target end of the range, where footprint decides what is possible.</p></div>
+<div class="tool"><a class="tool__name" href="https://github.com/pulseengine/jess" rel="noopener">jess</a><p class="tool__domain">hardware integration</p><p class="tool__does">Where software meets metal: an evidence-as-code hub for taking relay's falcon flight stack from simulation, through hardware-in-the-loop, toward a real drone, tracked in rivet the whole way.</p><p class="tool__maturity">It hasn't flown on hardware — that's the Phase-2 arc (its name is the falconry tether, on purpose).</p></div>
+</div>
 
 ## A worked example
 
@@ -230,9 +284,63 @@ Being honest about maturity is part of the method:
   measured, or still manual. We keep a running honest account of which is which;
   each repo's README and the [blog](@/blog/_index.md) track it.
 
+## Supporting projects {#supporting}
+
+PulseEngine projects that support the core toolchain — Bazel rules, layers,
+examples, and integration tooling.
+
+<div class="tools tools--support">
+<div class="tool"><a class="tool__name" href="https://github.com/pulseengine/temper" rel="noopener">temper</a><p class="tool__domain">repo hardening</p><p class="tool__does">GitHub App that hardens repositories to organizational standards.</p></div>
+<div class="tool"><a class="tool__name" href="https://github.com/pulseengine/rules_wasm_component" rel="noopener">rules_wasm_component</a><p class="tool__domain">Bazel rules</p><p class="tool__does">Bazel rules for WebAssembly Component Model development with multi-profile builds.</p></div>
+<div class="tool"><a class="tool__name" href="https://github.com/pulseengine/bazel-file-ops-component" rel="noopener">bazel-file-ops-component</a><p class="tool__domain">Bazel + WASM</p><p class="tool__does">Universal file operations for Bazel build systems via WebAssembly components.</p></div>
+<div class="tool"><a class="tool__name" href="https://github.com/pulseengine/covalent-layers" rel="noopener">covalent-layers</a><p class="tool__domain">layer composition</p><p class="tool__does">A layer that composes the pulseengine and pulseengine-wasm toolchains.</p></div>
+<div class="tool"><a class="tool__name" href="https://github.com/pulseengine/example-kvs" rel="noopener">example-kvs</a><p class="tool__domain">example</p><p class="tool__does">Eclipse S-CORE persistency through the full PulseEngine stack — rivet, spar, WIT, witness, sigil.</p></div>
+<div class="tool"><a class="tool__name" href="https://github.com/pulseengine/playground-eclipse-score" rel="noopener">playground-eclipse-score</a><p class="tool__domain">playground</p><p class="tool__does">Eclipse S-CORE typed-traceability playground — sphinx-needs artifacts converted to rivet.</p></div>
+</div>
+
+Also: [rules_verus](https://github.com/pulseengine/rules_verus),
+[rules_rocq_rust](https://github.com/pulseengine/rules_rocq_rust),
+[rules_lean](https://github.com/pulseengine/rules_lean),
+[rules_ordeal](https://github.com/pulseengine/rules_ordeal),
+[pulseengine-layers](https://github.com/pulseengine/pulseengine-layers),
+[wasm-layers](https://github.com/pulseengine/wasm-layers),
+[wasm-component-examples](https://github.com/pulseengine/wasm-component-examples).
+
+## Forks & dependencies {#forks}
+
+The PulseEngine GitHub organisation also hosts forks and vendored copies of
+third-party projects. These are **not** PulseEngine projects — they exist for
+build reproducibility, patching, or experimentation. We do not design, build, or
+maintain them.
+
+| Repository | What it is | Why it's here |
+|---|---|---|
+| [z3](https://github.com/pulseengine/z3) | Z3 Theorem Prover | Vendored for ordeal's build; we replaced it with our own solver |
+| [z3.rs](https://github.com/pulseengine/z3.rs) | Rust bindings for Z3 | Same — vendored for build reproducibility |
+| [wasmtime](https://github.com/pulseengine/wasmtime) | WebAssembly runtime | Forked for experimentation; kiln is our interpreter and runtime |
+| [wit-bindgen](https://github.com/pulseengine/wit-bindgen) | WIT binding generator | Vendored for rules_wasm_component builds |
+| [walrus](https://github.com/pulseengine/walrus) | WASM transformation library | Forked for loom's optimization passes |
+| [wasm-tools](https://github.com/pulseengine/wasm-tools) | WASM CLI and libraries | Vendored for component-model tooling |
+| [zephyr](https://github.com/pulseengine/zephyr) | Zephyr RTOS | Forked as reference for gale's kernel primitives |
+| [picolibc](https://github.com/pulseengine/picolibc) | C library for embedded systems | Vendored for cross-compilation targets |
+| [rowan](https://github.com/pulseengine/rowan) | Rust parser library | Vendored for spar's model parsing |
+| [renode-bazel-rules](https://github.com/pulseengine/renode-bazel-rules) | Bazel rules for Renode | Forked for simulation-in-CI integration |
+| [bazel-central-registry](https://github.com/pulseengine/bazel-central-registry) | Bazel module registry | Forked for private module publishing |
+
+## Archived {#archived}
+
+No longer actively maintained; the code remains available:
+[agora](https://github.com/pulseengine/agora) (agent coordination),
+[glsp-mcp](https://github.com/pulseengine/glsp-mcp) (graphical modeling),
+[thrum](https://github.com/pulseengine/thrum) (pipeline orchestrator),
+[studio-mcp](https://github.com/pulseengine/studio-mcp) (WindRiver Studio MCP),
+[timedate-mcp](https://github.com/pulseengine/timedate-mcp) (time/date MCP),
+[wasi-mcp](https://github.com/pulseengine/wasi-mcp) (WASI MCP proposal),
+[rules_moonbit](https://github.com/pulseengine/rules_moonbit) (Bazel rules for MoonBit),
+[moonbit_checksum_updater](https://github.com/pulseengine/moonbit_checksum_updater).
+
 ## See also
 
-- [Projects](@/projects/_index.md) — the parts, by role, as an interactive map.
 - [Timeline](@/timeline.md) — the month-by-month story of how all of this got built,
   from kiln onward.
 - [Reports](@/reports/_index.md) — live compliance and coverage output from rivet

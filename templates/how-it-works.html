@@ -39,12 +39,72 @@
     margin-top: 0.75rem;
     max-width: 46rem;
   }
-  /* Stage legend chips reused in the prose */
+  /* Stage jump links above the stage sections */
   .stage-key { display:flex; flex-wrap:wrap; gap:0.4rem; margin:1rem 0 0; }
-  .stage-key span {
-    font-size:0.7rem; color:var(--text-faint);
+  .stage-key a {
+    font-size:0.8rem; color:var(--text-faint); text-decoration:none;
     border:1px solid var(--border-subtle); border-radius:4px;
-    padding:0.15rem 0.5rem;
+    padding:0.2rem 0.6rem;
+  }
+  .stage-key a:hover { color:var(--text); border-color:var(--accent); }
+
+  /* Tool cards: one per tool, under each stage. The left border carries the
+     stage colour; products and supporting projects use their own. */
+  .tools {
+    --stage: var(--accent);
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr));
+    gap: 0.9rem;
+    margin: 1.25rem 0 2rem;
+  }
+  .tools--design  { --stage: var(--accent); }
+  .tools--trace   { --stage: var(--amber); }
+  .tools--build   { --stage: var(--cyan); }
+  .tools--verify  { --stage: var(--green); }
+  .tools--ship    { --stage: var(--purple); }
+  .tools--gate    { --stage: var(--amber); }
+  .tools--run     { --stage: var(--red); }
+  .tools--built   { --stage: var(--red); }
+  .tools--support { --stage: var(--border); }
+  .tool {
+    min-width: 0;
+    background: var(--surface);
+    border: 1px solid var(--border-subtle);
+    border-left: 3px solid var(--stage);
+    border-radius: 10px;
+    padding: 0.95rem 1.1rem;
+  }
+  .blog-post__content .tool p { margin: 0; }
+  .tool__name {
+    display: inline-block;
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 0.35rem;
+    overflow-wrap: anywhere;
+  }
+  a.tool__name { text-decoration: none; }
+  a.tool__name:hover { color: var(--accent); }
+  .tool__domain {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--stage);
+    margin-bottom: 0.45rem !important;
+  }
+  .tool__does {
+    font-size: 0.875rem;
+    line-height: 1.55;
+    color: var(--text-dim);
+  }
+  .tool__maturity {
+    font-size: 0.8rem;
+    line-height: 1.5;
+    color: var(--text-faint);
+    margin-top: 0.55rem !important;
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--border-subtle);
   }
 
   /* Keep diagrams and wide content inside the viewport on phones. Mermaid and
@@ -60,8 +120,7 @@
   }
 
   /* ── Stacked factory views (#194) ──────────────────────────────
-     Reuses the Projects page's nav idiom so readers meet a control they
-     already know. The panels are same-size SVGs with identical box
+     A row of buttons over same-size panels. The panels are same-size SVGs with identical box
      coordinates, so switching does not reflow the page. */
   .fviews { margin: 2rem 0; }
 
