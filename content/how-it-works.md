@@ -203,7 +203,7 @@ apart. All three are work in progress.
 
 <div class="tools tools--gate">
 <div class="tool"><a class="tool__name" href="https://github.com/pulseengine/plant" rel="noopener">plant</a><p class="tool__does">Runs each CI check against a planted bad input and fails when the check stays green.</p><p class="tool__maturity">Work in progress, pre-1.0.</p></div>
-<div class="tool"><a class="tool__name" href="https://github.com/pulseengine/jig" rel="noopener">jig</a><p class="tool__does">Shared CI baseline: reusable workflows pinned by SHA, plus fork guard, lockfile audit, action pins and a required verdict.</p><p class="tool__maturity">Work in progress, prereleases only. The first repository runs it in shadow, beside its own required checks.</p></div>
+<div class="tool"><a class="tool__name" href="https://github.com/pulseengine/jig" rel="noopener">jig</a><p class="tool__does">Shared CI baseline: reusable workflows pinned by SHA, plus fork guard, lockfile audit, action pins and a required verdict.</p><p class="tool__maturity">Work in progress, prereleases only. A first shadow pilot, beside a repository's own required checks, is open.</p></div>
 <div class="tool"><a class="tool__name" href="https://github.com/pulseengine/sieve" rel="noopener">sieve</a><p class="tool__does">Shared CI path classifier: picks which heavy jobs a pull request touches; unsure means everything runs.</p><p class="tool__maturity">Work in progress.</p></div>
 </div>
 
