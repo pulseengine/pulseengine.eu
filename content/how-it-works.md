@@ -77,7 +77,7 @@ Cranelift ISLE), and [synth](https://github.com/pulseengine/synth) transcodes it
 toward native ARM and RISC-V; it refuses constructs it has no lowering for.
 
 In loom, translation validation is on by default: after each pass, a changed
-function is reverted unless Z3 (or ordeal) proves it equivalent, or it is listed
+function is reverted unless Z3 (or ordeal) proves it equivalent within loom's model, or it is listed
 in loom's trust ledger. A function outside the model is left unchanged, and the
 transforms kept without a proof are listed by reason in that ledger.
 
