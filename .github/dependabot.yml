@@ -12,41 +12,74 @@
 #   5. CI watchdog (no-third-party-loads) validates the new bundle
 
 version: 2
-# One PR per logical release across all directories: version-locked families
-# (wasm-tools, wasmtime) and all github-actions pins in / must not split into
-# one PR per directory.
+# Grouped monthly updates (fleet template, owner decision 2026-11-21): every
+# entry runs monthly (the 1st, 02:00 UTC), keeps at most 2 PRs open and waits
+# 7 days after a release (cooldown). Majors stay ungrouped, one PR each.
+# Security updates ignore the schedule and the limit.
 updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+      time: "02:00"
+      timezone: Etc/UTC
+    open-pull-requests-limit: 2
+    cooldown:
+      default-days: 7
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: deps(actions)
+      include: scope
+    groups:
+      github-actions-all:
+        patterns:
+          - "*"
+  - package-ecosystem: cargo
+    directories:
+      - /tools/fetch-reports
+      - /tools/north-star-check
+      - /tools/north-star-check/harness
+      - /tools/north-star-measure
+      - /tools/seam-check
+    schedule:
+      interval: monthly
+      time: "02:00"
+      timezone: Etc/UTC
+    open-pull-requests-limit: 2
+    cooldown:
+      default-days: 7
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: deps(cargo)
+      include: scope
+    groups:
+      wasm-tools-family:
+        patterns: ["wasmparser", "wasm-encoder", "wasmprinter", "wit-component", "wit-parser", "wasm-metadata", "wat", "walrus"]
+      wasmtime:
+        patterns: ["wasmtime", "wasmtime-*"]
+      minor-patch:
+        update-types:
+          - minor
+          - patch
   - package-ecosystem: npm
     directory: /
     schedule:
-      interval: weekly
-      day: monday
-      time: "06:00"
-      timezone: "Europe/Berlin"
-    open-pull-requests-limit: 5
+      interval: monthly
+      time: "02:00"
+      timezone: Etc/UTC
+    open-pull-requests-limit: 2
+    cooldown:
+      default-days: 7
     labels:
       - "dependencies"
       - "autopublish"  # reuse the autopublish-style label so existing PR routing applies
     commit-message:
       prefix: deps
       include: scope
-
     groups:
-      wasm-tools-family:
-        patterns: ["wasmparser", "wasm-encoder", "wasmprinter", "wit-component", "wit-parser", "wasm-metadata", "wat", "walrus"]
-      wasmtime:
-        patterns: ["wasmtime", "wasmtime-*"]
-      github-actions-all:
-        patterns: ["^[^@]+/"]
-  - package-ecosystem: github-actions
-    directory: /
-    schedule:
-      interval: monthly
-      time: "06:00"
-      timezone: "Europe/Berlin"
-    open-pull-requests-limit: 3
-    labels:
-      - "dependencies"
-    commit-message:
-      prefix: deps(actions)
-      include: scope
+      minor-patch:
+        update-types:
+          - minor
+          - patch
