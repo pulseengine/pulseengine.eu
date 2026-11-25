@@ -19,10 +19,10 @@
 #
 # OUT_DIR must not contain spaces: the harness splits runner commands on
 # whitespace.
-# Env: FUZZ (default 200) · KILN_GAP=1 tolerates kiln failing to start (a
-# recorded gap: kiln 0.7.3 lacks three wasi:filesystem imports and
-# wasi:cli/exit exit-with-code); the harness fails if kiln starts running, so
-# the switch gets removed.
+# Env: FUZZ (default 200) · KILN_GAP=1 tolerates kiln failing to start. CI
+# no longer sets it: since covalent 2026.11.27 (kiln 0.9.0) kiln must run the
+# component like the other runners. The harness fails if kiln runs while the
+# switch is set, so it cannot linger.
 # Exit: 0 all steps hold · 1 a step failed · 2 could not run.
 set -euo pipefail
 
