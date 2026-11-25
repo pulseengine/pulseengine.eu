@@ -13,7 +13,7 @@ serde_json = "1"
 # rivet's own lossless YAML stack (rivet#1085), replacing serde_yaml: archived,
 # and its unsafe-libyaml dependency is flagged by RUSTSEC-2024-0449. Not on
 # crates.io yet, so pinned to the release tag. pulseengine.eu#228.
-rivet-yaml = { git = "https://github.com/pulseengine/rivet", tag = "v0.41.0" }
+rivet-yaml = { git = "https://github.com/pulseengine/rivet", tag = "v0.42.2" }
 tar = "0.4"
 toml = "0.8"
 ureq = "3"
