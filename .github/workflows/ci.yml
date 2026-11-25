@@ -615,9 +615,6 @@ jobs:
   # the component (plain, loom-optimised, signed) to agree on the committed
   # data, the 15 planted violations and 200 seeded random cases. The Python
   # step in `build` stays until the owner retires it.
-  # KILN_GAP=1: kiln cannot yet run the component (unresolved wasi:filesystem
-  # and exit-with-code imports); the harness fails once it can, so the switch
-  # must then go.
   # rivet: verifies REQ-NORTH-STAR-COMPONENT
   north-star-component:
     runs-on: ubuntu-24.04
@@ -655,7 +652,6 @@ jobs:
 
       - name: Build, optimise, sign and compare the North Star component
         env:
-          KILN_GAP: "1"
           FUZZ: "200"
         run: bash tools/north-star-check/pipeline.sh "$RUNNER_TEMP/north-star-check"
 
