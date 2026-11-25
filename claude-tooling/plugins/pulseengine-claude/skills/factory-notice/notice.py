@@ -500,6 +500,8 @@ class Warte:
         try:
             return self._req(method, path, body)
         except WriteRefused as e:
+            if method == "GET":
+                raise  # a refused read is not a refused write; the caller says what it lost
             self.writable = False
             if self._token:
                 self._say(f"warte refused the write (HTTP {e}): it did not accept the bearer token "
@@ -769,22 +771,47 @@ def gather(root, warte, agent=None, include_warte=True):
         for n in st.notices():
             seen[n["id"]] = dict(n, _source="local")
     if include_warte and warte.available():
+        # A failed read is said, never swallowed: the owner's decision view must not
+        # look complete when warte refused it (warte 1.6.44 needs agents:read, and
+        # agents:any for other agents' rows).
         try:
             agents = warte.call("GET", "/api/agents") or []
-            for a in agents:
-                if agent and a.get("name") != agent:
+        except WriteRefused as e:
+            warte._say(f"warte refused to list agents (HTTP {e}); showing local copies only. The owner "
+                       "view needs a token with agents:read and agents:any", key="gather-refused")
+            agents = []
+        except Exception as e:
+            warte._say(f"warte notices unavailable ({type(e).__name__}); showing local copies only",
+                       key="gather-failed")
+            agents = []
+        refused, failed = [], []
+        for a in agents:
+            if agent and a.get("name") != agent:
+                continue
+            try:
+                rows = warte.rows(a["id"], NOTICE_TYPE)
+            except WriteRefused as e:
+                refused.append(f"{a.get('name')} (HTTP {e})")
+                continue
+            except Exception as e:
+                failed.append(f"{a.get('name')} ({type(e).__name__})")
+                continue
+            for row in rows:
+                n = row["content"]
+                if not isinstance(n, dict) or not isinstance(n.get("id"), str):
                     continue
-                for row in warte.rows(a["id"], NOTICE_TYPE):
-                    n = row["content"]
-                    if not isinstance(n, dict) or not isinstance(n.get("id"), str):
-                        continue
-                    cur = seen.get(n["id"])
-                    if cur is None or (cur["_source"] == "warte" and
-                                       (n.get("revision", 0), n.get("status") != "open")
-                                       > (cur.get("revision", 0), cur.get("status") != "open")):
-                        seen[n["id"]] = dict(n, _source="warte")
-        except Exception:
-            pass
+                cur = seen.get(n["id"])
+                if cur is None or (cur["_source"] == "warte" and
+                                   (n.get("revision", 0), n.get("status") != "open")
+                                   > (cur.get("revision", 0), cur.get("status") != "open")):
+                    seen[n["id"]] = dict(n, _source="warte")
+        if refused:
+            warte._say(f"warte refused notices for {len(refused)} agent(s): {', '.join(refused)}; showing "
+                       "local copies for them. The owner view needs a token with agents:read and agents:any",
+                       key="gather-refused-rows")
+        if failed:
+            warte._say(f"warte notices unavailable for {len(failed)} agent(s): {', '.join(failed)}; showing "
+                       "local copies for them", key="gather-failed-rows")
     return sorted(seen.values(), key=lambda n: str(n.get("created_at", "")), reverse=True)
 
 
@@ -2040,6 +2067,8 @@ def _stub_warte():
                     else self._send(404)
             m = re.match(r"^/warte/api/agents/([^/]+)/data$", u.path)
             if m:
+                if state.get("read_403"):  # warte 1.6.44 without agents:read / agents:any
+                    return self._send(403)
                 rows = [d for d in state["data"] if d["agent_id"] == m.group(1)
                         and d["data_type"] == q.get("data_type", [None])[0]]
                 rows = sorted(rows, key=lambda d: d["captured_at"], reverse=True)
@@ -2315,6 +2344,17 @@ def self_test():
             rw = post_notice(at, ww, root_schema, dict(info, id=new_notice_id(), agent="tokentest"))
             check("token: a wrong token is refused too and kept in the outbox",
                   rw["warte"] == "outbox" and "did not accept the bearer token" in errw.getvalue())
+            # a refused READ in the owner view is said, not swallowed (warte 1.6.44 agents:read)
+            state["read_403"], errg = True, io.StringIO()
+            wg = Warte(base, timeout=3, err=errg)
+            listed = gather(at.root, wg)
+            state["read_403"] = False
+            check("gather: a 403 on agent rows is said and names agents:read and agents:any",
+                  "refused notices for" in errg.getvalue() and "agents:read and agents:any" in errg.getvalue())
+            check("gather: a refused read is not reported as a refused write",
+                  "refused the write" not in errg.getvalue() and wg.writable is not False)
+            check("gather: local copies are still listed when warte refuses",
+                  any(n.get("_source") == "local" for n in listed))
             # env and file sources, precedence, and bad values
             tf = pathlib.Path(tmp.name) / "tok"
             tf.write_text(secret + "\n")
