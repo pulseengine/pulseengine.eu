@@ -8,10 +8,12 @@
 //! YAML edge cases, and the HTTP path against a loopback stub (urllib vs the
 //! std client, curl vs curl).
 //!
-//! One normalisation, and only one: the parser's own words after
+//! Two normalisations, and only these: the parser's own words after
 //! "block is not valid YAML: " (PyYAML and rivet-yaml word a syntax error
-//! differently). The rule, the prefix, the exit code and every other byte
-//! must match. The count of cases that needed it is printed.
+//! differently), and the elapsed time curl prints in a connect error
+//! ("after 0 ms" vs "after 3 ms" made one run flaky). The rule, the prefix,
+//! the exit code and every other byte must match. The count of cases that
+//! needed the parser normalisation is printed.
 //!
 //! Negative control: two planted mutants of the Python script (one rule, one
 //! output format) must each make at least one case differ, so a harness that
@@ -251,18 +253,51 @@ fn exec(prog: &str, pre: &[String], args: &[String]) -> (String, i32) {
     (String::from_utf8_lossy(&o.stdout).into_owned(), o.status.code().unwrap_or(-1))
 }
 
-/// Cut the parser's own words after the parse prefix, in text and JSON.
+/// Replace curl's elapsed time in "after N ms" with a fixed token. Only lines
+/// carrying a curl error are touched, so no other number can be masked.
+fn mask_curl_elapsed(l: &str) -> String {
+    if !l.contains("curl: (") {
+        return l.to_string();
+    }
+    let mut out = String::new();
+    let mut rest = l;
+    while let Some(i) = rest.find("after ") {
+        out.push_str(&rest[..i + 6]);
+        rest = &rest[i + 6..];
+        let n = rest.bytes().take_while(u8::is_ascii_digit).count();
+        if n > 0 && rest[n..].starts_with(" ms") {
+            out.push_str("<n>");
+            rest = &rest[n..];
+        }
+    }
+    out.push_str(rest);
+    out
+}
+
+/// Cut the parser's own words after the parse prefix, in text and JSON, and
+/// mask curl's elapsed time.
 fn normalize(out: &str) -> String {
     out.lines()
+        .map(mask_curl_elapsed)
         .map(|l| match l.find(PARSE_PREFIX) {
             Some(i) => {
                 let tail = if l.trim_end().ends_with('"') { "\"" } else { "" };
                 format!("{}{}<parser detail>{}", &l[..i], PARSE_PREFIX, tail)
             }
-            None => l.to_string(),
+            None => l,
         })
         .collect::<Vec<_>>()
         .join("\n")
+}
+
+#[test]
+fn curl_elapsed_mask_is_narrow() {
+    let a = "error: GET x failed: curl exit 7: curl: (7) Failed to connect to 127.0.0.1 port 9 after 0 ms: Couldn't connect";
+    let b = a.replace("after 0 ms", "after 3 ms");
+    assert_eq!(mask_curl_elapsed(a), mask_curl_elapsed(&b));
+    // a different port still differs, and lines without a curl error are untouched
+    assert_ne!(mask_curl_elapsed(a), mask_curl_elapsed(&a.replace("port 9", "port 8")));
+    assert_eq!(mask_curl_elapsed("retry after 5 ms"), "retry after 5 ms");
 }
 
 struct Tally {
