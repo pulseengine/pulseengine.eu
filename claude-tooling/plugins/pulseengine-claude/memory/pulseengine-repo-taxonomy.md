@@ -50,7 +50,7 @@ Some repos are both: `scry` is a tool **and** dogfoods witness MC/DC;
 `rivet` is a tool **and** produces a consumer-style compliance report. When
 a repo is dual, apply the inward lens to its own code and the outward lens
 to what it produces. Repos like `automator`, `glsp-mcp`, `studio-mcp`,
-`bazel-file-ops-component` are tooling/support — treat as category 1.
+`kapsel` (formerly `bazel-file-ops-component`) are tooling/support — treat as category 1.
 
 If a repo is **not** a PulseEngine repo at all (a fork, an upstream
 dependency, a scratch repo), the methodology framing still informs *how* to
