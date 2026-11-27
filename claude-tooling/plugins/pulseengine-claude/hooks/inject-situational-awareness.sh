@@ -26,7 +26,7 @@ branch="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo '?')"
 # is only a nudge. Keep the tool list roughly in sync with the toolchain memory.
 # Category heuristic only — the authoritative roster is the pulseengine-toolchain memory.
 tools=" rivet spar witness sigil meld loom synth kiln gale scry smithy thrum mcp temper rules_lean rules_rocq_rust rules_verus rules_wasm_component rules_moonbit "
-consumers=" wohl relay example-kvs "
+consumers=" wohl relay "
 if printf '%s' "$tools" | grep -q " $repo "; then
   category="toolchain development (tool builds itself — inward lens; oracle-gate the tool, dogfood the chain)"
 elif printf '%s' "$consumers" | grep -q " $repo "; then
