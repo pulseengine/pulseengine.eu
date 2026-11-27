@@ -215,15 +215,12 @@ the methodology meets a real domain; each card links its README for status.
 These repositories show the chain on real inputs; each README says which layers
 are live.
 
-**Build + verify + trace — [example-kvs](https://github.com/pulseengine/example-kvs).**
-It takes a real third-party specification, Eclipse S-CORE's persistency
-key-value store, and expresses it through the stack, layer by layer: rivet typed
-artifacts, a spar AADL model, a WIT contract that builds against the upstream
-code, and a verification gate (`tools/verify.py`) that runs Bazel tests per
-artifact. The [maturity series](/tags/how-it-works/) walks which layers are live. (And
+**Build + verify + trace.** [example-kvs](https://github.com/pulseengine/example-kvs)
+expressed Eclipse S-CORE's persistency key-value store through the stack, and
 [playground-eclipse-score](https://github.com/pulseengine/playground-eclipse-score)
-converts Eclipse **safety artifacts** (requirements, architecture, FMEA, and
-more) into rivet's typed YAML, testing schema coverage at real scale.)
+converted Eclipse safety artifacts into rivet's typed YAML. Both were archived on
+2026-11-27 so the work could concentrate on the newer repositories; the
+[maturity series](/tags/how-it-works/) records what they showed.
 
 **Run + hardware — falcon → jess.** relay's falcon flight stack (an Invariant-EKF
 estimator, geometric SE(3) attitude control, an ADRC inner loop) flies in Gazebo
@@ -241,8 +238,6 @@ examples, and integration tooling.
 <div class="tool"><a class="tool__name" href="https://github.com/pulseengine/rules_wasm_component" rel="noopener">rules_wasm_component</a><p class="tool__domain">Bazel rules</p><p class="tool__does">Bazel rules for WebAssembly Component Model development with multi-profile builds.</p></div>
 <div class="tool"><a class="tool__name" href="https://github.com/pulseengine/kapsel" rel="noopener">kapsel</a><p class="tool__domain">Bazel + WASM</p><p class="tool__does">File operations for Bazel builds as a WebAssembly component, growing into a capability shell for AI agents.</p></div>
 <div class="tool"><a class="tool__name" href="https://github.com/pulseengine/covalent-layers" rel="noopener">covalent-layers</a><p class="tool__domain">layer composition</p><p class="tool__does">A layer that composes the pulseengine and pulseengine-wasm realms.</p></div>
-<div class="tool"><a class="tool__name" href="https://github.com/pulseengine/example-kvs" rel="noopener">example-kvs</a><p class="tool__domain">example</p><p class="tool__does">Eclipse S-CORE persistency through the PulseEngine stack.</p></div>
-<div class="tool"><a class="tool__name" href="https://github.com/pulseengine/playground-eclipse-score" rel="noopener">playground-eclipse-score</a><p class="tool__domain">playground</p><p class="tool__does">Eclipse S-CORE typed-traceability playground: sphinx-needs artifacts converted to rivet.</p></div>
 </div>
 
 Also: [rules_verus](https://github.com/pulseengine/rules_verus),

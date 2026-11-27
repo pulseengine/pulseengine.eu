@@ -43,4 +43,4 @@ Commit messages, PR bodies, issues and posts: the title states the change; at mo
 
 ## Which lens
 
-Toolchain repos (rivet, spar, witness, sigil, meld, loom, synth, kiln, gale, scry, rules_*, smithy, temper) turn the method inward: oracle-gate the tool, dogfood the chain, the release pipeline is product. Consumer repos (wohl, relay, example-kvs) compose the full feature loop outward. The situational-awareness block guesses which; confirm it from the repo.
+Toolchain repos (rivet, spar, witness, sigil, meld, loom, synth, kiln, gale, scry, rules_*, smithy, temper) turn the method inward: oracle-gate the tool, dogfood the chain, the release pipeline is product. Consumer repos (wohl, relay) compose the full feature loop outward. The situational-awareness block guesses which; confirm it from the repo.

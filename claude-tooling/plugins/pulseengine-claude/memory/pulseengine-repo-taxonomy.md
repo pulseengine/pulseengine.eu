@@ -31,8 +31,8 @@ Focus here:
 Repos that *use* the toolchain to build a real, verified application. The
 methodology turns *outward*: compose the tools end-to-end.
 
-Examples: `wohl` (home supervision), `relay` (flight software),
-`example-kvs`, and other applications (this list grows — classify by role,
+Examples: `wohl` (home supervision), `relay` (flight software)
+and other applications (this list grows — classify by role,
 not by memorising names).
 
 Focus here:
