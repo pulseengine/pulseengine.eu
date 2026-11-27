@@ -1642,6 +1642,12 @@ claims:
     evidence:
       - kind: verbatim
         text: "take precedence; use the other one only where ours has no step"
+  - id: SKILL-README-FRONT-PAGE
+    doc: claude-tooling/plugins/pulseengine-claude/skills/readme-front-page/SKILL.md
+    text: "**The rule that separates them: the README says what and why at the level where"
+    evidence:
+      - kind: verbatim
+        text: "Phrase it as \"we found no other … that …\", never"
 
   # ── Probe liveness is not idleness (2026-11-18) ─────────────────────────────
   - id: CI-STATUS-LIVE-FALSE-IS-UNKNOWN
