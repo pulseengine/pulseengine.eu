@@ -35,6 +35,17 @@ and seam-check exited "cannot check" on every tag.
    build (`wasm32-wasip2`) is the goal wherever the tool needs no host-only
    features, so it can run on our own chain (meld, loom, sigil, kiln) and count
    toward O5.
+   **Exit codes survive a component only if you make them.** Agreed by temper
+   and plant, 2026-11-27, after both measured codes collapsing to 1: build with
+   Rust >= 1.100, pinned in the repo (1.99's std has no `exit-with-code`
+   import, so `process::exit(2)` arrives as 1); on WASI exit through
+   `std::process::exit`, never by returning `ExitCode` from `main` (with
+   wasmtime 50.0.2 that gives 1 even with `-S cli-exit-with-code=y`); assert
+   `grep -aq exit-with-code tool.wasm` before asserting the codes (the import
+   must be present; older wasmtime, e.g. 42, then needs
+   `-S cli-exit-with-code` just to start the component); and assert
+   every documented code through the shipped component, under the runner and
+   flags you document.
 3. **Build the equivalence harness before trusting a line of the port.** It
    runs both implementations on the same inputs and asserts identical stdout
    and exit code. Inputs: every self-test case, recorded real fixtures (fetch
