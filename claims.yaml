@@ -1642,6 +1642,12 @@ claims:
     evidence:
       - kind: verbatim
         text: "take precedence; use the other one only where ours has no step"
+  - id: SKILL-RELEASE-NOTES-SHAPE
+    doc: claude-tooling/plugins/pulseengine-claude/skills/release-execution/SKILL.md
+    text: "### 5c. Write the notes in the fleet shape"
+    evidence:
+      - kind: verbatim
+        text: "6. **`## Falsification statement`**: \"This release is wrong if\" followed by concrete, checkable"
   - id: SKILL-PORT-WASI-EXIT-CODES
     doc: claude-tooling/plugins/pulseengine-claude/skills/port-with-equivalence/SKILL.md
     text: "**Exit codes survive a component only if you make them.**"

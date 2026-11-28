@@ -72,8 +72,12 @@ already achieved by five of nine.
   stay right of the command-name column; they never wrap under the names.
 - A command's description in a list is one short phrase, at most 60 characters. Detail goes to
   `<tool> <cmd> --help` (long_about) or `docs`.
-- More than 8 commands under one heading means they get grouped under task headings
-  (clap `help_heading` / `next_help_heading`).
+- More than 8 commands under one heading means they get grouped under task headings. clap 4
+  lists every subcommand under one heading, so a clap tool groups them with a hand-written
+  `help_template` (or stays at 8 or fewer, for example by disabling the generated `help`
+  subcommand).
+- clap does not wrap the Usage line; a long one needs `override_usage` split over lines to
+  pass at 60 columns.
 - `-h` is the compact form; `--help` is the long form and ends with an `Examples:` section.
 - Checked by `jig cli-help` (rule ids CH1 width, CH1b separable, CH2 description, CH3 ungrouped,
   CH4 references, CH5/CH6 exit codes, CH7 short-long and Examples), at widths 60, 80 and 120
