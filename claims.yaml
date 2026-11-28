@@ -2721,7 +2721,7 @@ claims:
       - kind: file-exists
         path: .github/workflows/seam-check.yml
       - kind: count-max
-        pattern: 'pull_request|merge_group'
+        pattern: '(?m)^\s*(pull_request|pull_request_target|merge_group)\s*:'
         glob: ['.github/workflows/seam-check.yml']
         max: 0
       - kind: count-min

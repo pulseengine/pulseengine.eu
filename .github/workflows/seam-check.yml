@@ -38,7 +38,7 @@ jobs:
   live:
     # The light pool, as ci.yml's build: its python3 has PyYAML, which the
     # checker needs (it exits 2 without it, never a silent pass).
-    runs-on: [self-hosted, linux, x64, light]
+    runs-on: ${{ (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && fromJSON('["self-hosted","linux","x64","light"]') || 'ubuntu-24.04' }}
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
