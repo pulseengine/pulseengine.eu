@@ -28,7 +28,7 @@ jobs:
     # post or a fix to a live page should not queue behind another repo's build.
     # ci.yml's `deploy-tooling` job proves on every PR that this pool can build
     # fetch-reports and has every binary this job calls.
-    runs-on: [self-hosted, linux, x64, light]
+    runs-on: ${{ (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && fromJSON('["self-hosted","linux","x64","light"]') || 'ubuntu-24.04' }}
     # Fail fast instead of hanging: a stuck deploy (e.g. a wedged scp) must not
     # hold the release-${{ github.ref }} concurrency slot for the 6h default and
     # jam every later deploy. 15 min is generous for a build + tar + scp.

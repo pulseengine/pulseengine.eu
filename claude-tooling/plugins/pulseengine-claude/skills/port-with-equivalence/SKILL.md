@@ -45,7 +45,8 @@ and seam-check exited "cannot check" on every tag.
    must be present; older wasmtime, e.g. 42, then needs
    `-S cli-exit-with-code` just to start the component); and assert
    every documented code through the shipped component, under the runner and
-   flags you document.
+   flags you document. For fusing with meld and running on kiln in CI, follow
+   meld's guide (meld-cli/docs/concept-ci.md, or `meld docs ci`).
 3. **Build the equivalence harness before trusting a line of the port.** It
    runs both implementations on the same inputs and asserts identical stdout
    and exit code. Inputs: every self-test case, recorded real fixtures (fetch
