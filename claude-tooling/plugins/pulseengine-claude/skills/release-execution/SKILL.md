@@ -144,6 +144,26 @@ see it asset-less for those minutes and may file it as broken (it happened).
 Either state "binaries attach ~N min after the tag" in the notes, or hold the
 notes publish until the asset upload lands — pick one and keep it consistent.
 
+### 5c. Write the notes in the fleet shape
+Owner decision 2026-11-28; the model is kiln v0.9.1's release notes. Every release body has, in
+this order:
+1. **An opening paragraph** before any heading: what this release changes or fixes and why, in
+   plain words.
+2. **Evidence:** a small before/after table or measured numbers, each with the run or command
+   that produced it (a run link, the exact command, the tool version).
+3. **`## Changes`**, grouped by area (for example Startup, Verification, Dependencies, Docs),
+   one line per change with its PR or issue numbers.
+4. **The verify command**, copy-pasteable, naming the exact signing identity for this tag:
+   `cosign verify-blob --bundle SHA256SUMS.txt.cosign.bundle --certificate-identity
+   'https://github.com/pulseengine/<repo>/.github/workflows/release.yml@refs/tags/<tag>'
+   --certificate-oidc-issuer https://token.actions.githubusercontent.com SHA256SUMS.txt`
+5. **`## Known limitations`**: what does not work yet, with issue numbers.
+6. **`## Falsification statement`**: "This release is wrong if" followed by concrete, checkable
+   conditions (a measured threshold, a differential job reporting a difference, a version
+   string, the verify command failing).
+`jig release-notes` checks 1, 3, 4, 5 and 6 (and warns when 2 is missing) before the release is
+published.
+
 ### 6. Verify the release shipped
 - GitHub Release: artifacts present, notes correct.
 - crates.io: `cargo search <crate>` shows the new version.
@@ -151,7 +171,7 @@ notes publish until the asset upload lands — pick one and keep it consistent.
 - Apply [`claim-verification`] to the "release looks good" claim before reporting done.
 
 ### 7. Write the falsification statement
-- Per PulseEngine methodology, every release should carry a falsifiable kill-criterion: "this release would be wrong if X is observed in the field." Add it to release notes or a follow-up issue.
+- Per PulseEngine methodology, every release should carry a falsifiable kill-criterion: "this release would be wrong if X is observed in the field." It goes in the notes' `## Falsification statement` section (step 5c).
 - The point is to make the claim measurable, not to draft prose. One sentence is fine.
 
 ### 8. Release tail cleanup
