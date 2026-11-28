@@ -66,6 +66,19 @@ a single line of **497 characters** and 16 lines over 100 columns; rivet peaks a
 over. kilnd, loom, meld, ordeal and wsc are all under 80 with none over — so this is achievable and
 already achieved by five of nine.
 
+**7b. Help is readable at every terminal width, grouped, and short in the list (owner, 2026-11-28).**
+- Wrap to the terminal the help is printed in, capped at 100 columns (clap: `wrap_help` and
+  `max_term_width(100)`), and stay readable at 60 and 80. A description and its continuation lines
+  stay right of the command-name column; they never wrap under the names.
+- A command's description in a list is one short phrase, at most 60 characters. Detail goes to
+  `<tool> <cmd> --help` (long_about) or `docs`.
+- More than 8 commands under one heading means they get grouped under task headings
+  (clap `help_heading` / `next_help_heading`).
+- `-h` is the compact form; `--help` is the long form and ends with an `Examples:` section.
+- Checked by `jig cli-help` (rule ids CH1 width, CH1b separable, CH2 description, CH3 ungrouped,
+  CH4 references, CH5/CH6 exit codes, CH7 short-long and Examples), at widths 60, 80 and 120
+  through a terminal and through COLUMNS.
+
 **8a. The rule is now checkable — run it, don't remember it.**
 `scripts/check-cli-conventions.py` (pulseengine.eu) takes a directory with a
 `varve.toml` pin and checks every tool the layer carries. It uses `varve inspect`
